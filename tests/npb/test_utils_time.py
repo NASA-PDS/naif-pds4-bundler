@@ -1104,7 +1104,7 @@ def test_ek_coverage_start_stop_columns_appends_both(lsk):
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
             # Mock _find_ek_time_columns to return START_TIME/STOP_TIME pair
-            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', return_value=("START_TIME", "STOP_TIME", False)):
+            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', return_value=("START_TIME", "STOP_TIME")):
                 with patch('spiceypy.ekfind', return_value=(10, False, "")):
                     with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', side_effect=mock_fetch):
                         result = time.ek_coverage(ek_file, "infomod2", "UTC")
@@ -1146,7 +1146,7 @@ def test_ek_coverage_stop_et_none_only_appends_start(lsk):
     with patch('spiceypy.eknseg', return_value=1):
         with patch('spiceypy.ekssum', return_value=mock_segsum):
             # Mock _find_ek_time_columns to return START_TIME/STOP_TIME pair
-            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', return_value=("START_TIME", "STOP_TIME", False)):
+            with patch('pds.naif_pds4_bundler.utils.time._find_ek_time_columns', return_value=("START_TIME", "STOP_TIME")):
                 with patch('spiceypy.ekfind', return_value=(5, False, "")):
                     with patch('pds.naif_pds4_bundler.utils.time._ek_fetch_row_value', side_effect=mock_fetch):
                         result = time.ek_coverage(ek_file, "infomod2", "UTC")
@@ -1395,7 +1395,7 @@ def test_ek_coverage_query_spicey_error_multiple_segments_one_fails(lsk):
             raise spiceypy.exceptions.SpiceyError("SPICE(QUERYFAILURE) Query failed")
         else:
             # Second segment: return success
-            return ("TIME", "TIME", True)
+            return ("TIME", "TIME")
 
     with patch('spiceypy.eknseg', return_value=2):
         with patch('spiceypy.ekssum', side_effect=[mock_segsum1, mock_segsum2]):
@@ -1596,7 +1596,7 @@ def test_ek_coverage_both_exception_types_in_different_segments(lsk):
         find_call[0] += 1
         if find_call[0] == 1:
             # First segment succeeds
-            return ("ET", "ET", True)
+            return ("ET", "ET")
         else:
             # Third segment (second call) fails
             raise spiceypy.exceptions.SpiceyError("Query parse error")

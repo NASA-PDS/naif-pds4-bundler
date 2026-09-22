@@ -310,8 +310,7 @@ def _find_ek_time_columns(table_name):
 
     :param table_name: Name of the EK table to query
     :type table_name: str
-    :return: Tuple of (start_column, stop_column, is_single_column) if found,
-             None if no time columns found
+    :return: Tuple of (start_column, stop_column) if found, None if no time columns found
     :rtype: tuple or None
     """
     # Priority order: most common patterns first
@@ -342,12 +341,12 @@ def _find_ek_time_columns(table_name):
                 query = f"SELECT {start_col}, {stop_col} FROM {table_name}"
 
             # Try the query
-            nmrows, error, errmsg = spiceypy.ekfind(query, 256)
+            nmrows, error, _ = spiceypy.ekfind(query, 256)
 
             if not error and nmrows > 0:
                 # Success! These columns exist and have data
                 logging.debug(f"    Found time columns via query: {start_col}, {stop_col}")
-                return (start_col, stop_col, is_single)
+                return (start_col, stop_col)
 
         except spiceypy.exceptions.SpiceyError:
             continue  # Try next pattern
@@ -447,7 +446,7 @@ def ek_coverage(path, date_format="infomod2", system="UTC"):
 
                     if time_cols:
                         # Found time columns via direct query
-                        start_col, stop_col, is_single = time_cols
+                        start_col, stop_col = time_cols
                     else:
                         # Fallback: inspect cnames from ekssum (may have truncated names)
                         logging.debug(f"  Segment {segno}: {table_name} - trying cnames fallback")
@@ -467,11 +466,7 @@ def ek_coverage(path, date_format="infomod2", system="UTC"):
                         # First pass: look for ET or single TIME column
                         for idx, col_name in enumerate(cnames):
                             col_upper = col_name.upper()
-                            if col_upper == 'ET':
-                                start_col = col_name
-                                stop_col = col_name
-                                break
-                            elif col_upper in ['TIME', 'EPOCH', 'EVT_TIME', 'EVENT_TIME']:
+                            if col_upper in ['ET', 'TIME', 'EPOCH', 'EVT_TIME', 'EVENT_TIME']:
                                 start_col = col_name
                                 stop_col = col_name
                                 break
@@ -519,7 +514,7 @@ def ek_coverage(path, date_format="infomod2", system="UTC"):
 
                         logging.debug(f"  Segment {segno}: {table_name} - querying {segsum.nrows} rows")
 
-                        nmrows, error, errmsg = spiceypy.ekfind(query, 256)
+                        nmrows, error, _ = spiceypy.ekfind(query, 256)
 
                         if error or nmrows == 0:
                             # Query failed or no results
