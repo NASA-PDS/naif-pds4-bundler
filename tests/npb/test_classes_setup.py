@@ -3,6 +3,7 @@ import datetime
 import logging
 import os
 import re
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Generator, cast, Any
 from unittest.mock import mock_open, Mock, call
@@ -701,10 +702,9 @@ class TestSetupCheckConfiguration:
 
     @pytest.fixture(autouse=True)
     def patch_handle_npb_error_and_restore_cwd(self, monkeypatch) -> Generator[None, None, None]:
-        """The current directory is saved, as the check_configuration function
-        switches between directories and eventually returns to the original
-        directory. If a test fails, the working directory is restored to its
-        original state."""
+        """Remembers the working directory before each test and puts it back
+        afterward, so one test can't leave the next one in a different
+        place."""
 
         original_cwd = os.getcwd()
 
@@ -882,6 +882,31 @@ class TestSetupCheckConfiguration:
 
         assert setup.staging_directory == str(staging_directory)
 
+    def test_staging_directory_under_cwd_always_appends_mission_dir(
+            self, tmp_path, monkeypatch) -> None:
+        """A relative staging directory found under cwd always gets the
+        mission dir appended, even when its text already contains that name.
+        Only an absolute value, or one found only under the root, gets the
+        "don't double it up" check.
+        """
+        # Preparation: a relative staging directory whose own name already
+        # contains the mission dir text, created under the process cwd.
+        monkeypatch.chdir(tmp_path)
+
+        mission_dir = 'maven_spice'
+        (tmp_path / 'out' / mission_dir).mkdir(parents=True)
+
+        setup = self.make_check_setup(tmp_path, relative_paths=True)
+        setup.staging_directory = os.path.join('out', mission_dir)
+
+        # Execution.
+        setup.check_configuration()
+
+        # Verification: the mission dir is appended anyway, since a relative
+        # value found under cwd is always treated as a base folder.
+        assert setup.staging_directory == str(
+            tmp_path / 'out' / mission_dir / mission_dir)
+
     def test_creates_missing_staging_directory_when_faucet_uses_it(self, tmp_path,
                                                                    monkeypatch) -> None:
         # Move the test to the temporal directory.
@@ -1042,6 +1067,201 @@ class TestSetupCheckConfiguration:
         # returned message.
         with pytest.raises(NPBError, match=re.escape(f'Directory does not exist: '
                                                       f'{tmp_path / "missing_work"}.')):
+            setup.check_configuration()
+
+    @pytest.mark.parametrize('attribute, bad_value', [
+        ('working_directory', 'missing_work'),
+        ('staging_directory', 'missing_staging'),
+        ('bundle_directory', 'missing_bundle'),
+        ('kernels_directory', ['missing_kernels']),
+    ], ids=['working_directory_missing', 'staging_directory_uncreatable',
+            'bundle_directory_missing', 'kernel_directory_missing'])
+    def test_restores_process_cwd_after_directory_validation_failure(
+            self, tmp_path, monkeypatch, attribute, bad_value) -> None:
+        """Feeds check_configuration a directory that fails validation and checks
+        we end up in the same working directory we started in. One case for
+        each kind of directory: a missing working directory, a staging
+        directory that can't be created, a missing bundle directory and a
+        missing kernels' directory.
+
+        os.mkdir is made to fail in every case, patched only after the fixture
+        has created its own directories so the patch doesn't reach into
+        make_check_setup(). Only the staging one actually gets there, but
+        patching it everywhere lets all four share the same test body.
+        """
+        monkeypatch.chdir(tmp_path)
+
+        setup = self.make_check_setup(tmp_path, relative_paths=True)
+        setattr(setup, attribute, bad_value)
+
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.os.mkdir',
+            Mock(side_effect=OSError('permission denied')),
+        )
+
+        original_cwd = os.getcwd()
+
+        with pytest.raises(NPBError):
+            setup.check_configuration()
+
+        # Raising an error shouldn't leave the process in another directory.
+        assert os.getcwd() == original_cwd
+
+    @pytest.mark.parametrize('attribute, value, resolved, suffix', [
+        ('working_directory', 'root_only',
+         lambda setup: setup.working_directory, ''),
+        ('staging_directory', 'root_only',
+         lambda setup: setup.staging_directory, os.sep + 'maven_spice'),
+        ('bundle_directory', 'root_only',
+         lambda setup: setup.bundle_directory, ''),
+        ('kernels_directory', ['root_only'],
+         lambda setup: setup.kernels_directory[0], ''),
+    ], ids=['working_directory', 'staging_directory', 'bundle_directory',
+            'kernels_directory'])
+    def test_relative_directory_found_only_under_root_is_made_absolute(
+            self, tmp_path, monkeypatch, attribute, value, resolved, suffix) -> None:
+        """Sets a relative directory that isn't under the current directory but
+        does exist under the filesystem root, then runs check_configuration. It
+        should pass validation, store the absolute path under the root (with
+        the mission dir added for staging) and leave the working directory
+        alone.
+
+        os.path.isdir is patched so the fake root directory counts as
+        existing, and shutil.copy/copy2 are stubbed because the templates get
+        copied into the working directory.
+        """
+        monkeypatch.chdir(tmp_path)
+
+        fake_root_dir = os.path.join(os.path.splitdrive(os.getcwd())[0] + os.sep,
+                                     'root_only')
+        real_isdir = os.path.isdir
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.os.path.isdir',
+            lambda path: path == fake_root_dir or real_isdir(path),
+        )
+
+        # Templates get copied into the working directory, which doesn't really
+        # exist here.
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.shutil.copy2', Mock())
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.shutil.copy', Mock())
+
+        setup = self.make_check_setup(tmp_path, relative_paths=True)
+        setattr(setup, attribute, value)
+
+        # The bundle needs a readme and the fake directory has none, so give it
+        # one through the configuration.
+        setup.readme = {'cognisant_authority': 'NAIF', 'overview': 'overview.txt'}
+
+        original_cwd = os.getcwd()
+
+        setup.check_configuration()
+
+        assert resolved(setup) == fake_root_dir + suffix
+        assert os.getcwd() == original_cwd
+
+    @pytest.mark.parametrize('value, expected', [
+        (lambda cwd: 'inputs',
+         lambda cwd, root_dir: cwd + os.sep + 'inputs'),
+        (lambda cwd: 'shared',
+         lambda cwd, root_dir: cwd + os.sep + 'shared'),
+        (lambda cwd: '/inputs',
+         lambda cwd, root_dir: None),
+        (lambda cwd: os.path.join(cwd, 'inputs'),
+         lambda cwd, root_dir: os.path.join(cwd, 'inputs')),
+        (lambda cwd: 'root_only',
+         lambda cwd, root_dir: root_dir),
+        (lambda cwd: 'missing',
+         lambda cwd, root_dir: None),
+    ], ids=['under_cwd', 'under_cwd_and_root', 'absolute_not_under_cwd',
+            'absolute', 'under_root', 'not_found'])
+    def test_find_directory(self, tmp_path, monkeypatch, value, expected) -> None:
+        """Calls Setup._find_directory with a value and checks which path comes
+        back. "inputs" and "shared" exist under the current directory, and the
+        filesystem root gets a fake "root_only" and a fake "shared" directory.
+        The path under the current directory should win when the directory
+        exists in both places, an absolute value that isn't itself a real
+        directory should come back as None (it's not silently matched against
+        a same-named directory under cwd), an absolute value that is a real
+        directory should come back as it is, the path under the root should be
+        used when only that exists, and None when nothing matches.
+
+        os.path.isdir is patched so the fake root directories count as
+        existing without touching the real filesystem root.
+        """
+        (tmp_path / 'inputs').mkdir()
+        (tmp_path / 'shared').mkdir()
+        cwd = str(tmp_path)
+
+        root_dir = os.path.join(Path(cwd).anchor, 'root_only')
+        fake_root_dirs = {root_dir,
+                          os.path.join(Path(cwd).anchor, 'shared')}
+        real_isdir = os.path.isdir
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.os.path.isdir',
+            lambda path: path in fake_root_dirs or real_isdir(path),
+        )
+
+        found = Setup._find_directory(value(cwd), cwd)
+
+        assert found == expected(cwd, root_dir)
+
+    @pytest.mark.parametrize('value, suffix', [
+        ('maven_spice', os.sep + 'maven_spice'),
+        (os.path.join('root_only', 'maven_spice'), ''),
+    ], ids=['bare_mission_dir_gets_appended', 'mission_dir_already_in_value'])
+    def test_staging_directory_under_root_appends_mission_dir_once(
+            self, tmp_path, monkeypatch, value, suffix) -> None:
+        """Sets a relative staging directory that only exists under the
+        filesystem root and runs check_configuration. The mission dir should be
+        added when the configured value doesn't already have it, so a bare
+        "maven_spice" ends up as "maven_spice/maven_spice", and left alone when
+        the value already ends in it.
+
+        os.path.isdir is patched so the fake root directory counts as
+        existing.
+        """
+        monkeypatch.chdir(tmp_path)
+
+        fake_root_dir = os.path.join(Path(os.getcwd()).anchor, value)
+        real_isdir = os.path.isdir
+        monkeypatch.setattr(
+            'pds.naif_pds4_bundler.classes.setup.os.path.isdir',
+            lambda path: path == fake_root_dir or real_isdir(path),
+        )
+
+        setup = self.make_check_setup(tmp_path, relative_paths=True)
+        setup.staging_directory = value
+
+        setup.check_configuration()
+
+        assert setup.staging_directory == fake_root_dir + suffix
+
+    @pytest.mark.parametrize('attribute, value, message', [
+        ('working_directory', '/inputs', 'Directory does not exist: /inputs.'),
+        ('bundle_directory', '/inputs', 'Bundle directory does not exist: /inputs.'),
+        ('kernels_directory', ['/inputs'], 'Directory does not exist: /inputs.'),
+    ], ids=['working_directory', 'bundle_directory', 'kernels_directory'])
+    def test_leading_slash_directory_is_not_matched_under_cwd(
+            self, tmp_path, monkeypatch, attribute, value, message) -> None:
+        """Sets a directory value starting with a slash, like "/inputs", while a
+        directory with that name exists under the current directory, then runs
+        check_configuration. The value should NOT resolve to the current
+        directory plus the value: an absolute-looking value is treated as
+        literally absolute, so it's never matched against a same-named
+        directory under cwd. Covers the working, bundle and kernels
+        directories.
+        """
+        # Preparation: a same-named directory exists under cwd, but the
+        # configured value is written with a leading slash.
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / 'inputs').mkdir()
+
+        setup = self.make_check_setup(tmp_path, relative_paths=True)
+        setattr(setup, attribute, value)
+
+        # Execution and verification: the leading-slash value is treated as
+        # literally absolute, so it's never matched against tmp_path/inputs.
+        with pytest.raises(NPBError, match=re.escape(message)):
             setup.check_configuration()
 
     @pytest.mark.parametrize('date_format, values, expected_message', [

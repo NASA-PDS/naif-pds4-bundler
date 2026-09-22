@@ -285,6 +285,28 @@ class Setup:
             self.dataset_id = ""
             self.volume_id = ""
 
+    @staticmethod
+    def _find_directory(path, cwd):
+        """Finds where a directory from the configuration really is.
+
+        It looks under ``cwd`` first and then under the root of the
+        filesystem. Both are full paths, so the process working directory is
+        never touched. An absolute path resolves to itself directly, on
+        either candidate.
+
+        :param path: directory as written in the configuration
+        :type path: str
+        :param cwd: directory NPB was run from
+        :type cwd: str
+        :return: the first candidate that is a directory, or None if neither is
+        :rtype: str or None
+        """
+        candidates = (
+            os.path.join(cwd, path),
+            os.path.join(Path(cwd).anchor, path),
+        )
+        return next((c for c in candidates if os.path.isdir(c)), None)
+
     def check_configuration(self):
         """Performs the following checks to the loaded configuration items:
 
@@ -445,8 +467,6 @@ class Setup:
         #
         cwd = os.getcwd()
 
-        os.chdir("/")
-
         #
         # Set the staging directory WRT PDS3 or PDS4
         #
@@ -455,29 +475,39 @@ class Setup:
         else:
             mission_dir = f"{self.volume_id.lower()}"
 
-        if os.path.isdir(cwd + os.sep + self.working_directory):
-            self.working_directory = cwd + os.sep + self.working_directory
-        if not os.path.isdir(self.working_directory):
+        found = self._find_directory(self.working_directory, cwd)
+
+        if not found:
             raise NPBError(f"Directory does not exist: {self.working_directory}.")
 
-        if os.path.isdir(cwd + os.sep + self.staging_directory):
-            self.staging_directory = (
-                cwd + os.sep + self.staging_directory + os.sep + mission_dir
-            )
+        self.working_directory = found
 
-        elif not os.path.isdir(self.staging_directory):
+        # Staging can't go through _find_directory. If it's found under the run
+        # directory we always append the mission dir, but if it's found under
+        # the root we only append it when the configured value doesn't already
+        # have it. An absolute value skips the cwd branch entirely and always
+        # goes through that second, conditional-append path, since it may
+        # already point at its final location.
+        under_cwd = os.path.join(cwd, self.staging_directory)
+        root_candidate = os.path.join(Path(cwd).anchor, self.staging_directory)
+
+        if not os.path.isabs(self.staging_directory) and os.path.isdir(under_cwd):
+            self.staging_directory = os.path.join(under_cwd, mission_dir)
+
+        elif not os.path.isdir(root_candidate):
             logging.warning(
                 '-- Creating staging directory: %s/%s.',
                 self.staging_directory, mission_dir)
 
             #
             # If the faucet is set to plan, kerlist, or checks, this is just
-            # fine. Otherwise the non-existence must trigger an error.
+            # fine. Otherwise, the non-existence must trigger an error.
             #
             try:
-                os.mkdir(cwd + os.sep + self.staging_directory)
+                os.mkdir(under_cwd)
 
-            except Exception:
+            # os.mkdir fails with OSError: missing parent, or no permission.
+            except OSError:
 
                 if self.faucet in ["plan", "list", "checks"]:
                     logging.warning('-- Staging directory cannot be created but'
@@ -488,18 +518,26 @@ class Setup:
                         f"Staging directory cannot be created: {self.staging_directory}."
                     )
 
-        elif f"{os.sep}{mission_dir}" not in self.staging_directory:
-            self.staging_directory += os.sep + mission_dir
+        else:
+            # The mission dir check looks at the value as configured, not the
+            # resolved path. Otherwise, a bare "maven_spice" would look like it
+            # already had it.
+            append_mission_dir = f"{os.sep}{mission_dir}" not in self.staging_directory
+            self.staging_directory = root_candidate
 
-        if os.path.isdir(cwd + os.sep + self.bundle_directory):
-            self.bundle_directory = cwd + os.sep + self.bundle_directory
+            if append_mission_dir:
+                self.staging_directory += os.sep + mission_dir
 
-        #
-        # If the faucet is set to plan, kerlist, or checks, this is just
-        # fine. Otherwise the non-existence must trigger an error.
-        #
-        if not os.path.isdir(self.bundle_directory):
+        found = self._find_directory(self.bundle_directory, cwd)
 
+        if found:
+            self.bundle_directory = found
+
+        else:
+            #
+            # If the faucet is set to plan, kerlist, or checks, this is just
+            # fine. Otherwise, the non-existence must trigger an error.
+            #
             if self.faucet in ["plan", "list", "checks"]:
                 logging.warning("-- Bundle directory does not exist but is not"
                                 " used with %s faucet.", self.faucet)
@@ -513,12 +551,12 @@ class Setup:
         # There might be more than one kernel directory
         #
         for i, kd_name in enumerate(self.kernels_directory):
-            if os.path.isdir(cwd + os.sep + kd_name):
-                self.kernels_directory[i] = cwd + os.sep + kd_name
-            if not os.path.isdir(self.kernels_directory[i]):
+            found = self._find_directory(kd_name, cwd)
+
+            if not found:
                 raise NPBError(f"Directory does not exist: {kd_name}.")
 
-        os.chdir(cwd)
+            self.kernels_directory[i] = found
 
         #
         # Check IM, XML model, and Schema Location coherence (given that is not
