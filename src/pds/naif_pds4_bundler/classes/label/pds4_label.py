@@ -35,8 +35,9 @@ class PDS4Label(PDSLabel):
             self._context_products = product.collection.bundle.context_products
 
         # Products with no real collection (e.g. the bundle readme) have a
-        # placeholder .collection with no .bundle attribute to chain off.
-        except AttributeError:
+        # placeholder .collection with no .bundle attribute to chain off;
+        # a broken .collection/.bundle chain can also raise TypeError.
+        except (AttributeError, TypeError):
             self._context_products = product.bundle.context_products
 
         # Fixed PDS4 header fields that come straight from setup.
