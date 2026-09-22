@@ -862,36 +862,35 @@ class MetaKernelProduct(Product):
         mkdir = os.sep.join(path.split(os.sep)[:-1])
         os.chdir(mkdir)
 
+        spiceypy.kclear()
         try:
-            spiceypy.kclear()
-            try:
-                spiceypy.furnsh(path)
+            spiceypy.furnsh(path)
 
-                #
-                # In KTOTAL, all meta-kernels are counted in the total; therefore
-                # we need to subtract 1 kernel.
-                #
-                ker_num_fr = spiceypy.ktotal("ALL") - 1
-                ker_num_mk = len(self.collection_metakernel)
+            #
+            # In KTOTAL, all meta-kernels are counted in the total; therefore we
+            # need to subtract 1 kernel.
+            #
+            ker_num_fr = spiceypy.ktotal("ALL") - 1
+            ker_num_mk = len(self.collection_metakernel)
 
-                logging.info('-- Kernels loaded with FURNSH: %d', ker_num_fr)
-                logging.info('-- Kernels present in %s: %d', self.name, ker_num_mk)
+            logging.info('-- Kernels loaded with FURNSH: %d', ker_num_fr)
+            logging.info('-- Kernels present in %s: %d', self.name, ker_num_mk)
 
-                if ker_num_fr != ker_num_mk:
-                    logging.error(
-                        "-- Number of kernels loaded is not equal to kernels "
-                        "present in meta-kernel.",
-                    )
+            if ker_num_fr != ker_num_mk:
+                logging.error(
+                    "-- Number of kernels loaded is not equal to kernels "
+                    "present in meta-kernel.",
+                )
 
-            # spiceypy.furnsh()/ktotal() raise SpiceyPyError on SPICE failures.
-            except SpiceyPyError:
-                logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
+        # spiceypy.furnsh()/ktotal() raise SpiceyPyError on SPICE failures.
+        except SpiceyPyError:
+            logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
+
         finally:
-            # Guarantee the kernel pool and working directory are restored
-            # even if an unrelated exception propagates out of the try above,
-            # so a bug here doesn't corrupt state for the next MK validated.
-            spiceypy.kclear()
+            # cwd is restored before kclear, so a failure clearing the kernel
+            # pool doesn't leave the process sitting in the MK's directory.
             os.chdir(cwd)
+            spiceypy.kclear()
 
         line_length_errors = check_line_length(path)
         if line_length_errors:
