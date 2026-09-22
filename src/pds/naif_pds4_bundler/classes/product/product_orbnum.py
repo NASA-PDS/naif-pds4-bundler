@@ -17,16 +17,6 @@ from ...utils import spk_coverage
 from ...utils import utf8len
 
 
-def _matching_kernels(directory: str, pattern: str) -> List[str]:
-    """List entries of directory matching pattern, or [] if it doesn't exist."""
-    try:
-        return [x for x in os.listdir(directory) if re.fullmatch(pattern, x)]
-
-    # os.listdir() raises OSError when directory doesn't exist.
-    except OSError:
-        return []
-
-
 class OrbnumFileProduct(Product):
     """Class that represents an OrbNum file.
 
@@ -1033,6 +1023,21 @@ class OrbnumFileProduct(Product):
 
         return description
 
+    @staticmethod
+    def _matching_kernels(directory: str, pattern: str) -> List[str]:
+        """List entries of directory matching pattern, or [] if it doesn't exist.
+
+        :param directory: directory to search
+        :param pattern: filename pattern to match
+        :return: matching file names, or an empty list if directory doesn't exist
+        """
+        try:
+            return [x for x in os.listdir(directory) if re.fullmatch(pattern, x)]
+
+        # os.listdir() raises OSError when directory doesn't exist.
+        except OSError:
+            return []
+
     def coverage(self) -> None:
         """Determine the coverage of the OrbNum file.
 
@@ -1113,14 +1118,14 @@ class OrbnumFileProduct(Product):
                 #
                 cov_path = os.path.dirname(coverage_kernel)
 
-                cov_kers = _matching_kernels(cov_path, cov_patn)
+                cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                 #
                 # Check if the SPK kernel is present in the increment.
                 #
                 if not cov_kers:
                     cov_path = f"{self.setup.staging_directory}/spice_kernels/spk"
-                    cov_kers = _matching_kernels(cov_path, cov_patn)
+                    cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                     #
                     # Check if the SPK kernel is present in the bundle
@@ -1128,7 +1133,7 @@ class OrbnumFileProduct(Product):
                     #
                     if not cov_kers:
                         cov_path = f"{self.setup.bundle_directory}/spice_kernels/spk"
-                        cov_kers = _matching_kernels(cov_path, cov_patn)
+                        cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                 if cov_kers:
                     coverage_found = True
