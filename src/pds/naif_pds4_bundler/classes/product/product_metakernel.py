@@ -9,6 +9,7 @@ from collections import OrderedDict
 from pathlib import Path
 
 import spiceypy
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from .product import Product
 from ..exceptions import NPBError
@@ -18,6 +19,7 @@ from ...utils import compare_files
 from ...utils import current_date
 from ...utils import et_to_date
 from ...utils import extension_to_type
+from ...utils import FILE_READ_ERRORS
 from ...utils import get_latest_kernel
 from ...utils import match_patterns
 from ...utils import mk_to_list
@@ -96,7 +98,9 @@ class MetaKernelProduct(Product):
                     self.year = values["YEAR"]
                     self.YEAR = values["YEAR"]
 
-            except Exception:
+            # match_patterns() raises IndexError/ValueError on a bad pattern;
+            # values["VERSION"] raises KeyError.
+            except (IndexError, KeyError, ValueError):
                 pass
 
         if not hasattr(self, "mk_setup"):
@@ -320,7 +324,9 @@ class MetaKernelProduct(Product):
         try:
             product_vid = str(self.version).lstrip("0") + ".0"
 
-        except Exception:
+        # self.version is only set when __init__'s match succeeded; otherwise
+        # it's never assigned -> AttributeError.
+        except AttributeError:
 
             logging.warning(
                 '-- %s No VID explicit in kernel name: set to 1.0', self.name)
@@ -357,7 +363,8 @@ class MetaKernelProduct(Product):
                 try:
                     patterns = self.json_config[pattern.pattern]["patterns"]
 
-                except Exception:
+                # "patterns" is an optional config key.
+                except KeyError:
                     patterns = False
 
                 #
@@ -572,7 +579,8 @@ class MetaKernelProduct(Product):
                                 f'{self.name.split("_v")[0]}*.tm'
                             )
 
-                        except Exception:
+                        # glob.glob() raises OSError on filesystem failure.
+                        except OSError:
 
                             if self.setup.increment:
                                 logging.warning(
@@ -589,7 +597,11 @@ class MetaKernelProduct(Product):
                             excluded_kernels=excluded_kernels,
                             mks=mks,
                         )
-                    except Exception as e:
+
+                    # get_latest_kernel() raises OSError when a mk it was given
+                    # can no longer be opened, or UnicodeDecodeError if it
+                    # isn't valid UTF-8 (read with encoding='utf-8').
+                    except FILE_READ_ERRORS as e:
                         logging.warning('-- Exception: %s', e)
 
                         latest_kernel = []
@@ -805,9 +817,11 @@ class MetaKernelProduct(Product):
                     break
 
             if not val_mk:
-                raise Exception("No label for comparison found.")
+                raise FileNotFoundError("No label for comparison found.")
 
-        except Exception:
+        # Self-raises FileNotFoundError with no previous MK version - a
+        # subclass of OSError, which also covers a real glob.glob() failure.
+        except OSError:
             #
             # If previous increment does not work, compare with the MK
             # template.
@@ -853,8 +867,8 @@ class MetaKernelProduct(Product):
             spiceypy.furnsh(path)
 
             #
-            # In KTOTAL, all meta-kernels are counted in the total; therefore
-            # we need to subtract 1 kernel.
+            # In KTOTAL, all meta-kernels are counted in the total; therefore we
+            # need to subtract 1 kernel.
             #
             ker_num_fr = spiceypy.ktotal("ALL") - 1
             ker_num_mk = len(self.collection_metakernel)
@@ -863,16 +877,20 @@ class MetaKernelProduct(Product):
             logging.info('-- Kernels present in %s: %d', self.name, ker_num_mk)
 
             if ker_num_fr != ker_num_mk:
-                spiceypy.kclear()
                 logging.error(
                     "-- Number of kernels loaded is not equal to kernels "
                     "present in meta-kernel.",
                 )
 
-        except Exception:
+        # spiceypy.furnsh()/ktotal() raise SpiceyPyError on SPICE failures.
+        except SpiceyPyError:
             logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
 
-        spiceypy.kclear()
+        finally:
+            # cwd is restored before kclear, so a failure clearing the kernel
+            # pool doesn't leave the process sitting in the MK's directory.
+            os.chdir(cwd)
+            spiceypy.kclear()
 
         line_length_errors = check_line_length(path)
         if line_length_errors:
@@ -881,8 +899,6 @@ class MetaKernelProduct(Product):
             )
             for line in line_length_errors:
                 logging.warning('   %s', line)
-
-        os.chdir(cwd)
 
     @spice_exception_handler
     def coverage(self) -> None:
@@ -1028,7 +1044,8 @@ class MetaKernelProduct(Product):
             stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 3, 80) + "Z"
             logging.info('-- Meta-kernel coverage: %s - %s', start_time, stop_time)
 
-        except Exception:
+        # min()/max() raise ValueError on empty lists.
+        except ValueError:
             #
             # The alternative is to set the increment times to the increment
             # or mission times provided via configuration.

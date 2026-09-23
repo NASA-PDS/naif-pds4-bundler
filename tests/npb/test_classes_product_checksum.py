@@ -843,11 +843,24 @@ class TestCompare:
             obj.setup.diff,
         )
 
-    def test_compare_logs_warning_on_exception(self, caplog):
+    # Both errors must hit the same fallback: a missing previous file
+    # (FileNotFoundError, an OSError subclass - compare_files() opens it with
+    # open()) and a previous file that exists but isn't valid UTF-8
+    # (UnicodeDecodeError - compare_files() opens with encoding='utf-8').
+    # Only the side_effect differs, so one parametrized test covers both.
+    @pytest.mark.parametrize("side_effect", [
+        pytest.param(FileNotFoundError("boom"), id="missing-file"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="non-utf8-file"),
+    ])
+    def test_compare_logs_warning_on_previous_file_error(self, caplog, side_effect):
+        """compare() falls back to the same warning for either error - proving
+        except (OSError, UnicodeDecodeError) catches both real conditions."""
         obj, _ = _build_pds4(increment=False)
         obj.path_current = "/prev/checksum_v001.tab"
 
-        with patch(PATCHES["compare_files"], side_effect=Exception("boom")), \
+        with patch(PATCHES["compare_files"], side_effect=side_effect), \
              caplog.at_level(logging.INFO):
             obj.compare()
 
@@ -861,6 +874,18 @@ class TestCompare:
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
 
+    def test_compare_propagates_unexpected_exception(self, caplog):
+        """A bug inside compare_files() that isn't a missing-file case (here a
+        generic Exception, standing in for e.g. a TypeError from a real defect)
+        must propagate, not be misreported as "previous checksum does not
+        exist" - proving except OSError no longer masks it."""
+        obj, _ = _build_pds4(increment=False)
+        obj.path_current = "/prev/checksum_v001.tab"
+
+        with patch(PATCHES["compare_files"], side_effect=Exception("boom")), \
+             caplog.at_level(logging.INFO):
+            with pytest.raises(Exception, match="boom"):
+                obj.compare()
 
 # ===========================================================================
 # TestChecksumProductComputeChecksum

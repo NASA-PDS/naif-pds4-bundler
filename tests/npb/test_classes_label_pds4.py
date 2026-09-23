@@ -85,6 +85,25 @@ class TestPDS4LabelInit:
         label = PDS4Label(product)
         assert label._context_products is product.bundle.context_products
 
+    def test_pds4_context_type_error_falls_back(self, setup_pds4, product):
+        """A TypeError resolving collection.bundle is handled the same as
+        the missing-collection AttributeError case - falling back to
+        product.bundle.context_products."""
+
+        class _RaisingCollection:
+            """Stand-in whose .bundle access raises instead of resolving,
+            unlike a MagicMock(spec=[]) which raises AttributeError."""
+
+            @property
+            def bundle(self):
+                raise TypeError("boom")
+
+        product.collection = _RaisingCollection()
+        product.setup = setup_pds4
+
+        label = PDS4Label(product)
+        assert label._context_products is product.bundle.context_products
+
     def test_pds4_single_mission_name(self, mock_class_methods, setup_pds4, product):
         product.setup = setup_pds4
         label = PDS4Label(product)

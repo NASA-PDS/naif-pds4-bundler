@@ -30,7 +30,8 @@ class SpicedsProduct(Product):
         try:
             spiceds = self.setup.spiceds
 
-        except Exception:
+        # "spiceds" is an optional setup attribute.
+        except AttributeError:
             spiceds = ""
 
         if not spiceds:

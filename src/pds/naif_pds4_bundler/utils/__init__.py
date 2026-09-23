@@ -20,6 +20,7 @@ from .files import (
     etree_to_dict,
     extension_to_type,
     extract_comment,
+    FILE_READ_ERRORS,
     fill_template,
     find_latest_versioned_file,
     format_multiple_values,

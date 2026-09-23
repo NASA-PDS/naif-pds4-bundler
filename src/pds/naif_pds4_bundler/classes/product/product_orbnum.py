@@ -203,7 +203,10 @@ class OrbnumFileProduct(Product):
                 version_pattern = r"_[vV]\[0\-9\]*[\.]"
                 version_match = re.search(version_pattern, self._pattern)
                 pattern = ".".join(self._pattern.split(version_match.group(0)))
-            except Exception:
+
+            # re.search() returns None with no explicit version token, and
+            # .group(0) on None raises AttributeError.
+            except AttributeError:
                 #
                 # The pattern already does not have an explicit version
                 # number.
@@ -1020,6 +1023,21 @@ class OrbnumFileProduct(Product):
 
         return description
 
+    @staticmethod
+    def _matching_kernels(directory: str, pattern: str) -> List[str]:
+        """List entries of directory matching pattern, or [] if it doesn't exist.
+
+        :param directory: directory to search
+        :param pattern: filename pattern to match
+        :return: matching file names, or an empty list if directory doesn't exist
+        """
+        try:
+            return [x for x in os.listdir(directory) if re.fullmatch(pattern, x)]
+
+        # os.listdir() raises OSError when directory doesn't exist.
+        except OSError:
+            return []
+
     def coverage(self) -> None:
         """Determine the coverage of the OrbNum file.
 
@@ -1093,34 +1111,21 @@ class OrbnumFileProduct(Product):
                 # useful to determine the coverage of multiple orbnum files
                 # provided in the plan.
                 #
-                cov_patn = coverage_kernel.split(os.sep)[-1]
+                cov_patn = os.path.basename(coverage_kernel)
 
                 #
                 # Start checking the path provided in the configuration file.
                 #
-                cov_path = os.sep.join(coverage_kernel.split(os.sep)[:-1])
+                cov_path = os.path.dirname(coverage_kernel)
 
-                try:
-                    cov_kers = [
-                        x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
-                    ]
-
-                except Exception:
-                    cov_kers = []
+                cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                 #
                 # Check if the SPK kernel is present in the increment.
                 #
                 if not cov_kers:
                     cov_path = f"{self.setup.staging_directory}/spice_kernels/spk"
-
-                    try:
-                        cov_kers = [
-                            x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
-                        ]
-
-                    except Exception:
-                        cov_kers = []
+                    cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                     #
                     # Check if the SPK kernel is present in the bundle
@@ -1128,16 +1133,7 @@ class OrbnumFileProduct(Product):
                     #
                     if not cov_kers:
                         cov_path = f"{self.setup.bundle_directory}/spice_kernels/spk"
-
-                        try:
-                            cov_kers = [
-                                x
-                                for x in os.listdir(cov_path)
-                                if re.fullmatch(cov_patn, x)
-                            ]
-
-                        except Exception:
-                            cov_kers = []
+                        cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                 if cov_kers:
                     coverage_found = True
@@ -1262,7 +1258,9 @@ class OrbnumFileProduct(Product):
                 stop = parse_date(stop_time)
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            except Exception:
+            # parse_date() raises ValueError when stop_time matches neither of
+            # its supported formats.
+            except ValueError:
                 #
                 # Exception to cope with orbnum files without all the ground
                 # set of parameters.
