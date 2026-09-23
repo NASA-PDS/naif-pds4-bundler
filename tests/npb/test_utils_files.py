@@ -76,7 +76,7 @@ def test_add_carriage_return_logging_error(monkeypatch, inputs, eol, expected,  
 
     # Capture and check the logging level and logging messages.
     with caplog.at_level(files.logging.ERROR):
-        files.add_carriage_return(inputs, eol, setup=False)
+        files.add_carriage_return(inputs, eol, setup=None)
 
     results = [(r[1], r[2]) for r in caplog.record_tuples]
     # [1] is log level (logging.ERROR = 40)
@@ -104,7 +104,7 @@ def test_add_crs_to_file_success_alt(tmp_path, inputs, outputs):
     fake_file = tmp_path / "file.txt"
     fake_file.write_text(inputs, newline='')
 
-    files.add_crs_to_file(str(fake_file), eol="\n", setup=False)
+    files.add_crs_to_file(str(fake_file), eol="\n", setup=None)
 
     assert fake_file.read_text() == outputs
 
@@ -139,7 +139,7 @@ def test_add_crs_to_file_logs_error(monkeypatch, tmp_path, caplog, make_bad_file
     bad_file = make_bad_file(tmp_path)
 
     with caplog.at_level(files.logging.ERROR):
-        files.add_crs_to_file(str(bad_file), eol="\n", setup=False)
+        files.add_crs_to_file(str(bad_file), eol="\n", setup=None)
 
     expected = [(logging.ERROR, f'Carriage return adding error for {bad_file}.')]
 
@@ -160,7 +160,7 @@ def test_add_crs_to_file_invalid_eol_propagates(tmp_path):
     # eol="bad-eol" is neither "\n" nor "\r\n", so add_carriage_return raises
     # NPBError before any file I/O happens; match checks that message survives.
     with pytest.raises(NPBError, match="Invalid EOL requested"):
-        files.add_crs_to_file(str(fake_file), eol="bad-eol", setup=False)
+        files.add_crs_to_file(str(fake_file), eol="bad-eol", setup=None)
 
 # ----------------------------------------------------------------------------
 # files.check_badchar tests
