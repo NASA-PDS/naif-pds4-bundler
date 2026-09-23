@@ -106,6 +106,16 @@ def _build_label(product, extra_setup=None):
 class TestSpiceKernelPDS3LabelInit:
     """Tests for SpiceKernelPDS3Label.__init__."""
 
+    def test_trailing_blank_log_attribute_is_false(self):
+        """Guards against a silent regression if this class is renamed
+        without carrying the attribute over."""
+        assert SpiceKernelPDS3Label._trailing_blank_log is False
+
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert SpiceKernelPDS3Label._context_from_product is False
+
     def test_template_path_set(self):
         """__init__ points self._template at the kernel label template file."""
         label = _build_label(_make_product("SPK"))
@@ -186,6 +196,17 @@ class TestSpiceKernelPDS3LabelInit:
         label = _build_label(product, extra_setup=setup)
         assert label._label_fields["PLATFORM_OR_MOUNTING_NAME"] == platform_o
 
+    @pytest.mark.parametrize("field", [
+        "TARGET_NAME",
+        "PRODUCT_VERSION_TYPE",
+        "PLATFORM_OR_MOUNTING_NAME",
+    ])
+    def test_quote_stripping_skips_absent_field(self, field):
+        """A field missing from the label is left absent (no KeyError)."""
+        label = _build_label(_make_product("SPK"))
+
+        assert field not in label._label_fields
+
     def test_stream_record_type_calls_insert_text(self):
         """STREAM kernels invoke insert_text_label, not insert_binary_label."""
         product = _make_product("SPK")
@@ -227,6 +248,71 @@ class TestSpiceKernelPDS3LabelInit:
 
         mock_bin.assert_called_once()
         mock_text.assert_not_called()
+
+
+# ===========================================================================
+# SpiceKernelPDS3Label.write_label -- _trailing_blank_log effect
+# ===========================================================================
+# __init__ always calls logging.info("") after insert_text/binary_label(),
+# regardless of _trailing_blank_log -- so testing via the full constructor
+# would always show a blank line. These tests call write_label() directly
+# to isolate the one blank-line call it actually gates.
+
+class TestSpiceKernelPDS3LabelWriteLabel:
+    """Proves _trailing_blank_log=False actually suppresses write_label()'s
+    trailing blank log line for the real SpiceKernelPDS3Label class."""
+
+    @pytest.fixture
+    def label(self, tmp_path):
+        """Real SpiceKernelPDS3Label instance, __init__ bypassed, ready for
+        a direct write_label() call."""
+        templates_dir = tmp_path / "templates"
+        staging_dir = tmp_path / "staging"
+        templates_dir.mkdir()
+        staging_dir.mkdir()
+
+        # A minimal real template so write_label() has an actual file to
+        # read and substitute into -- only $FILE_NAME needs to resolve.
+        template_path = templates_dir / "template_product_spice_kernel.lbl"
+        template_path.write_text("Line with $FILE_NAME\n", encoding="utf-8")
+
+        setup = MagicMock()
+        setup.eol_pds3 = "\r\n"
+
+        # MagicMock attrs are truthy by default -- must be False or
+        # self.compare() runs.
+        setup.diff = False
+
+        # Must be True or write_label()'s print(...) branch also runs.
+        setup.args.silent = True
+        setup.args.verbose = False
+        setup.staging_directory = str(staging_dir)
+        setup.add_file = MagicMock()
+
+        product = MagicMock()
+        product.path = str(staging_dir / "kernel.bsp")
+        product.extension = "bsp"
+
+        # __init__ is bypassed: it would call write_label() itself, then
+        # always log its own trailing blank line (see comment above),
+        # masking the result this test checks.
+        label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
+        label._label_fields = {"FILE_NAME": "kernel.bsp"}
+        label.setup = setup
+        label.product = product
+        label.name = ""
+        label._template = str(template_path)
+
+        return label
+
+    def test_write_label_suppresses_trailing_blank_log(self, label, caplog):
+        """write_label() must not log a trailing blank line for this class,
+        since SpiceKernelPDS3Label overrides _trailing_blank_log to False."""
+        with caplog.at_level(logging.INFO):
+            label.write_label()
+
+        # The gated call is logging.info(""); caplog records it as "".
+        assert caplog.messages.count("") == 0
 
 
 # ===========================================================================

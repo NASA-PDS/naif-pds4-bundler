@@ -886,3 +886,52 @@ class TestCompare:
              caplog.at_level(logging.INFO):
             with pytest.raises(Exception, match="boom"):
                 obj.compare()
+
+# ===========================================================================
+# TestChecksumProductComputeChecksum
+# ChecksumProduct overrides Product._compute_checksum() so the checksum is
+# always recomputed with md5(), never reused from the registry or the label.
+# ===========================================================================
+
+def _make_bare_checksum_product(path, checksum_arg):
+    """Build a ChecksumProduct without running __init__ (no filesystem)."""
+    product = ChecksumProduct.__new__(ChecksumProduct)
+    product.path = str(path)
+    product.new_product = False
+    product.setup = MagicMock()
+    product.setup.args.checksum = checksum_arg
+    return product
+
+
+class TestChecksumProductComputeChecksum:
+
+    def test_compute_checksum_ignores_registry_and_label(self, tmp_path):
+        """Even with checksum reuse on, only md5() is consulted."""
+        product = _make_bare_checksum_product(tmp_path / "x.checksum", True)
+
+        with patch(PATCHES["md5"], return_value="fresh-md5") as m_md5, \
+             patch(PATCHES["checksum_from_registry"]) as m_reg, \
+             patch(PATCHES["checksum_from_label"]) as m_lbl:
+
+            checksum = product._compute_checksum()
+
+        assert checksum == "fresh-md5"
+        m_reg.assert_not_called()
+        m_lbl.assert_not_called()
+        m_md5.assert_called_once_with(product.path)
+
+    def test_register_dispatches_to_override(self, tmp_path):
+        """register() stores the md5 checksum and skips the registry."""
+        path = tmp_path / "maven_spice" / "release.checksum"
+        path.parent.mkdir(parents=True)
+        path.write_text("checksum-registry", encoding="utf-8")
+        product = _make_bare_checksum_product(path, True)
+
+        with patch(PATCHES["md5"], return_value="fresh-md5"), \
+             patch("pds.naif_pds4_bundler.classes.product.product."
+                   "checksum_from_registry") as m_reg:
+
+            product.register()
+
+        assert product.checksum == "fresh-md5"
+        m_reg.assert_not_called()

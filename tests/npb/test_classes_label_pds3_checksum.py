@@ -10,6 +10,7 @@ Two test classes are provided:
   and the real template file, writing an actual label to a temp directory
   and asserting on its contents.
 """
+import logging
 from pathlib import Path
 import textwrap
 from unittest.mock import MagicMock, patch
@@ -261,6 +262,16 @@ class TestChecksumPDS3LabelIntegration:
     compare) is still mocked to keep the tests self-contained.
     """
 
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert ChecksumPDS3Label._context_from_product is False
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert ChecksumPDS3Label._trailing_blank_log is True
+
     # ------------------------------------------------------------------
     # Fixtures
     # ------------------------------------------------------------------
@@ -358,6 +369,23 @@ class TestChecksumPDS3LabelIntegration:
             'END                                                                           \r\n')
 
         assert written_label == expected_label
+
+    def test_write_label_emits_trailing_blank_log(self, env, caplog):
+        """Contrast case for SpiceKernelPDS3Label's suppression test: this
+        class does not override _trailing_blank_log, so the real, inherited
+        write_label() must still emit its trailing blank log line."""
+        setup = env["setup"]
+        product = env["product"]
+
+        product.setup = setup
+
+        # __init__ ends with write_label() and logs nothing else after it,
+        # so any blank line here is write_label()'s own.
+        with caplog.at_level(logging.INFO):
+            ChecksumPDS3Label(product)
+
+        # The gated call is logging.info(""); caplog records it as "".
+        assert caplog.messages.count("") == 1
 
     # ------------------------------------------------------------------
     # 7. setup.add_file is called with the relative label path

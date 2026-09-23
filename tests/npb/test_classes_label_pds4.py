@@ -531,18 +531,22 @@ class TestPDS4LabelGetTargets:
         ctx = [{"name": ["TESTTARGET"], "type": ["planet"], "lidvid": "urn:x::1.0"}]
         assert "testtarget" in label_for(["testtarget"], ctx).get_targets()
 
-    def test_no_match_renders_none_without_raising(self, label_for):
-        """Characterizes a known gap (tracked separately, not fixed here):
-        unlike get_missions/get_observers, a target with no matching
-        context product does not raise NPBError — lid/type fall
-        through as the literal string "None" instead. This pins the
-        current behavior, so it can't change silently; it is not an
-        endorsement of it. No exception is raised, which is itself the
-        thing being characterized."""
-        ctx = [{"name": ["Different"], "type": ["Target"], "lidvid": "urn:x:different::1.0"}]
-        result = label_for(["TestTarget"], ctx).get_targets()
-        assert "<lid_reference>None</lid_reference>" in result
-        assert "<type>None</type>" in result
+    def test_no_lid_found_raises_npberror(self, label_for):
+        """A target name with no matching context product must raise NPBError,
+        instead of silently building a broken label."""
+        # This context product is named "Different", so it will never match the
+        # target we ask for below ("TestTarget").
+        ctx = [{"name": ["Different"],
+                "type": ["Target"],
+                "lidvid": "urn:x:different::1.0"}]
+
+        # Build a label that looks for "TestTarget", which isn't in ctx.
+        label = label_for(["TestTarget"], ctx)
+
+        # get_targets() should refuse to continue and raise, not fall back to
+        # rendering "None" in the label.
+        with pytest.raises(NPBError, match="LID has not been obtained for target"):
+            label.get_targets()
 
     def test_empty_target_skipped_calls_error(self, label_for):
         label = label_for([""])

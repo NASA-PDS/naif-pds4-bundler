@@ -836,6 +836,16 @@ TEMPLATE_CONTENT = (
 class TestOrbnumFilePDS4LabelIntegration:
     """Integration tests for OrbnumFilePDS4Label + PDSLabel + template."""
 
+    def test_context_from_product_attribute_is_true(self):
+        """Guards against a silent regression if this class is renamed
+        without carrying the attribute over."""
+        assert OrbnumFilePDS4Label._context_from_product is True
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert OrbnumFilePDS4Label._trailing_blank_log is True
+
     # ------------------------------------------------------------------
     # Fixtures
     # ------------------------------------------------------------------
@@ -877,6 +887,26 @@ class TestOrbnumFilePDS4LabelIntegration:
 
         # Return only the objects/paths needed by the integration tests.
         return setup, product, template_path, expected_label_path
+
+    # ------------------------------------------------------------------
+    # _context_from_product effect
+    # ------------------------------------------------------------------
+
+    def test_context_from_product_effect_on_context_fields(
+            self, env: tuple[MagicMock, MagicMock, Path, Path],
+            context_effect_helpers: SimpleNamespace) -> None:
+        """_context_from_product=True must source MISSIONS/OBSERVERS/TARGETS
+        from the product, not from setup."""
+        setup, product, _, _ = env
+
+        # product now differs from setup
+        context_effect_helpers.diverge(product)
+
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
+
+        # product must win
+        context_effect_helpers.assert_source(label, from_product=True)
 
     # ------------------------------------------------------------------
     # File creation and content

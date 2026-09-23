@@ -22,6 +22,9 @@ class SpiceKernelPDS3Label(PDS3Label):
     :param product: SPICE Kernel product to be labeled
     """
 
+    # write_label() does not emit a trailing blank log line for this class.
+    _trailing_blank_log = False
+
     def __init__(self, product) -> None:
         """Constructor."""
         # The parameter used to be named "mission" even though it was
@@ -73,20 +76,19 @@ class SpiceKernelPDS3Label(PDS3Label):
         #
         # Remove the quotes from the target name and product version type.
         #
-        if "TARGET_NAME" in self._label_fields:
-            if '"' in self._label_fields["TARGET_NAME"]:
-                self._label_fields["TARGET_NAME"] = self._label_fields["TARGET_NAME"].split('"')[1]
-        if "PRODUCT_VERSION_TYPE" in self._label_fields:
-            if '"' in self._label_fields["PRODUCT_VERSION_TYPE"]:
-                self._label_fields["PRODUCT_VERSION_TYPE"] = self._label_fields["PRODUCT_VERSION_TYPE"].split('"')[1]
-        if "PLATFORM_OR_MOUNTING_NAME" in self._label_fields:
-            if (
-                '"' in self._label_fields["PLATFORM_OR_MOUNTING_NAME"]
-                and self._label_fields["PLATFORM_OR_MOUNTING_NAME"] != '"N/A"'
-            ):
-                self._label_fields["PLATFORM_OR_MOUNTING_NAME"] = self._label_fields[
-                    "PLATFORM_OR_MOUNTING_NAME"
-                ].split('"')[1]
+        if ("TARGET_NAME" in self._label_fields
+                and  '"' in self._label_fields["TARGET_NAME"]):
+            self._label_fields["TARGET_NAME"] = self._label_fields["TARGET_NAME"].split('"')[1]
+
+        if ("PRODUCT_VERSION_TYPE" in self._label_fields
+                and '"' in self._label_fields["PRODUCT_VERSION_TYPE"]):
+            self._label_fields["PRODUCT_VERSION_TYPE"] = self._label_fields["PRODUCT_VERSION_TYPE"].split('"')[1]
+
+        if ("PLATFORM_OR_MOUNTING_NAME" in self._label_fields
+            and '"' in self._label_fields["PLATFORM_OR_MOUNTING_NAME"]
+                and self._label_fields["PLATFORM_OR_MOUNTING_NAME"] != '"N/A"'):
+            self._label_fields["PLATFORM_OR_MOUNTING_NAME"] = self._label_fields[
+                "PLATFORM_OR_MOUNTING_NAME"].split('"')[1]
 
         self.write_label()
 
@@ -219,9 +221,8 @@ class SpiceKernelPDS3Label(PDS3Label):
                     write_line = False
                     logging.info("-- Updating label in kernel.")
 
-                if write_line:
-                    if line != kernel_lines[0]:
-                        kernel.write(line.rstrip() + "\n")
+                if write_line and line != kernel_lines[0]:
+                    kernel.write(line.rstrip() + "\n")
 
                 if "\\endlabel" in line:
                     write_line = True

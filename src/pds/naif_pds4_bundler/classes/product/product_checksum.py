@@ -72,6 +72,10 @@ class ChecksumProduct(Product):
             self.set_product_lid()
             self.set_product_vid()
 
+    def _compute_checksum(self) -> str:
+        """Always recompute via md5(); never reuse the registry or label."""
+        return str(md5(self.path))
+
     def set_coverage(self) -> None:
         """Determine the coverage of the Checksum file."""
         #

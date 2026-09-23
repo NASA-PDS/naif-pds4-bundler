@@ -484,6 +484,16 @@ TEMPLATE_CONTENT = (
 class TestInventoryPDS4LabelIntegration:
     """Integration tests for InventoryPDS4Label + PDSLabel + template."""
 
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert InventoryPDS4Label._context_from_product is False
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert InventoryPDS4Label._trailing_blank_log is True
+
     # ------------------------------------------------------------------
     # Fixtures
     # ------------------------------------------------------------------
@@ -526,6 +536,26 @@ class TestInventoryPDS4LabelIntegration:
             inventory.path.replace('.csv', '.xml').replace('inventory_', ''))
 
         return setup, collection, inventory, template_path, expected_label_path
+
+    # ------------------------------------------------------------------
+    # _context_from_product effect
+    # ------------------------------------------------------------------
+
+    def test_context_from_product_effect_on_context_fields(
+            self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path],
+            context_effect_helpers: SimpleNamespace) -> None:
+        """Inherited _context_from_product=False must source MISSIONS/
+        OBSERVERS/TARGETS from setup, not from the inventory product."""
+        setup, collection, inventory, _, _ = env
+
+        # inventory now differs from setup
+        context_effect_helpers.diverge(inventory)
+
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
+
+        # setup must win
+        context_effect_helpers.assert_source(label, from_product=False)
 
     # ------------------------------------------------------------------
     # File creation and content
