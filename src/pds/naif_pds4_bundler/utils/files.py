@@ -1,4 +1,6 @@
 """File and Text Management Functions to support NPB Classes."""
+from __future__ import annotations
+
 from collections import defaultdict
 import difflib
 import glob
@@ -13,11 +15,17 @@ import sys
 from pathlib import Path
 import tempfile
 from typing import Optional
+from typing import TYPE_CHECKING
 
 import spiceypy
 from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
 
 from ..pipeline.runtime import handle_npb_error
+
+# classes.setup imports this module (via utils/__init__.py), so importing
+# Setup at runtime here would be circular; TYPE_CHECKING keeps it type-only.
+if TYPE_CHECKING:
+    from ..classes.setup import Setup
 
 #: Raised by open()/read() on a text file that can't be read (OSError) or
 #: isn't valid UTF-8 (UnicodeDecodeError, for files opened with
@@ -225,7 +233,7 @@ def type_to_extension(kernel_type):
     return kernel_extension
 
 
-def add_carriage_return(line: str, eol: str, setup: object = False) -> str:
+def add_carriage_return(line: str, eol: str, setup: Optional[Setup] = None) -> str:
     """Normalise the line terminator of a line to the requested EOL.
 
     Replaces any existing EOL sequence (``\\r\\n`` or ``\\n``) with ``eol``.
@@ -247,13 +255,12 @@ def add_carriage_return(line: str, eol: str, setup: object = False) -> str:
     return line
 
 
-def add_crs_to_file(file, eol, setup=False):
+def add_crs_to_file(file: str, eol: str, setup: Optional[Setup] = None) -> None:
     """Adds Carriage Return (``<CR>``) to a file.
 
-    :param line: Input file
-    :type line: str
+    :param file: Input file
     :param eol: End of Line character as indicated by the configuration file
-    :type eol: str
+    :param setup: NPB run Setup object, forwarded to the error handler.
     :raise: If CR cannot be added to the file
     """
     try:
@@ -984,7 +991,10 @@ def product_mapping(name, setup, cleanup=True):
                 get_map = False
 
     if not cleanup:
-        setup = False
+        # TODO: Remove this dead branch once confirmed unreachable in
+        #  production — handle_npb_error() below only runs when cleanup is
+        #  truthy, so this value is never forwarded.
+        setup = None
     #
     # If cleanup is not being performed this is an indication that if the kernel
     # mapping does not exist, this can be intentional and therefore an error
