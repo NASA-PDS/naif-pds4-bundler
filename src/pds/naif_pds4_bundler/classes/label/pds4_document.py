@@ -33,6 +33,4 @@ class DocumentPDS4Label(PDS4Label):
         self._label_fields["STOP_TIME"] = self.setup.mission_finish
         self._label_fields["FILE_NAME"] = self.product.name
 
-        self.name = Path(self.collection.name).with_suffix(".xml").name
-
         self.write_label()

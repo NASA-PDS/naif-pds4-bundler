@@ -27,6 +27,4 @@ class ChecksumPDS3Label(PDS3Label):
         self._label_fields["FILE_RECORDS"] = str(self.product.file_records)
         self._label_fields["BYTES"] = str(self.product.bytes)
 
-        self.name = "checksum.lbl"
-
         self.write_label()

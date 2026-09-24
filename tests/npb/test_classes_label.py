@@ -68,6 +68,12 @@ class TestPDSLabelInit:
     test_classes_label_pds4.py::TestPDS4LabelInit.
     """
 
+    @pytest.fixture(autouse=True)
+    def _label_extension(self, monkeypatch):
+        # PDSLabel is instantiated bare here (no PDS3Label/PDS4Label), but
+        # __init__ now needs _label_extension to derive self.name.
+        monkeypatch.setattr(PDSLabel, "_label_extension", ".xml", raising=False)
+
     def test_uses_setup_creation_date_time(self, setup_pds4, product):
         """setup has creation_date_time"""
         setup_pds4.creation_date_time = "2023-06-15T12:00:00"
@@ -202,11 +208,12 @@ class TestPDSLabelInit:
 # ===========================================================================
 
 class TestPDSLabelWriteLabel:
-    """Covers PDSLabel.write_label – all branches."""
+    """Covers PDSLabel.write_label and PDSLabel._derive_name – all branches."""
 
     @pytest.fixture
     def label_for(self, label_test_helpers):
-        """Factory fixture: builds a bare label ready for write_label.
+        """Factory fixture: builds a bare label ready for write_label or
+        _derive_name.
 
         Built directly off PDSLabel, with _label_extension/_eol assigned as
         plain instance attributes — decoupled from PDS3Label/PDS4Label. The
@@ -249,10 +256,10 @@ class TestPDSLabelWriteLabel:
             label._label_fields = {}
             label.setup = setup
             label.product = product
-            label.name = ""
             label._template = "/tmpl/template.xml"
             label._label_extension = ".xml" if pds_version == "4" else ".lbl"
             label._eol = "\r\n"
+            label.name = label._derive_name()
 
             if is_checksum:
                 label.__class__ = type("ChecksumLabelClass", (PDSLabel,), {})
@@ -280,20 +287,79 @@ class TestPDSLabelWriteLabel:
         assert label.name.endswith(".xml")
         mock_add.assert_called_once()
 
-    def test_pds3_writes_lbl_label(self, label_for, mocker):
+    def test_derive_name_pds4_uses_xml_extension(self, label_for):
+        """A PDS4 label swaps the product's own extension for '.xml' when
+        working out its destination filename."""
+        # A PDS4 label built from a plain product path (no existing '.xml'
+        # extension, no 'inventory' in the name).
+        label = label_for(pds_version="4")
+
+        # Work out the destination filename.
+        derived_name = label._derive_name()
+
+        # The extension was swapped to '.xml'.
+        assert derived_name.endswith(".xml")
+
+    def test_derive_name_pds3_uses_lbl_extension(self, label_for):
+        """A PDS3 label swaps the product's own extension for '.lbl' when
+        working out its destination filename."""
+        # Same as the PDS4 case above, but for PDS3.
         label = label_for(pds_version="3")
-        self._run_write(label, mocker)
-        assert label.name.endswith(".lbl")
 
-    def test_label_ext_already_in_path_uses_path_directly(self, label_for, mocker):
+        # Work out the destination filename.
+        derived_name = label._derive_name()
+
+        # The extension was swapped to '.lbl'.
+        assert derived_name.endswith(".lbl")
+
+    def test_derive_name_label_ext_already_in_path_uses_path_directly(self, label_for):
+        """When the product's path already ends in the label's own
+        extension (the bundle label's case), it is used as-is instead of
+        trying to swap an extension that isn't there."""
+        # A product path that already ends in '.xml', the way the bundle
+        # label's readme product does.
         label = label_for(pds_version="4", label_name_has_ext=True)
-        self._run_write(label, mocker)
-        assert "bundle" in label.name
 
-    def test_inventory_in_name_strips_inventory_prefix(self, label_for, mocker):
+        # Work out the destination filename.
+        derived_name = label._derive_name()
+
+        # The original path came through untouched.
+        assert "bundle" in derived_name
+
+    def test_derive_name_strips_inventory_prefix(self, label_for):
+        """A path that contains 'inventory' has the 'inventory_' token
+        removed, since the label file is named after the collection, not
+        the inventory product it describes."""
+        # A product path containing 'inventory_'.
         label = label_for(has_inventory=True)
-        self._run_write(label, mocker)
-        assert "inventory_" not in label.name
+
+        # Work out the destination filename.
+        derived_name = label._derive_name()
+
+        # The 'inventory_' token is gone.
+        assert "inventory_" not in derived_name
+
+    def test_write_label_uses_self_name_verbatim(self, label_for, mocker):
+        """write_label() must open self.name as given, not recompute it --
+        proven by giving it a name that deliberately differs from what
+        _derive_name() would produce."""
+        # Build a label, then overwrite its name with a value _derive_name()
+        # would never produce for this product.
+        label = label_for(pds_version="4")
+        label.name = "/staging/custom_name.xml"
+        mock_open_fn = mocker.patch("builtins.open",
+                                    mock_open(read_data="Line with $name\n"))
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch.object(Path, "relative_to", return_value=Path("rel/path"))
+        mocker.patch.object(label.setup, "add_file")
+
+        # Write the label.
+        label.write_label()
+
+        # The file was opened at the custom path, proving write_label()
+        # trusted self.name instead of recomputing it.
+        mock_open_fn.assert_any_call(
+            "/staging/custom_name.xml", "w+", encoding='utf-8', newline='')
 
     def test_checksum_lbl_pads_line_to_record_bytes(self, label_for, mocker):
         """checksum.lbl lines must be padded to record_bytes - 2."""

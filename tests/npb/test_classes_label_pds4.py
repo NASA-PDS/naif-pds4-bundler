@@ -61,7 +61,9 @@ class TestPDS4LabelInit:
         label = PDS4Label(product)
         assert label.setup is setup_pds4
         assert label.product is product
-        assert label.name == ""
+        # Incidental: __init__ also derives the destination filename from
+        # the fixture product's path ("/staging/test_kernel.bc" -> ".xml").
+        assert label.name == "/staging/test_kernel.xml"
         assert label._context_products is ctx
 
     def test_pds4_context_empty_list_is_cached_as_is(self, mock_class_methods, setup_pds4, product):

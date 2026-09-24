@@ -132,7 +132,7 @@ class TestMetaKernelPDS4Label:
     # Regular tests
     # ------------------------------------------------------------------
 
-    def test_attribute_assignments(self, label: MetaKernelPDS4Label) -> None:
+    def test_attribute_assignments(self, tmp_path: Path, label: MetaKernelPDS4Label) -> None:
         # Validate the PDS4 MK label attributes populated during construction.
 
         # Check that FILE_NAME has been copied from product.name.
@@ -159,7 +159,7 @@ class TestMetaKernelPDS4Label:
         assert label._label_fields["SPICE_KERNEL_DESCRIPTION"] == 'MAVEN SPICE meta-kernel'
 
         # Check that the XML label name is derived from the product name.
-        assert label.name == 'maven_v01.xml'
+        assert label.name == str(tmp_path / 'staging' / 'mk' / 'maven_v01.xml')
 
     def test_template_path_is_metakernel_template(
             self, label: MetaKernelPDS4Label) -> None:
@@ -324,7 +324,7 @@ class TestMetaKernelPDS4Label:
         assert label._label_fields["FILE_NAME"] == product_name
 
         # The XML label name is the truncated-at-first-dot value.
-        assert label.name == expected_label_name
+        assert label.name == str(staging / 'mk' / expected_label_name)
 
     def test_constructor_raises_when_product_type_is_not_a_string(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -649,7 +649,7 @@ class TestMetaKernelPDS4LabelIntegration:
         # Check that the class resolved the configured MK template.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from product.path.
         assert Path(label.name) == label_path
 
         # Check that the final XML file has been created in staging.

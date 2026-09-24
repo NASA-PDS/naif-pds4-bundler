@@ -12,7 +12,7 @@ class TestDocumentPDS4LabelInit:
     @staticmethod
     def make_document_label_inputs(
             tmp_path: Path,
-            collection_name: str = 'collection_document_inventory_v001.csv'
+            collection_name: str = 'document'
     ) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace]:
         # Build only the attributes consumed directly by DocumentPDS4Label.
         # This keeps the test focused on this constructor and avoids executing
@@ -75,34 +75,10 @@ class TestDocumentPDS4LabelInit:
         assert document_label._label_fields["START_TIME"] == setup.mission_start
         assert document_label._label_fields["STOP_TIME"] == setup.mission_finish
         assert document_label._label_fields["FILE_NAME"] == inventory.name
-        assert document_label.name == 'collection_document_inventory_v001.xml'
 
         # Check that the constructor requests the label to be generated exactly
         # once.
         write_label_mock.assert_called_once_with(document_label)
-
-    def test_init_derives_collection_name_from_stem(
-            self, mocker, tmp_path: Path) -> None:
-        # Create an object with a valid file name with more than one dot.
-        setup, collection, inventory = self.make_document_label_inputs(
-            tmp_path, collection_name='collection.document_inventory_v001.csv')
-
-        # __init__ needs self.setup even here, since _template is built from
-        # it unconditionally (not just where the test asserts on it).
-        mocker.patch(
-            'pds.naif_pds4_bundler.classes.label.pds4_document.PDS4Label.__init__',
-            autospec=True,
-            side_effect=lambda self, product: (
-                setattr(self, 'setup', setup),
-                setattr(self, 'product', product),
-                setattr(self, '_label_fields', {})))
-
-        mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
-
-        document_label = DocumentPDS4Label(inventory, collection)
-
-        # Only the last suffix is replaced; earlier dots in the name are preserved.
-        assert document_label.name == 'collection.document_inventory_v001.xml'
 
 
 class TestDocumentPDS4LabelIntegration:
@@ -195,9 +171,8 @@ class TestDocumentPDS4LabelIntegration:
             args=SimpleNamespace(silent=True, verbose=False),
             add_file=mocker.Mock())
 
-        # Collection name is used by DocumentPDS4Label before write_label runs.
         collection = SimpleNamespace(
-            name='collection_document_inventory_v001.csv',
+            name='document',
             bundle=SimpleNamespace(context_products=context_products))
 
         # The inherited writer creates the XML label next to inventory.path,
@@ -227,6 +202,22 @@ class TestDocumentPDS4LabelIntegration:
         # Expected XML label path produced from the staged document product path.
         return (setup, collection, inventory, template_path,
                 inventory_path.with_suffix('.xml'))
+
+    def test_name_is_derived_before_write_label_runs(
+            self, mocker,
+            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+        """label.name must already hold the real destination path as soon as
+        __init__ returns, even if write_label() never actually runs."""
+        # Real setup/collection/inventory from the env fixture, but
+        # write_label mocked out so no file is ever written.
+        setup, collection, inventory, _, label_path = env
+        mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
+
+        # Build the label.
+        label = DocumentPDS4Label(inventory, collection)
+
+        # self.name is already the real path, not a placeholder.
+        assert label.name == str(label_path)
 
     # ------------------------------------------------------------------
     # _context_from_product effect
@@ -260,7 +251,7 @@ class TestDocumentPDS4LabelIntegration:
         # DocumentPDS4Label must resolve the document-specific template.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from inventory.path.
         assert Path(label.name) == label_path
 
         # The real writer creates the XML label beside the document product.

@@ -17,8 +17,9 @@ Why BundlePDS4Label differs from the other PDS4 label classes:
 
 * ``product`` IS the readme; bundle identity comes from ``product.bundle``
   (``lid`` / ``vid`` / ``collections``), not from the product itself.
-* ``self.name`` is never set by the constructor; the inherited writer assigns
-  it from ``product.path`` verbatim because the path already ends in ``.xml``.
+* ``self.name`` is never set by the constructor itself; it relies entirely on
+  the inherited ``PDSLabel.__init__`` derivation, which passes ``product.path``
+  through verbatim because the path already ends in ``.xml``.
 * ``START_TIME`` / ``STOP_TIME`` come from ``setup.increment_start`` /
   ``setup.increment_finish``, not from the product.
 * ``BUNDLE_MEMBER_ENTRIES`` is built by concatenating one
@@ -97,8 +98,8 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
                      collections: list[SimpleNamespace] | None = None,
                      bundle_lid: str = 'urn:nasa:pds:maven_spice',
                      bundle_vid: str = '1.0') -> MagicMock:
-        # readme.path ends in '.xml' so write_label uses it verbatim (the
-        # else-branch of PDSLabel.write_label that handles the bundle case).
+        # readme.path ends in '.xml' so PDSLabel derives self.name from it
+        # verbatim (the else-branch that handles the bundle case).
         staging_dir.mkdir(parents=True, exist_ok=True)
         readme = base_helpers.make_product(
             path=str(staging_dir / name),
@@ -188,14 +189,14 @@ class TestBundlePDS4Label:
         assert label._template == str(
             Path(label.setup.templates_directory) / 'template_bundle.xml')
 
-    def test_constructor_does_not_set_name_attribute(
+    def test_constructor_derives_name_from_readme_path(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Unlike other PDS4 labels, BundlePDS4Label never assigns self.name.
-        # PDSLabel.__init__ sets it to '' and write_label assigns the real path
-        # later. With write_label patched, it must remain ''.
-        label = _build_label(helpers.make_setup(),
-                             helpers.make_readme(tmp_path / 'staging'))
-        assert label.name == ''
+        # Unlike other PDS4 labels, BundlePDS4Label never assigns self.name
+        # itself; it relies entirely on PDSLabel.__init__'s derivation from
+        # readme.path.
+        readme = helpers.make_readme(tmp_path / 'staging')
+        label = _build_label(helpers.make_setup(), readme)
+        assert label.name == readme.path
 
     def test_constructor_stores_references_and_calls_write_label_once(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
