@@ -1,4 +1,6 @@
 """File and Text Management Functions to support NPB Classes."""
+from __future__ import annotations
+
 from collections import defaultdict
 import difflib
 import glob
@@ -231,7 +233,7 @@ def type_to_extension(kernel_type):
     return kernel_extension
 
 
-def add_carriage_return(line: str, eol: str, setup: Optional["Setup"] = None) -> str:
+def add_carriage_return(line: str, eol: str, setup: Optional[Setup] = None) -> str:
     """Normalise the line terminator of a line to the requested EOL.
 
     Replaces any existing EOL sequence (``\\r\\n`` or ``\\n``) with ``eol``.
@@ -253,13 +255,12 @@ def add_carriage_return(line: str, eol: str, setup: Optional["Setup"] = None) ->
     return line
 
 
-def add_crs_to_file(file, eol, setup: Optional["Setup"] = None):
+def add_crs_to_file(file: str, eol: str, setup: Optional[Setup] = None) -> None:
     """Adds Carriage Return (``<CR>``) to a file.
 
     :param file: Input file
-    :type file: str
     :param eol: End of Line character as indicated by the configuration file
-    :type eol: str
+    :param setup: NPB run Setup object, forwarded to the error handler.
     :raise: If CR cannot be added to the file
     """
     try:
@@ -990,8 +991,9 @@ def product_mapping(name, setup, cleanup=True):
                 get_map = False
 
     if not cleanup:
-        # Currently unreachable in practice: handle_npb_error() below only
-        # runs when cleanup is truthy, so this value is never forwarded.
+        # TODO: Remove this dead branch once confirmed unreachable in
+        #  production — handle_npb_error() below only runs when cleanup is
+        #  truthy, so this value is never forwarded.
         setup = None
     #
     # If cleanup is not being performed this is an indication that if the kernel
