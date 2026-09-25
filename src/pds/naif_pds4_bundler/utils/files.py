@@ -14,7 +14,7 @@ import shutil
 import sys
 from pathlib import Path
 import tempfile
-from typing import Optional
+from typing import Any, Optional
 from typing import TYPE_CHECKING
 
 import spiceypy
@@ -67,7 +67,7 @@ def etree_to_dict(etree):
     return jtree
 
 
-def normalize_to_list(value):
+def normalize_to_list(value: list[Any] | Any) -> list[Any]:
     """Wrap a value in a list unless it already is one.
 
     XML elements that may repeat are parsed by ``etree_to_dict`` as a bare
