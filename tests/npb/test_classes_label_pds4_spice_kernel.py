@@ -420,7 +420,7 @@ class TestSpiceKernelPDS4LabelIntegration:
         # Check that the class resolved the configured SPICE kernel template.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from product.path.
         assert Path(label.name) == label_path
 
         # Check that the final XML file has been created in staging.

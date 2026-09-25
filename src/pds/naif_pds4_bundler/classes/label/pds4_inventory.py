@@ -84,5 +84,4 @@ class InventoryPDS4Label(PDS4Label):
         with open(self.product.path, 'r', encoding='utf-8') as f:
             self._label_fields["N_RECORDS"] = str(len(f.readlines()))
 
-        self.name = Path(self.collection.name).with_suffix(".xml").name
         self.write_label()

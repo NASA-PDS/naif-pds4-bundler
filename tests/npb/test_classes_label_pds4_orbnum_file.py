@@ -193,7 +193,7 @@ class TestOrbnumFilePDS4Label:
     # Regular tests
     # ------------------------------------------------------------------
 
-    def test_attribute_assignments(self, label: OrbnumFilePDS4Label) -> None:
+    def test_attribute_assignments(self, tmp_path: Path, label: OrbnumFilePDS4Label) -> None:
         # Validate the PDS4 OrbNum label attributes populated during
         # construction.
 
@@ -228,7 +228,7 @@ class TestOrbnumFilePDS4Label:
         assert label._label_fields["NUMBER_OF_FIELDS"] == '3'
 
         # Check that the XML label name is derived from the product name.
-        assert label.name == 'maven_orb_v01.xml'
+        assert label.name == str(tmp_path / 'staging' / 'miscellaneous' / 'maven_orb_v01.xml')
 
     def test_template_path_is_orbnum_template(
             self, label: OrbnumFilePDS4Label) -> None:
@@ -408,7 +408,7 @@ class TestOrbnumFilePDS4Label:
         assert label._label_fields["FILE_NAME"] == product_name
 
         # The XML label name is the truncated-at-first-dot value.
-        assert label.name == expected_label_name
+        assert label.name == str(staging / 'miscellaneous' / expected_label_name)
 
     @pytest.mark.parametrize('end_of_line, record_fixed_length, expected', [
         ('LF', 128, '128'),
@@ -931,7 +931,7 @@ class TestOrbnumFilePDS4LabelIntegration:
         # Check that the class resolved the configured OrbNum template.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from product.path.
         assert Path(label.name) == label_path
 
         # Check that the final XML file has been created in staging.

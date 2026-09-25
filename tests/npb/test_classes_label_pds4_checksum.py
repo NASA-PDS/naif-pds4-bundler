@@ -89,7 +89,7 @@ class TestChecksumPDS4Label:
     # Regular tests
     # ------------------------------------------------------------------
 
-    def test_attribute_assignments(self, label: ChecksumPDS4Label) -> None:
+    def test_attribute_assignments(self, tmp_path: Path, label: ChecksumPDS4Label) -> None:
         # Validate the PDS4 checksum label attributes populated during
         # construction.
 
@@ -111,7 +111,7 @@ class TestChecksumPDS4Label:
 
         # Check that the XML label name is derived correctly from the product
         # name.
-        assert label.name == 'checksum.xml'
+        assert label.name == str(tmp_path / 'staging' / 'checksum.xml')
 
     # ------------------------------------------------------------------
     # _*_reference_type overrides
@@ -186,7 +186,7 @@ class TestChecksumPDS4Label:
         assert label._label_fields["FILE_NAME"] == expected_file_name
 
         # Check the name of the generated XML tag.
-        assert label.name == expected_label_name
+        assert label.name == str(staging / expected_label_name)
 
     @pytest.mark.parametrize('product_attribute, value, label_attribute', [
         ('lid', '', 'PRODUCT_LID'),

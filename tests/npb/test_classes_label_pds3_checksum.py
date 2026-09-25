@@ -97,13 +97,18 @@ class TestChecksumPDS3Label:
     # ------------------------------------------------------------------
     # Regular Tests
     # ------------------------------------------------------------------
-    def test_attribute_assignments(self, label):
+    def test_attribute_assignments(self, tmp_path, label):
+        """Every field the constructor populates on _label_fields, plus the
+        derived destination filename, matches the mock product/setup."""
+        # Preparation and execution both happen in the `label` fixture above.
         assert label._label_fields["VOLUME_ID"] == "VG_0001"
         assert label._label_fields["PRODUCT_CREATION_TIME"] == "2024-01-15T12:00:00"
         assert label._label_fields["RECORD_BYTES"] == "80"
         assert label._label_fields["FILE_RECORDS"] == "42"
         assert label._label_fields["BYTES"] == "46"
-        assert label.name == "checksum.lbl"
+
+        # Verification: the destination path swaps '.tab' for '.lbl'.
+        assert label.name == str(tmp_path / "staging" / "checksum.lbl")
 
     def test_template_path_uses_setup_directory(self, tmp_path, label):
         """Template path must be constructed from setup.templates_directory."""

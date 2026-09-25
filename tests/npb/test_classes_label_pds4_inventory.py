@@ -24,8 +24,9 @@ InventoryPDS4Label is peculiar compared with the other PDS4 labels:
                           found in ``collection.product``.
     - anything else    -> setup.increment_start / setup.increment_finish.
 * N_RECORDS is the number of physical lines of the inventory file.
-* The XML label name is ``collection.name`` truncated at the FIRST dot
-  (the same truncation bug shared by every other PDS4 label).
+* The XML label name is derived from ``inventory.path`` (the inherited
+  PDSLabel derivation, shared with every other PDS4 label), not from
+  ``collection.name``.
 """
 from pathlib import Path
 import xml.etree.ElementTree as ElementTree
@@ -97,9 +98,8 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     def _make_collection(name: str = 'spice_kernels',
                          coll_type: str = 'spice_kernels',
                          products: list[MagicMock] | None = None) -> MagicMock:
-        # 'type' drives the template path; 'name' drives both the time-source
-        # branch and the XML label name; 'product' is only iterated in the
-        # miscellaneous branch.
+        # 'type' drives the template path; 'name' drives the time-source
+        # branch; 'product' is only iterated in the miscellaneous branch.
         collection = MagicMock()
         collection.name = name
         collection.type = coll_type
@@ -154,7 +154,7 @@ class TestInventoryPDS4Label:
     # Regular tests – attribute assignments (spice_kernels / else branch)
     # ------------------------------------------------------------------
 
-    def test_attribute_assignments(self, label: InventoryPDS4Label) -> None:
+    def test_attribute_assignments(self, tmp_path: Path, label: InventoryPDS4Label) -> None:
         # Validate the PDS4 inventory label attributes populated during
         # construction for the non-miscellaneous (else) branch.
 
@@ -172,8 +172,9 @@ class TestInventoryPDS4Label:
         # N_RECORDS is the line count of the physical inventory file, as a str.
         assert label._label_fields["N_RECORDS"] == '3'
 
-        # The XML label name is derived from collection.name (no dot here).
-        assert label.name == 'spice_kernels.xml'
+        # The XML label name is derived from inventory.path, swapping the
+        # extension and stripping the 'inventory_' token.
+        assert label.name == str(tmp_path / 'staging' / 'collection_spice_kernels_v001.xml')
 
     def test_template_path_is_derived_from_collection_type(
             self, label: InventoryPDS4Label) -> None:
@@ -437,33 +438,6 @@ class TestInventoryPDS4Label:
             with pytest.raises(NPBInternalError, match=f'^{expected_message}$'):
                 InventoryPDS4Label(inventory, collection)
 
-    # ------------------------------------------------------------------
-    # XML label name derivation
-    # ------------------------------------------------------------------
-
-    @pytest.mark.parametrize('collection_name, expected_label_name', [
-        ('spice_kernels', 'spice_kernels.xml'),
-        ('document', 'document.xml'),
-        ('collection.document_inventory_v001.csv', 'collection.document_inventory_v001.xml')])
-    def test_label_name_is_derived_from_stem(
-            self, tmp_path: Path, helpers: SimpleNamespace,
-            collection_name: str, expected_label_name: str) -> None:
-        # Document how collection names are converted into XML label names.
-        # Note: the name is kept in the else branch (any non-miscellaneous
-        # value), so coverage comes from setup.increment_*.
-        setup = helpers.make_setup()
-        staging = tmp_path / 'staging'
-        inventory = helpers.make_inventory(staging)
-        collection = helpers.make_collection(name=collection_name,
-                                             coll_type='spice_kernels')
-
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            inventory.setup = setup
-            label = InventoryPDS4Label(inventory, collection)
-
-        assert label.name == expected_label_name
-
 
 # ===========================================================================
 # Class 2 – Integration tests
@@ -577,7 +551,7 @@ class TestInventoryPDS4LabelIntegration:
         # The class resolved the template from collection.type.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from inventory.path.
         assert Path(label.name) == label_path
 
         # The final XML file has been created in staging.

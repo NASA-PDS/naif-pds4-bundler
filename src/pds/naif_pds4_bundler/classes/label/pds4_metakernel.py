@@ -41,8 +41,6 @@ class MetaKernelPDS4Label(PDS4Label):
 
         self._label_fields["KERNEL_INTERNAL_REFERENCES"] = self.get_kernel_internal_references()
 
-        self.name = Path(product.name).with_suffix(".xml").name
-
         self.write_label()
 
     def get_kernel_internal_references(self):

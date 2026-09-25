@@ -300,7 +300,7 @@ class TestSpiceKernelPDS3LabelWriteLabel:
         label._label_fields = {"FILE_NAME": "kernel.bsp"}
         label.setup = setup
         label.product = product
-        label.name = ""
+        label.name = str(staging_dir / "kernel.lbl")
         label._template = str(template_path)
 
         return label
