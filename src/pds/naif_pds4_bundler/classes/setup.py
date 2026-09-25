@@ -9,6 +9,8 @@ import shutil
 import sys
 from os.path import dirname
 from pathlib import Path
+from typing import Callable
+from typing import List
 from xml.etree import cElementTree as ET
 
 import requests
@@ -971,6 +973,60 @@ class Setup:
 
         self.increment = increment
 
+    @staticmethod
+    def _load_kernel_group(patterns: List[str], directories: List[str], found_msg: str,
+                           not_found_msg: str, not_found_level: Callable) -> List[str]:
+        """Search, load, and log one kernel type given its patterns.
+
+        For each pattern, an existing literal path is loaded directly; otherwise
+        the directories are searched, in order, for the latest file matching the
+        pattern, which is then loaded. This is the block shared by the LSK, PCK,
+        FK, and SCLK searches in ``load_kernels``, with the log wording and
+        severity left to the caller since they differ per kernel type.
+
+        :param patterns: Kernel file names or search patterns.
+        :param directories: Directories to search, in priority order.
+        :param found_msg: Log message used when at least one kernel is loaded.
+        :param not_found_msg: Log message used when no kernel is loaded.
+        :param not_found_level: Logging function used for not_found_msg.
+
+        :return: Paths of the kernels loaded
+        """
+        loaded = []
+        for pattern in patterns:
+
+            # A pattern that is already an existing path is loaded directly.
+            if os.path.exists(pattern):
+                loaded.append(pattern)
+                spiceypy.furnsh(pattern)
+
+            else:
+                # Otherwise, search the directories, in order, for the latest
+                # file matching the pattern, and stop at the first directory
+                # with a match.
+                for path in directories:
+                    matches = [os.path.join(root, name)
+                               for root, dirs, files in os.walk(path)
+                               for name in files if re.fullmatch(pattern, name)
+                               ]
+
+                    if matches:
+                        matches.sort(key=kernel_name)
+                        spiceypy.furnsh(matches[-1])
+                        loaded.append(matches[-1])
+                        break
+
+        # Log once per kernel type. The "not found" severity is left to
+        # the caller, since it differs between LSK/SCLK (error), FK
+        # (warning), and PCK (info).
+        if not loaded:
+            not_found_level(not_found_msg)
+
+        else:
+            logging.info(found_msg, loaded)
+
+        return loaded
+
     @spice_exception_handler
     def load_kernels(self):
         """Loads the kernels required to run NPB.
@@ -989,9 +1045,9 @@ class Setup:
         pck_patterns = []
         lsk_patterns = []
 
-        #
-        # We inspect the kernels directory and the bundle directory.
-        #
+        # We inspect the kernels directory and the bundle directory. Note that
+        # `directories` is the same list object as `self.kernels_directory`, so
+        # the append below also mutates `self.kernels_directory` itself.
         directories = self.kernels_directory
         if self.pds_version == "4":
             directories.append(
@@ -1027,108 +1083,33 @@ class Setup:
                 for lsk in lsks:
                     lsk_patterns.append(lsk)
 
-        #
-        # Search the latest version for each pattern of each kernel type.
-        #
-        lsks = []
-        for pattern in lsk_patterns:
-            if os.path.exists(pattern):
-                lsks.append(pattern)
-                spiceypy.furnsh(pattern)
-            else:
-                for path in directories:
-                    lsk_pattern = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(path)
-                        for name in files
-                        if re.fullmatch(pattern, name)
-                    ]
-                    if lsk_pattern:
-                        lsk_pattern.sort(key=kernel_name)
-                        spiceypy.furnsh(lsk_pattern[-1])
-                        lsks.append(lsk_pattern[-1])
-                        break
-        if not lsks:
-            logging.error('-- LSK not found.')
+        # For each kernel type, the shared helper below searches for the latest
+        # version matching each pattern, furnishes it, and logs what was
+        # (or wasn't) loaded.
+        lsks = self._load_kernel_group(
+            lsk_patterns, directories,
+            '-- LSK     loaded: %s', '-- LSK not found.', logging.error
+        )
 
-        else:
-            logging.info('-- LSK     loaded: %s', lsks)
-
+        # This check is LSK-specific, so it stays here rather than in
+        # the shared helper, which the other three kernel types don't need.
         if len(lsks) > 1:
             raise NPBError("Only one LSK should be obtained.")
 
-        pcks = []
-        for pattern in pck_patterns:
-            if os.path.exists(pattern):
-                pcks.append(pattern)
-                spiceypy.furnsh(pattern)
-            else:
-                for path in directories:
-                    pcks_pattern = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(path)
-                        for name in files
-                        if re.fullmatch(pattern, name)
-                    ]
-                    if pcks_pattern:
-                        pcks_pattern.sort(key=kernel_name)
-                        spiceypy.furnsh(pcks_pattern[-1])
-                        pcks.append(pcks_pattern[-1])
-                        break
-        if not pcks:
-            logging.info('-- PCK not found.')
+        pcks = self._load_kernel_group(
+            pck_patterns, directories,
+            '-- PCK(s)   loaded: %s', '-- PCK not found.', logging.info
+        )
 
-        else:
-            logging.info('-- PCK(s)   loaded: %s', pcks)
+        fks = self._load_kernel_group(
+            fk_patterns, directories,
+            '-- FK(s)   loaded: %s', '-- FK not found.', logging.warning
+        )
 
-        fks = []
-        for pattern in fk_patterns:
-            if os.path.exists(pattern):
-                fks.append(pattern)
-                spiceypy.furnsh(pattern)
-            else:
-                for path in directories:
-                    fks_pattern = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(path)
-                        for name in files
-                        if re.fullmatch(pattern, name)
-                    ]
-
-                    if fks_pattern:
-                        fks_pattern.sort(key=kernel_name)
-                        spiceypy.furnsh(fks_pattern[-1])
-                        fks.append(fks_pattern[-1])
-                        break
-        if not fks:
-            logging.warning('-- FK not found.')
-
-        else:
-            logging.info('-- FK(s)   loaded: %s', fks)
-
-        sclks = []
-        for pattern in sclk_patterns:
-            if os.path.exists(pattern):
-                sclks.append(pattern)
-                spiceypy.furnsh(pattern)
-            else:
-                for path in directories:
-                    sclks_pattern = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(path)
-                        for name in files
-                        if re.fullmatch(pattern, name)
-                    ]
-                    if sclks_pattern:
-                        sclks_pattern.sort(key=kernel_name)
-                        spiceypy.furnsh(sclks_pattern[-1])
-                        sclks.append(sclks_pattern[-1])
-                        break
-        if not sclks:
-            logging.error('-- SCLK not found.')
-
-        else:
-            logging.info('-- SCLK(s) loaded: %s', sclks)
+        sclks = self._load_kernel_group(
+            sclk_patterns, directories,
+            '-- SCLK(s) loaded: %s', '-- SCLK not found.', logging.error
+        )
 
         logging.info('')
 
