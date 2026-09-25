@@ -109,13 +109,6 @@ def run_pipeline(args: PipelineArgs) -> None:
         log.start()
 
         #
-        # Add the log to the setup object with the sole purpose for the log
-        # to be accessible via setup to be able to write the product list file
-        # for an interrupted run.
-        #
-        setup.log = log
-
-        #
         # With the log started we check the current configuration
         #
         setup.check_configuration()

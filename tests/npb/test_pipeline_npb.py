@@ -209,8 +209,7 @@ class TestPhase1Initialization:
     # Phase 1 – Initialization
     # Setup is constructed from the raw PipelineArgs; it validates configuration,
     # locates the config file, and derives all path and metadata attributes used
-    # throughout the pipeline. Log is constructed next and attached to `setup` so
-    # that every subsequent phase can write to the same log stream. The pipeline
+    # throughout the pipeline. Log is constructed next and started. The pipeline
     # then calls setup.check_configuration() to assert the archive is self-onsistent,
     # and setup.set_release() to determine the current release number.
 
@@ -232,13 +231,6 @@ class TestPhase1Initialization:
         # Logging begins immediately after the Log object is created.
         run_pipeline(_args())
         mocks.Log.return_value.start.assert_called_once()
-
-    def test_log_is_assigned_to_setup(self, mocks):
-        # The log is back-referenced on setup so interrupted runs can still emit the file list.
-        run_pipeline(_args())
-        setup = mocks.Setup.return_value
-        log = mocks.Log.return_value
-        assert setup.log is log
 
     def test_check_configuration_called(self, mocks):
         # The configuration is validated before any work starts.
