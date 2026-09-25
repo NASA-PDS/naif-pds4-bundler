@@ -687,6 +687,22 @@ def test_etree_to_dict(xml, outputs):
     assert result == outputs
 
 # ----------------------------------------------------------------------------
+# files.normalize_to_list test
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("value, expected", [
+    ("maven_*.bc", ["maven_*.bc"]),
+    ({"pattern": "maven_*.bc"}, [{"pattern": "maven_*.bc"}]),
+    (["maven_*.bc"], ["maven_*.bc"]),
+    ([{"pattern": "maven_*.bc"}, {"pattern": "maven_orbnum_*.orb"}],
+     [{"pattern": "maven_*.bc"}, {"pattern": "maven_orbnum_*.orb"}])])
+def test_normalize_to_list(value, expected):
+    """Test normalize_to_list function using pytest."""
+    result = files.normalize_to_list(value)
+    assert result == expected
+
+# ----------------------------------------------------------------------------
 # files.extract_comment tests
 # ----------------------------------------------------------------------------
 

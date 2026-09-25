@@ -20,6 +20,7 @@ from .exceptions import NPBError
 from ..utils import etree_to_dict
 from ..utils import FILE_READ_ERRORS
 from ..utils import kernel_name
+from ..utils import normalize_to_list
 from ..utils import spice_exception_handler
 
 
@@ -86,33 +87,19 @@ class Setup:
         self.__dict__.update(config["mission_parameters"])
         self.__dict__.update(config["directories"])
 
-        #
-        # Re-arrange secondary missions, spacecrafts, and targets parameters.
-        #
-
+        # Secondary missions/observers/targets are each nested one level under a
+        # container key (e.g. mission_name inside secondary_missions); unwrap
+        # that key before normalizing to a list.
         if hasattr(self, "secondary_missions"):
-            if not isinstance(self.secondary_missions["mission_name"], list):
-                self.secondary_missions = [self.secondary_missions["mission_name"]]
-            else:
-                self.secondary_missions = self.secondary_missions["mission_name"]
+            self.secondary_missions = normalize_to_list(self.secondary_missions["mission_name"])
 
         if hasattr(self, "secondary_observers"):
-            if not isinstance(self.secondary_observers["observer"], list):
-                self.secondary_observers = [self.secondary_observers["observer"]]
-            else:
-                self.secondary_observers = self.secondary_observers["observer"]
+            self.secondary_observers = normalize_to_list(self.secondary_observers["observer"])
 
         if hasattr(self, "secondary_targets"):
-            if not isinstance(self.secondary_targets["target"], list):
-                self.secondary_targets = [self.secondary_targets["target"]]
-            else:
-                self.secondary_targets = self.secondary_targets["target"]
+            self.secondary_targets = normalize_to_list(self.secondary_targets["target"])
 
-        #
-        # Kernel directory needs to be turned into a list.
-        #
-        if not isinstance(self.kernels_directory, list):
-            self.kernels_directory = [self.kernels_directory]
+        self.kernels_directory = normalize_to_list(self.kernels_directory)
 
         #
         # Generate empty orbnum directory if not present.
@@ -132,46 +119,25 @@ class Setup:
         self.kernel_list_config = kernel_list_config
         del self.kernel
 
-        #
-        # Meta-kernel configuration; if there is one meta-kernel
-        # mk is a dictionary, otherwise it is a list of dictionaries.
-        # It is processed in such a way that it is always a list of
-        # dictionaries. Same applies to meta-kernels from configuration
-        # as user input.
-        #
         self.__dict__.update(config["meta-kernel"])
 
         if hasattr(self, "mk"):
-            if isinstance(self.mk, dict):
-                self.mk = [self.mk]
+            self.mk = normalize_to_list(self.mk)
 
-        #
-        # Meta-kernel configuration; if there is one pattern for
-        # the meta-kernel name, convert it into a list of
-        # dictionaries.
-        #
+        # Each meta-kernel's name patterns need the same normalization, one
+        # level down.
         if hasattr(self, "mk"):
             for i, mk in enumerate(self.mk):
-                if isinstance(mk["name"], dict):
-                    self.mk[i]["name"] = [mk["name"]]
+                self.mk[i]["name"] = normalize_to_list(mk["name"])
 
-        #
-        # Meta-kernel configuration; if there is one coverage kernel, convert
-        # it into a list of coverage kernels.
-        #
         if hasattr(self, "coverage_kernels"):
-            if isinstance(self.coverage_kernels, dict):
-                self.coverage_kernels = [self.coverage_kernels]
+            self.coverage_kernels = normalize_to_list(self.coverage_kernels)
 
-        #
-        # ORBNUM configuration: if there is one orbnum file orbnum is a
-        # dictionary, otherwise it is a list of dictionaries. It is
-        # processed in such a way that it is always a list of dictionaries
-        #
+        # orbnum is only present if the configuration declares an
+        # orbit_number_file section.
         if "orbit_number_file" in config:
             self.__dict__.update(config["orbit_number_file"])
-            if isinstance(self.orbnum, dict):
-                self.orbnum = [self.orbnum]
+            self.orbnum = normalize_to_list(self.orbnum)
 
         #
         # Set run type for the NPB by-products file name. So far this only
@@ -816,13 +782,8 @@ class Setup:
         else:
             logging.warning("-- There is no meta-kernel configuration to check.")
 
-        #
-        # Check coverage kernels configuration (needed if there is only one
-        # entry).
-        #
         if hasattr(self, "coverage_kernels"):
-            if not isinstance(self.coverage_kernels, list):
-                self.coverage_kernels = [self.coverage_kernels]
+            self.coverage_kernels = normalize_to_list(self.coverage_kernels)
 
         #
         # If a readme file is present the readme section of the configuration

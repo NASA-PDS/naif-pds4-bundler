@@ -67,6 +67,21 @@ def etree_to_dict(etree):
     return jtree
 
 
+def normalize_to_list(value):
+    """Wrap a value in a list unless it already is one.
+
+    XML elements that may repeat are parsed by ``etree_to_dict`` as a bare
+    value when they occur once and as a list when they occur more than
+    once; this restores a single, consistent list shape.
+
+    :param value: Value to normalize.
+    :return: ``value`` unchanged if it is already a list, otherwise
+        ``[value]``.
+    :rtype: list
+    """
+    return value if isinstance(value, list) else [value]
+
+
 def md5(fname):
     """Returns the MD5 sum (checksum) of the provided file.
 
