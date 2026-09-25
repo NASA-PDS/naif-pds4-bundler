@@ -2054,10 +2054,10 @@ class TestSetupLoadKernels:
             str(tmp_path / 'bundle' / 'maven_spice' / 'spice_kernels')]
 
         # Check the logging messages.
-        expected = [(logging.INFO, f'-- LSK     loaded: {[str(lsk)]}'),
+        expected = [(logging.INFO, f'-- LSK(s)   loaded: {[str(lsk)]}'),
                     (logging.INFO, f'-- PCK(s)   loaded: {[str(pck)]}'),
-                    (logging.INFO, f'-- FK(s)   loaded: {[str(fk)]}'),
-                    (logging.INFO, f'-- SCLK(s) loaded: {[str(sclk)]}'),
+                    (logging.INFO, f'-- FK(s)    loaded: {[str(fk)]}'),
+                    (logging.INFO, f'-- SCLK(s)  loaded: {[str(sclk)]}'),
                     (logging.INFO, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -2186,10 +2186,10 @@ class TestSetupLoadKernels:
         assert str(setup_instance.kernels_directory[-1]) == str(archive_directory)
 
         # Check the logging messages.
-        expected = [(logging.INFO, f'-- LSK     loaded: {[str(new_lsk)]}'),
+        expected = [(logging.INFO, f'-- LSK(s)   loaded: {[str(new_lsk)]}'),
                     (logging.INFO, f'-- PCK(s)   loaded: {[str(new_pck)]}'),
-                    (logging.INFO, f'-- FK(s)   loaded: {[str(new_fk)]}'),
-                    (logging.INFO, f'-- SCLK(s) loaded: {[str(new_sclk)]}'),
+                    (logging.INFO, f'-- FK(s)    loaded: {[str(new_fk)]}'),
+                    (logging.INFO, f'-- SCLK(s)  loaded: {[str(new_sclk)]}'),
                     (logging.INFO, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -2294,7 +2294,7 @@ class TestSetupLoadKernels:
                        'fk': r'missing_fk_[0-9]+\.tf',
                        'sclk': r'missing_sclk_[0-9]+\.tsc'},
              ['lsk'], [], [], 'lsk',
-             [(logging.INFO, '-- LSK     loaded: [{lsk!r}]'),
+             [(logging.INFO, '-- LSK(s)   loaded: [{lsk!r}]'),
               (logging.INFO, '-- PCK not found.'),
               (logging.WARNING, '-- FK not found.'),
               (logging.ERROR, '-- SCLK not found.'),
@@ -2306,7 +2306,7 @@ class TestSetupLoadKernels:
              ['fk'], ['fk'], [], r'missing_lsk_[0-9]+\.tls',
              [(logging.ERROR, '-- LSK not found.'),
               (logging.INFO, '-- PCK not found.'),
-              (logging.INFO, '-- FK(s)   loaded: [{fk!r}]'),
+              (logging.INFO, '-- FK(s)    loaded: [{fk!r}]'),
               (logging.ERROR, '-- SCLK not found.'),
               (logging.INFO, '')])])
     def test_logs_missing_kernel_families_without_calling_spiceypy_for_them(
@@ -2475,6 +2475,92 @@ class TestSetupLoadKernels:
         # the newlines between the start of the text and "missing_kernel.bsp".
         with pytest.raises(NPBError, match=r'(?s).*missing_kernel\.bsp.*'):
             setup_instance.load_kernels()
+
+
+class TestSetupLoadKernelGroup:
+    """Direct tests for Setup._load_kernel_group, isolated from load_kernels."""
+
+    def test_loads_an_existing_literal_path(self, tmp_path, monkeypatch) -> None:
+        """A pattern that is already a real file path should be loaded as-is,
+        without being treated as a regex or searched for in any directory."""
+        kernel_path = tmp_path / 'naif0012.tls'
+        kernel_path.touch()
+
+        # We only care about which path gets passed to furnsh, not what
+        # SPICE actually does with it, so a mock is enough here.
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh', furnsh)
+
+        loaded = Setup._load_kernel_group(
+            'LSK', [str(kernel_path)], [], logging.error)
+
+        # The literal path comes back untouched, and gets furnished exactly once.
+        assert loaded == [str(kernel_path)]
+        furnsh.assert_called_once_with(str(kernel_path))
+
+    def test_furnishes_the_latest_matching_file_in_a_directory(
+            self, tmp_path, monkeypatch) -> None:
+        """When a pattern matches more than one file in a directory, only the
+        most recent version should be furnished, not every match."""
+        # Both files match the same pattern; naif0012 is the newer version.
+        old_kernel = tmp_path / 'naif0011.tls'
+        new_kernel = tmp_path / 'naif0012.tls'
+
+        for kernel_path in [old_kernel, new_kernel]:
+            kernel_path.touch()
+
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh', furnsh)
+
+        loaded = Setup._load_kernel_group(
+            'LSK', [r'naif[0-9]{4}\.tls'], [str(tmp_path)], logging.error)
+
+        # Only the newer file should have been picked, loaded, and returned.
+        assert loaded == [str(new_kernel)]
+        furnsh.assert_called_once_with(str(new_kernel))
+
+    @pytest.mark.parametrize('kernel_type, expected_label', [
+        # A short label needs padding out to 8 characters.
+        ('FK', 'FK(s)   '),
+        # A label already at or past 8 characters is left as-is by ljust.
+        ('LONGTYPE', 'LONGTYPE(s)')])
+    def test_logs_found_kernels_with_the_type_label_padded_to_eight_chars(
+            self, tmp_path, monkeypatch, caplog, kernel_type, expected_label) -> None:
+        """The 'loaded' log line pads the kernel type label to 8 characters
+        so every kernel type's log line lines up in the console output,
+        whether the label needs padding or is already long enough not to."""
+        # Any single existing kernel is enough to trigger the "found" log line.
+        kernel_path = tmp_path / 'kernel.bin'
+        kernel_path.touch()
+
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh', furnsh)
+
+        with caplog.at_level(logging.INFO):
+            Setup._load_kernel_group(
+                kernel_type, [str(kernel_path)], [], logging.error)
+
+        # Only the log line matters for this test, not the returned list.
+        assert caplog.record_tuples == [
+            ('root', logging.INFO, f'-- {expected_label} loaded: {[str(kernel_path)]}')]
+
+    def test_logs_not_found_at_the_given_level(
+            self, tmp_path, monkeypatch, caplog) -> None:
+        """When nothing matches, the caller-supplied logging function should
+        be called with the not-found message, and furnsh should never run."""
+        furnsh = Mock()
+        monkeypatch.setattr('pds.naif_pds4_bundler.classes.setup.spiceypy.furnsh', furnsh)
+
+        # The pattern doesn't match anything that exists in the directory.
+        with caplog.at_level(logging.INFO):
+            loaded = Setup._load_kernel_group(
+                'LSK', [r'missing_[0-9]+\.tls'], [str(tmp_path)], logging.error)
+
+        # Nothing was found, so nothing should have been furnished either.
+        assert loaded == []
+        furnsh.assert_not_called()
+        assert caplog.record_tuples == [
+            ('root', logging.ERROR, '-- LSK not found.')]
 
 
 class TestSetupWriteFileList:

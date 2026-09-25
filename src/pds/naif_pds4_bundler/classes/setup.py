@@ -10,7 +10,6 @@ import sys
 from os.path import dirname
 from pathlib import Path
 from typing import Callable
-from typing import List
 from xml.etree import cElementTree as ET
 
 import requests
@@ -974,21 +973,25 @@ class Setup:
         self.increment = increment
 
     @staticmethod
-    def _load_kernel_group(patterns: List[str], directories: List[str], found_msg: str,
-                           not_found_msg: str, not_found_level: Callable) -> List[str]:
+    def _load_kernel_group(
+        kernel_type: str,
+        patterns: list[str],
+        directories: list[str],
+        not_found_level: Callable[[str], None],
+    ) -> list[str]:
         """Search, load, and log one kernel type given its patterns.
 
         For each pattern, an existing literal path is loaded directly; otherwise
         the directories are searched, in order, for the latest file matching the
         pattern, which is then loaded. This is the block shared by the LSK, PCK,
-        FK, and SCLK searches in ``load_kernels``, with the log wording and
-        severity left to the caller since they differ per kernel type.
+        FK, and SCLK searches in ``load_kernels``. The found/not-found log
+        wording is built from ``kernel_type``; only the not-found severity is
+        left to the caller, since it differs per kernel type.
 
+        :param kernel_type: Kernel type label used in log messages, e.g. "LSK".
         :param patterns: Kernel file names or search patterns.
         :param directories: Directories to search, in priority order.
-        :param found_msg: Log message used when at least one kernel is loaded.
-        :param not_found_msg: Log message used when no kernel is loaded.
-        :param not_found_level: Logging function used for not_found_msg.
+        :param not_found_level: Logging function called when no kernel is found.
 
         :return: Paths of the kernels loaded
         """
@@ -1020,10 +1023,10 @@ class Setup:
         # the caller, since it differs between LSK/SCLK (error), FK
         # (warning), and PCK (info).
         if not loaded:
-            not_found_level(not_found_msg)
+            not_found_level(f'-- {kernel_type} not found.')
 
         else:
-            logging.info(found_msg, loaded)
+            logging.info('-- %s loaded: %s', f'{kernel_type}(s)'.ljust(8), loaded)
 
         return loaded
 
@@ -1086,30 +1089,18 @@ class Setup:
         # For each kernel type, the shared helper below searches for the latest
         # version matching each pattern, furnishes it, and logs what was
         # (or wasn't) loaded.
-        lsks = self._load_kernel_group(
-            lsk_patterns, directories,
-            '-- LSK     loaded: %s', '-- LSK not found.', logging.error
-        )
+        lsks = self._load_kernel_group('LSK', lsk_patterns, directories, logging.error)
 
         # This check is LSK-specific, so it stays here rather than in
         # the shared helper, which the other three kernel types don't need.
         if len(lsks) > 1:
             raise NPBError("Only one LSK should be obtained.")
 
-        pcks = self._load_kernel_group(
-            pck_patterns, directories,
-            '-- PCK(s)   loaded: %s', '-- PCK not found.', logging.info
-        )
+        self._load_kernel_group('PCK', pck_patterns, directories, logging.info)
 
-        fks = self._load_kernel_group(
-            fk_patterns, directories,
-            '-- FK(s)   loaded: %s', '-- FK not found.', logging.warning
-        )
+        fks = self._load_kernel_group('FK', fk_patterns, directories, logging.warning)
 
-        sclks = self._load_kernel_group(
-            sclk_patterns, directories,
-            '-- SCLK(s) loaded: %s', '-- SCLK not found.', logging.error
-        )
+        sclks = self._load_kernel_group('SCLK', sclk_patterns, directories, logging.error)
 
         logging.info('')
 
