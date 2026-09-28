@@ -257,7 +257,7 @@ class ReleasePlan:
         self._kernel_list = kernels
 
         # Add plan to the list of generated files.
-        self.setup.add_file(f"{Path(self.setup.working_directory, plan_name)}")
+        self.setup.add_file(str(Path(self.setup.working_directory, plan_name)))
 
         return True
 
