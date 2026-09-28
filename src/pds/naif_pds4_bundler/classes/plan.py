@@ -131,9 +131,11 @@ class ReleasePlan:
 
         kernels = []
         for kernel in kernels_in_dir:
+            kernel_name = Path(kernel).name
+            
             for pattern in patterns:
-                if re.match(pattern, kernel.split(os.sep)[-1]):
-                    kernels.append(kernel.split(os.sep)[-1])
+                if re.match(pattern, kernel_name):
+                    kernels.append(kernel_name)
 
         #
         # Sort the meta-kernels that need to be added if not running
