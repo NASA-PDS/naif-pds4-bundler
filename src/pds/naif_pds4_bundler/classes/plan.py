@@ -111,11 +111,12 @@ class ReleasePlan:
         else:
             logging.info('-- Generate archiving plan from kernel directory(ies):')
 
-            for k_dir in self.setup.kernels_directory:
-                logging.info('   %s', k_dir)
-
             kernels_in_dir = []
             for k_dir in self.setup.kernels_directory:
+                logging.info('   %s', k_dir)
+                
+                # "**/*.*" digs into every subdirectory but only picks up files
+                # that have an extension (a dot in the name).
                 kernels_in_dir += glob.glob(f"{k_dir}/**/*.*", recursive=True)
             #
             # Filter out the meta-kernels from the automatically generated
