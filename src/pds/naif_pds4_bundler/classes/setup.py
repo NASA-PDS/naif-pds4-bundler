@@ -1021,8 +1021,8 @@ class Setup:
 
             directories.append(os.path.join(self.bundle_directory, self.volume_id, 'data'))
 
-        # Each config key belongs to exactly one of these four kernel types, so
-        # we just need to figure out which list to dump it into.
+        # configuration.xsd only allows these four keys, so a direct lookup is
+        # enough.
         pattern_lists = {
             "fk": fk_patterns,
             "sclk": sclk_patterns,
@@ -1030,16 +1030,11 @@ class Setup:
             "lsk": lsk_patterns,
         }
 
-        for kernel in self.kernels_to_load:
-            for kernel_type, patterns in pattern_lists.items():
-
-                if kernel_type in kernel:
-                    # A value can be a single pattern or a list of them;
-                    # normalize_to_list makes sure we always add a list.
-                    patterns.extend(normalize_to_list(self.kernels_to_load[kernel]))
-
-                    # Found its type, so stop checking the rest.
-                    break
+        for kernel_type, patterns in pattern_lists.items():
+            if kernel_type in self.kernels_to_load:
+                # A value can be a single pattern or a list of them;
+                # normalize_to_list makes sure we always add a list.
+                patterns.extend(normalize_to_list(self.kernels_to_load[kernel_type]))
 
         # For each kernel type, the shared helper below searches for the latest
         # version matching each pattern, furnishes it, and logs what was
