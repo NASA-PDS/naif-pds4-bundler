@@ -1021,31 +1021,25 @@ class Setup:
 
             directories.append(os.path.join(self.bundle_directory, self.volume_id, 'data'))
 
+        # Each config key belongs to exactly one of these four kernel types, so
+        # we just need to figure out which list to dump it into.
+        pattern_lists = {
+            "fk": fk_patterns,
+            "sclk": sclk_patterns,
+            "pck": pck_patterns,
+            "lsk": lsk_patterns,
+        }
+
         for kernel in self.kernels_to_load:
-            if "fk" in kernel:
-                fks = self.kernels_to_load[kernel]
-                if not isinstance(fks, list):
-                    fks = [fks]
-                for fk in fks:
-                    fk_patterns.append(fk)
-            elif "sclk" in kernel:
-                sclks = self.kernels_to_load[kernel]
-                if not isinstance(sclks, list):
-                    sclks = [sclks]
-                for sclk in sclks:
-                    sclk_patterns.append(sclk)
-            elif "pck" in kernel:
-                pcks = self.kernels_to_load[kernel]
-                if not isinstance(pcks, list):
-                    pcks = [pcks]
-                for pck in pcks:
-                    pck_patterns.append(pck)
-            elif "lsk" in kernel:
-                lsks = self.kernels_to_load[kernel]
-                if not isinstance(lsks, list):
-                    lsks = [lsks]
-                for lsk in lsks:
-                    lsk_patterns.append(lsk)
+            for kernel_type, patterns in pattern_lists.items():
+
+                if kernel_type in kernel:
+                    # A value can be a single pattern or a list of them;
+                    # normalize_to_list makes sure we always add a list.
+                    patterns.extend(normalize_to_list(self.kernels_to_load[kernel]))
+
+                    # Found its type, so stop checking the rest.
+                    break
 
         # For each kernel type, the shared helper below searches for the latest
         # version matching each pattern, furnishes it, and logs what was
@@ -1071,7 +1065,7 @@ class Setup:
         # TODO: BUG, self.lsk is set from the configured LSK pattern, which may
         #       not be a real file. It should store the resolved LSK path, or
         #       None if none was found.
-        self.lsk = lsk
+        self.lsk = lsk_patterns[-1]
 
     def information_model_setup(self):
         """Setup and check PDS4 Information Model related things."""
