@@ -14,7 +14,7 @@ import shutil
 import sys
 from pathlib import Path
 import tempfile
-from typing import Any, Optional
+from typing import Any, Literal, Optional
 from typing import TYPE_CHECKING
 
 import spiceypy
@@ -246,6 +246,48 @@ def type_to_extension(kernel_type):
     kernel_extension = kernel_type_map[kernel_type]
 
     return kernel_extension
+
+
+def archive_subdirectory(kind: Literal["kernel", "orbnum", "mk"],
+                         pds_version: str) -> str:
+    """Given a kind of archive file provide its top-level subdirectory.
+
+    The subdirectory is relative to the staging directory and is only the
+    first level. Whatever sits below it (the kernel type directory such as
+    ``spk``, or the ``orbnum`` and ``mk`` directories) is not part of the
+    result.
+
+    :param kind: Kind of file: ``"kernel"`` (SPICE kernel), ``"orbnum"``
+       (orbit number file) or ``"mk"`` (meta-kernel)
+    :param pds_version: PDS version of the archive: ``"3"`` or ``"4"``
+    :return: Name of the archive subdirectory where the file is staged
+    :raises ValueError: If the kind or the PDS version are not supported
+    """
+
+    # Each (kind, PDS version) pair maps to one subdirectory. In PDS3 the
+    # orbnum files and the meta-kernels share "extras", while in PDS4 they
+    # are split: orbnum files go to "miscellaneous" and meta-kernels join the
+    # kernels in "spice_kernels".
+    subdirectory_map = {
+        ("kernel", "3"): "data",
+        ("kernel", "4"): "spice_kernels",
+        ("orbnum", "3"): "extras",
+        ("orbnum", "4"): "miscellaneous",
+        ("mk", "3"): "extras",
+        ("mk", "4"): "spice_kernels",
+    }
+
+    # The lookup key is the pair, so an unsupported kind and an unsupported
+    # PDS version both end up as a missing key.
+    try:
+        return subdirectory_map[(kind, pds_version)]
+
+    # Report the missing key as a ValueError naming both inputs. "from None"
+    # drops the KeyError, whose message would only be the raw key tuple.
+    except KeyError:
+        raise ValueError(
+            f"No archive subdirectory for kind '{kind}' and PDS version "
+            f"'{pds_version}'.") from None
 
 
 def add_carriage_return(line: str, eol: str, setup: Optional[Setup] = None) -> str:

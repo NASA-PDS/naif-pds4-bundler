@@ -6,6 +6,7 @@ from .decorators import spice_exception_handler
 from .files import (
     add_carriage_return,
     add_crs_to_file,
+    archive_subdirectory,
     check_badchar,
     check_binary_endianness,
     check_consecutive,
@@ -52,6 +53,7 @@ from .time import (
 __all__ = [
     'add_carriage_return',
     'add_crs_to_file',
+    'archive_subdirectory',
     'check_badchar',
     'check_binary_endianness',
     'check_consecutive',

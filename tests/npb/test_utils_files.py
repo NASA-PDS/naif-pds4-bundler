@@ -5,6 +5,7 @@ import logging
 from pathlib import Path
 import re
 import shutil
+from typing import Literal
 from unittest.mock import call, MagicMock, patch
 from xml.etree import ElementTree
 
@@ -161,6 +162,63 @@ def test_add_crs_to_file_invalid_eol_propagates(tmp_path):
     # NPBError before any file I/O happens; match checks that message survives.
     with pytest.raises(NPBError, match="Invalid EOL requested"):
         files.add_crs_to_file(str(fake_file), eol="bad-eol", setup=None)
+
+
+# ----------------------------------------------------------------------------
+# files.archive_subdirectory tests
+# ----------------------------------------------------------------------------
+
+@pytest.mark.parametrize("kind, pds_version, expected", [
+    ("kernel", "3", "data"),
+    ("kernel", "4", "spice_kernels"),
+    # PDS3 keeps orbnum files and meta-kernels together in "extras".
+    ("orbnum", "3", "extras"),
+    ("orbnum", "4", "miscellaneous"),
+    ("mk", "3", "extras"),
+    # PDS4 stores meta-kernels next to the kernels, not with the orbnum files.
+    ("mk", "4", "spice_kernels"),
+])
+def test_archive_subdirectory(kind: Literal["kernel", "orbnum", "mk"],
+                              pds_version, expected):
+    """Test that each kind and PDS version maps to its archive subdirectory."""
+    # The kind, the PDS version and the expected directory come from the
+    # parametrization, one row per kind and PDS version combination.
+
+    # Ask for the top-level directory of the kind.
+    subdirectory = files.archive_subdirectory(kind, pds_version)
+
+    # It must be the directory of the archive layout, not a default.
+    assert subdirectory == expected
+
+
+@pytest.mark.parametrize("kind, pds_version", [
+    # Unsupported PDS version.
+    ("kernel", "5"),
+    # Unsupported kind.
+    ("label", "4"),
+    # Both unsupported.
+    ("label", "5"),
+    # PDS version as a number (e.g. from a config parser) is not "3" or "4".
+    ("kernel", 3),
+])
+def test_archive_subdirectory_unknown(kind, pds_version):
+    """Test that an unsupported kind or PDS version raises a ValueError."""
+    # The error must name the two inputs it received.
+    expected_message = (
+        f"No archive subdirectory for kind '{kind}' and PDS version "
+        f"'{pds_version}'."
+    )
+
+    # The request must be rejected instead of falling back to a default
+    # directory. The invalid kind and PDS version are passed on purpose, so
+    # the type check on the call is silenced.
+    with pytest.raises(ValueError) as error:
+        # noinspection PyTypeChecker
+        files.archive_subdirectory(kind, pds_version)
+
+    # The message reports the rejected kind and PDS version.
+    assert str(error.value) == expected_message
+
 
 # ----------------------------------------------------------------------------
 # files.check_badchar tests
