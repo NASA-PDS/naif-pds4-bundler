@@ -125,6 +125,33 @@ class TestOrbnumFileProductInit:
         mock_check_eol.assert_called_once()
         pds4_init_mocks["coverage"].assert_called_once()
 
+    @pytest.mark.parametrize("pds_version, directory", [
+        ("3", "extras"),
+        ("4", "miscellaneous"),
+    ])
+    @patch.object(Product, "register")
+    @patch(f"{MOD}.safe_make_directory")
+    @patch(f"{MOD}.shutil.copy2")
+    @patch(f"{MOD}.os.path.isfile", return_value=False)
+    @patch(f"{MOD}.check_eol", return_value=True)
+    def test_init_collection_path(
+            self, _mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir,
+            _mock_register, pds4_init_mocks, mock_setup, mock_collection,
+            mock_kernels_collection, pds_version, directory):
+        """Test that the orbnum file is staged under the folder of its PDS
+        version."""
+        # The PDS4 only steps of the constructor are patched by the fixture; in
+        # PDS3 they are skipped, so the same patches are harmless there.
+        mock_setup.pds_version = pds_version
+
+        # Build the product; the file copy and the directory creation are mocked.
+        obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+
+        # The collection is the version folder inside the staging directory, and
+        # the product path is its "orbnum" folder.
+        assert obj.collection_path == str(Path(mock_setup.staging_directory, directory))
+        assert obj.path == str(Path(mock_setup.staging_directory, directory, "orbnum", "test_file.orb"))
+
     @patch.object(Product, "register")
     @patch(f"{MOD}.safe_make_directory")
     @patch(f"{MOD}.os.path.isfile", return_value=True)

@@ -10,6 +10,7 @@ from .product import Product
 from ..exceptions import NPBError
 from ...utils.time import parse_date
 from ...utils import add_crs_to_file
+from ...utils import archive_subdirectory
 from ...utils import check_eol
 from ...utils import get_latest_kernel
 from ...utils import safe_make_directory
@@ -36,13 +37,13 @@ class OrbnumFileProduct(Product):
         self.extension = name.split(".")[-1].strip()
         self.path = setup.orbnum_directory
 
-        if setup.pds_version == "3":
-            self.collection_path = setup.staging_directory + os.sep + "extras"
-            product_path = self.collection_path + os.sep + "orbnum" + os.sep
-
-        else:  # elif setup.pds_version == "4":
-            self.collection_path = setup.staging_directory + os.sep + "miscellaneous"
-            product_path = self.collection_path + os.sep + "orbnum" + os.sep
+        # The orbnum files are staged under "extras" (PDS3) or "miscellaneous"
+        # (PDS4), in an "orbnum" directory.
+        self.collection_path = (
+            setup.staging_directory + os.sep
+            + archive_subdirectory("orbnum", setup.pds_version)
+        )
+        product_path = self.collection_path + os.sep + "orbnum" + os.sep
 
         #
         # Map the orbnum file with its configuration.
