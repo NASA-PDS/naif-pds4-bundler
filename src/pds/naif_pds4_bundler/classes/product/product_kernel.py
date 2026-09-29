@@ -7,6 +7,7 @@ import spiceypy
 
 from .product import Product
 from ..exceptions import NPBError
+from ...utils import archive_subdirectory
 from ...utils import ck_coverage
 from ...utils import dsk_coverage
 from ...utils import extension_to_type
@@ -45,7 +46,7 @@ class SpiceKernelProduct(Product):
 
             self.lid = self.product_lid()
             self.vid = self.product_vid()
-            ker_dir = "spice_kernels"
+
         else:
             #
             # Determine if it is a binary or a text kernel.
@@ -59,9 +60,13 @@ class SpiceKernelProduct(Product):
                 self.record_type = "STREAM"
                 self.record_bytes = '"N/A"'
 
-            ker_dir = "data"
+        # The kernel subdirectory depends on the PDS version (data or
+        # spice_kernels).
+        self.collection_path = (
+            setup.staging_directory + os.sep
+            + archive_subdirectory("kernel", setup.pds_version)
+        )
 
-        self.collection_path = setup.staging_directory + os.sep + ker_dir
         product_path = self.collection_path + os.sep + self.type + os.sep
 
         #
