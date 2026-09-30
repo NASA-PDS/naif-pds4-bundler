@@ -15,11 +15,6 @@ Available products:
 - :class:`~.product_readme.ReadmeProduct`         -- bundle readme file
 - :class:`~.product_spiceds.SpicedsProduct`       -- SPICE dataset description document
 - :class:`~.product_kernel.SpiceKernelProduct`    -- SPICE kernel file
-
-Version-specific base classes:
-
-- :class:`~.product_pds3.PDS3Product`             -- base for PDS3 products
-- :class:`~.product_pds4.PDS4Product`             -- base for PDS4 products
 """
 
 from .product_checksum import ChecksumProduct
@@ -30,5 +25,3 @@ from .product_pds3doc import PDS3DocumentProduct
 from .product_readme import ReadmeProduct
 from .product_spiceds import SpicedsProduct
 from .product_kernel import SpiceKernelProduct
-from .product_pds3 import PDS3Product
-from .product_pds4 import PDS4Product
