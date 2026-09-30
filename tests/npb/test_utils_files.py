@@ -12,6 +12,7 @@ from xml.etree import ElementTree
 import pytest
 import spiceypy
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.utils import files
 
 # Get the directory where the data is located.
@@ -202,17 +203,22 @@ def test_archive_subdirectory(kind: Literal["kernel", "orbnum", "mk"],
     ("kernel", 3),
 ])
 def test_archive_subdirectory_unknown(kind, pds_version):
-    """Test that an unsupported kind or PDS version raises a ValueError."""
-    # The error must name the two inputs it received.
+    """Test that an unsupported kind or PDS version raises an error.
+
+    The error is an NPBInternalError, since callers only pass hardcoded
+    kinds and a validated PDS version.
+    """
+    # The error must name the two inputs it received. NPBInternalError adds
+    # its own "NPB bug: " prefix.
     expected_message = (
-        f"No archive subdirectory for kind '{kind}' and PDS version "
+        f"NPB bug: No archive subdirectory for kind '{kind}' and PDS version "
         f"'{pds_version}'."
     )
 
     # The request must be rejected instead of falling back to a default
     # directory. The invalid kind and PDS version are passed on purpose, so
     # the type check on the call is silenced.
-    with pytest.raises(ValueError) as error:
+    with pytest.raises(NPBInternalError) as error:
         # noinspection PyTypeChecker
         files.archive_subdirectory(kind, pds_version)
 

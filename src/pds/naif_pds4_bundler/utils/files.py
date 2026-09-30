@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 import spiceypy
 from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
 
+from ..classes.exceptions import NPBInternalError
 from ..pipeline.runtime import handle_npb_error
 
 # classes.setup imports this module (via utils/__init__.py), so importing
@@ -261,7 +262,8 @@ def archive_subdirectory(kind: Literal["kernel", "orbnum", "mk"],
        (orbit number file) or ``"mk"`` (meta-kernel)
     :param pds_version: PDS version of the archive: ``"3"`` or ``"4"``
     :return: Name of the archive subdirectory where the file is staged
-    :raises ValueError: If the kind or the PDS version are not supported
+    :raises NPBInternalError: If the kind or the PDS version are not
+       supported
     """
 
     # Each (kind, PDS version) pair maps to one subdirectory. In PDS3 the
@@ -282,10 +284,12 @@ def archive_subdirectory(kind: Literal["kernel", "orbnum", "mk"],
     try:
         return subdirectory_map[(kind, pds_version)]
 
-    # Report the missing key as a ValueError naming both inputs. "from None"
-    # drops the KeyError, whose message would only be the raw key tuple.
+    # Report the missing key as an NPBInternalError naming both inputs. Callers
+    # only pass hardcoded kinds and a validated PDS version, so reaching this
+    # means a bug in the code, not bad user input. "from None" drops the
+    # KeyError, whose message would only be the raw key tuple.
     except KeyError:
-        raise ValueError(
+        raise NPBInternalError(
             f"No archive subdirectory for kind '{kind}' and PDS version "
             f"'{pds_version}'.") from None
 
