@@ -14,6 +14,7 @@ Collaborators patched at their locations inside the module under test:
   - naif_pds4_bundler.classes.collection.Collection.set_collection_lid
 """
 import logging
+import os
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -849,6 +850,35 @@ class TestSpiceKernelsCollectionValidate:
 
         assert messages == expected
 
+    @pytest.mark.parametrize("pds_version, expected_parts", [
+        ("3", [
+            ("data", "ck", "missing.bc"),
+            ("extras", "orbnum", "missing.bc"),
+            ("extras", "mk", "missing.bc"),
+        ]),
+        ("4", [
+            ("spice_kernels", "ck", "missing.bc"),
+            ("miscellaneous", "orbnum", "missing.bc"),
+            ("spice_kernels", "mk", "missing.bc"),
+        ]),
+    ])
+    def test_checks_the_staging_folder_of_each_kind(self, pds_version, expected_parts):
+        """validate() looks for a listed product in the kernel, orbnum and
+        meta-kernel folders of its PDS version."""
+        # A listed kernel that is not staged in any folder.
+        obj = self._make_obj(pds_version=pds_version, kernel_list=["missing.bc"])
+
+        # Nothing exists, so the three staging locations are all tried and
+        # validate() then raises.
+        with patch(_EXISTS, return_value=False) as mock_exists, pytest.raises(NPBError):
+            obj.validate()
+
+        # Each location is the folder of its kind for the PDS version, joined to
+        # the staging directory with the separator of the operating system.
+        expected_paths = [
+            os.path.join(obj.setup.staging_directory, *parts) for parts in expected_parts
+        ]
+        assert [call.args[0] for call in mock_exists.call_args_list] == expected_paths
 
     @pytest.mark.parametrize("pds_version, kernels, exists", [
         # 3 path checks per kernel, all False -> missing

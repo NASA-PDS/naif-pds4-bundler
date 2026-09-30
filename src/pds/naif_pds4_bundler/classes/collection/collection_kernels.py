@@ -8,6 +8,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from .collection import Collection
 from ..exceptions import NPBError
+from ...utils import archive_subdirectory
 from ...utils import et_to_date
 from ...utils import extension_to_type
 from ...utils import FILE_READ_ERRORS
@@ -343,15 +344,27 @@ class SpiceKernelsCollection(Collection):
         #
         logging.info("-- Checking that all the kernels from list are present...")
 
-        if self.setup.pds_version == "3":
-            ker_dir = "/data/"
-            orbnum_dir = "/extras/orbnum/"
-            mk_dir = "/extras/mk/"
+        # Staging folder of each kind of product for the PDS version. Each one
+        # starts and ends with a separator, so it can sit between the staging
+        # directory and the product name. Orbnum files and meta-kernels are one
+        # level deeper, in "orbnum" and "mk"; for the kernels, the type folder
+        # is added in the checks below.
+        pds_version = self.setup.pds_version
+        ker_dir = os.sep + archive_subdirectory("kernel", pds_version) + os.sep
+        orbnum_dir = (
+            os.sep + archive_subdirectory("orbnum", pds_version)
+            + os.sep + "orbnum" + os.sep
+        )
+        mk_dir = (
+            os.sep + archive_subdirectory("mk", pds_version)
+            + os.sep + "mk" + os.sep
+        )
+
+        # PDS3 labels have the .lbl extension and PDS4 labels the .xml one.
+        if pds_version == "3":
             lbl_ext = ".lbl"
+
         else:
-            ker_dir = "/spice_kernels/"
-            orbnum_dir = "/miscellaneous/orbnum/"
-            mk_dir = "/spice_kernels/mk/"
             lbl_ext = ".xml"
 
         non_present_products = []

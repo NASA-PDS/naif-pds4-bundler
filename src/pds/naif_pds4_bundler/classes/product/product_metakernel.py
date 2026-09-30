@@ -13,6 +13,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from .product import Product
 from ..exceptions import NPBError
+from ...utils import archive_subdirectory
 from ...utils import check_line_length
 from ...utils import ck_coverage
 from ...utils import compare_files
@@ -108,17 +109,20 @@ class MetaKernelProduct(Product):
                 f"Meta-kernel {self.name} has not been matched in configuration."
             )
 
-        if setup.pds_version == "3":
-            self.collection_path = setup.staging_directory + os.sep + "extras" + os.sep
-            product_path = self.collection_path + self.type + os.sep
+        # The meta-kernel is staged under "extras" (PDS3) or "spice_kernels"
+        # (PDS4); the trailing separator is kept because the path is extended
+        # below.
+        self.collection_path = (
+            setup.staging_directory + os.sep
+            + archive_subdirectory("mk", setup.pds_version) + os.sep
+        )
+        product_path = self.collection_path + self.type + os.sep
 
+        # KERNELPATH fills PATH_VALUES in the meta-kernel template, so it is
+        # the path the kernels are found from, not a staging folder.
+        if setup.pds_version == "3":
             self.KERNELPATH = "./data"
         else:  # elif setup.pds_version == "4":
-            self.collection_path = (
-                setup.staging_directory + os.sep + "spice_kernels" + os.sep
-            )
-            product_path = self.collection_path + self.type + os.sep
-
             self.KERNELPATH = ".."
 
         self.AUTHOR = self.setup.producer_name
