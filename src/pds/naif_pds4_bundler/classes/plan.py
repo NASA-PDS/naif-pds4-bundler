@@ -6,7 +6,8 @@ import os
 from pathlib import Path
 import re
 
-from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from .exceptions import NPBError
+from ..utils import normalize_to_list
 
 
 class ReleasePlan:
@@ -143,12 +144,7 @@ class ReleasePlan:
         # existing bundle.
         if self.setup.args.faucet != "labels":
             if hasattr(self.setup, "mk_inputs"):
-                if not isinstance(self.setup.mk_inputs["file"], list):
-                    mks = [self.setup.mk_inputs["file"]]
-
-                else:
-                    mks = self.setup.mk_inputs["file"]
-
+                mks = normalize_to_list(self.setup.mk_inputs["file"])
                 for mk in mks:
                     mk_new_name = mk.split(os.sep)[-1]
 
@@ -180,10 +176,6 @@ class ReleasePlan:
                     if "mk" in p.parts and p.suffix.lower() == ".tm"
                 ]
 
-                # Filenames are zero-padded by version, so a lexicographic
-                # sort also orders them from oldest to newest.
-                mks_in_dir.sort()
-
                 if not mks_in_dir:
                     logging.warning(
                         "-- No former meta-kernel found to generate "
@@ -193,15 +185,16 @@ class ReleasePlan:
                 else:
                     mk_new_name = ""
 
-                    # If kernels are present, a meta-kernel might be able to be
-                    # generated from the information of the bundle.
+                    # A meta-kernel can only be generated from the bundle
+                    # information if there are kernels in the plan to base it
+                    # on.
                     if kernels:
 
-                        for pattern in patterns:
-                            # The last entry is the newest version, since
-                            # mks_in_dir is sorted above.
-                            mk_name = mks_in_dir[-1]
+                        # Filenames are zero-padded by version, so the
+                        # lexicographically greatest one is also the newest.
+                        mk_name = max(mks_in_dir)
 
+                        for pattern in patterns:
                             if re.match(pattern, mk_name):
                                 version = re.findall(r"_v\d+", mk_name)[0]
 
@@ -214,10 +207,7 @@ class ReleasePlan:
 
                                 # Swap the old version substring for the new one
                                 # inside the filename.
-                                mk_new_name = (
-                                    f"{mk_name.split(version)[0]}"
-                                    f"{new_version}{mk_name.split(version)[-1]}"
-                                )
+                                mk_new_name = mk_name.replace(version, new_version, 1)
 
                                 logging.warning('-- Plan will include %s', mk_new_name)
 
