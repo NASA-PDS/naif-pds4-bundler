@@ -535,7 +535,7 @@ class Setup:
                         )
                 else:
                     self.xml_model = (
-                        f"https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
+                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
                     )
 
                     logging.info('-- Schema XML Model (xml_model) not provided '
@@ -560,8 +560,8 @@ class Setup:
                         )
                 else:
                     self.schema_location = (
-                        f"https://pds.nasa.gov/pds4/pds/v1 "
-                        f"https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
+                        f"http://pds.nasa.gov/pds4/pds/v1 "
+                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
                     )
 
                     logging.info('-- Schema Location (schema_location) not '

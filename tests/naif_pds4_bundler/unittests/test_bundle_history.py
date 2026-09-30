@@ -8,7 +8,7 @@ def test_insight_history(self):
     """Test the generation of the bundle history."""
     setup = MagicMock(bundle_directory="../data/insight",
                       mission_acronym="insight",
-                      xml_model="https://pds.nasa.gov/pds4/pds/v1/test")
+                      xml_model="http://pds.nasa.gov/pds4/pds/v1/test")
     bundle = MagicMock(vid="8.0",
                        name="bundle_insight_spice_v008.xml",
                        setup=setup,

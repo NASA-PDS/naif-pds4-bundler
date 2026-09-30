@@ -811,11 +811,11 @@ class TestSetupCheckConfiguration:
 
         # Set a valid xml_model and schema_location if they are not provided.
         if xml_model is None:
-            xml_model = 'https://example.com/PDS4_PDS_ABCD.sch'
+            xml_model = 'http://example.com/PDS4_PDS_ABCD.sch'
         if schema_location is None:
             schema_location = (
-                'https://pds.nasa.gov/pds4/pds/v1 '
-                'https://example.com/PDS4_PDS_ABCD.xsd'
+                'http://pds.nasa.gov/pds4/pds/v1 '
+                'http://example.com/PDS4_PDS_ABCD.xsd'
             )
 
         setup.xml_model = xml_model
@@ -1160,9 +1160,9 @@ class TestSetupCheckConfiguration:
             setup.check_configuration()
 
         # Check template files.
-        assert setup.xml_model == 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1234.sch'
-        assert setup.schema_location == ('https://pds.nasa.gov/pds4/pds/v1 '
-                                         'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1234.xsd')
+        assert setup.xml_model == 'http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1234.sch'
+        assert setup.schema_location == ('http://pds.nasa.gov/pds4/pds/v1 '
+                                         'http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1234.xsd')
 
         expected = [
             (logging.INFO, '-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format.'),
@@ -1180,12 +1180,12 @@ class TestSetupCheckConfiguration:
     @pytest.mark.parametrize('attribute, value, expected_message', [
         ('information_model', '1.2.bad',
          'PDS4 Information Model 1.2.bad format from configuration is incorrect.'),
-        ('xml_model', 'https://example.com/PDS4_PDS_9999.sch',
+        ('xml_model', 'http://example.com/PDS4_PDS_9999.sch',
          'PDS4 Information Model ABCD is incoherent with the XML Model '
-         'version: https://example.com/PDS4_PDS_9999.sch.'),
-        ('schema_location', 'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_9999.xsd',
+         'version: http://example.com/PDS4_PDS_9999.sch.'),
+        ('schema_location', 'http://pds.nasa.gov/pds4/pds/v1 http://example.com/PDS4_PDS_9999.xsd',
          'PDS4 Information Model ABCD is incoherent with the Schema '
-         'location: https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_9999.xsd.')])
+         'location: http://pds.nasa.gov/pds4/pds/v1 http://example.com/PDS4_PDS_9999.xsd.')])
     def test_raises_when_information_model_configuration_is_invalid(
             self, tmp_path, attribute, value, expected_message) -> None:
 
@@ -1199,14 +1199,14 @@ class TestSetupCheckConfiguration:
             setup.check_configuration()
 
     @pytest.mark.parametrize('information_model, xml_model, schema_location, expected_template_version', [
-        (im_version(1, 6, 0, 0), 'https://example.com/PDS4_PDS_1600.sch',
-         'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_1600.xsd',
+        (im_version(1, 6, 0, 0), 'http://example.com/PDS4_PDS_1600.sch',
+         'http://pds.nasa.gov/pds4/pds/v1 http://example.com/PDS4_PDS_1600.xsd',
          im_version(1, 5, 0, 0)),
-        (im_version(2, 1, 0, 0), 'https://example.com/PDS4_PDS_2100.sch',
-         'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_2100.xsd',
+        (im_version(2, 1, 0, 0), 'http://example.com/PDS4_PDS_2100.sch',
+         'http://pds.nasa.gov/pds4/pds/v1 http://example.com/PDS4_PDS_2100.xsd',
          im_version(2, 0, 0, 0)),
-        (im_version(1, 0, 0, 0), 'https://example.com/PDS4_PDS_1000.sch',
-         'https://pds.nasa.gov/pds4/pds/v1 https://example.com/PDS4_PDS_1000.xsd',
+        (im_version(1, 0, 0, 0), 'http://example.com/PDS4_PDS_1000.sch',
+         'http://pds.nasa.gov/pds4/pds/v1 http://example.com/PDS4_PDS_1000.xsd',
          im_version(1, 5, 0, 0))])
     def test_uses_closest_available_templates_when_exact_schema_is_unavailable(
             self, tmp_path, caplog, information_model, xml_model, schema_location,
@@ -1248,9 +1248,9 @@ class TestSetupCheckConfiguration:
 
         # Build a setup with a custom templates directory that does not exist.
         setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
-                                      xml_model='https://example.com/PDS4_PDS_1500.sch',
-                                      schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
-                                                       'https://example.com/PDS4_PDS_1500.xsd'),
+                                      xml_model='http://example.com/PDS4_PDS_1500.sch',
+                                      schema_location=('http://pds.nasa.gov/pds4/pds/v1 '
+                                                       'http://example.com/PDS4_PDS_1500.xsd'),
                                       templates_directory=str(tmp_path / 'missing_templates'),
                                       root_dir=root_dir)
 
@@ -1274,9 +1274,9 @@ class TestSetupCheckConfiguration:
             '      <Identification_Area>\n', encoding='utf-8')
 
         setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
-                                      xml_model='https://example.com/PDS4_PDS_1500.sch',
-                                      schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
-                                                       'https://example.com/PDS4_PDS_1500.xsd'),
+                                      xml_model='http://example.com/PDS4_PDS_1500.sch',
+                                      schema_location=('http://pds.nasa.gov/pds4/pds/v1 '
+                                                       'http://example.com/PDS4_PDS_1500.xsd'),
                                       templates_directory=str(custom_templates),
                                       root_dir=root_dir)
 
@@ -1324,9 +1324,9 @@ class TestSetupCheckConfiguration:
 
         # Build the setup.
         setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
-                                      xml_model='https://example.com/PDS4_PDS_1500.sch',
-                                      schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
-                                                       'https://example.com/PDS4_PDS_1500.xsd'),
+                                      xml_model='http://example.com/PDS4_PDS_1500.sch',
+                                      schema_location=('http://pds.nasa.gov/pds4/pds/v1 '
+                                                       'http://example.com/PDS4_PDS_1500.xsd'),
                                       root_dir=root_dir)
 
         # Check the logging level and logging messages.
@@ -1353,9 +1353,9 @@ class TestSetupCheckConfiguration:
 
         # Build the setup.
         setup = self.make_check_setup(tmp_path, information_model=im_version(1, 5, 0, 0),
-                                      xml_model='https://example.com/PDS4_PDS_1500.sch',
-                                      schema_location=('https://pds.nasa.gov/pds4/pds/v1 '
-                                                       'https://example.com/PDS4_PDS_1500.xsd'),
+                                      xml_model='http://example.com/PDS4_PDS_1500.sch',
+                                      schema_location=('http://pds.nasa.gov/pds4/pds/v1 '
+                                                       'http://example.com/PDS4_PDS_1500.xsd'),
                                       root_dir=root_dir)
 
         # Check the logging level and logging messages.
@@ -2973,9 +2973,9 @@ class TestSetupWriteValidateConfig:
 
         setup.working_directory = str(tmp_path)
         setup.bundle_directory = '/bundle'
-        setup.xml_model = 'https://example.com/PDS4_PDS_1B00.sch'
-        setup.schema_location = ('https://pds.nasa.gov/pds4/pds/v1 '
-                                 'https://example.com/PDS4_PDS_1B00.xsd')
+        setup.xml_model = 'http://example.com/PDS4_PDS_1B00.sch'
+        setup.schema_location = ('http://pds.nasa.gov/pds4/pds/v1 '
+                                 'http://example.com/PDS4_PDS_1B00.xsd')
 
         return setup
 
@@ -3135,5 +3135,5 @@ class TestSetupWriteValidateConfig:
 
         assert caplog.messages == [
             "-- PDS Validate Tool configuration file not written.",
-            "   PDS Schema location not reachable: https://example.com/PDS4_PDS_1B00.xsd",
+            "   PDS Schema location not reachable: http://example.com/PDS4_PDS_1B00.xsd",
         ]
