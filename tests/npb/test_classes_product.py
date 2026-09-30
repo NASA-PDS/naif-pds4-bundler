@@ -237,8 +237,77 @@ class TestProductComputeChecksum:
         assert checksum == hashlib.md5(b'readme').hexdigest()
 
 
+class StubHookProduct(Product):
+    # Overrides the hook with a directory the pds_version fallback never yields.
+    @property
+    def _archive_root_dir(self) -> str:
+        return 'custom_root'
+
+
+class StubFailingHookProduct(Product):
+    # Implements the hook but fails with an error other than NotImplementedError.
+    @property
+    def _archive_root_dir(self) -> str:
+        raise ValueError('boom')
+
 
 class TestProductRegister:
+
+    @pytest.mark.parametrize('pds_version', ['3', '4'])
+    def test_register_prefers_archive_root_dir_hook_over_pds_version(
+            self, mocker, tmp_path, pds_version) -> None:
+        """An implemented _archive_root_dir decides the archive directory."""
+        # Put a real file under the directory the hook names. That directory is
+        # neither '<mission>_spice' nor the volume id, so if the pds_version
+        # fallback ran instead, the directory lookup would fail.
+        path = tmp_path / 'custom_root' / 'data' / 'k.bsp'
+        path.parent.mkdir(parents=True)
+        path.write_text('kernel-content', encoding='utf-8')
+        setup = make_product_setup(tmp_path, pds_version=pds_version)
+
+        # Skip __init__ so the constructor does not register the product before
+        # the test is ready.
+        product = StubHookProduct.__new__(StubHookProduct)
+        product.path = str(path)
+        product.setup = setup
+        product.new_product = True
+        mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
+
+        # Register the product.
+        product.register()
+
+        # The setup receives the path below the hook's directory.
+        setup.add_file.assert_called_once_with(os.path.join('data', 'k.bsp'))
+
+    def test_register_does_not_swallow_errors_from_archive_root_dir_hook(
+            self, mocker, tmp_path) -> None:
+        """Only NotImplementedError triggers the fallback.
+
+        Any other error raised by an implemented hook is a real bug and must
+        propagate, leaving nothing registered in the setup.
+        """
+        # Put a real file in a layout the fallback could resolve, so a wrongly
+        # swallowed error would show up as a successful registration.
+        path = tmp_path / 'maven_spice' / 'k.bsp'
+        path.parent.mkdir(parents=True)
+        path.write_text('kernel-content', encoding='utf-8')
+        setup = make_product_setup(tmp_path)
+
+        # Skip __init__ so the constructor does not register the product
+        # before the test is ready.
+        product = StubFailingHookProduct.__new__(StubFailingHookProduct)
+        product.path = str(path)
+        product.setup = setup
+        product.new_product = True
+        mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
+
+        # Registering must raise the hook's own error.
+        with pytest.raises(ValueError, match='boom'):
+            product.register()
+
+        # Nothing reached the setup.
+        setup.add_file.assert_not_called()
+        setup.add_checksum.assert_not_called()
 
     @pytest.mark.parametrize('pds_version, parts, expected_relative', [
         ('4', ('bundle', 'maven_spice', 'spice_kernels', 'spk', 'k.bsp'),

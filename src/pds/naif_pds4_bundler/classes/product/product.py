@@ -42,6 +42,11 @@ class Product:
         # TODO: remove this call. It should be done by the subclasses instead.
         self.register()
 
+    @property
+    def _archive_root_dir(self) -> str:
+        """Name of the top-level archive directory for this product's PDS version."""
+        raise NotImplementedError
+
     def register(self) -> None:
         """Finalize file-derived attributes and register the product.
 
@@ -58,10 +63,19 @@ class Product:
 
         if self.new_product:
 
-            if self.setup.pds_version == "4":
-                archive_dir = f"{self.setup.mission_acronym}_spice"
-            else:
-                archive_dir = self.setup.volume_id
+            # TODO(product-split): remove once all products migrate off Product
+            #  directly
+            try:
+                archive_dir = self._archive_root_dir
+
+            # The base-class property raises this until a version base class
+            # implements it.
+            except NotImplementedError:
+                if self.setup.pds_version == "4":
+                    archive_dir = f"{self.setup.mission_acronym}_spice"
+                    
+                else:
+                    archive_dir = self.setup.volume_id
 
             path = Path(self.path)
             archive_dir_index = path.parts.index(archive_dir)
