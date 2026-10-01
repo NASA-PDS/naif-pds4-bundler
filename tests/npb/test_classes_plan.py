@@ -1107,6 +1107,150 @@ def test_write_plan_release_number_formatting(tmp_path, release, expected_suffix
     )
     assert expected.exists()
 
+
+# ===========================================================================
+# Testing of ReleasePlan._get_candidate_kernels method.
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# 1. Directory mode:
+#    Every kernels directory is globbed recursively, any path containing
+#    '.tm' is dropped and the full paths come back sorted.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("kernels_dirs, files, expected", [
+    pytest.param(["k"], ["k/b.bsp", "k/a.bsp"], ["k/a.bsp", "k/b.bsp"],
+                 id="sorted"),
+    pytest.param(["k"], ["k/spk/a.bsp"], ["k/spk/a.bsp"], id="recursive"),
+    pytest.param(["k"], ["k/a.bsp", "k/noext"], ["k/a.bsp"],
+                 id="extensionless_skipped"),
+    pytest.param(["k"], ["k/a.bsp", "k/m.tm"], ["k/a.bsp"],
+                 id="metakernel_excluded"),
+    # The sort is on the full path, so the directory name decides the order
+    # here, not the file name ("a/z.bsp" comes before "b/a.bsp").
+    pytest.param(["b", "a"], ["b/a.bsp", "a/z.bsp"], ["a/z.bsp", "b/a.bsp"],
+                 id="sorted_across_directories"),
+    # The meta-kernel filter is a substring test on the whole path, so a
+    # directory named 'foo.tmp' takes every kernel under it out. This pins
+    # today's behavior; it is not an endorsement.
+    pytest.param(["k"], ["k/foo.tmp/a.bsp", "k/b.bsp"], ["k/b.bsp"],
+                 id="tm_substring_drops_tmp_directory"),
+    pytest.param(["missing"], [], [], id="missing_directory"),
+])
+def test_get_candidate_kernels_directory_mode(
+        tmp_path, kernels_dirs, files, expected):
+    """Without a labels input kernel, candidates come from the directories."""
+    # Create the files and point the setup at the directories. 'files' and
+    # 'expected' are relative to 'tmp_path' to keep the parameters
+    # independent of the temporary location.
+    for f in files:
+        (tmp_path / f).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / f).touch()
+    setup = make_setup(
+        tmp_path, kernels_directory=[str(tmp_path / d) for d in kernels_dirs]
+    )
+    rp = make_release_plan(setup)
+
+    result = rp._get_candidate_kernels()
+
+    # 'as_posix' so the comparison does not depend on the OS separator.
+    relative_result = [Path(p).relative_to(tmp_path).as_posix() for p in result]
+    assert relative_result == expected
+
+
+# ---------------------------------------------------------------------------
+# 2. Labels mode:
+#    The input file is the only candidate, with no globbing and no filtering.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("plan", [
+    pytest.param("kernels/a.bsp", id="kernel"),
+    pytest.param("kernels/m.tm", id="metakernel_not_filtered"),
+])
+def test_get_candidate_kernels_labels_mode(tmp_path, plan):
+    """In labels mode the input kernel is returned as is."""
+    # The input kernel is not created; labels mode must not look at disk.
+    input_kernel = str(tmp_path / plan)
+    setup = make_setup(
+        tmp_path,
+        faucet="labels",
+        plan=input_kernel,
+        kernels_directory=[str(tmp_path / "kernels")],
+    )
+    rp = make_release_plan(setup)
+
+    result = rp._get_candidate_kernels()
+
+    assert result == [input_kernel]
+
+
+@pytest.mark.parametrize("faucet, plan", [
+    pytest.param("labels", "", id="labels_without_input_kernel"),
+    pytest.param("plan", "ignored.bsp", id="input_kernel_outside_labels"),
+])
+def test_get_candidate_kernels_input_kernel_needs_labels_and_plan(
+        tmp_path, faucet, plan):
+    """The input kernel is used only in labels mode and only if it is given."""
+    # An empty 'plan' is what a missing input kernel looks like in the setup
+    # built by 'make_setup' ('None' would be turned into the string "None").
+    kernel = tmp_path / "kernels" / "a.bsp"
+    kernel.parent.mkdir()
+    kernel.touch()
+    setup = make_setup(
+        tmp_path,
+        faucet=faucet,
+        plan=plan,
+        kernels_directory=[str(kernel.parent)],
+    )
+    rp = make_release_plan(setup)
+
+    result = rp._get_candidate_kernels()
+
+    assert result == [str(kernel)]
+
+
+# ---------------------------------------------------------------------------
+# 3. Logging:
+#    The messages are part of the observable behavior of write_plan.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("faucet, kernels_dirs, header, logged_paths", [
+    pytest.param(
+        "labels", ["kernels"],
+        "-- Generate archiving plan from input kernel:",
+        ["kernels/a.bsp"],
+        id="labels",
+    ),
+    pytest.param(
+        "plan", ["k1", "k2"],
+        "-- Generate archiving plan from kernel directory(ies):",
+        ["k1", "k2"],
+        id="directories",
+    ),
+])
+def test_get_candidate_kernels_logs_source(
+        tmp_path, caplog, faucet, kernels_dirs, header, logged_paths):
+    """The helper logs where the candidates come from, in order."""
+    # 'plan' is only read in labels mode, so it is safe to pass it in both
+    # cases. 'logged_paths' are relative to 'tmp_path' and are joined
+    # through 'Path' so the separators match the OS (backslashes on Windows).
+    setup = make_setup(
+        tmp_path,
+        faucet=faucet,
+        plan=str(tmp_path / "kernels" / "a.bsp"),
+        kernels_directory=[str(tmp_path / d) for d in kernels_dirs],
+    )
+    rp = make_release_plan(setup)
+    expected_messages = [header] + [
+        "   " + str(tmp_path / p) for p in logged_paths
+    ]
+
+    with caplog.at_level(logging.INFO):
+        rp._get_candidate_kernels()
+
+    assert caplog.messages == expected_messages
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------

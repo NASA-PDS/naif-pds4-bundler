@@ -103,35 +103,14 @@ class ReleasePlan:
         # The release plan is generated from the kernel directory unless
         # the parameter ``labels`` is provided by the ``-f --faucet`` argument.
         # In such case only the input file is provided in the release plan.
-        if self.setup.args.faucet == "labels" and self.setup.args.plan:
-
-            logging.info('-- Generate archiving plan from input kernel:')
-            logging.info('   %s', self.setup.args.plan)
-
-            kernels_in_dir = [self.setup.args.plan]
-        else:
-            logging.info('-- Generate archiving plan from kernel directory(ies):')
-
-            kernels_in_dir = []
-            for k_dir in self.setup.kernels_directory:
-                logging.info('   %s', k_dir)
-                
-                # "**/*.*" digs into every subdirectory but only picks up files
-                # that have an extension (a dot in the name).
-                kernels_in_dir += glob.glob(f"{k_dir}/**/*.*", recursive=True)
-            #
-            # Filter out the meta-kernels from the automatically generated
-            # list.
-            #
-            kernels_in_dir = [item for item in kernels_in_dir if ".tm" not in item]
-            kernels_in_dir.sort()
+        candidates = self._get_candidate_kernels()
 
         # Filter the kernels with the patterns in the kernel list from the
         # configuration.
         patterns = self._get_patterns()
 
         kernels = []
-        for kernel in kernels_in_dir:
+        for kernel in candidates:
             kernel_name = Path(kernel).name
 
             for pattern in patterns:
@@ -166,13 +145,13 @@ class ReleasePlan:
             else:
                 # If no meta-kernel was provided via configuration, try to infer
                 # the one that needs to be generated.
-                kernels_in_dir = Path(self.setup.bundle_directory).rglob("*")
+                bundle_files = Path(self.setup.bundle_directory).rglob("*")
 
                 # Meta-kernels live under a directory literally named "mk" and
                 # use the ".tm" extension.
                 mks_in_dir = [
                     p.name
-                    for p in kernels_in_dir
+                    for p in bundle_files
                     if "mk" in p.parts and p.suffix.lower() == ".tm"
                 ]
 
@@ -295,6 +274,43 @@ class ReleasePlan:
     # ------------------------------------------------------------------
     # Private helpers for write_plan
     # ------------------------------------------------------------------
+
+    def _get_candidate_kernels(self) -> list:
+        """Gather the files that the release plan is built from.
+
+        In labeling mode, with an input kernel provided, that kernel is the
+        only candidate and is returned as given. Otherwise, every configured
+        kernels directory is searched recursively and the paths are sorted.
+        Any path containing ``.tm`` is dropped as a meta-kernel, so this also
+        leaves out kernels under a directory such as ``foo.tmp``.
+
+        :return: List of paths to the candidate kernel files.
+        """
+        if self.setup.args.faucet == "labels" and self.setup.args.plan:
+
+            logging.info('-- Generate archiving plan from input kernel:')
+            logging.info('   %s', self.setup.args.plan)
+
+            kernels_in_dir = [self.setup.args.plan]
+
+        else:
+            logging.info('-- Generate archiving plan from kernel directory(ies):')
+
+            kernels_in_dir = []
+            for k_dir in self.setup.kernels_directory:
+                logging.info('   %s', k_dir)
+
+                # "**/*.*" digs into every subdirectory but only picks up files
+                # that have an extension (a dot in the name).
+                kernels_in_dir += glob.glob(f"{k_dir}/**/*.*", recursive=True)
+            #
+            # Filter out the meta-kernels from the automatically generated
+            # list.
+            #
+            kernels_in_dir = [item for item in kernels_in_dir if ".tm" not in item]
+            kernels_in_dir.sort()
+
+        return kernels_in_dir
 
     def _collect_orbnum_files(self) -> list:
         """Collect orbnum files from the orbnum directory.
