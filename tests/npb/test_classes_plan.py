@@ -1184,6 +1184,31 @@ def test_get_candidate_kernels_labels_mode(tmp_path, plan):
     assert result == [input_kernel]
 
 
+@pytest.mark.parametrize("faucet, plan", [
+    pytest.param("labels", "", id="labels_without_input_kernel"),
+    pytest.param("plan", "ignored.bsp", id="input_kernel_outside_labels"),
+])
+def test_get_candidate_kernels_input_kernel_needs_labels_and_plan(
+        tmp_path, faucet, plan):
+    """The input kernel is used only in labels mode and only if it is given."""
+    # An empty 'plan' is what a missing input kernel looks like in the setup
+    # built by 'make_setup' ('None' would be turned into the string "None").
+    kernel = tmp_path / "kernels" / "a.bsp"
+    kernel.parent.mkdir()
+    kernel.touch()
+    setup = make_setup(
+        tmp_path,
+        faucet=faucet,
+        plan=plan,
+        kernels_directory=[str(kernel.parent)],
+    )
+    rp = make_release_plan(setup)
+
+    result = rp._get_candidate_kernels()
+
+    assert result == [str(kernel)]
+
+
 # ---------------------------------------------------------------------------
 # 3. Logging:
 #    The messages are part of the observable behavior of write_plan.
