@@ -1114,8 +1114,8 @@ def test_write_plan_release_number_formatting(tmp_path, release, expected_suffix
 
 # ---------------------------------------------------------------------------
 # 1. Directory mode:
-#    Every kernels directory is globbed recursively, meta-kernels are
-#    dropped and the full paths come back sorted.
+#    Every kernels directory is globbed recursively, any path containing
+#    '.tm' is dropped and the full paths come back sorted.
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("kernels_dirs, files, expected", [
@@ -1131,7 +1131,7 @@ def test_write_plan_release_number_formatting(tmp_path, release, expected_suffix
     pytest.param(["b", "a"], ["b/a.bsp", "a/z.bsp"], ["a/z.bsp", "b/a.bsp"],
                  id="sorted_across_directories"),
     # The meta-kernel filter is a substring test on the whole path, so a
-    # directory named ``foo.tmp`` takes every kernel under it out. This pins
+    # directory named 'foo.tmp' takes every kernel under it out. This pins
     # today's behavior; it is not an endorsement.
     pytest.param(["k"], ["k/foo.tmp/a.bsp", "k/b.bsp"], ["k/b.bsp"],
                  id="tm_substring_drops_tmp_directory"),
@@ -1139,9 +1139,9 @@ def test_write_plan_release_number_formatting(tmp_path, release, expected_suffix
 ])
 def test_get_candidate_kernels_directory_mode(
         tmp_path, kernels_dirs, files, expected):
-    """Without a labels input, kernels come from globbing the directories."""
-    # Create the files and point the setup at the directories. ``files`` and
-    # ``expected`` are relative to ``tmp_path`` to keep the parameters
+    """Without a labels input kernel, candidates come from the directories."""
+    # Create the files and point the setup at the directories. 'files' and
+    # 'expected' are relative to 'tmp_path' to keep the parameters
     # independent of the temporary location.
     for f in files:
         (tmp_path / f).parent.mkdir(parents=True, exist_ok=True)
@@ -1153,7 +1153,8 @@ def test_get_candidate_kernels_directory_mode(
 
     result = rp._get_candidate_kernels()
 
-    relative_result = [str(Path(p).relative_to(tmp_path)) for p in result]
+    # 'as_posix' so the comparison does not depend on the OS separator.
+    relative_result = [Path(p).relative_to(tmp_path).as_posix() for p in result]
     assert relative_result == expected
 
 
@@ -1168,7 +1169,7 @@ def test_get_candidate_kernels_directory_mode(
 ])
 def test_get_candidate_kernels_labels_mode(tmp_path, plan):
     """In labels mode the input kernel is returned as is."""
-    # Neither file is created; labels mode must not look at disk.
+    # The input kernel is not created; labels mode must not look at disk.
     input_kernel = str(tmp_path / plan)
     setup = make_setup(
         tmp_path,
@@ -1188,26 +1189,26 @@ def test_get_candidate_kernels_labels_mode(tmp_path, plan):
 #    The messages are part of the observable behavior of write_plan.
 # ---------------------------------------------------------------------------
 
-@pytest.mark.parametrize("faucet, kernels_dirs, expected", [
+@pytest.mark.parametrize("faucet, kernels_dirs, header, logged_paths", [
     pytest.param(
         "labels", ["kernels"],
-        ["-- Generate archiving plan from input kernel:",
-         "   {root}/kernels/a.bsp"],
+        "-- Generate archiving plan from input kernel:",
+        ["kernels/a.bsp"],
         id="labels",
     ),
     pytest.param(
         "plan", ["k1", "k2"],
-        ["-- Generate archiving plan from kernel directory(ies):",
-         "   {root}/k1",
-         "   {root}/k2"],
+        "-- Generate archiving plan from kernel directory(ies):",
+        ["k1", "k2"],
         id="directories",
     ),
 ])
 def test_get_candidate_kernels_logs_source(
-        tmp_path, caplog, faucet, kernels_dirs, expected):
+        tmp_path, caplog, faucet, kernels_dirs, header, logged_paths):
     """The helper logs where the candidates come from, in order."""
-    # ``plan`` is only read in labels mode, so it is safe to pass it in both
-    # cases. ``{root}`` in ``expected`` stands for ``tmp_path``.
+    # 'plan' is only read in labels mode, so it is safe to pass it in both
+    # cases. 'logged_paths' are relative to 'tmp_path' and are joined
+    # through 'Path' so the separators match the OS (backslashes on Windows).
     setup = make_setup(
         tmp_path,
         faucet=faucet,
@@ -1215,12 +1216,15 @@ def test_get_candidate_kernels_logs_source(
         kernels_directory=[str(tmp_path / d) for d in kernels_dirs],
     )
     rp = make_release_plan(setup)
-    expected_messages = [m.format(root=tmp_path) for m in expected]
+    expected_messages = [header] + [
+        "   " + str(tmp_path / p) for p in logged_paths
+    ]
 
     with caplog.at_level(logging.INFO):
         rp._get_candidate_kernels()
 
     assert caplog.messages == expected_messages
+
 
 # ---------------------------------------------------------------------------
 # Helpers
