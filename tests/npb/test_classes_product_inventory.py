@@ -484,7 +484,7 @@ class TestInventoryProductWritePds3IndexProduct:
 
         m = mock_open()
         with patch("builtins.open", m), \
-             patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol, s: l), \
+             patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol: l), \
              patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")):
             with pytest.raises(NPBError, match='The index file is incomplete since no binary '
                                                 'kernel is present in the archive.'):
@@ -545,7 +545,7 @@ class TestInventoryProductWritePds3IndexProduct:
             return m_new.return_value
 
         with patch("builtins.open", side_effect=open_side_effect), \
-             patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol, s: l), \
+             patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol: l), \
              patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")):
             obj.write_pds3_index_product()
 
@@ -559,7 +559,7 @@ class TestInventoryProductWritePds3IndexProduct:
 
         m = mock_open()
         with patch("builtins.open", m), \
-             patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol, s: l), \
+             patch(f"{MODULE}.add_carriage_return", side_effect=lambda l, eol: l), \
              patch(f"{MODULE}.type_to_extension", return_value=("CK", ".bc")):
             obj.write_pds3_index_product()
 

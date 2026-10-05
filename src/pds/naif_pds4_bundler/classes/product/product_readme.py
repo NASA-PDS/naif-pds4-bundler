@@ -85,38 +85,30 @@ class ReadmeProduct(Product):
                             #       self.setup.eol instead. This inconsistency
                             #       means the generated readme can mix two
                             #       different line endings in the same file.
-                            line = add_carriage_return(
-                                line, self.setup.eol_pds4, self.setup
-                            )
+                            line = add_carriage_return(line, self.setup.eol_pds4)
                             f.write(line)
                         elif "$UNDERLINE" in line:
                             line = line.replace("$UNDERLINE", "=" * line_length)
                             line_length = len(line) - 1
                             # TODO: BUG; same eol_pds4 vs eol inconsistency as
                             #       the $SPICE_NAME branch above.
-                            line = add_carriage_return(
-                                line, self.setup.eol_pds4, self.setup
-                            )
+                            line = add_carriage_return(line, self.setup.eol_pds4)
                             f.write(line)
                         elif "$OVERVIEW" in line:
                             overview = self.setup.readme["overview"]
                             for line in overview.split("\n"):
                                 line = " " * 3 + line.strip() + "\n"
-                                line = add_carriage_return(
-                                    line, self.setup.eol, self.setup
-                                )
+                                line = add_carriage_return(line, self.setup.eol)
                                 f.write(line)
                         elif "$COGNISANT_AUTHORITY" in line:
                             cognisant = self.setup.readme["cognisant_authority"]
                             for line in cognisant.split("\n"):
                                 line = " " * 3 + line.strip() + "\n"
-                                line = add_carriage_return(
-                                    line, self.setup.eol, self.setup
-                                )
+                                line = add_carriage_return(line, self.setup.eol)
                                 f.write(line)
                         else:
                             line_length = len(line) - 1
-                            line = add_carriage_return(line, self.setup.eol, self.setup)
+                            line = add_carriage_return(line, self.setup.eol)
                             f.write(line)
 
         logging.info("-- Created readme file.")

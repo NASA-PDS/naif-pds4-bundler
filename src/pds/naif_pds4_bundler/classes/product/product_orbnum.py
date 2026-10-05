@@ -91,7 +91,7 @@ class OrbnumFileProduct(Product):
             if check_eol(product_path + os.sep + self.name, self.setup.eol):
                 logging.info("-- Adding CRLF to ORBNUM file.")
                 add_crs_to_file(
-                    product_path + os.sep + self.name, self.setup.eol, self.setup
+                    product_path + os.sep + self.name, self.setup.eol
                 )
 
         #

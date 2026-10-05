@@ -546,7 +546,7 @@ class ChecksumProduct(Product):
             #
             with open(self.path, "w", encoding='utf-8') as c:
                 for entry in md5_list:
-                    entry = add_carriage_return(entry, self.setup.eol, self.setup)
+                    entry = add_carriage_return(entry, self.setup.eol)
                     c.write(entry)
 
             if self.setup.diff:

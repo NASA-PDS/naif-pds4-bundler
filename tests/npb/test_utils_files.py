@@ -12,7 +12,7 @@ from xml.etree import ElementTree
 import pytest
 import spiceypy
 
-from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
+from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
 from pds.naif_pds4_bundler.utils import files
 
 # Get the directory where the data is located.
@@ -29,7 +29,8 @@ def daf_handle():
     handle = spiceypy.dafopr(daf_file)
     yield handle
 
-    spiceypy.dafcls(handle) # Cleanup after the test finishes
+    spiceypy.dafcls(handle)  # Cleanup after the test finishes
+
 
 # ----------------------------------------------------------------------------
 # files.add_carriage_return tests
@@ -54,37 +55,17 @@ def test_add_carriage_return(inputs, eol, outputs):
     result = files.add_carriage_return(inputs, eol)
     assert result == outputs
 
-@pytest.mark.parametrize("inputs, eol, expected", [
-    ("Meww", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
-    ("Meww", "\a", [(logging.ERROR, "Invalid EOL requested: '\\x07'.")]),
-    ("Meww", "\n", []),
-    ("Meww", "\r\n", []),
-    ("Meww\n", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
-    ("Meww\r\n", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
-    ("Meww\n", "\r\n", []),
-    ("Meww\r\n", "\n", []),
-    ("Meww\n", "\n", []),
-    ("Meww\r\n", "\r\n", []),
+
+@pytest.mark.parametrize("inputs, eol, message", [
+    ("Meww", "", "Invalid EOL requested: ''."),
+    ("Meww", "\a", "Invalid EOL requested: '\\x07'."),
+    ("Meww\n", "", "Invalid EOL requested: ''."),
+    ("Meww\r\n", "", "Invalid EOL requested: ''."),
 ])
-def test_add_carriage_return_logging_error(monkeypatch, inputs, eol, expected,  caplog):
-    """Test add_carriage_return function using pytest.
-    This is to test logging errors"""
-
-    def mock_handle_error(msg, setup):
-        if not setup:
-            logging.error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-
-    # Capture and check the logging level and logging messages.
-    with caplog.at_level(files.logging.ERROR):
-        files.add_carriage_return(inputs, eol, setup=None)
-
-    results = [(r[1], r[2]) for r in caplog.record_tuples]
-    # [1] is log level (logging.ERROR = 40)
-    # [2] is log message
-
-    assert results == expected
+def test_add_carriage_return_invalid_eol_raises(inputs, eol, message):
+    """An EOL other than LF or CRLF is rejected."""
+    with pytest.raises(NPBError, match=re.escape(message)):
+        files.add_carriage_return(inputs, eol)
 
 # ----------------------------------------------------------------------------
 # files.add_crs_to_file tests
@@ -106,7 +87,7 @@ def test_add_crs_to_file_success_alt(tmp_path, inputs, outputs):
     fake_file = tmp_path / "file.txt"
     fake_file.write_text(inputs, newline='')
 
-    files.add_crs_to_file(str(fake_file), eol="\n", setup=None)
+    files.add_crs_to_file(str(fake_file), eol="\n")
 
     assert fake_file.read_text() == outputs
 
@@ -125,44 +106,34 @@ def _non_utf8_file(tmp_path):
     return bad_file
 
 
-# Both a missing file and a non-UTF-8 file must reach the same
-# handle_npb_error() path - proving except (OSError, UnicodeDecodeError)
-# catches both real conditions rather than propagating either raw.
+# Both a missing file and a non-UTF-8 file must be reported as NPBError -
+# proving except (OSError, UnicodeDecodeError) catches both real conditions
+# rather than propagating either raw.
 @pytest.mark.parametrize("make_bad_file", [
     pytest.param(_nonexistent_file, id="missing-file"),
     pytest.param(_non_utf8_file, id="non-utf8-file"),
 ])
-def test_add_crs_to_file_logs_error(monkeypatch, tmp_path, caplog, make_bad_file):
-    def mock_handle_error(msg, setup):
-        if not setup:
-            logging.error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+def test_add_crs_to_file_unreadable_file_raises(tmp_path, make_bad_file):
     bad_file = make_bad_file(tmp_path)
 
-    with caplog.at_level(files.logging.ERROR):
-        files.add_crs_to_file(str(bad_file), eol="\n", setup=None)
-
-    expected = [(logging.ERROR, f'Carriage return adding error for {bad_file}.')]
-
-    results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-    assert results == expected
+    with pytest.raises(
+            NPBError,
+            match=re.escape(f"Carriage return adding error for {bad_file}.")):
+        files.add_crs_to_file(str(bad_file), eol="\n")
 
 
 def test_add_crs_to_file_invalid_eol_propagates(tmp_path):
     """An invalid `eol` is a caller bug (add_carriage_return raises its own
     NPBError for it), not a file I/O failure - it must propagate with its
     own message rather than being masked as a generic "adding error"."""
-    from pds.naif_pds4_bundler.classes.exceptions import NPBError
-
     fake_file = tmp_path / "file.txt"
     fake_file.write_text("Kitty\n")
 
     # eol="bad-eol" is neither "\n" nor "\r\n", so add_carriage_return raises
-    # NPBError before any file I/O happens; match checks that message survives.
+    # NPBError on the first line it processes; match checks that its own
+    # message survives instead of the generic "adding error".
     with pytest.raises(NPBError, match="Invalid EOL requested"):
-        files.add_crs_to_file(str(fake_file), eol="bad-eol", setup=None)
+        files.add_crs_to_file(str(fake_file), eol="bad-eol")
 
 
 # ----------------------------------------------------------------------------
@@ -367,29 +338,15 @@ def test_check_eol_alt(tmp_path, words, eol, expected):
     result = files.check_eol(str(file_path), eol)
     assert result == expected
 
-def test_check_eol_logging_error(monkeypatch, tmp_path, caplog):
-    """Test check_eol function using pytest.
-    This is to test logging errors"""
 
-    def mock_handle_error(msg, setup=False):
-        if not setup:
-            logging.error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-
+def test_check_eol_invalid_eol_raises(tmp_path):
+    """An EOL that is neither LF nor CRLF is a configuration error."""
     fake_file = tmp_path / "file.txt"
     fake_file.write_text("Hi \a")
-    eol = "\a"
 
-    # Capture and check the logging level and logging messages.
-    with caplog.at_level(files.logging.ERROR):
-        files.check_eol(fake_file, eol)
-
-    expected = [(logging.ERROR,'Incorrect EOL in configuration: \a')]
-
-    results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-    assert results == expected
+    with pytest.raises(
+            NPBError, match=re.escape("Incorrect EOL in configuration: \a")):
+        files.check_eol(fake_file, "\a")
 
 # ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
@@ -564,29 +521,24 @@ def test_check_permissions(path):
     """Test check_permissions function using pytest."""
     files.check_permissions(str(path))
 
-def test_check_permissions_error(monkeypatch, tmp_path, caplog):
-    """Test check_permissions function using pytest.
-    This is to test logging errors"""
-    def mock_handle_error(msg):
-        logging.error(msg)
 
+def test_check_permissions_unreadable_raises(monkeypatch, tmp_path):
+    """A file the account cannot read raises NPBError with the path."""
     def raise_permission_error(*_, **__):
         raise PermissionError()
-
 
     fake_file = tmp_path / "file.txt"
     fake_file.write_text("Secret")
 
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
     monkeypatch.setattr(files.Path, "open", raise_permission_error)
 
-    with caplog.at_level(logging.ERROR):
-        files.check_permissions(str(fake_file))
-
-    assert (
+    expected = (
         f"File {fake_file} is not readable by the account that runs NPB. "
-        "Update permissions." in caplog.text
+        "Update permissions."
     )
+
+    with pytest.raises(NPBError, match=re.escape(expected)):
+        files.check_permissions(str(fake_file))
 
 # ----------------------------------------------------------------------------
 # files.checksum_from_label test
@@ -641,36 +593,22 @@ def test_checksum_from_label_multi_dot_name(tmp_path, caplog):
 # files.checksum_from_registry test
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("prod_path, chcksm", [
-    ("ladee_v10.tm", {"1.checksum": "path/ladee_v10.tm   abcdefg10987654321"}),
-    ("mars2020_v04.bc", {"1.checksum": "not_the_right.bc  wrong", "2.checksum": "path/mars2020_v04.bc  looksright6789"}),
-    ("missing.tf", {"1.checksum": "other.tf  nothere12345"}),
-    ("any.bsp", {}),
+@pytest.mark.parametrize("prod_path, chcksm, expected", [
+    ("ladee_v10.tm", {"1.checksum": "path/ladee_v10.tm   abcdefg10987654321"},
+     "abcdefg10987654321"),
+    ("mars2020_v04.bc",
+     {"1.checksum": "not_the_right.bc  wrong",
+      "2.checksum": "path/mars2020_v04.bc  looksright6789"},
+     "looksright6789"),
+    ("missing.tf", {"1.checksum": "other.tf  nothere12345"}, ""),
+    ("any.bsp", {}, ""),
 ])
-def test_checksum_from_registry_logging_error(monkeypatch, tmp_path, prod_path, chcksm, caplog):
-    """Test checksum_from_registry function using pytest
-    This is to test logging errors"""
-    # checksum_found will always be False: the for loop in line 731 will either finish when one checksum is found
-    # -- see break in line 743, or when no checksum is found and no more registries are in checksum_registries
+def test_checksum_from_registry(tmp_path, prod_path, chcksm, expected):
+    """The checksum is read from whichever registry lists the product."""
     for filename, content in chcksm.items():
-        file_path = tmp_path / filename
-        file_path.write_text(content)
+        (tmp_path / filename).write_text(content)
 
-    def mock_handle_error(msg, setup):
-        if not setup:
-            logging.error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-
-    # Capture and check the logging level and logging messages.
-    with caplog.at_level(files.logging.ERROR):
-        files.checksum_from_registry(prod_path, str(tmp_path))
-
-    expected = []
-
-    results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-    assert results == expected
+    assert files.checksum_from_registry(prod_path, str(tmp_path)) == expected
 
 # ----------------------------------------------------------------------------
 # files.compare_files test
@@ -792,21 +730,27 @@ def test_extract_comment_ck_2(kern, comment, num):
 
     assert comment == result[int(num)]
 
-@pytest.mark.parametrize("kern",[
-    (KERNELS/"ck"/"buffer_buster.bc"),
+
+@pytest.mark.parametrize("open_handle", [
+    pytest.param(lambda path: False, id="opens-its-own-handle"),
+    pytest.param(spiceypy.dafopr, id="caller-supplied-handle"),
 ])
-def test_extract_comment_error(monkeypatch, kern, caplog):
-    """Test extract_comment function using pytest. This is to test logging errors"""
+def test_extract_comment_buffer_overflow_raises(open_handle):
+    """A comment longer than the read buffer raises NPBError, and the DAF is
+    closed before doing so, whether or not the caller supplied the handle."""
+    kern = KERNELS / "ck" / "buffer_buster.bc"
+    handle = open_handle(str(kern))
 
-    def mock_handle_error(msg, **_):
-        files.logging.getLogger("files").error(msg)
+    with patch.object(
+            files.spiceypy, "dafcls", wraps=files.spiceypy.dafcls) as dafcls, \
+            pytest.raises(
+                NPBError,
+                match=re.escape(
+                    f"Comment from {kern} is longer than buffer size.")):
+        files.extract_comment(str(kern), handle)
 
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+    dafcls.assert_called_once()
 
-    with caplog.at_level(files.logging.ERROR):
-        files.extract_comment(str(kern))
-
-    assert f"Comment from {kern} is longer than buffer size." in caplog.text
 
 def test_extract_comments_with_daf_handle(daf_handle):
     """Test that the function also operates on already opened DAF files.
@@ -1445,14 +1389,14 @@ def test_md5(fname, expected):
 ])
 def test_mk_to_list(mk, num_kernels, first, last):
     """Test mk_to_list function using pytest."""
-    kernels = files.mk_to_list(str(mk), False)
+    kernels = files.mk_to_list(str(mk))
     assert num_kernels == len(kernels)
     assert kernels[0] == first  # First kernel in the list
     assert kernels[-1] == last  # Last kernel in the list
 
 
-def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
-    """Test mk_to_list function using pytest. This is to test logging errors"""
+def test_mk_to_list_no_kernels_raises(tmp_path):
+    """A meta-kernel that lists no kernels is rejected."""
     mk_content = (
         "KPL/MK\n"
         "\n"
@@ -1466,15 +1410,11 @@ def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
     mk = tmp_path / "empty_kernels.tm"
     mk.write_text(mk_content)
 
-    def mock_handle_error(msg, **_):
-        files.logging.getLogger("files").error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-
-    with caplog.at_level(files.logging.ERROR):
-        files.mk_to_list(str(mk), setup=False)
-
-    assert [f"No kernels present in {mk}. Please review MK generation."] == caplog.messages
+    with pytest.raises(
+            NPBError,
+            match=re.escape(
+                f"No kernels present in {mk}. Please review MK generation.")):
+        files.mk_to_list(str(mk))
 
 # TODO: BUG: This demonstrates an issue with the code. The proposed metakernel is
 #       not valid. If loaded into SPICE,  it would produce a SPICE(FILEREADFAILED)
@@ -1499,7 +1439,7 @@ def test_mk_to_list_skips_empty_kernel_after_trailing_slash(tmp_path):
     mk = tmp_path / "trailing_slash.tm"
     mk.write_text(mk_content)
 
-    kernels = files.mk_to_list(str(mk), setup=False)
+    kernels = files.mk_to_list(str(mk))
     assert kernels == ["naif0012.tls"]
 
 
@@ -1536,8 +1476,8 @@ def test_product_mapping(tmp_path, miss_acr,  rel, ker_list, text, name, expecte
 
     assert result == expected
 
-def test_product_mapping_error_handling(monkeypatch, tmp_path):
-    """Test product_mapping using pytest. Check error handling is triggered correctly."""
+def test_product_mapping_no_mapping_raises(monkeypatch, tmp_path):
+    """A kernel with no mapping is an error unless the caller opts out."""
     setup = MagicMock()
     setup.working_directory = str(tmp_path)
     setup.mission_acronym = "NoOne"
@@ -1546,22 +1486,12 @@ def test_product_mapping_error_handling(monkeypatch, tmp_path):
 
     monkeypatch.setattr("builtins.open", lambda f, read, encoding: io.StringIO(""))
 
-    # Track calls to handle_npb_error in list
-    called = []
-
-    def mock_error_handler(msg, **_):
-        called.append(msg)
-
-    monkeypatch.setattr(files,"handle_npb_error", mock_error_handler)
-
-    files.product_mapping("NON_EXISTENT", setup, cleanup=True)
-
-    assert len(called) == 1
-    assert "does not have mapping" in called[0]
+    with pytest.raises(NPBError, match="does not have mapping"):
+        files.product_mapping("NON_EXISTENT", setup, cleanup=True)
 
 
 def test_product_mapping_cleanup(monkeypatch, tmp_path):
-    """Test product_mapping using pytest - check cleanup=False prevents the error handler from running."""
+    """Test product_mapping using pytest - check cleanup=False returns False instead of raising."""
     setup = MagicMock()
     setup.working_directory = str(tmp_path)
     setup.mission_acronym = "NoOne"

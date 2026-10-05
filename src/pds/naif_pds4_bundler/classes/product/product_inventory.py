@@ -180,9 +180,7 @@ class InventoryProduct(Product):
                             # be included as secondary in the new one
                             #
                             line = line.replace("P,urn", "S,urn")
-                        line = add_carriage_return(
-                            line, self.setup.eol_pds4, self.setup
-                        )
+                        line = add_carriage_return(line, self.setup.eol_pds4)
                         f.write(line)
 
             for product in self.collection.product:
@@ -194,9 +192,7 @@ class InventoryProduct(Product):
                 if not isinstance(product, InventoryProduct):
                     if product.new_product:
                         line = f"P,{product.lid}::{product.vid}\r\n"
-                        line = add_carriage_return(
-                            line, self.setup.eol_pds4, self.setup
-                        )
+                        line = add_carriage_return(line, self.setup.eol_pds4)
                         f.write(line)
 
     def write_pds3_index_product(self) -> None:
@@ -284,7 +280,7 @@ class InventoryProduct(Product):
                     if i != 9:
                         line += ","
 
-                line = add_carriage_return(line, self.setup.eol_pds3, self.setup)
+                line = add_carriage_return(line, self.setup.eol_pds3)
                 file_types.append(
                     type_to_extension(line.split(",")[7].split('"')[1].strip())[0]
                 )
