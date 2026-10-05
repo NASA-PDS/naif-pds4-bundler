@@ -1609,9 +1609,10 @@ class TestNPBErrorHandling:
         mocks.KernelList.return_value.check_products.side_effect = (
             lambda: trigger(tmp_path))
 
+        args = _args()
         with caplog.at_level(logging.ERROR), \
                 pytest.raises(NPBError, match=fragment) as raised:
-            run_pipeline(_args())
+            run_pipeline(args)
 
         setup = mocks.Setup.return_value
         setup.write_file_list.assert_called_once()
