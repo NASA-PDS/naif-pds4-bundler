@@ -221,7 +221,7 @@ class MetaKernelProduct(Product):
         # Following the product generation we read the kernels again to
         # include all the kernels present.
         #
-        self.collection_metakernel = mk_to_list(self.path, self.setup)
+        self.collection_metakernel = mk_to_list(self.path)
 
         if self.setup.pds_version == "4":
             #

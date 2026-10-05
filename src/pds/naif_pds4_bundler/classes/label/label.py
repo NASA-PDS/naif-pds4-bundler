@@ -163,7 +163,7 @@ class PDSLabel:
                     #
                     if self.name.split(os.sep)[-1] == "checksum.lbl":
                         line += " " * (self.product.record_bytes - len(line) - 2)
-                    line = add_carriage_return(line, self._eol, self.setup)
+                    line = add_carriage_return(line, self._eol)
 
                     f.write(line)
 

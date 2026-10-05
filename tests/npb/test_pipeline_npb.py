@@ -27,6 +27,7 @@ Phase → Test class mapping
  13  NPBError -> handle_npb_error routing TestNPBErrorHandling
 """
 from contextlib import ExitStack
+import logging
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -35,6 +36,7 @@ import pytest
 
 from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
 from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
+from pds.naif_pds4_bundler.utils import files
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 # Imported to create specified mocks that pass isinstance checks in Phase 12.
@@ -1293,6 +1295,26 @@ class TestPhase12FinalValidation:
 # Phase 13 - NPBError -> handle_npb_error routing
 # ---------------------------------------------------------------------------
 
+# Real utils.files failures, used as triggers by TestNPBErrorHandling. Each one
+# makes a genuine call fail, so the NPBError comes from the actual function.
+# They all take tmp_path so the test can call them the same way, even though
+# not every one needs it.
+def _invalid_eol(tmp_path):
+    files.add_carriage_return("line", "bad")
+
+
+def _bad_eol_in_config(tmp_path):
+    kernel = tmp_path / "kernel.tf"
+    kernel.write_text("text\n")
+    files.check_eol(kernel, "bad")
+
+
+def _meta_kernel_without_kernels(tmp_path):
+    mk = tmp_path / "empty.tm"
+    mk.write_text("KPL/MK\n\\begindata\nKERNELS_TO_LOAD = (\n)\n")
+    files.mk_to_list(str(mk))
+
+
 class TestNPBErrorHandling:
     # run_pipeline wraps its body in two broad try/except blocks: Block A
     # around Setup() construction alone, Block B around everything from
@@ -1313,6 +1335,9 @@ class TestNPBErrorHandling:
     # ReleasePlan.read_plan() and KernelList.read_list() (both need a
     # non-default `args.plan`/`args.kerlist`), and Setup() construction
     # itself (Block A's no-setup case).
+    # test_error_from_files_function_is_handled_once goes the other way: it
+    # triggers real utils.files failures instead of invented ones, to check
+    # they take this same route and are logged only once.
 
     @staticmethod
     def _apply_overrides(mocks, overrides):
@@ -1564,6 +1589,37 @@ class TestNPBErrorHandling:
         setup = mocks.Setup.return_value
         setup.write_file_list.assert_called_once()
         setup.write_checksum_registry.assert_called_once()
+
+    # fragment is the part of each message that doesn't include the temp path,
+    # which changes on every run.
+    @pytest.mark.parametrize('trigger, fragment', [
+        pytest.param(_invalid_eol, 'Invalid EOL requested',
+                     id='add_carriage_return'),
+        pytest.param(_bad_eol_in_config, 'Incorrect EOL in configuration',
+                     id='check_eol'),
+        pytest.param(_meta_kernel_without_kernels, 'No kernels present',
+                     id='mk_to_list'),
+    ])
+    def test_error_from_files_function_is_handled_once(
+            self, mocks, tmp_path, caplog, trigger, fragment):
+        # A real utils.files failure raised inside the main try block must
+        # reach the real handle_npb_error along with the run's setup, and be
+        # logged exactly once. check_products() runs inside that block, so a
+        # failure there takes the same route as one inside the real classes.
+        mocks.KernelList.return_value.check_products.side_effect = (
+            lambda: trigger(tmp_path))
+
+        args = _args()
+        with caplog.at_level(logging.ERROR), \
+                pytest.raises(NPBError, match=fragment) as raised:
+            run_pipeline(args)
+
+        setup = mocks.Setup.return_value
+        setup.write_file_list.assert_called_once()
+        setup.write_checksum_registry.assert_called_once()
+        errors = [r.getMessage() for r in caplog.records
+                  if r.levelno == logging.ERROR]
+        assert errors == [f"-- {raised.value}"]
 
     def test_npb_error_from_setup_construction_is_routed_without_setup(self, mocks):
         # Setup() itself failing is a special case (Block A): there is no

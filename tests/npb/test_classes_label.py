@@ -275,7 +275,7 @@ class TestPDSLabelWriteLabel:
     @staticmethod
     def _run_write(label, mocker, template_content="Line with $name\n"):
         mocker.patch("builtins.open", mock_open(read_data=template_content))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("rel/path"))
         mock_add = mocker.patch.object(label.setup, "add_file")
         label.write_label()
@@ -349,7 +349,7 @@ class TestPDSLabelWriteLabel:
         label.name = "/staging/custom_name.xml"
         mock_open_fn = mocker.patch("builtins.open",
                                     mock_open(read_data="Line with $name\n"))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("rel/path"))
         mocker.patch.object(label.setup, "add_file")
 
@@ -366,7 +366,7 @@ class TestPDSLabelWriteLabel:
         label = label_for(pds_version="3", is_checksum=True)
         label.name = f"/staging{os.sep}checksum.lbl"
         mocker.patch("builtins.open", mock_open(read_data="short\n"))
-        mock_cr = mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mock_cr = mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("c"))
         mocker.patch.object(label.setup, "add_file")
         label.write_label()
@@ -376,7 +376,7 @@ class TestPDSLabelWriteLabel:
         label = label_for(diff=True)
         mock_cmp = mocker.patch.object(label, "compare")
         mocker.patch("builtins.open", mock_open(read_data=""))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
         mocker.patch.object(label.setup, "add_file")
         label.write_label()
@@ -396,7 +396,7 @@ class TestPDSLabelWriteLabel:
         label = label_for(is_pds3_kernel=is_pds3_kernel)
         mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.info")
         mocker.patch("builtins.open", mock_open(read_data=""))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
         mocker.patch.object(label.setup, "add_file")
         label.write_label()
@@ -408,7 +408,7 @@ class TestPDSLabelWriteLabel:
         label.setup.args.silent = True
         mock_print = mocker.patch("builtins.print")
         mocker.patch("builtins.open", mock_open(read_data=""))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
         mocker.patch.object(label.setup, "add_file")
         label.write_label()

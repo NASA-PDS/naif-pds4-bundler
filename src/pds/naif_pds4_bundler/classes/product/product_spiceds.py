@@ -163,7 +163,7 @@ class SpicedsProduct(Product):
         with open(self.path, "r", encoding='utf-8') as s:
             with open(temporary_file, "w+", encoding='utf-8') as t:
                 for line in s:
-                    line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
+                    line = add_carriage_return(line, self.setup.eol_pds4)
                     t.write(line)
 
         #

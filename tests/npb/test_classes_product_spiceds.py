@@ -337,7 +337,7 @@ class TestSpicedsProductCheckCr:
 
         with patch(f'{_MODULE}.date') as date_mock, \
                 patch(f'{_MODULE}.add_carriage_return',
-                      side_effect=lambda line, eol, setup: line):
+                      side_effect=lambda line, eol: line):
             date_mock.today.return_value = mock_date
             product._check_cr()
 
@@ -354,7 +354,7 @@ class TestSpicedsProductCheckCr:
         mock_date.strftime.return_value = '2026-06-29T000000.000000'
         with patch(f'{_MODULE}.date') as date_mock, \
                 patch(f'{_MODULE}.add_carriage_return',
-                      side_effect=lambda line, eol, setup: line.replace('\n', '\r\n')):
+                      side_effect=lambda line, eol: line.replace('\n', '\r\n')):
             date_mock.today.return_value = mock_date
             with caplog.at_level(logging.INFO):
                 product._check_cr()
@@ -368,24 +368,23 @@ class TestSpicedsProductCheckCr:
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
 
-    def test_check_cr_passes_eol_and_setup_to_helper(self, tmp_path):
+    def test_check_cr_passes_eol_to_helper(self, tmp_path):
         # Each line is forwarded to add_carriage_return with the configured
-        # eol_pds4 and the setup object.
+        # eol_pds4.
         product, _ = self._make_product(tmp_path, 'a\nb\n', eol_pds4='\r\n')
 
         mock_date = MagicMock()
         mock_date.strftime.return_value = '2026-06-29T000000.000000'
         with patch(f'{_MODULE}.date') as date_mock, \
                 patch(f'{_MODULE}.add_carriage_return',
-                      side_effect=lambda line, eol, setup: line) as helper:
+                      side_effect=lambda line, eol: line) as helper:
             date_mock.today.return_value = mock_date
             product._check_cr()
 
-        # Two lines -> two calls, each with the configured eol and setup object.
+        # Two lines -> two calls, each with the configured eol.
         assert helper.call_count == 2
         for call_args in helper.call_args_list:
             assert call_args.args[1] == '\r\n'
-            assert call_args.args[2] is product.setup
 
 
 # ---------------------------------------------------------------------------

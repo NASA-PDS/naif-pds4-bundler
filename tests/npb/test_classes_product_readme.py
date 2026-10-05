@@ -279,7 +279,7 @@ class TestReadmeProductWriteProduct:
         obj = self._make_obj(setup, str(out_path))
 
         with patch(f'{MOD}.add_carriage_return',
-                   side_effect=lambda line, eol, s: line):
+                   side_effect=lambda line, eol: line):
             obj._write_product()
 
         content = out_path.read_text(encoding='utf-8')
@@ -326,7 +326,7 @@ class TestReadmeProductWriteProduct:
         with patch('builtins.open',
                    lambda *a, **kw: real_open(*a, **{**kw, 'newline': ''})), \
                 patch(f'{MOD}.add_carriage_return',
-                      side_effect=lambda line, eol_value, s: line.rstrip('\n') + eol_value):
+                      side_effect=lambda line, eol_value: line.rstrip('\n') + eol_value):
             obj._write_product()
 
         with real_open(out_path, encoding='utf-8', newline='') as f:
