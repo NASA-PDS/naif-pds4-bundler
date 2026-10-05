@@ -896,20 +896,24 @@ def checksum_from_label(path):
     return checksum
 
 
-def extract_comment(path: str, handle: int | bool = False) -> list[str]:
+def extract_comment(path: str, handle: Optional[int] = None) -> list[str]:
     """Extract the comment area of a SPICE DAF kernel.
 
     Trailing blank lines are dropped. If ``handle`` is not given the kernel
     is opened for reading and closed again before returning; a handle
     supplied by the caller is left open when the call succeeds.
 
-    :param path: Path of the SPICE kernel; used to open it when ``handle`` is
-        not given, and in the error message.
-    :param handle: Handle of an already open DAF, or ``False`` to open ``path``.
+    :param path:   Path of the SPICE kernel; used to open it when ``handle`` is
+                   not given, and in the error message.
+    :param handle: Handle of an already open DAF, or ``None`` to open ``path``.
+
     :return: Comment lines of the kernel.
+
     :raises NPBError: if the comment does not fit in the read buffer. The DAF
         is closed before raising, even when the handle came from the caller.
     """
+    # Open the file if the handle has not been provided by the caller, or the
+    # provided handle is zero.
     if not handle:
         close_file = True
         handle = spiceypy.dafopr(path)
