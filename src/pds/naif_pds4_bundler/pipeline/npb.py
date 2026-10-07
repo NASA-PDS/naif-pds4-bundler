@@ -440,6 +440,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                         # there's no PDS3 label to pick here.
                         logging.info('-- Labeling %s...', release_checksum.name)
                         release_checksum.label = ChecksumPDS4Label(release_checksum)
+                        release_checksum.label.write_label()
 
                         #
                         # Initialize a miscellaneous collection for this previous
@@ -554,6 +555,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             # here.
             logging.info('-- Labeling %s...', checksum.name)
             checksum.label = ChecksumPDS4Label(checksum)
+            checksum.label.write_label()
 
             miscellaneous_collection.add(checksum)
 

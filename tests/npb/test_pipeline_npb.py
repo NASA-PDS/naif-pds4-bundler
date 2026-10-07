@@ -953,6 +953,9 @@ class TestPhase9PDS4DocumentMiscChecksum:
 
         assert checksum.label is mocks.ChecksumPDS4Label.return_value
 
+        # npb.py writes the label itself right after building it.
+        mocks.ChecksumPDS4Label.return_value.write_label.assert_called_once()
+
     def test_readme_product_created(self, mocks):
         # A ReadmeProduct is created with the shared setup and bundle.
         run_pipeline(_args())
@@ -1037,6 +1040,11 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # loop, plus one more for the current release's own checksum, built
         # later in the same run.
         assert mocks.ChecksumPDS4Label.call_count == len(bundle.history) + 1
+
+        # Every label built, past releases and current one, is also written
+        # exactly once; the mock shares one return_value across all calls.
+        write_label = mocks.ChecksumPDS4Label.return_value.write_label
+        assert write_label.call_count == len(bundle.history) + 1
 
     def test_backfill_loop_skipped_when_checksum_dir_exists(self, mocks):
         # When the checksum directory already exists, the backfill loop does not run.
