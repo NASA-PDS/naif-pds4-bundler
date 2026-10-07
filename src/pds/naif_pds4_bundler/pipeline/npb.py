@@ -581,6 +581,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             # here.
             logging.info('-- Labeling %s...', checksum.name)
             checksum.label = ChecksumPDS3Label(checksum)
+            checksum.label.write_label()
 
             miscellaneous_collection.add(checksum)
 

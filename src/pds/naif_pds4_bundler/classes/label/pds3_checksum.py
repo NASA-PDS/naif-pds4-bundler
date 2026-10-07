@@ -26,5 +26,3 @@ class ChecksumPDS3Label(PDS3Label):
         self._label_fields["RECORD_BYTES"] = str(self.product.record_bytes)
         self._label_fields["FILE_RECORDS"] = str(self.product.file_records)
         self._label_fields["BYTES"] = str(self.product.bytes)
-
-        self.write_label()

@@ -1164,6 +1164,9 @@ class TestPhase10PDS3Path:
 
         assert checksum.label is mocks.ChecksumPDS3Label.return_value
 
+        # npb.py writes the label itself right after building it.
+        mocks.ChecksumPDS3Label.return_value.write_label.assert_called_once()
+
     def test_set_increment_times_not_called_for_pds3(self, mocks):
         # Increment times are not computed for PDS3 archives.
         run_pipeline(_args())
