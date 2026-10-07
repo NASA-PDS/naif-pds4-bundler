@@ -1459,10 +1459,6 @@ class TestKernelListValidate:
         # only one release list present, kernel_lists[-2] raises IndexError,
         # which the except clause turns into an error log instead of crashing.
 
-        # TODO: BUG; in the diff branch fromfile = kernel_lists[-1] runs BEFORE
-        #       the try, so if the glob returns nothing kernel_lists[-1] raises
-        #       an uncaught IndexError.
-
         # Build a KernleList.
         kernel_list, setup, output_path = self.make_kernel_list(
             mocker, tmp_path, self.block('spice_kernels/spk/k.bsp', 'SPK', 'd'),
@@ -1482,6 +1478,31 @@ class TestKernelListValidate:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
+
+    def test_validate_diff_current_list_unavailable(self, mocker, caplog,
+                                                    tmp_path) -> None:
+        """With diff and increment enabled but no release list found at all,
+        validate() must log that the current list is missing instead of
+        raising an IndexError, and must not report it as a missing previous
+        list (that message is for the single-list case)."""
+        # Build a KernelList.
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, self.block('spice_kernels/spk/k.bsp', 'SPK', 'd'),
+            kernels=['k.bsp'], present_kernels=('k.bsp',),
+            diff='diff-arg', increment=True)
+
+        # Make the release-list glob come back empty.
+        mocker.patch('pds.naif_pds4_bundler.classes.list.glob.glob',
+                     return_value=[])
+
+        # Capture the logs and check the log messages and log level.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert (logging.ERROR, '-- Current list not available.') in results
+        assert (logging.ERROR, '-- Previous list not available.') not in results
 
     @pytest.mark.parametrize("side_effect", [
         pytest.param(OSError("boom"), id="oserror-bad-file"),

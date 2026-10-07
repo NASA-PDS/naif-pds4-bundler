@@ -657,19 +657,24 @@ class KernelList:
             logging.info("-- Comparing current list with previous list:")
 
             logging.info("")
-            # TODO: BUG, 'fromfile' is initialised outside the 'try block', if
-            #       'kernel_list' is empty, it raises an 'IndexError' that is
-            #       not caught.
-            fromfile = kernel_lists[-1]
-            try:
-                tofile = kernel_lists[-2]
-                work_dir = self.setup.working_directory
-                compare_files(fromfile, tofile, work_dir, self.setup.diff)
 
-            # kernel_lists[-2] raises IndexError; compare_files() raises
-            # OSError/UnicodeDecodeError on a bad file.
-            except (IndexError, *FILE_READ_ERRORS):
-                logging.error("-- Previous list not available.")
+            # An empty glob means the current list itself is missing; a single
+            # entry means there is just no previous list to compare it with.
+            if not kernel_lists:
+                logging.error("-- Current list not available.")
+
+            else:
+                fromfile = kernel_lists[-1]
+
+                try:
+                    tofile = kernel_lists[-2]
+                    work_dir = self.setup.working_directory
+                    compare_files(fromfile, tofile, work_dir, self.setup.diff)
+
+                # kernel_lists[-2] raises IndexError; compare_files() raises
+                # OSError/UnicodeDecodeError on a bad file.
+                except (IndexError, *FILE_READ_ERRORS):
+                    logging.error("-- Previous list not available.")
 
     def validate_complete(self):
         """Validation of the complete Kernel List.
