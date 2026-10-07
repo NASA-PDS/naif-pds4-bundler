@@ -810,6 +810,30 @@ class TestPhase8CollectionMetadata:
 
         assert inventory.label is mocks.InventoryPDS3Label.return_value
 
+        # npb.py writes the label itself, right after building it.
+        mocks.InventoryPDS3Label.return_value.write_label.assert_called_once()
+
+    def test_pds3_label_written_before_dsindex_files_generated(
+            self, mocks: SimpleNamespace) -> None:
+        """The PDS3 index label is written to disk before the dsindex files
+        are generated, because generating them copies that label."""
+        # Make both calls append to one shared list, so their order is kept.
+        calls = []
+        mocks.InventoryPDS3Label.return_value.write_label.side_effect = (
+            lambda: calls.append('label written'))
+        dsindex = mocks.InventoryProduct.return_value.generate_dsindex_files
+        dsindex.side_effect = lambda: calls.append('dsindex generated')
+
+        # Run the pipeline under PDS3 with the SPICE kernels collection
+        # updated, which is what builds the index inventory.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+
+        # If the label were written later, the copy would fail because
+        # index.lbl would not exist yet.
+        assert calls == ['label written', 'dsindex generated']
+
 
 # ---------------------------------------------------------------------------
 # Phase 9 – PDS4 document + miscellaneous + checksum

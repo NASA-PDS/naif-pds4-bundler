@@ -115,13 +115,13 @@ class InventoryProduct(Product):
 
         PDS3 only. This is a separate method, not folded into __init__,
         because it copies ``index.lbl`` -- a file this class doesn't write.
-        ``InventoryPDS3Label`` writes it, and that label is now built by the
-        pipeline after this product's __init__ returns. Call this only
-        after that label exists, or the copy fails with a FileNotFoundError.
+        ``InventoryPDS3Label`` writes it, and the pipeline now builds and
+        writes that label after this product's __init__ returns. Call this
+        only after that write, or the copy fails with a FileNotFoundError.
 
         TODO: this ordering is only enforced by the comment in npb.py next to
-              the call site, not by the type system, and no test checks the call
-              order. If the pipeline is ever reordered, this will fail with a
+              the call site and by a pipeline test, not by the type system. If
+              the pipeline is ever reordered, this will fail with a
               FileNotFoundError that gives no hint the real cause is ordering.
         """
         shutil.copy2(self.path, self.setup.staging_directory + "/../dsindex.tab")

@@ -362,9 +362,10 @@ def run_pipeline(args: PipelineArgs) -> None:
             else:
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
+                spice_kernels_collection_inventory.label.write_label()
 
-                # Must come after the label line above, not before: this copies
-                # index.lbl, which InventoryPDS3Label just wrote.
+                # Must come after the label is written above, not before: this
+                # copies index.lbl, which that write produces.
                 spice_kernels_collection_inventory.generate_dsindex_files()
 
             spice_kernels_collection.add(spice_kernels_collection_inventory)
