@@ -10,6 +10,9 @@ from ...utils import add_carriage_return, compare_files
 class PDSLabel:
     """Class to generate a PDS Label.
 
+    Building a label only collects its fields and derives its path; the
+    label file is not created until :meth:`write_label` is called.
+
     :param product: Product to be labeled
     """
 
@@ -36,9 +39,9 @@ class PDSLabel:
         # Keep a reference to the product this label describes.
         self.product = product
 
-        # The destination path is fully derivable from the product; write_label()
-        # only writes to it, it no longer computes it. Note this no longer implies
-        # the file was actually written -- just that this is the intended path.
+        # The destination path is fully derivable from the product, so it is
+        # set here at construction. It is only the intended path: the file does
+        # not exist until write_label() is called.
         self.name = self._derive_name()
 
         # Read setup off the product instead of taking it as a separate
