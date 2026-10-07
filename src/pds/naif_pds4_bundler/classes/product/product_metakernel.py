@@ -579,7 +579,7 @@ class MetaKernelProduct(Product):
                             if self.setup.pds_version == "3": #TODO: check if this is needed
                                 bundle_kernels_path = (
                                     f"{self.setup.bundle_directory}/"
-                                    f"{self.setup.volume.id}/data"
+                                    f"{self.setup.volume_id}/data"
                                 )
                             else:
                                 bundle_kernels_path = (
