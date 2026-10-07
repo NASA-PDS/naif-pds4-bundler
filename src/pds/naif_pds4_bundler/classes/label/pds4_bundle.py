@@ -81,5 +81,3 @@ class BundlePDS4Label(PDS4Label):
                 f"</reference_type>{eol}"
                 f"{' ' * tab}</Bundle_Member_Entry>{eol}"
             )
-
-        self.write_label()

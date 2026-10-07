@@ -972,6 +972,29 @@ class TestPhase9PDS4DocumentMiscChecksum:
         mocks.BundlePDS4Label.assert_called_once_with(readme_product)
         assert readme_product.label is mocks.BundlePDS4Label.return_value
 
+        # npb.py writes the label itself, right after building it.
+        mocks.BundlePDS4Label.return_value.write_label.assert_called_once()
+
+    def test_bundle_label_written_before_checksum_generated(
+            self, mocks: SimpleNamespace) -> None:
+        """The bundle label is written to disk before the checksum product
+        is generated, so the checksum can hash the label file."""
+        
+        # Make both calls append to one shared list, so their order is kept.
+        calls = []
+        mocks.BundlePDS4Label.return_value.write_label.side_effect = (
+            lambda: calls.append('label written'))
+        mocks.ChecksumProduct.return_value.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('checksum generated'))
+
+        # Run the pipeline once with the default PDS4 mocks, which build
+        # no previous releases, so 'generate' is called a single time.
+        run_pipeline(_args())
+
+        # If the label were written later, the checksum would hash a file
+        # that does not exist yet.
+        assert calls == ['label written', 'checksum generated']
+
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
         run_pipeline(_args())

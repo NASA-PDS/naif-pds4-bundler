@@ -541,6 +541,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             logging.info("-- Generating bundle label...")
             bundle.readme.label = BundlePDS4Label(bundle.readme)
+            bundle.readme.label.write_label()
 
             #
             # * Generate the Checksum product a posteriori in such a way
