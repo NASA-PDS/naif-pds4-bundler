@@ -558,6 +558,9 @@ class TestPhase6StagingBundleAndCollections:
         # The label built above is what ends up assigned back onto the product.
         assert orbnum_product.label is mocks.OrbnumFilePDS4Label.return_value
 
+        # npb.py writes the label itself, right after building it.
+        mocks.OrbnumFilePDS4Label.return_value.write_label.assert_called_once()
+
     def test_orbnum_product_not_labeled_for_pds3(self, mocks):
         # Product is still built for PDS3 (it archives to "extras", not
         # "spice_kernels")...

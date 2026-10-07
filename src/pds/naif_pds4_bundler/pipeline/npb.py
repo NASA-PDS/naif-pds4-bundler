@@ -252,6 +252,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 if setup.pds_version == "4":
                     logging.info('-- Labeling %s...', orbnum_product.name)
                     orbnum_product.label = OrbnumFilePDS4Label(orbnum_product)
+                    orbnum_product.label.write_label()
 
                 miscellaneous_collection.add(orbnum_product)
 
