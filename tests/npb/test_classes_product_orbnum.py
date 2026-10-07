@@ -425,16 +425,65 @@ class TestOrbnumFileProductUtcBlanksToDashes:
 
 
 class TestOrbnumFileProductReadRecords:
-    @patch("builtins.open", new_callable=mock_open, read_data="h1\nh2\n1 data\n2 data\n")
-    def test_read_records_clean(self, _mock_file):
+    @pytest.mark.parametrize("file_data", [
+        "h1\nh2\n1 data\n2 data\n",
+        "h1\n\n1 data\n2 data\n"],
+        ids=["plain-header", "blank-header-line"]
+    )
+    def test_read_records_clean(self, file_data):
+        """Count the records of a well-formed file, header blank lines included.
+
+        A file whose records all have the fixed length and consecutive orbit
+        numbers returns its record count and flags nothing for padding. A blank
+        line inside the header is not a record, so it must not raise.
+        """
+        # An ORBNUM file whose header takes the first two lines, built in
+        # memory. Each record, '1 data\n', is 7 bytes long, so that is the
+        # fixed record length.
         obj = object.__new__(OrbnumFileProduct)
         obj.path = "test.orb"
         obj._orbnum_type = {"header_start_line": "1"}
         obj.record_fixed_length = 7
 
-        records = obj.read_records()
+        # Read the records from the in-memory file.
+        with patch("builtins.open", mock_open(read_data=file_data)):
+            records = obj.read_records()
+
+        # Both records are counted and none has the wrong length.
         assert records == 2
         assert obj.blank_records == []
+
+    # 'record_number' counts the records after the header, not the file lines.
+    @pytest.mark.parametrize("file_data, record_number", [
+        ("h1\nh2\n1 data\n\n2 data\n", 2),
+        ("h1\nh2\n1 data\n   \n2 data\n", 2),
+        ("h1\nh2\n1 data\n2 data\n\n", 3),
+        ("h1\nh2\n\n1 data\n2 data\n", 1)],
+        ids=["empty-mid", "whitespace-only", "trailing-blank", "first-blank"]
+    )
+    def test_read_records_blank_line_raises_npb_error(
+            self, file_data, record_number):
+        """Raise an NPBError that names the record when a record is blank.
+
+        An empty line and a line with only spaces are both blank, wherever they
+        sit among the records (first, in the middle or last). The error must
+        point at the blank record instead of failing while parsing it.
+        """
+        # An ORBNUM file whose header takes the first two lines, built in
+        # memory. The valid records, '1 data\n', are 7 bytes long, so that is
+        # the fixed record length, and they trigger no length warning.
+        obj = object.__new__(OrbnumFileProduct)
+        obj.path = "test.orb"
+        obj._orbnum_type = {"header_start_line": "1"}
+        obj.record_fixed_length = 7
+
+        # Reading the records has to stop at the blank one.
+        with patch("builtins.open", mock_open(read_data=file_data)):
+            
+            # The error reports the position of the blank record.
+            with pytest.raises(
+                    NPBError, match=f"record number {record_number} is blank"):
+                obj.read_records()
 
     @patch(f"{MOD}.os.remove")
     def test_read_records_with_blanks_and_version_bump(self, mock_remove, mock_kernels_collection, caplog):

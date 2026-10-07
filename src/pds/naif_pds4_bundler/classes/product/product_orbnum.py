@@ -342,13 +342,17 @@ class OrbnumFileProduct(Product):
         return sample_record
 
     def read_records(self) -> int:
-        """Read and interpret the records of an OrbNum file.
+        """Read and check the records of an OrbNum file.
 
-        Read an OrbNum file and set the number of records attribute,
-        the length of the records attribute, determine which lines have blank
-        records and, perform simple checks of the records.
+        Go through the records that follow the header and warn about any
+        whose orbit number does not follow the previous one. Records whose
+        length differs from the fixed record length are collected in the
+        ``blank_records`` list. If there are any, the file is rewritten
+        with those records padded with blank spaces, under a new version
+        number, and the original file is removed.
 
-        :return: number of records of OrbNum file
+        :return: number of records of the OrbNum file
+        :raises NPBError: if a record line is blank.
         """
         blank_records = []
 
@@ -357,9 +361,20 @@ class OrbnumFileProduct(Product):
             records = 0
             lines = 0
             header_start = int(self._orbnum_type["header_start_line"])
+
             for line in o:
                 lines += 1
+
                 if lines > header_start + 1:
+
+                    # A blank line has no orbit number to parse, so it must be
+                    # rejected before the parsing below.
+                    if not line.strip():
+                        raise NPBError(
+                            f"Orbnum record number {lines - header_start - 1} "
+                            f"is blank."
+                        )
+
                     orbit_number = int(line.split()[0])
                     records_length = utf8len(line)
 
@@ -372,16 +387,9 @@ class OrbnumFileProduct(Product):
                             '-- Orbit number %d record is followed by %d.',
                             previous_orbit_number, orbit_number)
 
-                    # TODO: Fix. This check should be performed before the line
-                    #       orbit_number = int(line.split()[0]). If the line is is blank
-                    #       that statement will raise an IndexError.
-                    if not line.strip():
-                        raise NPBError(
-                            f"Orbnum record number {line} is blank."
-                        )
-                    elif (
-                            line.strip() and records_length != self.record_fixed_length
-                    ):
+                    # Records of the wrong length are padded later; they are
+                    # tracked here by their orbit number.
+                    if records_length != self.record_fixed_length:
                         logging.warning(
                             '-- Orbit number %d record has an incorrect '
                             'length, the record will be expanded to cover '
@@ -389,10 +397,7 @@ class OrbnumFileProduct(Product):
 
                         blank_records.append(str(orbit_number))
 
-                    # TODO: Fix. This line will always be True, otherwise the code
-                    #       would have raised an IndexError or executed `NPBError`.
-                    if line.strip():
-                        records += 1
+                    records += 1
 
                     previous_orbit_number = orbit_number
 
