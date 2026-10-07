@@ -851,6 +851,9 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # The label built above is what ends up assigned back onto the product.
         assert spiceds.label is mocks.DocumentPDS4Label.return_value
 
+        # npb.py writes the label itself, right after building it.
+        mocks.DocumentPDS4Label.return_value.write_label.assert_called_once()
+
     def test_spiceds_not_labeled_when_not_generated(self, mocks):
         # generated=False is the default mock value (an unchanged spiceds file
         # needs no new release), so no override is needed here.
@@ -979,7 +982,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
             self, mocks: SimpleNamespace) -> None:
         """The bundle label is written to disk before the checksum product
         is generated, so the checksum can hash the label file."""
-        
+
         # Make both calls append to one shared list, so their order is kept.
         calls = []
         mocks.BundlePDS4Label.return_value.write_label.side_effect = (

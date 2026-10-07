@@ -388,6 +388,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # the same generated check -- a spiceds file that hasn't changed
                 # since the last release isn't relabeled.
                 spiceds.label = DocumentPDS4Label(spiceds, document_collection)
+                spiceds.label.write_label()
 
                 document_collection.add(spiceds)
 
