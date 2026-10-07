@@ -619,6 +619,9 @@ class TestPhase6StagingBundleAndCollections:
         # The label built above is what ends up assigned back onto the product.
         assert meta_kernel.label is mocks.MetaKernelPDS4Label.return_value
 
+        # npb.py writes the label itself, right after building it.
+        mocks.MetaKernelPDS4Label.return_value.write_label.assert_called_once()
+
     def test_meta_kernel_product_added_to_misc_for_pds3(self, mocks):
         # In PDS3 mode, a determined meta-kernel is added to the miscellaneous collection.
         mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {

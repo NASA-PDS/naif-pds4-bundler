@@ -289,6 +289,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                     logging.info('')
                     logging.info('-- Labeling meta-kernel: %s...', meta_kernel.name)
                     meta_kernel.label = MetaKernelPDS4Label(meta_kernel)
+                    meta_kernel.label.write_label()
 
                     spice_kernels_collection.add(meta_kernel)
 
