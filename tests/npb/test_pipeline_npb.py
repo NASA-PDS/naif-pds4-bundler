@@ -791,6 +791,11 @@ class TestPhase8CollectionMetadata:
         # The label built above is what actually gets assigned back.
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
+
     def test_skc_inventory_labeled_with_pds3_label(self, mocks):
         # Same setup as above, but switched to PDS3.
         mocks.Setup.return_value.pds_version = '3'
@@ -896,6 +901,11 @@ class TestPhase9PDS4DocumentMiscChecksum:
             inventory, mocks.DocumentCollection.return_value)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
+
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
 
     def test_document_inventory_not_created_when_spiceds_not_generated(self, mocks):
         # When SPICEDS is not generated, no inventory is created for the document collection.
@@ -1021,6 +1031,9 @@ class TestPhase9PDS4DocumentMiscChecksum:
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
+        # The label is also written, once.
+        mocks.InventoryPDS4Label.return_value.write_label.assert_called_once()
+
     def test_backfill_loop_runs_when_increment_and_no_checksum_dir(self, mocks):
         # When the checksum directory is absent, one ChecksumProduct is created per past release.
         setup = mocks.Setup.return_value
@@ -1054,6 +1067,11 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # One InventoryPDS4Label call per historical release (backfill loop),
         # plus one for the current release's own inventory.
         assert mocks.InventoryPDS4Label.call_count == len(bundle.history) + 1
+
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
 
     def test_release_checksum_labeled_during_backfill(self, mocks):
         # Setting increment=True with no existing checksum directory forces the

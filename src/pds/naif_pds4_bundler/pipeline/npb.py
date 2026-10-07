@@ -357,6 +357,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             if setup.pds_version == "4":
                 spice_kernels_collection_inventory.label = InventoryPDS4Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
+                spice_kernels_collection_inventory.label.write_label()
 
             else:
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
@@ -402,6 +403,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # This branch only runs for PDS4, so there's no PDS3 label to pick.
                 document_collection_inventory.label = InventoryPDS4Label(
                     document_collection_inventory, document_collection)
+                document_collection_inventory.label.write_label()
 
                 document_collection.add(document_collection_inventory)
 
@@ -477,6 +479,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                         release_miscellaneous_collection_inventory.label = InventoryPDS4Label(
                             release_miscellaneous_collection_inventory,
                             release_miscellaneous_collection)
+                        release_miscellaneous_collection_inventory.label.write_label()
 
                         release_miscellaneous_collection.add(
                             release_miscellaneous_collection_inventory
@@ -533,6 +536,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             # The current release's own miscellaneous inventory, PDS4-only.
             miscellaneous_collection_inventory.label = InventoryPDS4Label(
                 miscellaneous_collection_inventory, miscellaneous_collection)
+            miscellaneous_collection_inventory.label.write_label()
 
             miscellaneous_collection.add(miscellaneous_collection_inventory)
 
