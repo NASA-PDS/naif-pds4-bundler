@@ -2,8 +2,8 @@
 
 Two test classes are provided:
 
-* TestSpiceKernelPDS4Label – unit tests that mock the inherited label
-  writing so the constructor can be exercised in isolation.
+* TestSpiceKernelPDS4Label – unit tests that build the label without
+  writing it, so the constructor can be exercised in isolation.
 
 * TestSpiceKernelPDS4LabelIntegration – integration tests that exercise
   SpiceKernelPDS4Label together with the real PDSLabel.write_label()
@@ -85,12 +85,11 @@ class TestSpiceKernelPDS4Label:
     @pytest.fixture()
     def label(self, tmp_path: Path,
               helpers: SimpleNamespace) -> SpiceKernelPDS4Label:
-        """Build a SpiceKernelPDS4Label instance while mocking inherited file
-        writing.
+        """Build a SpiceKernelPDS4Label instance.
 
         :param tmp_path: pytest temporary directory
         :param helpers:  specialized SPICE kernel factories
-        :return: constructed label with write_label patched out
+        :return: constructed label
         """
         # Create a controlled Setup mock with the PDS4 attributes needed by the
         # label.
@@ -104,15 +103,10 @@ class TestSpiceKernelPDS4Label:
         # SpiceKernelPDS4Label.
         product = helpers.make_product(staging)
 
-        # Avoid real template reading and file writing in unit tests.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            # Instantiate the real class so its constructor assignments are
-            # executed.
-            product.setup = setup
-            instance = SpiceKernelPDS4Label(product)
-
-        return instance
+        # Instantiate the real class so its constructor assignments are
+        # executed.
+        product.setup = setup
+        return SpiceKernelPDS4Label(product)
 
     # ------------------------------------------------------------------
     # Regular tests
@@ -156,9 +150,10 @@ class TestSpiceKernelPDS4Label:
 
         assert label._template == expected_template
 
-    def test_constructor_stores_references_and_writes_label_once(
+    def test_constructor_stores_references_and_does_not_write_label(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Validate constructor wiring and its single write_label side effect.
+        # Validate constructor wiring and that building the label has no
+        # write_label side effect.
 
         # Build the collaborators required by the label constructor.
         setup = helpers.make_setup()
@@ -169,7 +164,7 @@ class TestSpiceKernelPDS4Label:
 
         product = helpers.make_product(staging)
 
-        # Avoid real file writing while checking the constructor side effect.
+        # Patch write_label to detect any write triggered by the constructor.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
             product.setup = setup
@@ -181,9 +176,8 @@ class TestSpiceKernelPDS4Label:
         assert label.setup is setup
         assert label.product is product
 
-        # Check that write_label() was called once and that it was called with
-        # the label instance.
-        mock_write.assert_called_once_with(label)
+        # Constructing the label must not write it; the pipeline does that.
+        mock_write.assert_not_called()
 
     @pytest.mark.parametrize('product_type, expected_kernel_type_id', [
         ('spk', 'SPK'),
@@ -209,11 +203,8 @@ class TestSpiceKernelPDS4Label:
             staging, name=f'maven_kernel_v01.{product_type}',
             kernel_type=product_type)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            product.setup = setup
-            label = SpiceKernelPDS4Label(product)
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
 
         # The kernel type identifier must be the upper-cased product type.
         assert label._label_fields["KERNEL_TYPE_ID"] == expected_kernel_type_id
@@ -248,11 +239,8 @@ class TestSpiceKernelPDS4Label:
         # Dynamically override the product attribute under test.
         setattr(product, product_attribute, value)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            product.setup = setup
-            label = SpiceKernelPDS4Label(product)
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
 
         # Check that the expected label attribute contains exactly the value
         # assigned to the product.
@@ -274,10 +262,8 @@ class TestSpiceKernelPDS4Label:
         product.lid = 'urn:nasa:pds:maven_spice:spice_kernels:ck_distinct'
         product.vid = '9.9'
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            product.setup = setup
-            label = SpiceKernelPDS4Label(product)
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
 
         assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:spice_kernels:ck_distinct')
@@ -297,11 +283,9 @@ class TestSpiceKernelPDS4Label:
         # Replace the kernel type with a non-string value (no .upper()).
         product.type = 12345
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            with pytest.raises(AttributeError):
-                product.setup = setup
-                SpiceKernelPDS4Label(product)
+        with pytest.raises(AttributeError):
+            product.setup = setup
+            SpiceKernelPDS4Label(product)
 
 
 # ===========================================================================
@@ -412,10 +396,11 @@ class TestSpiceKernelPDS4LabelIntegration:
         setup.end_of_line = 'LF'
         setup.eol_pds4 = '\n'
 
-        # Instantiate the real label so the template is read and the XML is
-        # written.
+        # Instantiate the real label and write it so the template is read and
+        # the XML is written.
         product.setup = setup
         label = SpiceKernelPDS4Label(product)
+        label.write_label()
 
         # Check that the class resolved the configured SPICE kernel template.
         assert label._template == str(template_path)
@@ -454,7 +439,7 @@ class TestSpiceKernelPDS4LabelIntegration:
 
         product.setup = setup
 
-        SpiceKernelPDS4Label(product)
+        SpiceKernelPDS4Label(product).write_label()
 
         # Parse the rendered label; a malformed result would raise ParseError.
         tree = ElementTree.parse(label_path)
@@ -482,7 +467,7 @@ class TestSpiceKernelPDS4LabelIntegration:
 
         product.setup = setup
 
-        SpiceKernelPDS4Label(product)
+        SpiceKernelPDS4Label(product).write_label()
 
         # Read the raw bytes to inspect the actual line terminators.
         raw = label_path.read_bytes()
@@ -509,7 +494,7 @@ class TestSpiceKernelPDS4LabelIntegration:
 
         # Generate the label using the real writer.
         product.setup = setup
-        SpiceKernelPDS4Label(product)
+        SpiceKernelPDS4Label(product).write_label()
 
         # The generated label must be registered relative to staging, not
         # absolute.
@@ -531,10 +516,12 @@ class TestSpiceKernelPDS4LabelIntegration:
         # Physically delete the XML template created by the fixture.
         template_path.unlink()
 
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
+
         # Capture the exception.
         with pytest.raises(FileNotFoundError):
-            product.setup = setup
-            SpiceKernelPDS4Label(product)
+            label.write_label()
 
         # The writer opens the output file before the template, so the empty
         # output label is created even though writing fails.
@@ -562,7 +549,7 @@ class TestSpiceKernelPDS4LabelIntegration:
 
         product.setup = setup
 
-        SpiceKernelPDS4Label(product)
+        SpiceKernelPDS4Label(product).write_label()
 
         # The writer still creates the output label.
         assert label_path.exists()

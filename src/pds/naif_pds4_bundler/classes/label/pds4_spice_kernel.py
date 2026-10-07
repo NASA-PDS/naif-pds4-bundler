@@ -35,5 +35,3 @@ class SpiceKernelPDS4Label(PDS4Label):
         self._label_fields["KERNEL_TYPE_ID"] = product.type.upper()
         self._label_fields["PRODUCT_VID"] = self.product.vid
         self._label_fields["SPICE_KERNEL_DESCRIPTION"] = product.description
-
-        self.write_label()

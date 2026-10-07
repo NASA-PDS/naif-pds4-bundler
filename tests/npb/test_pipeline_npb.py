@@ -519,6 +519,9 @@ class TestPhase6StagingBundleAndCollections:
         # The label built above is what ends up assigned back onto the product.
         assert kernel_product.label is mocks.SpiceKernelPDS4Label.return_value
 
+        # npb.py writes the label itself, right after building it.
+        mocks.SpiceKernelPDS4Label.return_value.write_label.assert_called_once()
+
     def test_kernel_product_labeled_with_pds3_label(self, mocks):
         # Same setup as above, but switched to PDS3.
         mocks.Setup.return_value.pds_version = '3'
@@ -531,6 +534,10 @@ class TestPhase6StagingBundleAndCollections:
         mocks.SpiceKernelPDS3Label.assert_called_once_with(kernel_product)
 
         assert kernel_product.label is mocks.SpiceKernelPDS3Label.return_value
+
+        # The PDS3 label writes itself when it is built, so the pipeline must
+        # not write it a second time.
+        mocks.SpiceKernelPDS3Label.return_value.write_label.assert_not_called()
 
     def test_orbnum_product_dispatched_for_nrb_kernel(self, mocks):
         # .nrb files are dispatched to OrbnumFileProduct and added to the miscellaneous collection.

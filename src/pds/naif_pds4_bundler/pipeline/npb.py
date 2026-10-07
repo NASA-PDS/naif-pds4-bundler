@@ -265,6 +265,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 if setup.pds_version == "4":
                     kernel_product.label = SpiceKernelPDS4Label(kernel_product)
+                    kernel_product.label.write_label()
 
                 else:
                     kernel_product.label = SpiceKernelPDS3Label(kernel_product)
