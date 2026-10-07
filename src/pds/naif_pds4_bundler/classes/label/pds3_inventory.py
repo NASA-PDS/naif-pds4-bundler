@@ -50,5 +50,3 @@ class InventoryPDS3Label(PDS3Label):
             )
 
         self._label_fields["INDEXED_FILE_NAME"] = indexed_file_name
-
-        self.write_label()

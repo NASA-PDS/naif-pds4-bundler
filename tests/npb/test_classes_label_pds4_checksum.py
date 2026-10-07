@@ -61,8 +61,7 @@ class TestChecksumPDS4Label:
 
     @pytest.fixture()
     def label(self, tmp_path: Path, helpers: SimpleNamespace) -> ChecksumPDS4Label:
-        """Build a ChecksumPDS4Label instance while mocking inherited file
-         writing."""
+        """Build a ChecksumPDS4Label instance."""
         # Create a controlled Setup mock with the PDS4 attributes needed by the
         # label.
         setup = helpers.make_setup()
@@ -75,15 +74,10 @@ class TestChecksumPDS4Label:
         # ChecksumPDS4Label.
         product = helpers.make_product(staging)
 
-        # Avoid real template reading and file writing in unit tests.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            # Instantiate the real class so its constructor assignments are
-            # executed.
-            product.setup = setup
-            instance = ChecksumPDS4Label(product)
-
-        return instance
+        # Instantiate the real class so its constructor assignments are
+        # executed.
+        product.setup = setup
+        return ChecksumPDS4Label(product)
 
     # ------------------------------------------------------------------
     # Regular tests
@@ -123,9 +117,10 @@ class TestChecksumPDS4Label:
     def test_target_reference_type(self, label: ChecksumPDS4Label) -> None:
         assert label._target_reference_type == 'ancillary_to_target'
 
-    def test_constructor_stores_references_and_writes_label_once(
+    def test_constructor_stores_references_and_does_not_write_label(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Validate constructor wiring and its single write_label side effect.
+        # Validate constructor wiring and that building the label has no
+        # write_label side effect.
 
         # Build the collaborators required by the label constructor.
         setup = helpers.make_setup()
@@ -136,7 +131,7 @@ class TestChecksumPDS4Label:
 
         product = helpers.make_product(staging)
 
-        # Avoid real file writing while checking the constructor side effect.
+        # Patch write_label to detect any write triggered by the constructor.
         with patch("pds.naif_pds4_bundler.classes.label.label."
                    "PDSLabel.write_label", autospec=True) as mock_write:
             product.setup = setup
@@ -148,9 +143,8 @@ class TestChecksumPDS4Label:
         assert label.setup is setup
         assert label.product is product
 
-        # Check that write_label() was called once and that it was called with
-        # the label instance.
-        mock_write.assert_called_once_with(label)
+        # Constructing the label must not write it; the pipeline does that.
+        mock_write.assert_not_called()
 
     # ------------------------------------------------------------------
     # Edge cases and error paths
@@ -176,11 +170,8 @@ class TestChecksumPDS4Label:
         # Build the product mock.
         product = helpers.make_product(staging, name=product_name)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            product.setup = setup
-            label = ChecksumPDS4Label(product)
+        product.setup = setup
+        label = ChecksumPDS4Label(product)
 
         # Check that FILE_NAME exactly matches the original product name.
         assert label._label_fields["FILE_NAME"] == expected_file_name
@@ -210,11 +201,8 @@ class TestChecksumPDS4Label:
         # Dynamically modify the product attribute
         setattr(product, product_attribute, value)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            product.setup = setup
-            label = ChecksumPDS4Label(product)
+        product.setup = setup
+        label = ChecksumPDS4Label(product)
 
         # Check that the expected field of the label contains exactly the
         # value assigned to the product.
@@ -316,9 +304,11 @@ class TestChecksumPDS4LabelIntegration:
         setup.end_of_line = 'LF'
         setup.eol_pds4 = '\n'
 
-        # Instantiate the real label so the template is read and the XML is written.
+        # Instantiate the real label and write it so the template is read and
+        # the XML is written.
         product.setup = setup
         label = ChecksumPDS4Label(product)
+        label.write_label()
 
         # Check that the class resolved the configured checksum template.
         assert label._template == str(template_path)
@@ -357,7 +347,7 @@ class TestChecksumPDS4LabelIntegration:
 
         # Generate the label using the real writer.
         product.setup = setup
-        ChecksumPDS4Label(product)
+        ChecksumPDS4Label(product).write_label()
 
         # The generated label must be registered relative to staging, not
         # absolute.
@@ -377,10 +367,12 @@ class TestChecksumPDS4LabelIntegration:
         # Physically delete the XML template created by the fixture.
         template_path.unlink()
 
+        product.setup = setup
+        label = ChecksumPDS4Label(product)
+
         # Capture the exception.
         with pytest.raises(FileNotFoundError):
-            product.setup = setup
-            ChecksumPDS4Label(product)
+            label.write_label()
 
         # Check that the output file has been created.
         assert label_path.exists()
@@ -407,7 +399,7 @@ class TestChecksumPDS4LabelIntegration:
 
         product.setup = setup
 
-        ChecksumPDS4Label(product)
+        ChecksumPDS4Label(product).write_label()
 
         # The writer still creates the output label.
         assert label_path.exists()

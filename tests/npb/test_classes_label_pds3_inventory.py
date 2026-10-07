@@ -2,8 +2,8 @@
 
 Two test classes are provided:
 
-* TestInventoryPDS3LabelUnit        – pure unit tests that mock every external
-  dependency (filesystem, PDSLabel.write_label, sibling modules).
+* TestInventoryPDS3LabelUnit        – pure unit tests that build the label
+  without writing it, mocking the filesystem and sibling modules.
 
 * TestInventoryPDS3LabelIntegration – integration tests that exercise
   InventoryPDS3Label together with the real PDSLabel.write_label() logic and
@@ -87,8 +87,8 @@ def _make_product(staging_dir: Path) -> MagicMock:
 class TestInventoryPDS3LabelUnit:
     """Unit tests for InventoryPDS3Label.
 
-    write_label and the filesystem are mocked out so tests stay fast,
-    isolated, and deterministic.
+    The label is built but never written, and the filesystem is mocked out,
+    so tests stay fast, isolated, and deterministic.
     """
 
     # ------------------------------------------------------------------
@@ -97,20 +97,15 @@ class TestInventoryPDS3LabelUnit:
 
     @pytest.fixture()
     def label(self, tmp_path):
-        """Return an InventoryPDS3Label instance with write_label stubbed."""
+        """Return an InventoryPDS3Label instance."""
         setup = _make_setup(tmp_path)
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
         collection = _make_collection()
         product = _make_product(staging)
 
-        with patch(
-            "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
-        ):
-            product.setup = setup
-            instance = InventoryPDS3Label(product, collection)
-
-        return instance
+        product.setup = setup
+        return InventoryPDS3Label(product, collection)
 
     @pytest.fixture()
     def label_multi(self, tmp_path):
@@ -122,13 +117,8 @@ class TestInventoryPDS3LabelUnit:
         product = _make_product(staging)
         product.file_types = ["tf", "bc"]          # unsorted on purpose
 
-        with patch(
-            "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
-        ):
-            product.setup = setup
-            instance = InventoryPDS3Label(product, collection)
-
-        return instance
+        product.setup = setup
+        return InventoryPDS3Label(product, collection)
 
     def test_template_keys_scalar_fields(self, label):
         """VOLUME_ID must be assigned from setup.volume_id (not uppercased)."""
@@ -169,15 +159,15 @@ class TestInventoryPDS3LabelUnit:
         assert isinstance(label, PDSLabel)
 
     # ------------------------------------------------------------------
-    # 8. write_label called once
+    # 8. write_label not called by the constructor
     # ------------------------------------------------------------------
 
     @pytest.mark.parametrize("collection_type, expected_path", [
         ('spice_kernels', 'templates/pds3/template_collection_spice_kernels.lbl'),
         ('miscellaneous', 'templates/pds3/template_collection_miscellaneous.lbl')
     ])
-    def test_write_label_called_once_during_init(self, tmp_path, collection_type, expected_path):
-        """Constructor must call write_label exactly once."""
+    def test_write_label_not_called_during_init(self, tmp_path, collection_type, expected_path):
+        """Constructor must not write the label; the pipeline does."""
         setup = _make_setup(tmp_path)
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
@@ -190,7 +180,7 @@ class TestInventoryPDS3LabelUnit:
             product.setup = setup
             label = InventoryPDS3Label(product, collection)
 
-        mock_write.assert_called_once()
+        mock_write.assert_not_called()
 
         # Template path must embed root_dir and collection.type.
         assert label._template == f"{tmp_path}/{expected_path}"
@@ -205,11 +195,8 @@ class TestInventoryPDS3LabelUnit:
         product = _make_product(staging)
         product.rows = 0
 
-        with patch(
-            "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
-        ):
-            product.setup = setup
-            instance = InventoryPDS3Label(product, _make_collection())
+        product.setup = setup
+        instance = InventoryPDS3Label(product, _make_collection())
 
         assert instance._label_fields["ROWS"] == "0"
 
@@ -222,11 +209,8 @@ class TestInventoryPDS3LabelUnit:
         product.column_bytes = [50]
         product.column_start_bytes = [1]
 
-        with patch(
-            "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
-        ):
-            product.setup = setup
-            instance = InventoryPDS3Label(product, _make_collection())
+        product.setup = setup
+        instance = InventoryPDS3Label(product, _make_collection())
 
         assert instance._label_fields['BYTES_01'] == '50'
         assert instance._label_fields['START_BYTE_01'] == '1'
@@ -352,7 +336,7 @@ TEMPLATE_CONTENT = textwrap.dedent("""\
 class TestInventoryPDS3LabelIntegration:
     """Integration tests for InventoryPDS3Label + PDSLabel + template.
 
-    These tests instantiate the real class without patching write_label, so
+    These tests build the real class and call write_label() themselves, so
     the actual label file is written to a temp directory. Only
     add_carriage_return is patched to avoid cross-platform EOL noise.
     """
@@ -411,7 +395,7 @@ class TestInventoryPDS3LabelIntegration:
 
         product.setup = setup
 
-        InventoryPDS3Label(product, collection)
+        InventoryPDS3Label(product, collection).write_label()
 
         assert env["label_path"].exists()
 
@@ -541,6 +525,6 @@ class TestInventoryPDS3LabelIntegration:
 
         product.setup = setup
 
-        InventoryPDS3Label(product, collection)
+        InventoryPDS3Label(product, collection).write_label()
 
         setup.add_file.assert_called_once_with("INDEX.lbl")

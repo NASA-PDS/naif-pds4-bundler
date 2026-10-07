@@ -80,19 +80,14 @@ class TestChecksumPDS3Label:
 
     @pytest.fixture()
     def label(self, tmp_path):
-        """Return a ChecksumPDS3Label with write_label mocked out."""
+        """Return a ChecksumPDS3Label."""
         setup = _make_setup(tmp_path)
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
         product = _make_product(staging)
 
-        # Patch write_label so the constructor does not touch the filesystem.
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            product.setup = setup
-            instance = ChecksumPDS3Label(product)
-
-        return instance
+        product.setup = setup
+        return ChecksumPDS3Label(product)
 
     # ------------------------------------------------------------------
     # Regular Tests
@@ -124,16 +119,13 @@ class TestChecksumPDS3Label:
         staging.mkdir(parents=True, exist_ok=True)
         product = _make_product(staging)
 
-        # Patch write_label so the constructor does not touch the filesystem.
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            product.setup = setup
-            label = ChecksumPDS3Label(product)
+        product.setup = setup
+        label = ChecksumPDS3Label(product)
         assert label.setup == setup
         assert label.product == product
 
-    def test_write_label_called_once_during_init(self, tmp_path):
-        """Constructor must call write_label exactly once."""
+    def test_write_label_not_called_during_init(self, tmp_path):
+        """Constructor must not write the label; the pipeline does."""
         setup = _make_setup(tmp_path)
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
@@ -144,7 +136,7 @@ class TestChecksumPDS3Label:
             product.setup = setup
             ChecksumPDS3Label(product)
 
-        mock_write.assert_called_once()
+        mock_write.assert_not_called()
 
     def test_is_instance_of_pds_label(self, label):
         """ChecksumPDS3Label must be a subclass of PDSLabel."""
@@ -163,10 +155,8 @@ class TestChecksumPDS3Label:
         staging.mkdir(parents=True, exist_ok=True)
         product = _make_product(staging)
 
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            product.setup = setup
-            instance = ChecksumPDS3Label(product)
+        product.setup = setup
+        instance = ChecksumPDS3Label(product)
 
         assert instance._label_fields["VOLUME_ID"] == "VG_0001"
 
@@ -178,10 +168,8 @@ class TestChecksumPDS3Label:
         product = _make_product(staging)
         product.file_records = 0
 
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            product.setup = setup
-            instance = ChecksumPDS3Label(product)
+        product.setup = setup
+        instance = ChecksumPDS3Label(product)
 
         assert instance._label_fields["FILE_RECORDS"] == "0"
 
@@ -194,10 +182,8 @@ class TestChecksumPDS3Label:
         staging.mkdir(parents=True, exist_ok=True)
         product = _make_product(staging)
 
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            product.setup = setup
-            instance = ChecksumPDS3Label(product)
+        product.setup = setup
+        instance = ChecksumPDS3Label(product)
 
         # PDSLabel.__init__ sets PRODUCT_CREATION_TIME from setup when the
         # attribute exists; ChecksumPDS3Label then *overwrites* it with the
@@ -320,7 +306,7 @@ class TestChecksumPDS3LabelIntegration:
 
         product.setup = setup
 
-        ChecksumPDS3Label(product)
+        ChecksumPDS3Label(product).write_label()
 
         assert env["label_path"].exists()
 
@@ -384,10 +370,10 @@ class TestChecksumPDS3LabelIntegration:
 
         product.setup = setup
 
-        # __init__ ends with write_label() and logs nothing else after it,
-        # so any blank line here is write_label()'s own.
+        # Construction logs nothing, so any blank line captured here comes
+        # from write_label() itself.
         with caplog.at_level(logging.INFO):
-            ChecksumPDS3Label(product)
+            ChecksumPDS3Label(product).write_label()
 
         # The gated call is logging.info(""); caplog records it as "".
         assert caplog.messages.count("") == 1
@@ -403,6 +389,6 @@ class TestChecksumPDS3LabelIntegration:
 
         product.setup = setup
 
-        ChecksumPDS3Label(product)
+        ChecksumPDS3Label(product).write_label()
 
         setup.add_file.assert_called_once_with("checksum.lbl")

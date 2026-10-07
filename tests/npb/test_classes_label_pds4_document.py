@@ -32,11 +32,11 @@ class TestDocumentPDS4LabelInit:
 
         return setup, collection, inventory
 
-    def test_init_sets_document_label_state_and_requests_label_write(
+    def test_init_sets_document_label_state_and_does_not_write_label(
             self, mocker, tmp_path: Path) -> None:
-        # Verify the successful constructor path: parent initialization,
-        # document-label state assignment, template path construction and
-        # write_label invocation.
+        """The constructor calls the parent initializer, stores the collection,
+        builds the template path and fills the label fields, but does not
+        write the label."""
 
         # Create the minimal objects.
         setup, collection, inventory = self.make_document_label_inputs(tmp_path)
@@ -53,8 +53,8 @@ class TestDocumentPDS4LabelInit:
                 setattr(self, 'product', product),
                 setattr(self, '_label_fields', {})))
 
-        # Mock write_label to verify that label generation is requested without
-        # creating files on disk.
+        # Mock write_label so the test can check that building the label
+        # never triggers a write.
         write_label_mock = mocker.patch.object(DocumentPDS4Label, 'write_label',
                                                autospec=True)
 
@@ -76,9 +76,8 @@ class TestDocumentPDS4LabelInit:
         assert document_label._label_fields["STOP_TIME"] == setup.mission_finish
         assert document_label._label_fields["FILE_NAME"] == inventory.name
 
-        # Check that the constructor requests the label to be generated exactly
-        # once.
-        write_label_mock.assert_called_once_with(document_label)
+        # Building the label must not write it; the pipeline does that.
+        write_label_mock.assert_not_called()
 
 
 class TestDocumentPDS4LabelIntegration:
@@ -203,21 +202,21 @@ class TestDocumentPDS4LabelIntegration:
         return (setup, collection, inventory, template_path,
                 inventory_path.with_suffix('.xml'))
 
-    def test_name_is_derived_before_write_label_runs(
-            self, mocker,
+    def test_name_is_derived_in_init(
+            self,
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
-        """label.name must already hold the real destination path as soon as
-        __init__ returns, even if write_label() never actually runs."""
-        # Real setup/collection/inventory from the env fixture, but
-        # write_label mocked out so no file is ever written.
+        """label.name holds the real destination path as soon as __init__
+        returns, before anything has been written."""
+        # Real setup, collection and inventory from the env fixture.
         setup, collection, inventory, _, label_path = env
-        mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
 
         # Build the label.
         label = DocumentPDS4Label(inventory, collection)
 
-        # self.name is already the real path, not a placeholder.
+        # The path is set, and no file exists yet because nothing has
+        # written the label.
         assert label.name == str(label_path)
+        assert not label_path.exists()
 
     # ------------------------------------------------------------------
     # _context_from_product effect
@@ -247,6 +246,7 @@ class TestDocumentPDS4LabelIntegration:
         setup, collection, inventory, template_path, label_path = env
 
         label = DocumentPDS4Label(inventory, collection)
+        label.write_label()
 
         # DocumentPDS4Label must resolve the document-specific template.
         assert label._template == str(template_path)
@@ -280,7 +280,7 @@ class TestDocumentPDS4LabelIntegration:
         # its staging-relative path.
         setup, collection, inventory, _, label_path = env
 
-        DocumentPDS4Label(inventory, collection)
+        DocumentPDS4Label(inventory, collection).write_label()
 
         # Convert the generated XML label path to the path expected in the file
         # list.

@@ -32,5 +32,3 @@ class DocumentPDS4Label(PDS4Label):
         self._label_fields["START_TIME"] = self.setup.mission_start
         self._label_fields["STOP_TIME"] = self.setup.mission_finish
         self._label_fields["FILE_NAME"] = self.product.name
-
-        self.write_label()

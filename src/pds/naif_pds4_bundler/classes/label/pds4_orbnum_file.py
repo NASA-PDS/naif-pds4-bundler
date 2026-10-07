@@ -68,8 +68,6 @@ class OrbnumFilePDS4Label(PDS4Label):
         if self._label_fields["TABLE_CHARACTER_DESCRIPTION"]:
             self._label_fields["TABLE_CHARACTER_DESCRIPTION"] = self.get_table_character_description()
 
-        self.write_label()
-
     @property
     def _mission_reference_type(self):
         """Get mission reference type.

@@ -2,11 +2,10 @@
 
 Two test classes are provided:
 
-* TestBundlePDS4Label – unit tests that mock only the inherited
-  ``PDSLabel.write_label`` so the constructor and the BUNDLE_MEMBER_ENTRIES
-  building logic are exercised in isolation. ``PDSLabel.__init__`` is NOT
-  mocked: it runs for real, so the readme product must expose every attribute
-  the parent reads.
+* TestBundlePDS4Label – unit tests that build the label without writing it,
+  so the constructor and the BUNDLE_MEMBER_ENTRIES building logic are
+  exercised in isolation. ``PDSLabel.__init__`` is NOT mocked: it runs for
+  real, so the readme product must expose every attribute the parent reads.
 
 * TestBundlePDS4LabelIntegration – integration tests that exercise
   BundlePDS4Label together with the real ``PDSLabel.write_label`` logic,
@@ -45,7 +44,7 @@ WRITE_LABEL_TARGET = (
 
 
 def _build_label(setup: MagicMock, readme: MagicMock) -> BundlePDS4Label:
-    """Construct a ``BundlePDS4Label`` with ``write_label`` patched to a no-op.
+    """Construct a ``BundlePDS4Label``.
 
     ``PDSLabel.__init__`` is left intact so its real attribute wiring runs;
     that means readme.setup must be set to setup beforehand, since the label
@@ -56,8 +55,7 @@ def _build_label(setup: MagicMock, readme: MagicMock) -> BundlePDS4Label:
     :return: constructed label instance
     """
     readme.setup = setup
-    with patch(WRITE_LABEL_TARGET, autospec=True):
-        return BundlePDS4Label(readme)
+    return BundlePDS4Label(readme)
 
 
 # ---------------------------------------------------------------------------
@@ -151,7 +149,7 @@ class TestBundlePDS4Label:
 
         :param tmp_path: pytest temporary directory
         :param helpers:  specialised bundle factories
-        :return: constructed label with write_label patched out
+        :return: constructed label
         """
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
@@ -198,10 +196,10 @@ class TestBundlePDS4Label:
         label = _build_label(helpers.make_setup(), readme)
         assert label.name == readme.path
 
-    def test_constructor_stores_references_and_calls_write_label_once(
+    def test_constructor_stores_references_and_does_not_write_label(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # setup and product (readme) must be stored by identity, and write_label
-        # must be called exactly once with the label instance as argument.
+        # setup and product (readme) must be stored by identity, and building
+        # the label must not write it.
         setup = helpers.make_setup()
         readme = helpers.make_readme(tmp_path / 'staging')
 
@@ -211,7 +209,7 @@ class TestBundlePDS4Label:
 
         assert label.setup is setup
         assert label.product is readme
-        mock_write.assert_called_once_with(label)
+        mock_write.assert_not_called()
 
     # ------------------------------------------------------------------
     # _*_reference_type overrides
@@ -660,6 +658,7 @@ class TestBundlePDS4LabelIntegration:
         readme.setup = setup
 
         label = BundlePDS4Label(readme)
+        label.write_label()
 
         assert label._template == str(template_path)
         assert Path(label.name) == label_path
@@ -674,7 +673,7 @@ class TestBundlePDS4LabelIntegration:
 
         readme.setup = setup
 
-        BundlePDS4Label(readme)
+        BundlePDS4Label(readme).write_label()
 
         expected = ('<?xml version="1.0" encoding="UTF-8"?>\n'
                     '<bundle>\n'
@@ -704,7 +703,7 @@ class TestBundlePDS4LabelIntegration:
 
         readme.setup = setup
 
-        BundlePDS4Label(readme)
+        BundlePDS4Label(readme).write_label()
         raw = label_path.read_bytes()
 
         assert b'\r\n' not in raw
@@ -719,7 +718,7 @@ class TestBundlePDS4LabelIntegration:
 
         readme.setup = setup
 
-        BundlePDS4Label(readme)
+        BundlePDS4Label(readme).write_label()
         raw = label_path.read_bytes()
 
         assert b'\r\n' in raw
@@ -750,7 +749,7 @@ class TestBundlePDS4LabelIntegration:
 
         readme.setup = setup
 
-        BundlePDS4Label(readme)
+        BundlePDS4Label(readme).write_label()
 
         entries = ElementTree.parse(
             Path(readme.path)).getroot().find('Bundle_Member_Entries')
@@ -776,7 +775,7 @@ class TestBundlePDS4LabelIntegration:
 
         readme.setup = setup
 
-        BundlePDS4Label(readme)
+        BundlePDS4Label(readme).write_label()
 
         setup.add_file.assert_called_once_with('bundle_maven_spice_v001.xml')
 
@@ -792,9 +791,11 @@ class TestBundlePDS4LabelIntegration:
         setup, readme, template_path, label_path = env
         template_path.unlink()
 
+        readme.setup = setup
+        label = BundlePDS4Label(readme)
+
         with pytest.raises(FileNotFoundError):
-            readme.setup = setup
-            BundlePDS4Label(readme)
+            label.write_label()
 
         assert label_path.exists()
         assert label_path.read_text(encoding='utf-8') == ''
@@ -811,7 +812,7 @@ class TestBundlePDS4LabelIntegration:
 
         readme.setup = setup
 
-        BundlePDS4Label(readme)
+        BundlePDS4Label(readme).write_label()
 
         written = label_path.read_text(encoding='utf-8')
         assert '<file_name>bundle_maven_spice_v001.xml</file_name>' in written

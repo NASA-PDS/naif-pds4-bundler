@@ -519,6 +519,9 @@ class TestPhase6StagingBundleAndCollections:
         # The label built above is what ends up assigned back onto the product.
         assert kernel_product.label is mocks.SpiceKernelPDS4Label.return_value
 
+        # npb.py writes the label itself, right after building it.
+        mocks.SpiceKernelPDS4Label.return_value.write_label.assert_called_once()
+
     def test_kernel_product_labeled_with_pds3_label(self, mocks):
         # Same setup as above, but switched to PDS3.
         mocks.Setup.return_value.pds_version = '3'
@@ -531,6 +534,10 @@ class TestPhase6StagingBundleAndCollections:
         mocks.SpiceKernelPDS3Label.assert_called_once_with(kernel_product)
 
         assert kernel_product.label is mocks.SpiceKernelPDS3Label.return_value
+
+        # The PDS3 label writes itself when it is built, so the pipeline must
+        # not write it a second time.
+        mocks.SpiceKernelPDS3Label.return_value.write_label.assert_not_called()
 
     def test_orbnum_product_dispatched_for_nrb_kernel(self, mocks):
         # .nrb files are dispatched to OrbnumFileProduct and added to the miscellaneous collection.
@@ -557,6 +564,9 @@ class TestPhase6StagingBundleAndCollections:
 
         # The label built above is what ends up assigned back onto the product.
         assert orbnum_product.label is mocks.OrbnumFilePDS4Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.OrbnumFilePDS4Label.return_value.write_label.assert_called_once()
 
     def test_orbnum_product_not_labeled_for_pds3(self, mocks):
         # Product is still built for PDS3 (it archives to "extras", not
@@ -615,6 +625,9 @@ class TestPhase6StagingBundleAndCollections:
 
         # The label built above is what ends up assigned back onto the product.
         assert meta_kernel.label is mocks.MetaKernelPDS4Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.MetaKernelPDS4Label.return_value.write_label.assert_called_once()
 
     def test_meta_kernel_product_added_to_misc_for_pds3(self, mocks):
         # In PDS3 mode, a determined meta-kernel is added to the miscellaneous collection.
@@ -785,6 +798,11 @@ class TestPhase8CollectionMetadata:
         # The label built above is what actually gets assigned back.
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
+
     def test_skc_inventory_labeled_with_pds3_label(self, mocks):
         # Same setup as above, but switched to PDS3.
         mocks.Setup.return_value.pds_version = '3'
@@ -798,6 +816,30 @@ class TestPhase8CollectionMetadata:
             inventory, mocks.SpiceKernelsCollection.return_value)
 
         assert inventory.label is mocks.InventoryPDS3Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.InventoryPDS3Label.return_value.write_label.assert_called_once()
+
+    def test_pds3_label_written_before_dsindex_files_generated(
+            self, mocks: SimpleNamespace) -> None:
+        """The PDS3 index label is written to disk before the dsindex files
+        are generated, because generating them copies that label."""
+        # Make both calls append to one shared list, so their order is kept.
+        calls = []
+        mocks.InventoryPDS3Label.return_value.write_label.side_effect = (
+            lambda: calls.append('label written'))
+        dsindex = mocks.InventoryProduct.return_value.generate_dsindex_files
+        dsindex.side_effect = lambda: calls.append('dsindex generated')
+
+        # Run the pipeline under PDS3 with the SPICE kernels collection
+        # updated, which is what builds the index inventory.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+
+        # If the label were written later, the copy would fail because
+        # index.lbl would not exist yet.
+        assert calls == ['label written', 'dsindex generated']
 
 
 # ---------------------------------------------------------------------------
@@ -851,6 +893,9 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # The label built above is what ends up assigned back onto the product.
         assert spiceds.label is mocks.DocumentPDS4Label.return_value
 
+        # npb.py writes the label itself, right after building it.
+        mocks.DocumentPDS4Label.return_value.write_label.assert_called_once()
+
     def test_spiceds_not_labeled_when_not_generated(self, mocks):
         # generated=False is the default mock value (an unchanged spiceds file
         # needs no new release), so no override is needed here.
@@ -887,6 +932,11 @@ class TestPhase9PDS4DocumentMiscChecksum:
             inventory, mocks.DocumentCollection.return_value)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
+
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
 
     def test_document_inventory_not_created_when_spiceds_not_generated(self, mocks):
         # When SPICEDS is not generated, no inventory is created for the document collection.
@@ -953,6 +1003,9 @@ class TestPhase9PDS4DocumentMiscChecksum:
 
         assert checksum.label is mocks.ChecksumPDS4Label.return_value
 
+        # npb.py writes the label itself right after building it.
+        mocks.ChecksumPDS4Label.return_value.write_label.assert_called_once()
+
     def test_readme_product_created(self, mocks):
         # A ReadmeProduct is created with the shared setup and bundle.
         run_pipeline(_args())
@@ -968,6 +1021,29 @@ class TestPhase9PDS4DocumentMiscChecksum:
         readme_product = mocks.ReadmeProduct.return_value
         mocks.BundlePDS4Label.assert_called_once_with(readme_product)
         assert readme_product.label is mocks.BundlePDS4Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.BundlePDS4Label.return_value.write_label.assert_called_once()
+
+    def test_bundle_label_written_before_checksum_generated(
+            self, mocks: SimpleNamespace) -> None:
+        """The bundle label is written to disk before the checksum product
+        is generated, so the checksum can hash the label file."""
+
+        # Make both calls append to one shared list, so their order is kept.
+        calls = []
+        mocks.BundlePDS4Label.return_value.write_label.side_effect = (
+            lambda: calls.append('label written'))
+        mocks.ChecksumProduct.return_value.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('checksum generated'))
+
+        # Run the pipeline once with the default PDS4 mocks, which build
+        # no previous releases, so 'generate' is called a single time.
+        run_pipeline(_args())
+
+        # If the label were written later, the checksum would hash a file
+        # that does not exist yet.
+        assert calls == ['label written', 'checksum generated']
 
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
@@ -985,6 +1061,9 @@ class TestPhase9PDS4DocumentMiscChecksum:
             inventory, mocks.MiscellaneousCollection.return_value)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
+
+        # The label is also written, once.
+        mocks.InventoryPDS4Label.return_value.write_label.assert_called_once()
 
     def test_backfill_loop_runs_when_increment_and_no_checksum_dir(self, mocks):
         # When the checksum directory is absent, one ChecksumProduct is created per past release.
@@ -1020,6 +1099,11 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # plus one for the current release's own inventory.
         assert mocks.InventoryPDS4Label.call_count == len(bundle.history) + 1
 
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
+
     def test_release_checksum_labeled_during_backfill(self, mocks):
         # Setting increment=True with no existing checksum directory forces the
         # backfill loop to run once per historical release in bundle.history,
@@ -1037,6 +1121,11 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # loop, plus one more for the current release's own checksum, built
         # later in the same run.
         assert mocks.ChecksumPDS4Label.call_count == len(bundle.history) + 1
+
+        # Every label built, past releases and current one, is also written
+        # exactly once; the mock shares one return_value across all calls.
+        write_label = mocks.ChecksumPDS4Label.return_value.write_label
+        assert write_label.call_count == len(bundle.history) + 1
 
     def test_backfill_loop_skipped_when_checksum_dir_exists(self, mocks):
         # When the checksum directory already exists, the backfill loop does not run.
@@ -1155,6 +1244,9 @@ class TestPhase10PDS3Path:
         mocks.ChecksumPDS4Label.assert_not_called()
 
         assert checksum.label is mocks.ChecksumPDS3Label.return_value
+
+        # npb.py writes the label itself right after building it.
+        mocks.ChecksumPDS3Label.return_value.write_label.assert_called_once()
 
     def test_set_increment_times_not_called_for_pds3(self, mocks):
         # Increment times are not computed for PDS3 archives.
