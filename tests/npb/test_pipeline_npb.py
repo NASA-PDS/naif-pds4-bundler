@@ -526,6 +526,17 @@ class TestPhase6StagingBundleAndCollections:
         # Same setup as above, but switched to PDS3.
         mocks.Setup.return_value.pds_version = '3'
         mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+
+        # Both calls append to one list so their relative order is checked,
+        # not just that each happened.
+        calls = []
+        mocks.SpiceKernelPDS3Label.return_value.write_label.side_effect = (
+            lambda: calls.append('write_label')
+        )
+        mocks.SpiceKernelProduct.return_value.insert_label.side_effect = (
+            lambda: calls.append('insert_label')
+        )
+
         run_pipeline(_args())
         kernel_product = mocks.SpiceKernelProduct.return_value
 
@@ -535,9 +546,9 @@ class TestPhase6StagingBundleAndCollections:
 
         assert kernel_product.label is mocks.SpiceKernelPDS3Label.return_value
 
-        # The PDS3 label writes itself when it is built, so the pipeline must
-        # not write it a second time.
-        mocks.SpiceKernelPDS3Label.return_value.write_label.assert_not_called()
+        # npb.py writes the label, then embeds it in the kernel. The order
+        # matters because insert_label() reads the file write_label() creates.
+        assert calls == ['write_label', 'insert_label']
 
     def test_orbnum_product_dispatched_for_nrb_kernel(self, mocks):
         # .nrb files are dispatched to OrbnumFileProduct and added to the miscellaneous collection.
