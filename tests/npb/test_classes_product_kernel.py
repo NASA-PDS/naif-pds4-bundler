@@ -658,7 +658,7 @@ KERNEL_CONTENT = "KPL/SPK\n\\begintext\nsome content\n"
 BIN_LABEL_CONTENT = "PDS_VERSION_ID = PDS3\nKERNEL_TYPE = SPK\nEND\n"
 
 
-@pytest.fixture()
+@pytest.fixture
 def bare_product():
     """SpiceKernelProduct with __init__ skipped and a stubbed label."""
     product = SpiceKernelProduct.__new__(SpiceKernelProduct)
@@ -828,7 +828,7 @@ class TestSpiceKernelProductInsertTextLabel:
         assert caplog.messages == logs
 
 
-@pytest.fixture()
+@pytest.fixture
 def spiceypy_mock():
     """Patch spiceypy inside the module under test."""
     with patch(f"{_MODULE}.spiceypy") as mock_spy:
@@ -836,7 +836,7 @@ def spiceypy_mock():
         yield mock_spy
 
 
-@pytest.fixture()
+@pytest.fixture
 def extract_comment_mock():
     """Patch extract_comment to return an empty list by default."""
     with patch(f"{_MODULE}.extract_comment", return_value=[]) as mock_ec:
