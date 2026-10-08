@@ -269,6 +269,8 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 else:
                     kernel_product.label = SpiceKernelPDS3Label(kernel_product)
+                    kernel_product.label.write_label()
+                    kernel_product.insert_label()
 
                 spice_kernels_collection.add(kernel_product)
 

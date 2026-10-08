@@ -11,10 +11,12 @@ from ...utils import archive_subdirectory
 from ...utils import ck_coverage
 from ...utils import dsk_coverage
 from ...utils import extension_to_type
+from ...utils import extract_comment
 from ...utils import pck_coverage
 from ...utils import product_mapping
 from ...utils import safe_make_directory
 from ...utils import spk_coverage
+from ...utils import spice_exception_handler
 
 
 class SpiceKernelProduct(Product):
@@ -358,3 +360,153 @@ class SpiceKernelProduct(Product):
         id_list = sorted(set(id_list))
 
         return ",".join(id_list)
+
+    def insert_label(self) -> None:
+        """Embed the PDS3 label of this product into the kernel itself.
+
+        The label written by ``self.label`` is spliced into the kernel:
+        text kernels (``STREAM`` records) get it after the architecture
+        line, binary kernels get it in the DAF comment area.
+        """
+        if self.record_type == "STREAM":
+            self._insert_text_label()
+        else:
+            self._insert_binary_label()
+
+        logging.info("")
+
+    def _insert_text_label(self) -> None:
+        """Insert or update a label in a text kernel.
+
+        The routine inserts the label, after the first line containing the
+        kernel architecture specification and removes extra empty lines at
+        the end of the kernel file.
+        """
+        with open(self.label.name, "r", encoding='utf-8') as label:
+            label_lines = label.readlines()
+
+        with open(self.path, "r+", encoding='utf-8') as kernel:
+            kernel_lines = kernel.readlines()
+
+        with open(self.path, "w", encoding='utf-8') as kernel:
+
+            if "KPL/" in kernel_lines[0]:
+                kernel.write(kernel_lines[0])
+            else:
+                raise NPBError(
+                    f"Kernel {self.name} does not have "
+                    f"architecture spec as first line."
+                )
+
+            kernel.write("\n\\beginlabel\n")
+
+            for line in label_lines:
+                if line.strip() != "END":
+                    kernel.write(line)
+
+            kernel.write("\\endlabel")
+
+            write_line = True
+
+            kernel_lines[-1] += "\n"
+
+            #
+            # If the kernel does not have a label add an empty line.
+            #
+            label_in_kernel = False
+            for line in kernel_lines:
+                if "\\beginlabel" in line:
+                    label_in_kernel = True
+            if not label_in_kernel:
+                kernel.write("\n")
+
+            #
+            # Remove empty lines at the end of the kernel, add a new line
+            # character in the last line.
+            #
+            while kernel_lines and not kernel_lines[-1].strip():
+                kernel_lines.pop()
+
+            #
+            # Add kernel list to kernel.
+            #
+            for line in kernel_lines:
+                if "\\beginlabel" in line:
+                    write_line = False
+                    logging.info("-- Updating label in kernel.")
+
+                if write_line and line != kernel_lines[0]:
+                    kernel.write(line.rstrip() + "\n")
+
+                if "\\endlabel" in line:
+                    write_line = True
+
+        logging.info("-- Label inserted to text kernel.")
+
+    @spice_exception_handler
+    def _insert_binary_label(self) -> None:
+        """Insert or update a label in a binary kernel.
+
+        The routine inserts the label in the kernel comment.
+        """
+        label_lines = []
+        with open(self.label.name, "r", encoding='utf-8') as label:
+            for line in label:
+                if line.strip() != "END":
+                    label_lines.append(line.rstrip())
+
+        # Kept outside the try: if dafopw itself fails, there is no handle
+        # yet to close.
+        handle = spiceypy.dafopw(self.path)
+
+        try:
+            #
+            # Extract comment from the kernel.
+            #
+            commnt = extract_comment(self.path, handle=handle)
+
+            #
+            # Remove the first N blank lines.
+            #
+            j = 0
+            for line in commnt:
+                if line.strip():
+                    break
+                j += 1
+            if j > 0:
+                commnt = commnt[j:]
+
+            #
+            # Add a blank character in each empty line.
+            #
+            for i, line in enumerate(commnt):
+                if not line:
+                    commnt[i] = " "
+
+            #
+            # Add or replace label to comment list.
+            #
+            new_commnt = ["\\beginlabel"] + label_lines + ["\\endlabel"] + 2 * [" "]
+
+            if "\\endlabel" in commnt:
+                index = commnt.index("\\endlabel")
+                commnt = commnt[index + 1 :]
+
+            new_commnt += commnt
+
+            #
+            # Delete comment from the kernel.
+            #
+            spiceypy.dafdc(handle)
+
+            #
+            # Insert updated comment to kernel.
+            #
+            spiceypy.dafac(handle, new_commnt)
+
+        finally:
+            # Runs even if extract_comment, dafdc, or dafac raises, so the
+            # handle is never left open.
+            spiceypy.dafcls(handle)
+
+        logging.info("-- Label inserted to binary kernel.")

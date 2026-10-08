@@ -1,7 +1,7 @@
 """Unit tests for SpiceKernelPDS3Label
 """
 import logging
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from spiceypy.utils.exceptions import SpiceyPyError
@@ -14,9 +14,6 @@ from pds.naif_pds4_bundler.classes.label.pds3_spice_kernel import SpiceKernelPDS
 # ---------------------------------------------------------------------------
 MODULE      = "pds.naif_pds4_bundler.classes.label.pds3_spice_kernel"
 PARENT_INIT = f"{MODULE}.PDS3Label.__init__"
-WRITE_LABEL = f"{MODULE}.SpiceKernelPDS3Label.write_label"
-INSERT_TEXT = f"{MODULE}.SpiceKernelPDS3Label.insert_text_label"
-INSERT_BIN  = f"{MODULE}.SpiceKernelPDS3Label.insert_binary_label"
 SET_IDS     = f"{MODULE}.SpiceKernelPDS3Label.set_kernel_ids"
 SET_SCLK    = f"{MODULE}.SpiceKernelPDS3Label.set_sclk_times"
 FORMAT_DESC = f"{MODULE}.SpiceKernelPDS3Label.format_description"
@@ -88,12 +85,9 @@ def _build_label(product, extra_setup=None):
     with patch(PARENT_INIT, lambda self, p: (
             setattr(self, "setup", setup),
             setattr(self, "_label_fields", {}))), \
-         patch(WRITE_LABEL, return_value=None), \
          patch(SET_IDS,     return_value=None), \
          patch(SET_SCLK,    return_value=None), \
-         patch(FORMAT_DESC, return_value='"Fake description."'), \
-         patch(INSERT_BIN,  return_value=None), \
-         patch(INSERT_TEXT, return_value=None):
+         patch(FORMAT_DESC, return_value='"Fake description."'):
         SpiceKernelPDS3Label.__init__(label, product)
 
     return label
@@ -207,56 +201,27 @@ class TestSpiceKernelPDS3LabelInit:
 
         assert field not in label._label_fields
 
-    def test_stream_record_type_calls_insert_text(self):
-        """STREAM kernels invoke insert_text_label, not insert_binary_label."""
-        product = _make_product("SPK")
-        product.record_type = "STREAM"
-
+    def test_init_does_not_write_label(self):
+        """Writing and inserting the label is the pipeline's job now."""
         label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
 
         with patch(PARENT_INIT, lambda s, p: (
                 setattr(s, "setup", _make_setup()),
                 setattr(s, "_label_fields", {}))), \
-             patch(WRITE_LABEL, return_value=None), \
              patch(SET_IDS,     return_value=None), \
              patch(SET_SCLK,    return_value=None), \
              patch(FORMAT_DESC, return_value='"desc"'), \
-             patch(INSERT_TEXT) as mock_text, \
-             patch(INSERT_BIN)  as mock_bin:
-            SpiceKernelPDS3Label.__init__(label, product)
+             patch.object(SpiceKernelPDS3Label, "write_label") as mock_write:
+            SpiceKernelPDS3Label.__init__(label, _make_product("SPK"))
 
-        mock_text.assert_called_once()
-        mock_bin.assert_not_called()
-
-    def test_non_stream_record_type_calls_insert_binary(self):
-        """Non-STREAM kernels invoke insert_binary_label."""
-        product = _make_product("SPK")
-        product.record_type = "FIXED_LENGTH"
-
-        label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
-
-        with patch(PARENT_INIT, lambda s, p: (
-                setattr(s, "setup", _make_setup()),
-                setattr(s, "_label_fields", {}))), \
-             patch(WRITE_LABEL, return_value=None), \
-             patch(SET_IDS,     return_value=None), \
-             patch(SET_SCLK,    return_value=None), \
-             patch(FORMAT_DESC, return_value='"desc"'), \
-             patch(INSERT_TEXT) as mock_text, \
-             patch(INSERT_BIN)  as mock_bin:
-            SpiceKernelPDS3Label.__init__(label, product)
-
-        mock_bin.assert_called_once()
-        mock_text.assert_not_called()
+        mock_write.assert_not_called()
 
 
 # ===========================================================================
 # SpiceKernelPDS3Label.write_label -- _trailing_blank_log effect
 # ===========================================================================
-# __init__ always calls logging.info("") after insert_text/binary_label(),
-# regardless of _trailing_blank_log -- so testing via the full constructor
-# would always show a blank line. These tests call write_label() directly
-# to isolate the one blank-line call it actually gates.
+# These tests call write_label() directly to isolate the one blank-line call
+# that _trailing_blank_log gates.
 
 class TestSpiceKernelPDS3LabelWriteLabel:
     """Proves _trailing_blank_log=False actually suppresses write_label()'s
@@ -293,9 +258,7 @@ class TestSpiceKernelPDS3LabelWriteLabel:
         product.path = str(staging_dir / "kernel.bsp")
         product.extension = "bsp"
 
-        # __init__ is bypassed: it would call write_label() itself, then
-        # always log its own trailing blank line (see comment above),
-        # masking the result this test checks.
+        # __init__ is bypassed: the label fields are set by hand.
         label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
         label._label_fields = {"FILE_NAME": "kernel.bsp"}
         label.setup = setup
@@ -451,354 +414,3 @@ class TestSpiceKernelPDS3LabelFormatDescription:
     def test_starts_with_opening_quote(self, bare_label, description, expected):
         result = bare_label.format_description(description)
         assert result == expected
-
-
-# ===========================================================================
-# SpiceKernelPDS3Label.insert_text_label
-# ===========================================================================
-
-LABEL_CONTENT  = "PDS_VERSION_ID = PDS3\nEND\n"
-KERNEL_CONTENT = "KPL/SPK\n\\begintext\nsome content\n"
-
-
-@pytest.fixture()
-def text_label(bare_label):
-    """bare_label pre-configured for insert_text_label tests."""
-    bare_label.name = "/fake/label.lbl"
-    bare_label.product.path = "/fake/fake_kernel.bsp"
-    return bare_label
-
-
-def _open_factory(kernel_data=KERNEL_CONTENT, label_data=LABEL_CONTENT, written=None):
-    """Return an open() side effect that serves different data per path."""
-    def side_effect(path, mode="r", **_kwargs):
-        data = label_data if "label" in str(path) else kernel_data
-        m = mock_open(read_data=data)()
-        if written is not None and mode == "w":
-            m.write.side_effect = lambda s: written.append(s)
-        return m
-    return side_effect
-
-
-class TestSpiceKernelPDS3LabelInsertTextLabel:
-    """Tests for SpiceKernelPDS3Label.insert_text_label."""
-
-    def test_opens_label_for_reading(self, text_label):
-        """insert_text_label opens the .lbl file at least once."""
-        with patch("builtins.open", side_effect=_open_factory()) as mock_open_:
-            text_label.insert_text_label()
-
-        opened = [str(c.args[0]) for c in mock_open_.call_args_list]
-        assert any("label" in p for p in opened)
-
-    def test_opens_kernel_file(self, text_label):
-        """insert_text_label opens the kernel file at least once."""
-        opened_modes = []
-
-        def tracking_open(path, mode="r", **_kwargs):
-            opened_modes.append((str(path), mode))
-            return mock_open(read_data=KERNEL_CONTENT)()
-
-        with patch("builtins.open", side_effect=tracking_open):
-            text_label.insert_text_label()
-
-        kernel_opens = [p for p in opened_modes if "kernel" in p[0] or "bsp" in p[0]]
-        assert len(kernel_opens) >= 1
-
-    def test_raises_on_missing_kpl_header(self, text_label):
-        """NPBError is raised when the kernel lacks a KPL/ first line."""
-        bad_kernel = "NOT_KPL\nsome data\n"
-
-        with patch("builtins.open", side_effect=_open_factory(kernel_data=bad_kernel)):
-            with pytest.raises(NPBError, match='architecture spec as first line.'):
-                text_label.insert_text_label()
-
-    @pytest.mark.parametrize("kernel_data, expected, logs", [
-        # Kernel does not have a label.
-        ('KPL/SPK\n'
-         '\\begintext\n'
-         'some content\n',
-         'KPL/SPK\n'
-         '\n'
-         '\\beginlabel\n'
-         'PDS_VERSION_ID = PDS3\n'
-         '\\endlabel\n'
-         '\\begintext\n'
-         'some content\n',
-         ["-- Label inserted to text kernel."]),
-        # Kernel does have a label (same label).
-        ('KPL/SPK\n'
-         '\n'
-         '\\beginlabel\n'
-         'PDS_VERSION_ID = PDS3\n'
-         '\\endlabel\n'
-         '\\begintext\n'
-         'some content\n',
-         'KPL/SPK\n'
-         '\n'
-         '\\beginlabel\n'
-         'PDS_VERSION_ID = PDS3\n'
-         '\\endlabel\n'
-         '\\begintext\n'
-         'some content\n',
-         ["-- Updating label in kernel.",
-          "-- Label inserted to text kernel."]),
-        # Kernel does have a label (another label).
-        ('KPL/SPK\n'
-         '\n'
-         '\\beginlabel\n'
-         'PDS_VERSION_ID = WRONG_PDS_IDENTIFIER\n'
-         'SOME_OTHER_KEY = WRONG_VALUE_TO_BE_REMOVED\n'
-         '\\endlabel\n'
-         '\\begintext\n'
-         'some content\n',
-         'KPL/SPK\n'
-         '\n'
-         '\\beginlabel\n'
-         'PDS_VERSION_ID = PDS3\n'
-         '\\endlabel\n'
-         '\\begintext\n'
-         'some content\n',
-         ["-- Updating label in kernel.",
-          "-- Label inserted to text kernel."]),
-        # Kernel does not have an EOL character at the end of the file.
-        ('KPL/SPK\n'
-         '\\begintext\n'
-         'some content',
-         'KPL/SPK\n'
-         '\n'
-         '\\beginlabel\n'
-         'PDS_VERSION_ID = PDS3\n'
-         '\\endlabel\n'
-         '\\begintext\n'
-         'some content\n',
-         ["-- Label inserted to text kernel."]),
-        # Kernel does have empty blank lines at the end of the file.
-        ('KPL/SPK\n'
-         '\\begintext\n'
-         'some content\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n',
-         'KPL/SPK\n'
-         '\n'
-         '\\beginlabel\n'
-         'PDS_VERSION_ID = PDS3\n'
-         '\\endlabel\n'
-         '\\begintext\n'
-         'some content\n',
-         ["-- Label inserted to text kernel."]),
-    ])
-    def test_lines_written_to_kernel(self, text_label, caplog, kernel_data, expected, logs):
-        written = []
-
-        with patch("builtins.open", side_effect=_open_factory(kernel_data=kernel_data,
-                                                              written=written)):
-            with caplog.at_level(logging.INFO):
-                text_label.insert_text_label()
-
-        assert expected == "".join(written)
-        assert caplog.messages == logs
-
-
-# ===========================================================================
-# SpiceKernelPDS3Label.insert_binary_label
-# ===========================================================================
-
-BIN_LABEL_CONTENT = "PDS_VERSION_ID = PDS3\nKERNEL_TYPE = SPK\nEND\n"
-
-
-@pytest.fixture()
-def binary_label(bare_label):
-    """bare_label pre-configured for insert_binary_label tests."""
-    bare_label.name = "/fake/label.lbl"
-    return bare_label
-
-
-@pytest.fixture()
-def spiceypy_mock():
-    """Patch spiceypy inside the module under test."""
-    with patch(f"{MODULE}.spiceypy") as mock_spy:
-        mock_spy.dafopw.return_value = 1
-        yield mock_spy
-
-
-@pytest.fixture()
-def extract_comment_mock():
-    """Patch extract_comment to return an empty list by default."""
-    with patch(f"{MODULE}.extract_comment", return_value=[]) as mock_ec:
-        yield mock_ec
-
-
-class TestInsertBinaryLabel:
-    """Tests for SpiceKernelPDS3Label.insert_binary_label."""
-
-    def test_opens_label_file(self, binary_label, spiceypy_mock, extract_comment_mock):
-        """insert_binary_label reads the label file in text mode."""
-        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)) as m:
-            binary_label.insert_binary_label()
-
-        m.assert_called_with("/fake/label.lbl", "r", encoding="utf-8")
-        spiceypy_mock.dafopw.assert_called_once_with(binary_label.product.path)
-
-    def test_comment_deleted_before_new_one_added(self, binary_label, spiceypy_mock, extract_comment_mock):
-        """dafdc (delete) is called strictly before dafac (add)."""
-        call_order = []
-        spiceypy_mock.dafdc.side_effect = lambda h:    call_order.append("dafdc")
-        spiceypy_mock.dafac.side_effect = lambda h, c: call_order.append("dafac")
-        extract_comment_mock.return_value = ["existing line"]
-
-        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)):
-            binary_label.insert_binary_label()
-
-        assert call_order == ["dafdc", "dafac"]
-
-    def test_dafcls_called_on_completion(self, binary_label, spiceypy_mock, extract_comment_mock):
-        """The DAF file handle is always closed after the label is written."""
-        spiceypy_mock.dafopw.return_value = 99
-
-        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)):
-            binary_label.insert_binary_label()
-
-        spiceypy_mock.dafcls.assert_called_once_with(99)
-
-    @pytest.mark.parametrize('failing_call', ['extract_comment', 'dafdc', 'dafac'])
-    def test_dafcls_called_when_error_raised(self, binary_label, spiceypy_mock, extract_comment_mock,
-                                             failing_call):
-        """dafcls is called even when extract_comment, dafdc, or dafac raises.
-
-        Parametrized over the three calls that run between dafopw and dafcls,
-        each exercised in isolation, to confirm the DAF handle is always
-        released no matter which one of them fails.
-        """
-        # Make exactly one of the three intermediate calls raise; the other two
-        # keep behaving as configured by the spiceypy_mock/extract_comment_mock
-        # fixtures.
-        if failing_call == 'extract_comment':
-            extract_comment_mock.side_effect = SpiceyPyError('spiceypy error')
-        else:
-            getattr(spiceypy_mock, failing_call).side_effect = SpiceyPyError('spiceypy error')
-
-        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)):
-            # insert_binary_label is decorated with @spice_exception_handler,
-            # which catches the SpiceyPyError and re-raises it as NPBError —
-            # so NPBError is what actually escapes the call, not SpiceyPyError.
-            with pytest.raises(NPBError):
-                binary_label.insert_binary_label()
-
-        # dafcls must still be reached, regardless of which of the three
-        # calls above raised. The correct handle value is already verified
-        # by test_dafcls_called_on_completion on the success path.
-        spiceypy_mock.dafcls.assert_called_once()
-
-    @pytest.mark.parametrize('label, comments, expected', [
-        # No comments in the binary kernel.
-        ('PDS_VERSION_ID = PDS3\n'
-         'KERNEL_TYPE = SPK\n'
-         'END\n',
-         [],
-         ['\\beginlabel',
-          'PDS_VERSION_ID = PDS3',
-          'KERNEL_TYPE = SPK',
-          '\\endlabel',
-          ' ',
-          ' ']),
-        # Some comments in the binary kernel.
-        ('PDS_VERSION_ID = PDS3\n'
-         'KERNEL_TYPE = SPK\n'
-         'END\n',
-         ['First line of comments.',
-          'Second line of comments.',],
-         ['\\beginlabel',
-          'PDS_VERSION_ID = PDS3',
-          'KERNEL_TYPE = SPK',
-          '\\endlabel',
-          ' ',
-          ' ',
-          'First line of comments.',
-          'Second line of comments.']),
-        # Some comments in the binary kernel, starting with blank lines.
-        ('PDS_VERSION_ID = PDS3\n'
-         'KERNEL_TYPE = SPK\n'
-         'END\n',
-         ['', '', '', '',
-          'First line of comments.',
-          'Second line of comments.', ],
-         ['\\beginlabel',
-          'PDS_VERSION_ID = PDS3',
-          'KERNEL_TYPE = SPK',
-          '\\endlabel',
-          ' ',
-          ' ',
-          'First line of comments.',
-          'Second line of comments.']),
-        # Some comments in the binary kernel, with empty lines between paragraphs.
-        ('PDS_VERSION_ID = PDS3\n'
-         'KERNEL_TYPE = SPK\n'
-         'END\n',
-         ['First line of comments.',
-          '',
-          'Second line of comments.', ],
-         ['\\beginlabel',
-          'PDS_VERSION_ID = PDS3',
-          'KERNEL_TYPE = SPK',
-          '\\endlabel',
-          ' ',
-          ' ',
-          'First line of comments.',
-          ' ',
-          'Second line of comments.']),
-        # Comment area of the binary kernel has already a label. Same label.
-        # TODO: This is a bug. It should not add extra blank lines between the label and the comments.
-        ('PDS_VERSION_ID = PDS3\n'
-         'KERNEL_TYPE = SPK\n'
-         'END\n',
-         ['\\beginlabel',
-          'PDS_VERSION_ID = PDS3',
-          'KERNEL_TYPE = SPK',
-          '\\endlabel',
-          ' ',
-          ' ',
-          'First line of comments.'],
-         ['\\beginlabel',
-          'PDS_VERSION_ID = PDS3',
-          'KERNEL_TYPE = SPK',
-          '\\endlabel',
-          ' ',
-          ' ',
-          ' ',
-          ' ',
-          'First line of comments.']),
-        # Comment area of the binary kernel has already a label. Different label.
-        # TODO: Same issue as previous test.
-        ('PDS_VERSION_ID = PDS3\n'
-         'KERNEL_TYPE = PCK\n'
-         'END\n',
-         ['\\beginlabel',
-          'PDS_VERSION_ID = PDS3',
-          'KERNEL_TYPE = SPK',
-          '\\endlabel',
-          ' ',
-          ' ',
-          'First line of comments.'],
-         ['\\beginlabel',
-          'PDS_VERSION_ID = PDS3',
-          'KERNEL_TYPE = PCK',
-          '\\endlabel',
-          ' ',
-          ' ',
-          ' ',
-          ' ',
-          'First line of comments.']),
-
-    ])
-    def test_written_comment(self, binary_label, spiceypy_mock, extract_comment_mock, caplog,
-                             label, comments, expected):
-        """The comment passed to dafac includes both \\beginlabel and \\endlabel."""
-        captured = []
-        spiceypy_mock.dafac.side_effect = lambda _, c: captured.extend(c)
-        extract_comment_mock.side_effect = lambda _, handle: comments
-
-        with patch("builtins.open", mock_open(read_data=label)):
-            with caplog.at_level(logging.INFO):
-                binary_label.insert_binary_label()
-
-        assert expected == captured
-        assert caplog.messages == ["-- Label inserted to binary kernel."]
