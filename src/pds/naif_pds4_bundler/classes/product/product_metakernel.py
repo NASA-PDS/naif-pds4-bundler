@@ -569,7 +569,25 @@ class MetaKernelProduct(Product):
                             paths.append(
                                 self.setup.staging_directory + "/spice_kernels"
                             )
-                        # paths.append(self.setup.kernels_directory)
+
+                        #
+                        # Search the bundle directory for kernels from
+                        # previous releases that were not included in the
+                        # previous MK.
+                        #
+                        if self.setup.increment and os.path.isdir(self.setup.bundle_directory):
+                            if self.setup.pds_version == "3": #TODO: check if this is needed
+                                bundle_kernels_path = (
+                                    f"{self.setup.bundle_directory}/"
+                                    f"{self.setup.volume_id}/data"
+                                )
+                            else:
+                                bundle_kernels_path = (
+                                    f"{self.setup.bundle_directory}/"
+                                    f"{self.setup.mission_acronym}_spice/spice_kernels"
+                                )
+                            if os.path.isdir(bundle_kernels_path):
+                                paths.append(bundle_kernels_path)
 
                         #
                         # Try to look for meta-kernels from previous

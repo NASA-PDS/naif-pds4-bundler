@@ -1523,6 +1523,122 @@ class TestMetaKernelProductWriteProduct:
             "      line two\n"
         )
 
+    def test_bundle_directory_searched_pds4_increment(self, tmp_path):
+        """Test PDS4 bundle directory added to paths when increment=True and dir exists."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+
+        # Create the PDS4 bundle structure: bundle_directory/mission_acronym_spice/spice_kernels
+        bundle_kernels = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels, exist_ok=True)
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = True
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        # Verify bundle path was passed to get_latest_kernel
+        calls = mock_glk.call_args_list
+        bundle_path_found = False
+        for call in calls:
+            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
+            if any("insight_spice/spice_kernels" in str(p) for p in paths):
+                bundle_path_found = True
+                break
+
+        assert bundle_path_found, "PDS4 bundle directory should be in paths"
+
+    def test_bundle_directory_searched_pds3_increment(self, tmp_path):
+        """Test PDS3 bundle directory added to paths using volume_id/data structure."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+
+        # Create the PDS3 bundle structure: bundle_directory/volume_id/data
+        bundle_kernels = os.path.join(bundle_dir, "mrosp_1000", "data")
+        os.makedirs(bundle_kernels, exist_ok=True)
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"], pds_version="3")
+        product.setup.bundle_directory = bundle_dir
+        product.setup.volume_id = "mrosp_1000"
+        product.setup.increment = True
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        # Verify PDS3 bundle path was passed to get_latest_kernel
+        calls = mock_glk.call_args_list
+        bundle_path_found = False
+        for call in calls:
+            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
+            if any("mrosp_1000/data" in str(p) for p in paths):
+                bundle_path_found = True
+                break
+
+        assert bundle_path_found, "PDS3 bundle directory (volume_id/data) should be in paths"
+
+    def test_bundle_directory_not_searched_when_increment_false(self, tmp_path):
+        """Test bundle directory NOT searched when increment=False (first release)."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+        bundle_kernels = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels, exist_ok=True)
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = False  # First release
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        # Verify bundle path was NOT passed to get_latest_kernel
+        calls = mock_glk.call_args_list
+        for call in calls:
+            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
+            assert not any("insight_spice/spice_kernels" in str(p) for p in paths), \
+                "Bundle directory should NOT be searched for first release"
+
+    def test_bundle_directory_not_searched_when_subdir_missing_pds4(self, tmp_path):
+        """Test bundle subdirectory NOT added to paths when it doesn't exist (PDS4)."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+        # Bundle directory exists but insight_spice/spice_kernels subdirectory does NOT exist
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = True  # Incremental release
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        # Verify bundle subdirectory path was NOT passed to get_latest_kernel
+        calls = mock_glk.call_args_list
+        for call in calls:
+            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
+            assert not any("insight_spice/spice_kernels" in str(p) for p in paths), \
+                "Non-existent bundle subdirectory should NOT be in paths"
+
+    def test_bundle_directory_not_searched_when_subdir_missing_pds3(self, tmp_path):
+        """Test bundle subdirectory NOT added to paths when it doesn't exist (PDS3)."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+        # Bundle directory exists but volume_id/data subdirectory does NOT exist
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"], pds_version="3")
+        product.setup.bundle_directory = bundle_dir
+        product.setup.volume_id = "mrosp_1000"
+        product.setup.increment = True  # Incremental release
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        # Verify PDS3 bundle subdirectory path was NOT passed to get_latest_kernel
+        calls = mock_glk.call_args_list
+        for call in calls:
+            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
+            assert not any("mrosp_1000/data" in str(p) for p in paths), \
+                "Non-existent bundle subdirectory (volume_id/data) should NOT be in paths"
 
 # ===========================================================================
 # MetaKernelProduct.compare
