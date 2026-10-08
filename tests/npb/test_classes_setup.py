@@ -181,13 +181,10 @@ class TestSetupInit:
 
         # Initial constructor state that is not supplied by the configuration.
         assert setup_instance.current_release == 0
-        assert setup_instance.fks is None
         assert setup_instance.increment is True
         assert setup_instance.information_model_float is None
-        assert getattr(setup_instance, 'lsk') is None
         assert setup_instance.release is None
         assert setup_instance.schema_location == ''
-        assert setup_instance.sclks is None
         assert setup_instance.template_files == []
         assert setup_instance.templates_directory is None
         assert setup_instance.xml_model == ''
@@ -1962,11 +1959,6 @@ class TestSetupLoadKernels:
         setup.kernels_directory = [str(kernels_directory)]
         setup.kernels_to_load = {}
 
-        # Initial state updated by load_kernels.
-        setup.fks = None
-        setup.sclks = None
-        setup.lsk = None
-
         setup.bundle_directory = str(bundle_directory)
 
         if pds_version == '4':
@@ -2004,7 +1996,7 @@ class TestSetupLoadKernels:
     def test_loads_existing_kernel_paths_with_mocked_spiceypy(
             self, tmp_path, monkeypatch, caplog, as_lists) -> None:
         # This test verifies that load_kernels detects the existing paths, calls
-        # furnsh in the correct order, updates fks, sclks and lsk, adds the PDS4
+        # furnsh in the correct order, adds the PDS4
         # file directory, and generates the expected logs.
 
         setup_instance = self.make_load_setup(tmp_path)
@@ -2042,11 +2034,6 @@ class TestSetupLoadKernels:
         # Kernels must be loaded in the order implemented by load_kernels.
         assert furnsh.call_args_list == [call(str(lsk)), call(str(pck)),
                                          call(str(fk)), call(str(sclk))]
-
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == [str(fk)]
-        assert getattr(setup_instance, 'sclks') == [str(sclk)]
-        assert getattr(setup_instance, 'lsk') == str(lsk)
 
         # PDS4 archive directory is appended to the search directories.
         assert getattr(setup_instance, 'kernels_directory') == [
@@ -2103,11 +2090,6 @@ class TestSetupLoadKernels:
                                          call(str(pck_2)), call(str(fk_1)),
                                          call(str(fk_2)), call(str(sclk_1)),
                                          call(str(sclk_2))]
-
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == [str(fk_1), str(fk_2)]
-        assert getattr(setup_instance, 'sclks') == [str(sclk_1), str(sclk_2)]
-        assert getattr(setup_instance, 'lsk') == str(lsk)
 
     @pytest.mark.parametrize('pds_version, expected_archive_parts', [
         ('4', ['bundle', 'maven_spice', 'spice_kernels']),
@@ -2171,17 +2153,6 @@ class TestSetupLoadKernels:
         assert furnsh.call_args_list == [call(str(new_lsk)), call(str(new_pck)),
                                          call(str(new_fk)), call(str(new_sclk))]
 
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == [str(new_fk)]
-        assert getattr(setup_instance, 'sclks') == [str(new_sclk)]
-
-        # Current implementation stores the configured LSK pattern, not the resolved
-        # LSK file path, because load_kernels ends with "self.lsk = lsk".
-        # TODO: BUG, this line highlights a bug, when the LSK pattern is not
-        #       found, load_kernels currently stores the configured pattern in
-        #       self.lsk instead of None or a resolved filename.
-        assert getattr(setup_instance, 'lsk') == lsk_pattern
-
         # The archive directory for the selected PDS version must be appended.
         assert str(setup_instance.kernels_directory[-1]) == str(archive_directory)
 
@@ -2241,15 +2212,6 @@ class TestSetupLoadKernels:
         # once it has found a previous match.
         furnsh.assert_called_once_with(str(input_lsk))
 
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == []
-        assert getattr(setup_instance, 'sclks') == []
-
-        # TODO: BUG, this line highlights a bug, when the LSK pattern is not
-        #       found, load_kernels currently stores the configured pattern in
-        #       self.lsk instead of None or a resolved filename.
-        assert getattr(setup_instance, 'lsk') == lsk_pattern
-
     def test_ignores_unsupported_kernel_types_while_loading_supported_lsk(
             self, tmp_path, monkeypatch) -> None:
         # This test verifies that load_kernels ignores unsupported kernel types
@@ -2281,19 +2243,13 @@ class TestSetupLoadKernels:
         # Check that furnsh has been called only once and only with the LSK.
         furnsh.assert_called_once_with(str(lsk))
 
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == []
-        assert getattr(setup_instance, 'sclks') == []
-        assert getattr(setup_instance, 'lsk') == str(lsk)
-
     @pytest.mark.parametrize(
-        'existing_kernels, kernels_to_load, expected_furnsh, expected_fks, '
-        'expected_sclks, expected_lsk, expected_logs', [
+        'existing_kernels, kernels_to_load, expected_furnsh, expected_logs', [
             (['lsk'], {'lsk': '{lsk}',
                        'pck': r'missing_pck_[0-9]+\.tpc',
                        'fk': r'missing_fk_[0-9]+\.tf',
                        'sclk': r'missing_sclk_[0-9]+\.tsc'},
-             ['lsk'], [], [], 'lsk',
+             ['lsk'],
              [(logging.INFO, '-- LSK(s)   loaded: [{lsk!r}]'),
               (logging.INFO, '-- PCK not found.'),
               (logging.WARNING, '-- FK not found.'),
@@ -2303,18 +2259,18 @@ class TestSetupLoadKernels:
                       'pck': r'missing_pck_[0-9]+\.tpc',
                       'fk': '{fk}',
                       'sclk': r'missing_sclk_[0-9]+\.tsc'},
-             ['fk'], ['fk'], [], r'missing_lsk_[0-9]+\.tls',
+             ['fk'],
              [(logging.ERROR, '-- LSK not found.'),
               (logging.INFO, '-- PCK not found.'),
               (logging.INFO, '-- FK(s)    loaded: [{fk!r}]'),
               (logging.ERROR, '-- SCLK not found.'),
               (logging.INFO, '')])])
     def test_logs_missing_kernel_families_without_calling_spiceypy_for_them(
-            self, tmp_path, monkeypatch, caplog, existing_kernels, kernels_to_load, expected_furnsh, expected_fks,
-            expected_sclks, expected_lsk, expected_logs) -> None:
+            self, tmp_path, monkeypatch, caplog, existing_kernels, kernels_to_load, expected_furnsh,
+            expected_logs) -> None:
         # This test verifies the missing-kernel branches of load_kernels.
         # It checks that missing kernels are not passed to furnsh, existing kernels
-        # are loaded, the final state is updated, and the expected logs are emitted.
+        # are loaded, and the expected logs are emitted.
 
         setup_instance = self.make_load_setup(tmp_path)
 
@@ -2344,15 +2300,6 @@ class TestSetupLoadKernels:
 
         # Missing kernels must not be passed to furnsh.
         assert furnsh.call_args_list == [call(kernel_paths[v]) for v in expected_furnsh]
-
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == [kernel_paths[v] for v in expected_fks]
-        assert getattr(setup_instance, 'sclks') == [kernel_paths[v] for v in expected_sclks]
-
-        # TODO: BUG, when the LSK pattern is not found, load_kernels currently
-        #       stores the configured pattern in self.lsk instead of None or a
-        #       resolved filename.
-        assert getattr(setup_instance, 'lsk') == kernel_paths.get(expected_lsk, expected_lsk)
 
         # Check the logging messages.
         expected = [(level, msg.format(**kernel_paths)) for level, msg in expected_logs]
@@ -2446,11 +2393,6 @@ class TestSetupLoadKernels:
 
         # Check that all 4 kernels have been loaded.
         assert spiceypy.ktotal('ALL') == 4
-
-        # Check the final state.
-        assert getattr(setup_instance, 'fks') == [fk]
-        assert getattr(setup_instance, 'sclks') == [sclk]
-        assert getattr(setup_instance, 'lsk') == lsk
 
     def test_real_spiceypy_failure_is_captured_by_decorator(
             self, tmp_path, monkeypatch) -> None:

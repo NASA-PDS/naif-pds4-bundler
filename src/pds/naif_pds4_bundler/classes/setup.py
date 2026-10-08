@@ -36,13 +36,10 @@ class Setup:
         """Constructor."""
         self.bundle_directory = ''
         self.current_release = 0
-        self.fks = None
         self.increment = True
         self.information_model_float = None
-        self.lsk = None
         self.release = None
         self.schema_location = ''
-        self.sclks = None
         self.staging_directory = ''
         self.template_files = []
         self.templates_directory = None
@@ -1048,16 +1045,11 @@ class Setup:
 
         self._load_kernel_group('PCK', pck_patterns, directories, logging.info)
 
-        fks = self._load_kernel_group('FK', fk_patterns, directories, logging.warning)
+        self._load_kernel_group('FK', fk_patterns, directories, logging.warning)
 
-        sclks = self._load_kernel_group('SCLK', sclk_patterns, directories, logging.error)
+        self._load_kernel_group('SCLK', sclk_patterns, directories, logging.error)
 
         logging.info('')
-
-        # TODO: Probably not necessary.
-        self.fks = fks
-        self.sclks = sclks
-        self.lsk = lsk_patterns[-1]
 
     def information_model_setup(self):
         """Setup and check PDS4 Information Model related things."""
