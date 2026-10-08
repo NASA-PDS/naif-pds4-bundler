@@ -989,13 +989,22 @@ class Setup:
         return loaded
 
     @spice_exception_handler
-    def load_kernels(self):
-        """Loads the kernels required to run NPB.
+    def load_kernels(self) -> None:
+        """Loads the kernels required to run NPB into the SPICE kernel pool.
 
-        Note that kernels that
-        are not required might be loaded as well, but given that the
-        required memory is not much, we stay on the safe side by loading
-        additional kernels.
+        The LSK, PCK, FK and SCLK patterns of the ``kernels_to_load``
+        configuration are resolved (in that order) against
+        ``kernels_directory`` and furnished. Kernels that are not strictly
+        required might be loaded as well; given that the memory needed is
+        small, we stay on the safe side by loading additional kernels.
+
+        Side effect: the archive kernels directory of the bundle
+        (``<mission>_spice/spice_kernels`` for PDS4, ``<volume_id>/data`` for
+        PDS3) is appended to ``self.kernels_directory``, so that kernels from
+        previous releases can be found.
+
+        :raises NPBError: If more than one LSK is found, or if SPICE fails to
+                          furnish a kernel.
         """
         #
         # To get the appropriate kernels, use the kernel list config.
@@ -1044,9 +1053,7 @@ class Setup:
             raise NPBError("Only one LSK should be obtained.")
 
         self._load_kernel_group('PCK', pck_patterns, directories, logging.info)
-
         self._load_kernel_group('FK', fk_patterns, directories, logging.warning)
-
         self._load_kernel_group('SCLK', sclk_patterns, directories, logging.error)
 
         logging.info('')

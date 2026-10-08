@@ -1996,8 +1996,8 @@ class TestSetupLoadKernels:
     def test_loads_existing_kernel_paths_with_mocked_spiceypy(
             self, tmp_path, monkeypatch, caplog, as_lists) -> None:
         # This test verifies that load_kernels detects the existing paths, calls
-        # furnsh in the correct order, adds the PDS4
-        # file directory, and generates the expected logs.
+        # furnsh in the correct order, adds the PDS4 file directory, and
+        # generates the expected logs.
 
         setup_instance = self.make_load_setup(tmp_path)
 
