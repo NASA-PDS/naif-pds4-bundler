@@ -495,12 +495,13 @@ class TestFinishExecution:
         monkeypatch.setattr(spiceypy, "kclear", MagicMock())
 
         setup = self._make_finish_setup(tmp_path)
+        run_state = MagicMock()
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, RunState(), log_manager)
+        runtime.finish_execution(setup, run_state, log_manager)
 
-        setup.write_file_list.assert_called_once()
-        setup.write_checksum_registry.assert_called_once()
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
 
     def test_validate_config_written_for_pds4_non_clear(self, tmp_path, monkeypatch):
         """write_validate_config is called when pds_version='4' and faucet!='clear'."""
@@ -566,14 +567,17 @@ class TestFinishExecution:
         call_order: list[str] = []
 
         setup = self._make_finish_setup(tmp_path)
-        setup.write_file_list.side_effect = lambda: call_order.append("write_file_list")
-        setup.write_checksum_registry.side_effect = lambda: call_order.append("write_checksum_registry")
+        run_state = MagicMock()
+        run_state.write_file_list.side_effect = (
+            lambda s: call_order.append("write_file_list"))
+        run_state.write_checksum_registry.side_effect = (
+            lambda s: call_order.append("write_checksum_registry"))
 
         with patch(
                 "pds.naif_pds4_bundler.pipeline.runtime.log_step",
                 side_effect=lambda s, r, title: call_order.append("log_step"),
         ):
-            runtime.finish_execution(setup, RunState(), MagicMock())
+            runtime.finish_execution(setup, run_state, MagicMock())
 
         assert call_order.index("log_step") < call_order.index("write_file_list"), (
             "log_step must be called before write_file_list"
@@ -608,8 +612,7 @@ class TestHandleNpbError:
         must both be called before the exception propagates."""
         # Setup mocks
         mock_setup = MagicMock()
-        mock_setup.write_file_list = MagicMock()
-        mock_setup.write_checksum_registry = MagicMock()
+        run_state = MagicMock()
 
         # Create a dummy template file to test removal
         temp_file = tmp_path / "template.xml"
@@ -620,11 +623,12 @@ class TestHandleNpbError:
         monkeypatch.setattr(spiceypy, "kclear", MagicMock())
 
         with pytest.raises(NPBError):
-            runtime.handle_npb_error("Error", setup=mock_setup)
+            runtime.handle_npb_error("Error", setup=mock_setup,
+                                     run_state=run_state)
 
         # Verify side effects
-        mock_setup.write_file_list.assert_called_once()
-        mock_setup.write_checksum_registry.assert_called_once()
+        run_state.write_file_list.assert_called_once_with(mock_setup)
+        run_state.write_checksum_registry.assert_called_once_with(mock_setup)
 
     def test_spice_pool_cleared_with_setup(self, monkeypatch):
         """spiceypy.kclear must be called even when setup is provided."""
@@ -669,12 +673,34 @@ class TestHandleNpbError:
 
         mock_setup = MagicMock()
         mock_setup.template_files = []
+        run_state = MagicMock()
 
         with pytest.raises(NPBError):
-            runtime.handle_npb_error("Error with no templates", setup=mock_setup)
+            runtime.handle_npb_error("Error with no templates",
+                                     setup=mock_setup, run_state=run_state)
 
-        mock_setup.write_file_list.assert_called_once()
-        mock_setup.write_checksum_registry.assert_called_once()
+        run_state.write_file_list.assert_called_once_with(mock_setup)
+        run_state.write_checksum_registry.assert_called_once_with(mock_setup)
+
+    def test_with_setup_but_no_run_state_removes_templates_and_writes_nothing(
+            self, tmp_path, monkeypatch):
+        """With a setup but no run state there is nothing to write, yet the
+        templates are still removed and the NPBError still propagates."""
+
+        # A setup that owns one template file on disk.
+        temp_file = tmp_path / "template.xml"
+        temp_file.write_text("<xml/>")
+        mock_setup = MagicMock()
+        mock_setup.template_files = [str(temp_file)]
+        monkeypatch.setattr(spiceypy, "kclear", MagicMock())
+
+        # Raise the error without giving it a run state.
+        with pytest.raises(NPBError):
+            runtime.handle_npb_error("Error", setup=mock_setup)
+
+        # The template is gone and no writer of the setup was involved.
+        assert not temp_file.exists()
+        mock_setup.write_file_list.assert_not_called()
 
     def test_missing_template_does_not_raise_file_not_found(self, monkeypatch):
         """If a template listed in setup is already gone, no FileNotFoundError

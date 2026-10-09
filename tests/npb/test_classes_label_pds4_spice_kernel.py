@@ -481,7 +481,7 @@ class TestSpiceKernelPDS4LabelIntegration:
             assert b'\n' in raw
 
     # ------------------------------------------------------------------
-    # setup.add_file side-effect
+    # run state registration
     # ------------------------------------------------------------------
 
     def test_add_file_called_with_label_path(
@@ -500,7 +500,7 @@ class TestSpiceKernelPDS4LabelIntegration:
         # absolute.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert product.run_state.file_list == [expected_relative]
 
     # ------------------------------------------------------------------
     # Error and invalid-input integration behaviour
@@ -531,8 +531,8 @@ class TestSpiceKernelPDS4LabelIntegration:
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
             assert f.read() == ''
 
-        # Check that setup.add_file() was not called.
-        setup.add_file.assert_not_called()
+        # Check that nothing was registered in the run state.
+        assert product.run_state.file_list == []
 
     def test_invalid_xml_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
@@ -570,4 +570,4 @@ class TestSpiceKernelPDS4LabelIntegration:
         # registered relative to the staging directory.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert product.run_state.file_list == [expected_relative]

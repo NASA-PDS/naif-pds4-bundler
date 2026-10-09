@@ -21,12 +21,14 @@ class ChecksumProduct(Product):
     """Class to generate a Checksum Product.
 
     :param setup:                 NPB execution setup object
+    :param run_state:             State of the current pipeline execution
     :param collection:            Miscellaneous Collection
     :param add_previous_checksum: True if there is a previous checksum file to
                                   be added, False otherwise
     """
 
-    def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
+    def __init__(self, setup, run_state, collection,
+                 add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
         # The initialization of the checksum class is lighter than the
@@ -38,6 +40,7 @@ class ChecksumProduct(Product):
         #
         self.bytes = 0
         self.setup = setup
+        self.run_state = run_state
         self.collection = collection
         self.collection_path = (
             self.setup.staging_directory + os.sep + "miscellaneous" + os.sep

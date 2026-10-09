@@ -11,13 +11,15 @@ class PDS3DocumentProduct(Product):
     """Class that represents a PDS3 Document Product.
 
     :param setup: NPB execution setup object
+    :param run_state: State of the current pipeline execution
     :param path:  PDS3 Document path
     """
 
-    def __init__(self, setup, path: str) -> None:
+    def __init__(self, setup, run_state, path: str) -> None:
         """Constructor."""
         self.path = path
         self.setup = setup
+        self.run_state = run_state
         self.name = path.split(os.sep)[-1]
 
         #

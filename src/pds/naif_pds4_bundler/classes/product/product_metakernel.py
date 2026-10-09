@@ -34,6 +34,7 @@ class MetaKernelProduct(Product):
     """Class that represents a Metakernel file.
 
     :param setup:                    NPB execution setup object
+    :param run_state:                State of the current pipeline execution
     :param kernel:                   Metakernel path
     :param spice_kernels_collection: SPICE Kernel Collection
     :param user_input:               Indicates whether if the metakernel is
@@ -43,6 +44,7 @@ class MetaKernelProduct(Product):
     def __init__(
         self,
         setup,
+        run_state,
         kernel: str,
         spice_kernels_collection,
         user_input: bool = False,
@@ -60,6 +62,7 @@ class MetaKernelProduct(Product):
 
         self.new_product = True
         self.setup = setup
+        self.run_state = run_state
         self.collection = spice_kernels_collection
         self.file_format = "Character"
 

@@ -8,6 +8,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_spiceds import SpicedsProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
@@ -106,7 +107,7 @@ class TestSpicedsProductInit:
                 patches[2] as check_product, \
                 patches[3] as compare, \
                 patches[4] as base_init:
-            product = SpicedsProduct(setup, collection)
+            product = SpicedsProduct(setup, RunState(), collection)
 
         # Version 1 because there is no previous increment.
         assert product.version == 1
@@ -146,7 +147,7 @@ class TestSpicedsProductInit:
         with patches[0], patches[1], \
                 patches[2], patches[3] as compare, \
                 patches[4]:
-            product = SpicedsProduct(setup, collection)
+            product = SpicedsProduct(setup, RunState(), collection)
 
         compare.assert_called_once_with()
         assert product.generated is True
@@ -162,7 +163,7 @@ class TestSpicedsProductInit:
         with patches[0], patches[1], \
                 patch.object(SpicedsProduct, '_check_product', return_value=False), \
                 patches[3] as compare, patches[4]:
-            product = SpicedsProduct(setup, collection)
+            product = SpicedsProduct(setup, RunState(), collection)
 
         assert product.generated is False
         compare.assert_not_called()
@@ -185,7 +186,7 @@ class TestSpicedsProductInit:
         with patch(_GLOB_GLOB, autospec=True, return_value=list(previous)) as glob_mock, \
                 patches[0] as copy2, patches[1], patches[2], \
                 patches[3], patches[4]:
-            product = SpicedsProduct(setup, collection)
+            product = SpicedsProduct(setup, RunState(), collection)
 
         # The search path is bundle/<acronym>_spice/<collection>. Asserted as
         # a Path (via autospec=True, which makes the mock receive the
@@ -214,7 +215,7 @@ class TestSpicedsProductInit:
 
         with patch(_GLOB_GLOB,
                    return_value=['/bundle/insight_spice/document/spiceds_v005.html']):
-            product = SpicedsProduct(setup, collection)
+            product = SpicedsProduct(setup, RunState(), collection)
 
         assert product.version == 6
         # latest_version is now an int (parsed by find_latest_versioned_file)
@@ -238,7 +239,7 @@ class TestSpicedsProductInit:
         with patch(_GLOB_GLOB, return_value=[]), \
                 patches[0], patches[1], patches[2], \
                 patches[3], patches[4]:
-            product = SpicedsProduct(setup, collection)
+            product = SpicedsProduct(setup, RunState(), collection)
 
         assert product.version == 1
         assert product.latest_spiceds == ''
@@ -254,7 +255,7 @@ class TestSpicedsProductInit:
                 NPBError,
                 match='spiceds not provided and not available from previous releases.',
             ):
-                SpicedsProduct(setup, collection)
+                SpicedsProduct(setup, RunState(), collection)
 
     def test_init_no_increment_no_spiceds_calls_handle_error(self):
         # No increment and no spiceds -> NPBError raised on the else branch.
@@ -265,7 +266,7 @@ class TestSpicedsProductInit:
             NPBError,
             match='spiceds not provided and not available from previous releases.',
         ):
-            SpicedsProduct(setup, collection)
+            SpicedsProduct(setup, RunState(), collection)
 
     def test_init_missing_spiceds_attribute_treated_as_empty(self):
         # If setup.spiceds is missing, the constructor's except AttributeError
@@ -280,7 +281,7 @@ class TestSpicedsProductInit:
             NPBError,
             match='spiceds not provided and not available from previous releases.',
         ):
-            SpicedsProduct(setup, collection)
+            SpicedsProduct(setup, RunState(), collection)
 
     def test_init_unexpected_spiceds_access_error_propagates(self):
         """A failure reading setup.spiceds that isn't "the attribute is missing"
@@ -295,7 +296,7 @@ class TestSpicedsProductInit:
         collection = make_collection()
 
         with pytest.raises(RuntimeError, match="boom"):
-            SpicedsProduct(setup, collection)
+            SpicedsProduct(setup, RunState(), collection)
 
 
 # ---------------------------------------------------------------------------

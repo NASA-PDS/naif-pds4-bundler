@@ -7,6 +7,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_inventory import InventoryProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -106,7 +107,7 @@ class TestInventoryProductInitPDS4:
 
         with patch(f"{MODULE}.InventoryProduct.write_product"), \
              patch(f"{MODULE}.Product.__init__", return_value=None):
-            obj = InventoryProduct(setup, collection)
+            obj = InventoryProduct(setup, RunState(), collection)
 
         assert obj.version == current
 
@@ -134,7 +135,7 @@ class TestInventoryProductInitPDS4:
 
         with patch(f"{MODULE}.InventoryProduct.write_product") as mock_write_product, \
              patch(f"{MODULE}.Product.__init__", return_value=None):
-            InventoryProduct(setup, collection)
+            InventoryProduct(setup, RunState(), collection)
 
         mock_write_product.assert_called_once()
 
@@ -154,7 +155,7 @@ class TestInventoryProductInitPDS3:
 
         with patch(f"{MODULE}.InventoryProduct.write_product"), \
              patch(f"{MODULE}.Product.__init__", return_value=None):
-            obj = InventoryProduct(setup, collection)
+            obj = InventoryProduct(setup, RunState(), collection)
 
         assert obj.name == "index.tab"
         assert obj.path == "staging/index/index.tab"
@@ -171,7 +172,7 @@ class TestInventoryProductInitPDS3:
 
         with patch(f"{MODULE}.InventoryProduct.write_product") as mock_write_product, \
              patch(f"{MODULE}.Product.__init__", return_value=None):
-            InventoryProduct(setup, collection)
+            InventoryProduct(setup, RunState(), collection)
 
         mock_write_product.assert_called_once()
 

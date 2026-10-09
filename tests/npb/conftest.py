@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 import spiceypy
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Get the directory where the data is located.
 KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
@@ -171,10 +172,6 @@ def base_helpers(tmp_path: Path) -> SimpleNamespace:
         setup.args.silent = True
         setup.args.verbose = False
 
-        # Mock side effect so tests can assert the generated label was
-        # registered.
-        setup.add_file = MagicMock()
-
         return setup
 
     def _make_product(path: str, name: str,
@@ -186,6 +183,9 @@ def base_helpers(tmp_path: Path) -> SimpleNamespace:
         context_products = [dict(product) for product in CONTEXT_PRODUCTS]
 
         product = MagicMock()
+
+        # Records the files that the labels register as generated.
+        product.run_state = RunState()
 
         # Physical product metadata used directly by the labels and by the
         # inherited writer to derive the XML label path.
@@ -270,6 +270,7 @@ def label_test_helpers() -> SimpleNamespace:
     def _make_product(collection=None, bundle=None):
         """Return a mock product that supplies all attributes PDS4Label touches."""
         product = MagicMock()
+        product.run_state = RunState()
         product.collection = collection or _make_collection()
         product.bundle = bundle or _make_bundle()
         product.creation_time = "2024-01-01T00:00:00"

@@ -47,6 +47,7 @@ class PDSLabel:
         # Read setup off the product instead of taking it as a separate
         # argument -- every product already carries its own setup.
         self.setup = product.setup
+        self.run_state = product.run_state
 
         #
         # Fields from setup
@@ -180,7 +181,7 @@ class PDSLabel:
         #
         # Add label to the list of generated files.
         #
-        self.setup.add_file(str(created_file))
+        self.run_state.add_file(str(created_file))
 
         #
         # Wrap lines for PDS3 labels.

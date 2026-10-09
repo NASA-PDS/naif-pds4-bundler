@@ -22,17 +22,20 @@ class OrbnumFileProduct(Product):
     """Class that represents an OrbNum file.
 
     :param setup:                    NPB execution setup object
+    :param run_state:                State of the current pipeline execution
     :param name:                     OrbNum file path
     :param collection:               Miscellaneous Collection that contains the
                                      OrbNum file product
     :param spice_kernels_collection: SPICE Kernel Collection
     """
 
-    def __init__(self, setup, name: str, collection, spice_kernels_collection) -> None:
+    def __init__(self, setup, run_state, name: str, collection,
+                 spice_kernels_collection) -> None:
         """Constructor."""
         self.collection = collection
         self.kernels_collection = spice_kernels_collection
         self.setup = setup
+        self.run_state = run_state
         self.name = name
         self.extension = name.split(".")[-1].strip()
         self.path = setup.orbnum_directory

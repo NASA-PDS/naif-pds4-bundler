@@ -10,6 +10,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_checksum import ChecksumProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -119,7 +120,8 @@ def _build_pds4(
         # duplicates don't change which entry sorts last.
         m_glob.return_value = glob_files
 
-        obj = ChecksumProduct(setup, collection, add_previous_checksum)
+        obj = ChecksumProduct(setup, RunState(),
+                              collection, add_previous_checksum)
         mocks.update(dict(
             mkdir=m_mkdir, glob=m_glob, md5=m_md5,
             walk=m_walk, open=m_open,
@@ -140,7 +142,8 @@ def _build_pds3(add_previous_checksum=False):
          patch(PATCHES["os_walk"], return_value=[]), \
          patch("builtins.open", mock_open(read_data="")):
 
-        obj = ChecksumProduct(setup, collection, add_previous_checksum)
+        obj = ChecksumProduct(setup, RunState(),
+                              collection, add_previous_checksum)
 
     return obj
 
@@ -199,7 +202,7 @@ class TestChecksumProductInit:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data="")):
 
-            ChecksumProduct(setup, collection)
+            ChecksumProduct(setup, RunState(), collection)
 
         m_mkdir.assert_called_once_with(str(Path("/staging/miscellaneous/checksum/")))
 
@@ -214,7 +217,7 @@ class TestChecksumProductInit:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data="")):
 
-            ChecksumProduct(setup, collection)
+            ChecksumProduct(setup, RunState(), collection)
 
         m_mkdir.assert_called_once_with(str(Path("/staging/index")))
 
@@ -268,7 +271,8 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, collection, add_previous_checksum=False)
+            obj = ChecksumProduct(setup, RunState(),
+                                  collection, add_previous_checksum=False)
 
         assert obj.md5_dict == {'some/file.tab': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                                 'other/file.xml': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'}
@@ -293,7 +297,8 @@ class TestReadCurrentProduct:
              patch("builtins.open", mock_open(read_data=bad_content)):
 
             with pytest.raises(NPBError, match=error):
-                ChecksumProduct(setup, collection, add_previous_checksum=False)
+                ChecksumProduct(setup, RunState(),
+                                collection, add_previous_checksum=False)
 
     def test_add_previous_checksum_true_adds_file_and_label_pds4(self):
 
@@ -308,7 +313,8 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, collection, add_previous_checksum=True)
+            obj = ChecksumProduct(setup, RunState(),
+                                  collection, add_previous_checksum=True)
 
         # Both the .tab and the .xml of the previous checksum should be present
         assert obj.md5_dict == {
@@ -334,7 +340,8 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, collection, add_previous_checksum=True)
+            obj = ChecksumProduct(setup, RunState(),
+                                  collection, add_previous_checksum=True)
 
         assert obj.md5_dict == {
             'some/file.tab': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',

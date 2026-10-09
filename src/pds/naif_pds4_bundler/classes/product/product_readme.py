@@ -14,15 +14,17 @@ class ReadmeProduct(Product):
     """Class to generate the Readme Product.
 
     :param setup:  NPB execution setup object
+    :param run_state: State of the current pipeline execution
     :param bundle: Bundle that contains the Readme Product
     """
 
-    def __init__(self, setup, bundle) -> None:
+    def __init__(self, setup, run_state, bundle) -> None:
         """Constructor."""
         self.name = "readme.txt"
         self.bundle = bundle
         self.path = setup.staging_directory + os.sep + self.name
         self.setup = setup
+        self.run_state = run_state
         self.vid = bundle.vid
         # TODO: Verify if this attribute is required.
         # Create an attribute named "collection", with an attribute "name".

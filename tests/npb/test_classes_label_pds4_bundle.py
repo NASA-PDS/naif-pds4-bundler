@@ -764,7 +764,7 @@ class TestBundlePDS4LabelIntegration:
                    'Primary', 'Secondary']
 
     # ------------------------------------------------------------------
-    # setup.add_file side effect
+    # run state registration
     # ------------------------------------------------------------------
 
     def test_add_file_called_with_staging_relative_label_path(
@@ -777,7 +777,7 @@ class TestBundlePDS4LabelIntegration:
 
         BundlePDS4Label(readme).write_label()
 
-        setup.add_file.assert_called_once_with('bundle_maven_spice_v001.xml')
+        assert readme.run_state.file_list == ['bundle_maven_spice_v001.xml']
 
     # ------------------------------------------------------------------
     # Error paths
@@ -799,7 +799,7 @@ class TestBundlePDS4LabelIntegration:
 
         assert label_path.exists()
         assert label_path.read_text(encoding='utf-8') == ''
-        setup.add_file.assert_not_called()
+        assert readme.run_state.file_list == []
 
     def test_malformed_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
@@ -821,4 +821,4 @@ class TestBundlePDS4LabelIntegration:
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written)
 
-        setup.add_file.assert_called_once_with('bundle_maven_spice_v001.xml')
+        assert readme.run_state.file_list == ['bundle_maven_spice_v001.xml']

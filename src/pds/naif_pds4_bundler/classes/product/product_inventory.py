@@ -18,10 +18,11 @@ class InventoryProduct(Product):
     """Class that defines a Collection Inventory product.
 
     :param setup:      NPB execution setup object
+    :param run_state:  State of the current pipeline execution
     :param collection: Collection that the inventory product belongs to
     """
 
-    def __init__(self, setup, collection) -> None:
+    def __init__(self, setup, run_state, collection) -> None:
         """Constructor."""
 
         self.collection = collection
@@ -31,6 +32,7 @@ class InventoryProduct(Product):
         self.rows = 0
         self.row_bytes = 0
         self.setup = setup
+        self.run_state = run_state
 
         if setup.pds_version == "3":
             self.path = f"{setup.staging_directory}/index/index.tab"

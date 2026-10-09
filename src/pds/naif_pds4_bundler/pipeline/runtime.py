@@ -21,7 +21,7 @@ finish_execution(setup, run_state, log_manager)
     optionally emits a PDS4 validate configuration, clears the SPICE kernel
     pool, and closes the log.
 
-handle_npb_error(message, setup=None)
+handle_npb_error(message, setup=None, run_state=None)
     Centralised error handler. Logs the error, flushes any partially-generated
     by-products, removes templates, clears the kernel pool, and raises a
     ``NPBError``. This function never returns (return type: ``NoReturn``).
@@ -142,8 +142,8 @@ def finish_execution(setup: Setup, run_state: RunState,
     # Business Logic: Generate Artifacts
     #
     # Write the run-by product file list and checksum record
-    setup.write_file_list()
-    setup.write_checksum_registry()
+    run_state.write_file_list(setup)
+    run_state.write_checksum_registry(setup)
 
     # The validate file is not generated for an NPB clear run.
     if setup.pds_version == "4" and setup.args.faucet != "clear":
@@ -156,17 +156,20 @@ def finish_execution(setup: Setup, run_state: RunState,
     log_manager.stop()
 
 
-def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
+def handle_npb_error(message: str, setup: Optional[Setup] = None,
+                     run_state: Optional[RunState] = None) -> NoReturn:
     """Signal a NPB error and write run artifacts.
 
     Side effects:
-        - Writes file list and checksum registry if setup is provided
+        - Writes file list and checksum registry if setup and run_state are
+          provided
         - Removes template files
         - Clears SPICE kernel pool
         - Raises NPBError
 
     :param message: Error message
     :param setup:   Optional Setup object for writing artifacts
+    :param run_state: Optional RunState holding the records to write
 
     :raises NPBError: always, with the provided error message.
     """
@@ -177,8 +180,9 @@ def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
     #
     # In addition, generate the checksum registry file
     if setup:
-        setup.write_file_list()
-        setup.write_checksum_registry()
+        if run_state is not None:
+            run_state.write_file_list(setup)
+            run_state.write_checksum_registry(setup)
 
         # Remove the templates. Make sure they exist before attempting the
         # deletion.

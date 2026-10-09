@@ -8,12 +8,12 @@ so individual tests only override what is relevant to them.
 import logging
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock
 
 import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.plan import ReleasePlan
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 # ===========================================================================
@@ -487,10 +487,8 @@ def test_write_plan_plan_contains_matched_kernel(tmp_path):
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in plan_contents(setup)
     assert "maven_sc_rec_200101_200201_v01.bsp" in rp.kernel_list
-    setup.add_file.assert_called_once()
-    args = [a.replace(str(tmp_path), 'p') for a in setup.add_file.call_args_list[0].args]
-    assert  args == [f'{Path("p/working/maven_release_01.plan")}']
-    assert setup.add_file.call_args_list[0].kwargs == {}
+    files = [f.replace(str(tmp_path), 'p') for f in rp.run_state.file_list]
+    assert files == [f'{Path("p/working/maven_release_01.plan")}']
 
 
 def test_write_plan_unmatched_kernel_not_in_plan(tmp_path):
@@ -580,7 +578,7 @@ def test_write_plan_add_file_not_called_when_empty(tmp_path):
     rp = make_release_plan(setup)
     rp.write_plan()
 
-    setup.add_file.assert_not_called()
+    assert rp.run_state.file_list == []
 
 
 @pytest.mark.skip(reason="Bug not fixed yet.")
@@ -1275,7 +1273,7 @@ def make_release_plan(setup):
     """Instantiate ReleasePlan while suppressing the read_config I/O."""
     # read_config only reads from setup.kernel_list_config (already a dict)
     # and writes to self.re_config / self.json_config — no filesystem access.
-    return ReleasePlan(setup)
+    return ReleasePlan(setup, RunState())
 
 
 def make_setup(
@@ -1344,9 +1342,6 @@ def make_setup(
         setup.mk_inputs = mk_inputs
     if orbnum is not None:
         setup.orbnum = orbnum
-
-    # add_file is called at the end of write_plan
-    setup.add_file = MagicMock()
 
     return setup
 

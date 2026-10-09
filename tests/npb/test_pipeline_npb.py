@@ -48,7 +48,7 @@ class _StubChecksum:
     # is patched to this class, the isinstance check in npb.py evaluates
     # against _StubChecksum directly, so any instance created via the patched
     # name passes automatically.
-    def __init__(self, _setup=None, _collection=None, **_kw):
+    def __init__(self, _setup=None, _run_state=None, _collection=None, **_kw):
         self.new_product = True
 
         # This stub's own generate() below is a no-op, so it never needed a
@@ -307,7 +307,8 @@ class TestPhase3ReleasePlan:
     def test_release_plan_constructed_with_setup(self, mocks):
         # ReleasePlan is always created with the shared setup object.
         run_pipeline(_args())
-        mocks.ReleasePlan.assert_called_once_with(mocks.Setup.return_value)
+        mocks.ReleasePlan.assert_called_once_with(
+            mocks.Setup.return_value, mocks.RunState.return_value)
 
     def test_write_plan_called_when_no_kerlist_and_no_plan_file(self, mocks):
         # With no plan or kerlist input, a plan is generated from the kernels' directory.
@@ -754,7 +755,8 @@ class TestPhase8CollectionMetadata:
         run_pipeline(_args())
         # InventoryProduct should be called at least once (for the SKC)
         mocks.InventoryProduct.assert_called()
-        first_call_collection = mocks.InventoryProduct.call_args_list[0][0][1]
+        # The positional arguments are (setup, run_state, collection).
+        first_call_collection = mocks.InventoryProduct.call_args_list[0][0][2]
         assert first_call_collection is mocks.SpiceKernelsCollection.return_value
 
     def test_inventory_product_not_created_for_skc_when_not_updated(self, mocks):
@@ -766,7 +768,7 @@ class TestPhase8CollectionMetadata:
         skc = mocks.SpiceKernelsCollection.return_value
         calls_for_skc = [
             c for c in mocks.InventoryProduct.call_args_list
-            if c[0][1] is skc
+            if c[0][2] is skc
         ]
         assert calls_for_skc == []
 
@@ -780,7 +782,7 @@ class TestPhase8CollectionMetadata:
         skc.set_collection_vid.assert_not_called()
         calls_for_skc = [
             c for c in mocks.InventoryProduct.call_args_list
-            if c[0][1] is skc
+            if c[0][2] is skc
         ]
         assert len(calls_for_skc) == 1
         skc.add.assert_called()
@@ -866,7 +868,8 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # DocumentCollection is constructed with the shared setup and bundle objects.
         run_pipeline(_args())
         mocks.DocumentCollection.assert_called_with(
-            mocks.Setup.return_value, mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Bundle.return_value
         )
 
     def test_document_collection_vid_set(self, mocks):
@@ -878,7 +881,8 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # SpicedsProduct is constructed with setup and the document collection.
         run_pipeline(_args())
         mocks.SpicedsProduct.assert_called_once_with(
-            mocks.Setup.return_value, mocks.DocumentCollection.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.DocumentCollection.return_value
         )
 
     def test_spiceds_labeled_with_pds4_label_when_generated(self, mocks):
@@ -917,7 +921,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         doc_col.add.assert_any_call(mocks.SpicedsProduct.return_value)
         inventory_calls_for_doc = [
             c for c in mocks.InventoryProduct.call_args_list
-            if c[0][1] is doc_col
+            if c[0][2] is doc_col
         ]
         assert len(inventory_calls_for_doc) >= 1
 
@@ -947,7 +951,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         doc_col = mocks.DocumentCollection.return_value
         inventory_calls_for_doc = [
             c for c in mocks.InventoryProduct.call_args_list
-            if c[0][1] is doc_col
+            if c[0][2] is doc_col
         ]
         assert inventory_calls_for_doc == []
 
@@ -978,7 +982,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         misc = mocks.MiscellaneousCollection.return_value
         checksum_calls_for_misc = [
             c for c in mocks.ChecksumProduct.call_args_list
-            if c[0][1] is misc
+            if c[0][2] is misc
         ]
         assert len(checksum_calls_for_misc) >= 1
 
@@ -1012,7 +1016,8 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # A ReadmeProduct is created with the shared setup and bundle.
         run_pipeline(_args())
         mocks.ReadmeProduct.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Bundle.return_value
         )
 
     def test_bundle_label_constructed_after_readme_product(self, mocks):
@@ -1203,7 +1208,8 @@ class TestPhase10PDS3Path:
         # DocumentCollection is constructed with setup and bundle for PDS3.
         run_pipeline(_args())
         mocks.DocumentCollection.assert_called_with(
-            mocks.Setup.return_value, mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Bundle.return_value
         )
 
     def test_get_pds3_documents_called(self, mocks):
@@ -1224,6 +1230,7 @@ class TestPhase10PDS3Path:
         run_pipeline(_args())
         mocks.ChecksumProduct.assert_called_once_with(
             mocks.Setup.return_value,
+            mocks.RunState.return_value,
             mocks.MiscellaneousCollection.return_value,
             add_previous_checksum=False,
         )
@@ -1665,8 +1672,9 @@ class TestNPBErrorHandling:
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
-        setup.write_file_list.assert_called_once()
-        setup.write_checksum_registry.assert_called_once()
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
 
     def test_npb_error_from_release_plan_read_plan_is_routed_to_handle_npb_error(self, mocks):
         # read_plan() is only reached when args.plan is set to a .plan path
@@ -1680,8 +1688,9 @@ class TestNPBErrorHandling:
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
-        setup.write_file_list.assert_called_once()
-        setup.write_checksum_registry.assert_called_once()
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
 
     def test_npb_error_from_kernel_list_read_list_is_routed_to_handle_npb_error(self, mocks):
         # read_list() is only reached when args.kerlist is set, which is
@@ -1695,8 +1704,9 @@ class TestNPBErrorHandling:
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
-        setup.write_file_list.assert_called_once()
-        setup.write_checksum_registry.assert_called_once()
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
 
     # fragment is the part of each message that doesn't include the temp path,
     # which changes on every run.
@@ -1723,8 +1733,9 @@ class TestNPBErrorHandling:
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
-        setup.write_file_list.assert_called_once()
-        setup.write_checksum_registry.assert_called_once()
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
         errors = [r.getMessage() for r in caplog.records
                   if r.levelno == logging.ERROR]
         assert errors == [f"-- {raised.value}"]
@@ -1733,7 +1744,8 @@ class TestNPBErrorHandling:
         # Setup() itself failing is a special case (Block A): there is no
         # setup instance yet, so handle_npb_error is called with no `setup`
         # kwarg and no cleanup (write_file_list/write_checksum_registry) is
-        # attempted. Log must never be constructed either, since it depends
+        # attempted. No RunState exists either, since it is built right after
+        # the setup. Log must never be constructed either, since it depends
         # on a successfully-built setup.
         mocks.Setup.side_effect = NPBError('boom setup')
         args = _args()
@@ -1742,8 +1754,7 @@ class TestNPBErrorHandling:
             run_pipeline(args)
 
         mocks.Log.assert_not_called()
-        mocks.Setup.return_value.write_file_list.assert_not_called()
-        mocks.Setup.return_value.write_checksum_registry.assert_not_called()
+        mocks.RunState.assert_not_called()
 
     def test_npb_internal_error_is_not_routed_to_handle_npb_error(self, mocks):
         # NPBInternalError is a sibling of NPBError, not a subclass, so neither
@@ -1758,6 +1769,6 @@ class TestNPBErrorHandling:
         with pytest.raises(NPBInternalError, match='NPB bug: bundle label is broken'):
             run_pipeline(args)
 
-        setup = mocks.Setup.return_value
-        setup.write_file_list.assert_not_called()
-        setup.write_checksum_registry.assert_not_called()
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_not_called()
+        run_state.write_checksum_registry.assert_not_called()

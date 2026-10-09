@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from pds.naif_pds4_bundler.classes.product import PDS3DocumentProduct
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -61,7 +62,7 @@ class TestPDS3DocumentProductInit:
         # Force compare_files to return True (files differ)
         monkeypatch.setattr(COMPARE_FILES_PATH, lambda *args: True)
 
-        product = PDS3DocumentProduct(mock_setup, str(Path("/path/FakeVOL_419/doc.txt")))
+        product = PDS3DocumentProduct(mock_setup, RunState(), str(Path("/path/FakeVOL_419/doc.txt")))
 
         assert product.name == "doc.txt"
         assert product.new_product is True
@@ -76,7 +77,7 @@ class TestPDS3DocumentProductInit:
         # Force compare_files to return False (files are the same)
         monkeypatch.setattr(COMPARE_FILES_PATH, lambda *args: False)
 
-        product = PDS3DocumentProduct(mock_setup, str(Path("/path/FakeVOL_419/doc.txt")))
+        product = PDS3DocumentProduct(mock_setup, RunState(), str(Path("/path/FakeVOL_419/doc.txt")))
 
         assert product.name == "doc.txt"
         assert product.new_product is False

@@ -18,12 +18,14 @@ class SpicedsProduct(Product):
     """Class to process the SPICEDS file.
 
     :param setup:      NPB execution setup object
+    :param run_state:  State of the current pipeline execution
     :param collection: Collection that the inventory product belongs to
     """
 
-    def __init__(self, setup, collection) -> None:
+    def __init__(self, setup, run_state, collection) -> None:
         """Constructor."""
         self.setup = setup
+        self.run_state = run_state
         self.collection = collection
         self.new_product = True
 

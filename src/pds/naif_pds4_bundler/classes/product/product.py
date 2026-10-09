@@ -15,6 +15,8 @@ class Product:
     creation time and date, and file extension.
 
     Subclasses must call ``register()`` once the product file exists on disk.
+    They must also set ``run_state``, next to ``setup``, before calling the
+    base constructor.
     """
 
     # TODO: update this method to have path and setup as input arguments.
@@ -81,8 +83,8 @@ class Product:
             archive_dir_index = path.parts.index(archive_dir)
             archive_path = Path(*path.parts[archive_dir_index + 1:])
 
-            self.setup.add_file(str(archive_path))
-            self.setup.add_checksum(self.path, checksum)
+            self.run_state.add_file(str(archive_path))
+            self.run_state.add_checksum(self.path, checksum)
 
     def _compute_checksum(self) -> str:
         """Resolve the product checksum.

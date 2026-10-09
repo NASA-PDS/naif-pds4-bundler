@@ -10,6 +10,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.product.product_kernel import SpiceKernelProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -137,7 +138,7 @@ def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None
         patch(f"{_MODULE}.dsk_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.Product.__init__", return_value=None),
     ):
-        product = SpiceKernelProduct(setup, name, collection)
+        product = SpiceKernelProduct(setup, RunState(), name, collection)
 
     return product, setup, collection
 
@@ -183,7 +184,7 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.Product.__init__", return_value=None),
         ):
             product = SpiceKernelProduct.__new__(SpiceKernelProduct)
-            product.__init__(setup, "test.bsp", collection)
+            product.__init__(setup, RunState(), "test.bsp", collection)
 
         assert product.collection_path == str(Path(f"{tmp_env['staging']}/spice_kernels/"))
 
@@ -229,7 +230,8 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
         ):
-            product = SpiceKernelProduct(setup, "test.bsp", collection)
+            product = SpiceKernelProduct(setup, RunState(),
+                                         "test.bsp", collection)
 
         assert product.new_product is True
 
@@ -254,7 +256,8 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
         ):
-            product = SpiceKernelProduct(setup, "test.bsp", collection)
+            product = SpiceKernelProduct(setup, RunState(),
+                                         "test.bsp", collection)
 
         assert product.new_product is True
 
@@ -277,7 +280,7 @@ class TestSpiceKernelProductInit:
                 NPBError,
                 match=f"missing.bsp not present in {re.escape(tmp_env['kernel_dir'])}.",
             ):
-                SpiceKernelProduct(setup, "missing.bsp", collection)
+                SpiceKernelProduct(setup, RunState(), "missing.bsp", collection)
 
     def test_init_stores_missions_observers_targets(self, tmp_env):
         product, _, _ = build_product(tmp_env, name="test.bsp")

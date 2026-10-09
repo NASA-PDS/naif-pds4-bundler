@@ -601,7 +601,7 @@ class TestInventoryPDS4LabelIntegration:
             assert b'\n' in raw
 
     # ------------------------------------------------------------------
-    # setup.add_file side-effect
+    # run state registration
     # ------------------------------------------------------------------
 
     def test_add_file_called_with_label_path(
@@ -616,7 +616,7 @@ class TestInventoryPDS4LabelIntegration:
 
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert inventory.run_state.file_list == [expected_relative]
 
     # ------------------------------------------------------------------
     # Error and invalid-input integration behaviour
@@ -644,8 +644,8 @@ class TestInventoryPDS4LabelIntegration:
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
             assert f.read() == ''
 
-        # add_file() was not called.
-        setup.add_file.assert_not_called()
+        # Nothing was registered in the run state.
+        assert inventory.run_state.file_list == []
 
     def test_invalid_xml_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
@@ -677,7 +677,7 @@ class TestInventoryPDS4LabelIntegration:
         # The label is still registered relative to the staging directory.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert inventory.run_state.file_list == [expected_relative]
 
     def test_miscellaneous_collection_renders_checksum_coverage(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:

@@ -158,8 +158,6 @@ class Setup:
         self.version = version
         self.args = args
         self.today = datetime.date.today().strftime("%Y%m%d")
-        self.file_list = []
-        self.checksum_registry = []
 
         #
         # If a release date is not specified it is set to today.
@@ -1060,57 +1058,6 @@ class Setup:
 
     def information_model_setup(self):
         """Setup and check PDS4 Information Model related things."""
-
-    def add_file(self, file):
-        """Add file fo Product List.
-
-        Adds a product to the run by-product Product List.
-
-        :param file: Product to be added
-        :type file: str
-        """
-        self.file_list.append(file)
-
-    def add_checksum(self, path, checksum):
-        """Add checksum to Checksum record.
-
-        Adds a MD5sum entry with the product it corresponds to for the run
-        by-product Checksum record file.
-
-        :param path: File path for checksum
-        :type path: str
-        :param checksum: Checksum value for checksum
-        :type checksum: str
-        """
-        self.checksum_registry.append(f"{path} {checksum}")
-
-    def write_file_list(self):
-        """Write the run by-product File List."""
-        if self.file_list:
-            with open(
-                self.working_directory
-                + os.sep
-                + f"{self.mission_acronym}_{self.run_type}_"
-                f"{int(self.release):02d}.file_list",
-                "w", encoding='utf-8'
-            ) as l:
-                for file in self.file_list:
-                    l.write(file + "\n")
-            logging.info("-- Run File List file written in working area.")
-
-    def write_checksum_registry(self):
-        """Write the run by-product Checksum Record."""
-        if self.checksum_registry:
-            with open(
-                self.working_directory
-                + os.sep
-                + f"{self.mission_acronym}_{self.run_type}_"
-                f"{int(self.release):02d}.checksum",
-                "w", encoding='utf-8'
-            ) as l:
-                for element in self.checksum_registry:
-                    l.write(element + "\n")
-            logging.info("-- Run Checksum Registry file written in working area.")
 
     def write_validate_config(self):
         """Write a PDS validate tool configuration file.

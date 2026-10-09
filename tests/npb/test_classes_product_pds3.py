@@ -1,11 +1,11 @@
 """Tests for the PDS3Product class."""
 import os
 from types import SimpleNamespace
-from unittest.mock import Mock
 
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_pds3 import PDS3Product
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 class TestPDS3ProductArchiveRootDir:
@@ -31,20 +31,20 @@ class TestPDS3ProductArchiveRootDir:
         path.parent.mkdir(parents=True)
         path.write_text('kernel-content', encoding='utf-8')
         setup = SimpleNamespace(volume_id=volume_id, pds_version='4',
-                                mission_acronym='maven',
-                                add_file=Mock(), add_checksum=Mock())
+                                mission_acronym='maven')
 
         # Skip __init__ so the constructor does not register the product
         # before the test is ready.
         product = PDS3Product.__new__(PDS3Product)
         product.path = str(path)
         product.setup = setup
+        product.run_state = RunState()
         product.new_product = True
         mocker.patch.object(PDS3Product, '_compute_checksum', return_value='sum')
 
         # Register the product.
         product.register()
 
-        # The setup receives the path below the volume directory. With the
+        # The run state receives the path below the volume directory. With the
         # PDS4 fallback the lookup of 'maven_spice' would have failed instead.
-        setup.add_file.assert_called_once_with(os.path.join('data', 'k.bsp'))
+        assert product.run_state.file_list == [os.path.join('data', 'k.bsp')]
