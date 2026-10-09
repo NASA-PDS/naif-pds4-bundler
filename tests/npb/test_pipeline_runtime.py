@@ -23,6 +23,7 @@ import pytest
 import spiceypy
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 from pds.naif_pds4_bundler.pipeline import runtime
 
 # ---------------------------------------------------------------------------
@@ -87,7 +88,13 @@ def file_list_with_byproducts(dirs):
 @pytest.fixture()
 def mock_setup():
     """Minimal Setup-like object suitable for log_step tests."""
-    return _LogStepSetup(step=1)
+    return _LogStepSetup()
+
+
+@pytest.fixture
+def run_state():
+    """Fresh RunState, starting at step 1."""
+    return RunState()
 
 # ---------------------------------------------------------------------------
 # runtime.clean_run tests
@@ -466,7 +473,7 @@ class TestFinishExecution:
         )
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         assert not tpl1.exists(), "template_a.xml should have been removed"
         assert not tpl2.exists(), "template_b.xml should have been removed"
@@ -481,7 +488,7 @@ class TestFinishExecution:
         log_manager = MagicMock()
 
         # Should complete without raising FileNotFoundError.
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
     def test_file_list_and_checksum_registry_written(self, tmp_path, monkeypatch):
         """write_file_list and write_checksum_registry are both called."""
@@ -490,7 +497,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path)
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         setup.write_file_list.assert_called_once()
         setup.write_checksum_registry.assert_called_once()
@@ -502,7 +509,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path, pds_version="4", faucet="final")
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         setup.write_validate_config.assert_called_once()
 
@@ -513,7 +520,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path, pds_version="4", faucet="clear")
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         setup.write_validate_config.assert_not_called()
 
@@ -524,7 +531,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path, pds_version="3", faucet="final")
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         setup.write_validate_config.assert_not_called()
 
@@ -536,7 +543,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path)
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         mock_kclear.assert_called_once()
 
@@ -547,7 +554,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path)
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         log_manager.stop.assert_called_once()
 
@@ -559,15 +566,14 @@ class TestFinishExecution:
         call_order: list[str] = []
 
         setup = self._make_finish_setup(tmp_path)
-        setup.step = 1
         setup.write_file_list.side_effect = lambda: call_order.append("write_file_list")
         setup.write_checksum_registry.side_effect = lambda: call_order.append("write_checksum_registry")
 
         with patch(
                 "pds.naif_pds4_bundler.pipeline.runtime.log_step",
-                side_effect=lambda s, title: call_order.append("log_step"),
+                side_effect=lambda s, r, title: call_order.append("log_step"),
         ):
-            runtime.finish_execution(setup, MagicMock())
+            runtime.finish_execution(setup, RunState(), MagicMock())
 
         assert call_order.index("log_step") < call_order.index("write_file_list"), (
             "log_step must be called before write_file_list"
@@ -689,21 +695,22 @@ class TestLogStep:
     """Tests for runtime.log_step."""
 
     @patch("logging.info")
-    def test_increments_counter(self, _mock_log, mock_setup):
+    def test_increments_counter(self, _mock_log, mock_setup, run_state):
         """Verify that the step counter increments every time the function is called."""
-        initial_step = mock_setup.step
-        runtime.log_step(mock_setup, title="Test Title")
-        assert mock_setup.step == initial_step + 1
+        initial_step = run_state.step
+        runtime.log_step(mock_setup, run_state, title="Test Title")
+        assert run_state.step == initial_step + 1
 
     @patch("logging.info")
-    def test_increments_step_counter_on_repeated_calls(self, _mock_log, mock_setup):
+    def test_increments_step_counter_on_repeated_calls(
+            self, _mock_log, mock_setup, run_state):
         """Each successive call increments the counter once more."""
-        runtime.log_step(mock_setup, title="First")
-        runtime.log_step(mock_setup, title="Second")
-        runtime.log_step(mock_setup, title="Third")
-        assert mock_setup.step == 4  # started at 1
+        runtime.log_step(mock_setup, run_state, title="First")
+        runtime.log_step(mock_setup, run_state, title="Second")
+        runtime.log_step(mock_setup, run_state, title="Third")
+        assert run_state.step == 4  # started at 1
 
-    def test_log_messages_format(self, caplog, mock_setup):
+    def test_log_messages_format(self, caplog, mock_setup, run_state):
         """Verify the formatting of the logs and that they include the title."""
         # Set level to INFO since caplog defaults to WARNING
         caplog.set_level(logging.INFO)
@@ -712,7 +719,7 @@ class TestLogStep:
         expected_header = "Step 1 - Initialize Database"
         expected_separator =  "----------------------------"
 
-        runtime.log_step(mock_setup, title)
+        runtime.log_step(mock_setup, run_state, title)
 
         assert caplog.messages == ["", expected_header, expected_separator, ""]
 
@@ -725,10 +732,10 @@ class TestLogStep:
     @patch("logging.info")
     def test_print_conditions(self, _mock_log, silent, verbose, stdout, capsys):
         """Test the logic that determines if 'print' is called based on args."""
-        setup = _LogStepSetup(step=5, silent=silent, verbose=verbose)
+        setup = _LogStepSetup(silent=silent, verbose=verbose)
         title = "Conditional Print Test"
 
-        runtime.log_step(setup, title)
+        runtime.log_step(setup, RunState(step=5), title)
 
         captured = capsys.readouterr()
         assert stdout == captured.out
@@ -776,6 +783,5 @@ def _make_setup(
 
 class _LogStepSetup:
     """Minimal stand-in for Setup used by log_step tests."""
-    def __init__(self, step: int = 1, silent: bool = False, verbose: bool = False):
-        self.step = step
+    def __init__(self, silent: bool = False, verbose: bool = False):
         self.args = MagicMock(silent=silent, verbose=verbose)

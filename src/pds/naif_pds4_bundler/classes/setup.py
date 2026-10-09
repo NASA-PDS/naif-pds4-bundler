@@ -155,7 +155,6 @@ class Setup:
         # configuration file.
         #
         self.root_dir = os.path.dirname(os.path.abspath(__file__))[:-7]
-        self.step = 1
         self.version = version
         self.args = args
         self.today = datetime.date.today().strftime("%Y%m%d")

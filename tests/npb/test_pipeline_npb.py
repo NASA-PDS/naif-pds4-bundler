@@ -71,6 +71,7 @@ _MODULE = 'pds.naif_pds4_bundler.pipeline.npb'
 _PATCH_TARGETS = [
     'Setup',
     'Log',
+    'RunState',
     'Bundle',
     'SpiceKernelsCollection',
     'MiscellaneousCollection',
@@ -129,7 +130,6 @@ def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     setup = m.Setup.return_value
     setup.pds_version = '4'
     setup.increment = False
-    setup.step = 1
     setup.mission_acronym = 'maven'
     setup.bundle_directory = '/fake/bundle'
 
@@ -272,7 +272,8 @@ class TestPhase2ClearMode:
         # faucet='clear' stops the pipeline with a clean shutdown.
         run_pipeline(_args(faucet='clear'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_clear_faucet(self, mocks):
@@ -342,7 +343,8 @@ class TestPhase3ReleasePlan:
         # faucet='plan' stops the pipeline with a clean shutdown after the plan step.
         run_pipeline(_args(faucet='plan'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_plan_faucet(self, mocks):
@@ -397,7 +399,8 @@ class TestPhase4KernelList:
         # faucet='list' stops the pipeline with a clean shutdown after the list step.
         run_pipeline(_args(faucet='list'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_list_faucet(self, mocks):
@@ -428,7 +431,8 @@ class TestPhase5ProductChecks:
         # faucet='checks' stops the pipeline with a clean shutdown after product validation.
         run_pipeline(_args(faucet='checks'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_checks_faucet(self, mocks):
@@ -693,7 +697,8 @@ class TestPhase7LabelsOnlyMode:
         # The pipeline shuts down cleanly after the labels-mode copy.
         run_pipeline(_args(faucet='labels'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_document_collection_not_created_in_labels_mode(self, mocks):
@@ -1278,7 +1283,8 @@ class TestPhase11StagingRecapAndCopy:
         # faucet='staging' stops the pipeline with a clean shutdown after staging.
         run_pipeline(_args(faucet='staging'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_copy_to_bundle_not_called_when_faucet_is_staging(self, mocks):
@@ -1295,7 +1301,8 @@ class TestPhase11StagingRecapAndCopy:
         # faucet='bundle' stops the pipeline with a clean shutdown after the bundle copy.
         run_pipeline(_args(faucet='bundle'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_bundle_validate_not_called_when_faucet_is_bundle(self, mocks):
@@ -1366,14 +1373,30 @@ class TestPhase12FinalValidation:
         # finish_execution is the last call in a complete pipeline run.
         run_pipeline(_args())
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_finish_execution_receives_log_instance(self, mocks):
         # The log instance (not the class) is passed to finish_execution.
         run_pipeline(_args())
-        _, log_arg = mocks.finish_execution.call_args[0]
+        _, _, log_arg = mocks.finish_execution.call_args[0]
         assert log_arg is mocks.Log.return_value
+
+    def test_pipeline_shares_one_run_state_with_every_step(self, mocks):
+        """A full run builds a single RunState and hands that same object to
+        every log_step call, so the step counter advances across the run."""
+
+        # Run a complete pipeline with every collaborator mocked.
+        run_pipeline(_args())
+
+        # Take the RunState received by each log_step call.
+        received = [call.args[1] for call in mocks.log_step.call_args_list]
+
+        # Only one RunState was built and all the steps used it.
+        mocks.RunState.assert_called_once_with()
+        assert received
+        assert all(state is mocks.RunState.return_value for state in received)
 
 
 # ---------------------------------------------------------------------------

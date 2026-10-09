@@ -30,6 +30,7 @@ from ..classes.product import MetaKernelProduct
 from ..classes.product import OrbnumFileProduct
 from ..classes.product import SpicedsProduct
 from ..classes.product import SpiceKernelProduct
+from ..classes.run_state import RunState
 from ..classes.setup import Setup
 from ..utils.types.datatypes import PipelineArgs
 
@@ -94,6 +95,8 @@ def run_pipeline(args: PipelineArgs) -> None:
     except NPBError as exc:
         handle_npb_error(str(exc))
 
+    run_state = RunState()
+
     #
     # * Start the Log object
     #    * The log will always be displayed on screen unless the silent
@@ -116,7 +119,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * Check the existence of a previous archive version.
         #
-        log_step(setup, title='Setup the archive generation')
+        log_step(setup, run_state, title='Setup the archive generation')
         setup.set_release()
 
         #
@@ -132,13 +135,13 @@ def run_pipeline(args: PipelineArgs) -> None:
         #      by setting ``-f, --faucet`` to ``clear``.
         #
         if args.faucet == "clear":
-            finish_execution(setup, log)
+            finish_execution(setup, run_state, log)
             return
 
         #
         # * Generate the Release Plan object.
         # TODO: Should this one be renamed to 'Release Plan generation'?
-        log_step(setup, title='Kernel List generation')
+        log_step(setup, run_state, title='Kernel List generation')
         release_plan = ReleasePlan(setup)
 
         #
@@ -163,7 +166,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #      plan by setting ``-f, --faucet`` to ``plan``.
         #
         if args.faucet == "plan":
-            finish_execution(setup, log)
+            finish_execution(setup, run_state, log)
             return
 
         #
@@ -175,7 +178,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         # TODO: Remove this commented out code or uncomment it. The decision will
         #       depend on whether we want to have a "step" for the generation of
         #       the release plan or not.
-        # log_step(setup, title='Kernel List generation')
+        # log_step(setup, run_state, title='Kernel List generation')
         k_list = KernelList(setup)
         k_list.kernel_list = release_plan.kernel_list
 
@@ -189,13 +192,13 @@ def run_pipeline(args: PipelineArgs) -> None:
         #      list plan by setting ``-f, --faucet`` to ``list``.
         #
         if args.faucet == "list":
-            finish_execution(setup, log)
+            finish_execution(setup, run_state, log)
             return
 
         #
         #    * Check the products present in the list (SPICE kernels and OrbNum
         #      files)
-        log_step(setup, title='Check kernel list products')
+        log_step(setup, run_state, title='Check kernel list products')
         k_list.check_products()
 
         #
@@ -203,25 +206,26 @@ def run_pipeline(args: PipelineArgs) -> None:
         #      list by setting ``-f, --faucet`` to ``checks``.
         #
         if args.faucet == "checks":
-            finish_execution(setup, log)
+            finish_execution(setup, run_state, log)
             return
 
         #
         # * Generate the PDS4 Bundle structure.
         #
-        log_step(setup, title='Bundle/data set structure generation at staging area')
+        log_step(setup, run_state, title='Bundle/data set structure generation at staging area')
         bundle = Bundle(setup)
 
         #
         # * Load LSK, FK and SCLK kernels for time conversions and coverage
         #   computations.
         #
-        log_step(setup, title='Load LSK, PCK, FK and SCLK kernels')
+        log_step(setup, run_state, title='Load LSK, PCK, FK and SCLK kernels')
         setup.load_kernels()
 
         #
         # * Initialize the SPICE Kernels Collection.
-        log_step(setup, title='SPICE kernel collection/data processing')
+        log_step(setup, run_state,
+                 title='SPICE kernel collection/data processing')
         spice_kernels_collection = SpiceKernelsCollection(setup, bundle, k_list)
 
         #
@@ -277,7 +281,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * Generate the Meta-kernel(s).
         #
-        log_step(setup, title='Generation of meta-kernel(s)')
+        log_step(setup, run_state, title='Generation of meta-kernel(s)')
         meta_kernels = spice_kernels_collection.determine_meta_kernels()
         if meta_kernels:
             for mk in sorted(meta_kernels):
@@ -312,23 +316,23 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
             # * List the files present in the staging area.
             #
-            log_step(setup, title='Recap files in staging area')
+            log_step(setup, run_state, title='Recap files in staging area')
             bundle.files_in_staging()
 
             #
             # * Copy files to the bundle area.
             #
-            log_step(setup, title='Copy files to the bundle area')
+            log_step(setup, run_state, title='Copy files to the bundle area')
             bundle.copy_to_bundle()
 
-            finish_execution(setup, log)
+            finish_execution(setup, run_state, log)
             return
 
         #
         # * Determine the SPICE kernels Collection increment times and VID.
         #
         if setup.pds_version == "4":
-            log_step(setup, title='Determine archive increment start and finish times')
+            log_step(setup, run_state, title='Determine archive increment start and finish times')
             spice_kernels_collection.set_increment_times()
             spice_kernels_collection.set_collection_vid()
 
@@ -339,7 +343,8 @@ def run_pipeline(args: PipelineArgs) -> None:
         #      from at object initialization.
         #    * Check if there is an XML label for each file under spice_kernels.
         #
-        log_step(setup, title='Validate SPICE kernel collection generation')
+        log_step(setup, run_state,
+                 title='Validate SPICE kernel collection generation')
         spice_kernels_collection.validate()
 
         #
@@ -350,7 +355,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             if setup.pds_version == "4":
                 spice_kernels_collection.set_collection_vid()
 
-            log_step(setup, title=f'Generation of {spice_kernels_collection.name} collection')
+            log_step(setup, run_state, title=f'Generation of {spice_kernels_collection.name} collection')
             spice_kernels_collection_inventory = InventoryProduct(
                 setup, spice_kernels_collection
             )
@@ -383,7 +388,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
             # * Generate of SPICEDS document.
             #
-            log_step(setup, title='Processing spiceds file')
+            log_step(setup, run_state, title='Processing spiceds file')
             spiceds = SpicedsProduct(setup, document_collection)
 
             #
@@ -401,7 +406,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 document_collection.set_collection_vid()
 
-                log_step(setup, title=f'Generation of {document_collection.name} collection')
+                log_step(setup, run_state, title=f'Generation of {document_collection.name} collection')
                 document_collection_inventory = InventoryProduct(setup, document_collection)
 
                 # This branch only runs for PDS4, so there's no PDS3 label to pick.
@@ -429,7 +434,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
 
             # Report the Collection generation step.
-            log_step(setup, title=f'Generation of {miscellaneous_collection.kind} collection')
+            log_step(setup, run_state, title=f'Generation of {miscellaneous_collection.kind} collection')
 
             if setup.increment:
                 checksum_dir = (
@@ -438,7 +443,8 @@ def run_pipeline(args: PipelineArgs) -> None:
                 )
                 if not isdir(checksum_dir):
                     for release in bundle.history.items():
-                        log_step(setup, title='Generate checksum file')
+                        log_step(setup, run_state,
+                                 title='Generate checksum file')
                         release_checksum = ChecksumProduct(
                             setup, miscellaneous_collection, add_previous_checksum=False
                         )
@@ -514,7 +520,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #    * The miscellaneous collection is the one to be guaranteed to be
             #      updated.
             #
-            log_step(setup, title='Generate checksum file')
+            log_step(setup, run_state, title='Generate checksum file')
             checksum = ChecksumProduct(setup, miscellaneous_collection)
 
             #
@@ -547,7 +553,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
             # * Generate the Bundle label and if necessary the readme file.
             #
-            log_step(setup, title='Generation of bundle products')
+            log_step(setup, run_state, title='Generation of bundle products')
             bundle.readme = ReadmeProduct(setup, bundle)
 
             logging.info("-- Generating bundle label...")
@@ -575,14 +581,14 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             document_collection = DocumentCollection(setup, bundle)
 
-            log_step(setup, title='Generation of PDS3 products')
+            log_step(setup, run_state, title='Generation of PDS3 products')
             document_collection.get_pds3_documents()
 
             bundle.add(spice_kernels_collection)
             bundle.add(document_collection)
             bundle.add(miscellaneous_collection)
 
-            log_step(setup, title='Generate checksum file')
+            log_step(setup, run_state, title='Generate checksum file')
             checksum = ChecksumProduct(
                 setup, miscellaneous_collection, add_previous_checksum=False
             )
@@ -600,7 +606,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * List the files present in the staging area.
         #
-        log_step(setup, title='Recap files in staging area')
+        log_step(setup, run_state, title='Recap files in staging area')
         bundle.files_in_staging()
 
         #
@@ -609,7 +615,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   to ``staging``.
         #
         if args.faucet == "staging":
-            finish_execution(setup, log)
+            finish_execution(setup, run_state, log)
             return
 
         #
@@ -617,14 +623,14 @@ def run_pipeline(args: PipelineArgs) -> None:
         # kernel list.
         #
         # OnlyFor PDS3
-        # log_step(setup, title='Generation of complete kernel list')
+        # log_step(setup, run_state, title='Generation of complete kernel list')
         # list.write_complete_list()
         # spice_kernels_collection_inventory.write_index()
 
         #
         # * Copy files to the bundle area.
         #
-        log_step(setup, title='Copy files to the bundle area')
+        log_step(setup, run_state, title='Copy files to the bundle area')
         bundle.copy_to_bundle()
 
         #
@@ -633,7 +639,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   to ``bundle``.
         #
         if args.faucet == "bundle":
-            finish_execution(setup, log)
+            finish_execution(setup, run_state, log)
             return
 
         #
@@ -641,7 +647,8 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   Bundle history and checking the bundle times.
         #
         if setup.pds_version == "4":
-            log_step(setup, title='Validate bundle history with checksum files')
+            log_step(setup, run_state,
+                     title='Validate bundle history with checksum files')
             bundle.validate()
 
         #
@@ -650,9 +657,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         for kernel in spice_kernels_collection.product:
             if isinstance(kernel, MetaKernelProduct):
-                log_step(setup, title=f'Meta-kernel {kernel.name} validation')
+                log_step(setup, run_state,
+                         title=f'Meta-kernel {kernel.name} validation')
                 kernel.validate()
 
-        finish_execution(setup, log)
+        finish_execution(setup, run_state, log)
     except NPBError as exc:
         handle_npb_error(str(exc), setup=setup)
