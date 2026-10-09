@@ -38,6 +38,8 @@ class Setup:
         self.current_release = 0
         self.increment = True
         self.information_model_float = None
+        self.lsk = None
+        self.mission_acronym = ''
         self.release = None
         self.schema_location = ''
         self.staging_directory = ''
