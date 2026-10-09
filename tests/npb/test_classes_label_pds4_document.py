@@ -158,7 +158,6 @@ class TestDocumentPDS4LabelIntegration:
             staging_directory=str(staging_dir),
             working_directory=str(work_dir),
             bundle_directory=str(bundle_dir),
-            diff=False,
             xml_model='https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch',
             schema_location='https://pds.nasa.gov/pds4/pds/v1 PDS4_PDS_1F00.xsd',
             information_model='.'.join(['1', '16', '0', '0']),
@@ -167,7 +166,7 @@ class TestDocumentPDS4LabelIntegration:
             end_of_line='LF',
             eol_pds4='\n',
             xml_tab=1,
-            args=SimpleNamespace(silent=True, verbose=False),
+            args=SimpleNamespace(silent=True, verbose=False, diff=False),
             add_file=mocker.Mock())
 
         collection = SimpleNamespace(

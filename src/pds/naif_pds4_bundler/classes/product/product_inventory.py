@@ -161,7 +161,7 @@ class InventoryProduct(Product):
         else:
             self.validate_pds3()
 
-        if self.setup.diff:
+        if self.setup.args.diff:
             self.compare()
 
     def write_pds4_collection_product(self) -> None:
@@ -385,7 +385,7 @@ class InventoryProduct(Product):
             tofile = self.path
             work_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, work_dir, self.setup.diff)
+            compare_files(fromfile, tofile, work_dir, self.setup.args.diff)
 
         else:
 
@@ -399,6 +399,6 @@ class InventoryProduct(Product):
             tofile = self.path
             work_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, work_dir, self.setup.diff)
+            compare_files(fromfile, tofile, work_dir, self.setup.args.diff)
 
         logging.info("")

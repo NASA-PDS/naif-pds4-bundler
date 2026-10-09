@@ -90,7 +90,7 @@ class TestPDS3LabelWriteLabelIntegration:
     def test_write_label_produces_lbl_file_with_pds3_eol(self, tmp_path):
         setup = _make_setup_pds3(eol_pds3="\r\n")
         setup.staging_directory = str(tmp_path)
-        setup.diff = False
+        setup.args.diff = False
         setup.args.silent = True
 
         product = _make_product()

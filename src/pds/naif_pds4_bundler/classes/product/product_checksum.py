@@ -549,7 +549,7 @@ class ChecksumProduct(Product):
                     entry = add_carriage_return(entry, self.setup.eol)
                     c.write(entry)
 
-            if self.setup.diff:
+            if self.setup.args.diff:
                 logging.info("-- Comparing checksum with previous version...")
                 self.compare()
 
@@ -564,7 +564,7 @@ class ChecksumProduct(Product):
                 self.path_current,
                 self.path,
                 self.setup.working_directory,
-                self.setup.diff,
+                self.setup.args.diff,
             )
 
         # compare_files() raises OSError/UnicodeDecodeError if either checksum

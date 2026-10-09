@@ -246,7 +246,7 @@ class TestSpiceKernelPDS3LabelWriteLabel:
 
         # MagicMock attrs are truthy by default -- must be False or
         # self.compare() runs.
-        setup.diff = False
+        setup.args.diff = False
 
         # Must be True or write_label()'s print(...) branch also runs.
         setup.args.silent = True

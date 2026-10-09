@@ -131,7 +131,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #    * The pipeline can be stopped after cleaning up the previous run
         #      by setting ``-f, --faucet`` to ``clear``.
         #
-        if setup.faucet == "clear":
+        if args.faucet == "clear":
             finish_execution(setup, log)
             return
 
@@ -162,7 +162,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #    * The pipeline can be stopped after generating or reading the release
         #      plan by setting ``-f, --faucet`` to ``plan``.
         #
-        if setup.faucet == "plan":
+        if args.faucet == "plan":
             finish_execution(setup, log)
             return
 
@@ -188,7 +188,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #    * The pipeline can be stopped after generating or reading the kernel
         #      list plan by setting ``-f, --faucet`` to ``list``.
         #
-        if setup.faucet == "list":
+        if args.faucet == "list":
             finish_execution(setup, log)
             return
 
@@ -202,7 +202,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #    * The pipeline can be stopped after checking the kernel
         #      list by setting ``-f, --faucet`` to ``checks``.
         #
-        if setup.faucet == "checks":
+        if args.faucet == "checks":
             finish_execution(setup, log)
             return
 
@@ -608,7 +608,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   moving them to the ``bundle_directory`` by setting ``-f, --faucet``
         #   to ``staging``.
         #
-        if setup.faucet == "staging":
+        if args.faucet == "staging":
             finish_execution(setup, log)
             return
 
@@ -632,7 +632,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   ``bundle_directory`` by setting ``-f, --faucet``. Ch
         #   to ``bundle``.
         #
-        if setup.faucet == "bundle":
+        if args.faucet == "bundle":
             finish_execution(setup, log)
             return
 

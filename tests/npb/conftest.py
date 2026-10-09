@@ -147,7 +147,7 @@ def base_helpers(tmp_path: Path) -> SimpleNamespace:
         setup.bundle_directory = str(tmp_path / 'bundle')
 
         # Disable unrelated diff/compare behaviour during label generation.
-        setup.diff = False
+        setup.args.diff = False
 
         # PDS4 XML metadata that may be consumed by PDSLabel or rendering.
         setup.xml_model = 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch'
@@ -305,7 +305,7 @@ def label_test_helpers() -> SimpleNamespace:
         setup.staging_directory = "/staging"
         setup.working_directory = "/work"
         setup.bundle_directory = "/bundle"
-        setup.diff = False
+        setup.args.diff = False
         setup.args.silent = False
         setup.args.verbose = False
 

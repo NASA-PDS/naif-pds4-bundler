@@ -31,7 +31,7 @@ def make_setup(spiceds='/input/spiceds.html', increment=False, diff=False,
     setup = MagicMock()
     setup.spiceds = spiceds
     setup.increment = increment
-    setup.diff = diff
+    setup.args.diff = diff
     setup.staging_directory = staging_directory
     setup.bundle_directory = bundle_directory
     setup.working_directory = working_directory
@@ -138,7 +138,7 @@ class TestSpicedsProductInit:
         compare.assert_not_called()
 
     def test_init_runs_compare_when_diff_enabled(self):
-        # When setup.diff is truthy and the product is generated, _compare runs.
+        # When args.diff is truthy and the product is generated, _compare runs.
         setup = make_setup(increment=False, diff=True)
         collection = make_collection()
 

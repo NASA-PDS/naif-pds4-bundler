@@ -47,7 +47,7 @@ def _make_setup(tmp_path: Path) -> MagicMock:
     setup.staging_directory = str(tmp_path / "staging")
     setup.working_directory = str(tmp_path / "work")
     setup.eol_pds3 = "\r\n"
-    setup.diff = False
+    setup.args.diff = False
     setup.args.silent = True
     setup.args.verbose = False
 

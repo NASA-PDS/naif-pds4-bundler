@@ -203,8 +203,6 @@ class TestSetupInit:
         assert setup_instance.run_type == 'release'
         assert setup_instance.version == '9.9.9'
         assert setup_instance.args is args
-        assert setup_instance.faucet == 'bundle'
-        assert setup_instance.diff is True
         assert setup_instance.today == '20240203'
         assert setup_instance.release_date == '2024-02-03'
         assert setup_instance.date_format == 'maklabel'
@@ -796,7 +794,7 @@ class TestSetupCheckConfiguration:
         setup.date_format = 'maklabel'
         setup.end_of_line = 'CRLF'
         setup.kernel_endianness = 'little'
-        setup.faucet = faucet
+        setup.args = SimpleNamespace(faucet=faucet)
 
         setup.working_directory = 'work' if relative_paths else str(work)
         setup.staging_directory = 'staging' if relative_paths else str(staging)

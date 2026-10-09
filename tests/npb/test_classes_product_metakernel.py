@@ -72,7 +72,6 @@ def make_setup(
     setup.mission_finish = mission_finish
     setup.eol_mk = "\n"
     setup.increment = increment
-    setup.diff = False
     # Deep-copy the shared MK_SETUP so a test that mutates self.mk_setup (e.g.
     # write_product / get_description writing back "&value") cannot leak that
     # mutation into another test through the module-level dict.
@@ -83,6 +82,7 @@ def make_setup(
     setup.args.verbose = False
     setup.args.debug = True  # prevents interrupt_to_update stdin prompt
     setup.args.checksum = False
+    setup.args.diff = False
 
     # Provide re_config and kernel_list_config so get_description works for
     # the default MK name "insight_v<N>.tm" without needing an extra mock.
@@ -238,6 +238,7 @@ class TestMetaKernelProductInit:
 
         extra_setup_attrs: dict of {attr: value} applied with setattr after
                            make_setup (useful for re-adding deleted attrs).
+                           Dotted names such as "args.diff" are supported.
         extra_patches: list of additional context managers to enter.
         """
         staging, bundle, work, templates = self._setup_dirs(tmp_path)
@@ -250,7 +251,12 @@ class TestMetaKernelProductInit:
             mk_list=mk_list,
         )
         for attr, value in (extra_setup_attrs or {}).items():
-            setattr(setup, attr, value)
+            # A dotted name (e.g. "args.diff") reaches into a nested object.
+            *parents, attr_name = attr.split(".")
+            target = setup
+            for parent in parents:
+                target = getattr(target, parent)
+            setattr(target, attr_name, value)
         collection = make_collection()
         all_patches = base_init_patches() + (extra_patches or [])
         with ExitStack() as stack:
@@ -369,7 +375,7 @@ class TestMetaKernelProductInit:
         compare_mock = MagicMock()
         self._make_product(
             tmp_path,
-            extra_setup_attrs={"diff": diff},
+            extra_setup_attrs={"args.diff": diff},
             extra_patches=[patch(f"{_MODULE}.MetaKernelProduct.compare", compare_mock)],
         )
         assert compare_mock.called == expect_compare
@@ -1736,7 +1742,7 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == str(tmp_path / "insight_spice/spice_kernels/mk/insight_v01.tm")
         assert work_dir == product.setup.working_directory
-        assert diff == product.setup.diff
+        assert diff == product.setup.args.diff
 
     @pytest.mark.parametrize("glob_side_effect", [
         pytest.param(None, id="no-previous-mk-found"),
@@ -1770,7 +1776,7 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == str(Path("/templates/template_metakernel.tm"))
         assert work_dir == setup.working_directory
-        assert diff == setup.diff
+        assert diff == setup.args.diff
 
         expected = [
             (logging.WARNING, '-- No other version of insight_v01.tm has been found.'),
@@ -1797,7 +1803,7 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == prev_mk
         assert work_dir == product.setup.working_directory
-        assert diff == product.setup.diff
+        assert diff == product.setup.args.diff
 
 
 # ===========================================================================

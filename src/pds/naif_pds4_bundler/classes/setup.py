@@ -156,8 +156,6 @@ class Setup:
         self.step = 1
         self.version = version
         self.args = args
-        self.faucet = args.faucet
-        self.diff = args.diff
         self.today = datetime.date.today().strftime("%Y%m%d")
         self.file_list = []
         self.checksum_registry = []
@@ -450,9 +448,10 @@ class Setup:
             # os.mkdir() raises OSError on filesystem failures.
             except OSError:
 
-                if self.faucet in ["plan", "list", "checks"]:
+                if self.args.faucet in ["plan", "list", "checks"]:
                     logging.warning('-- Staging directory cannot be created but'
-                                    ' is not used with %s faucet.', self.faucet)
+                                    ' is not used with %s faucet.',
+                                    self.args.faucet)
 
                 else:
                     raise NPBError(
@@ -471,9 +470,9 @@ class Setup:
         #
         if not os.path.isdir(self.bundle_directory):
 
-            if self.faucet in ["plan", "list", "checks"]:
+            if self.args.faucet in ["plan", "list", "checks"]:
                 logging.warning("-- Bundle directory does not exist but is not"
-                                " used with %s faucet.", self.faucet)
+                                " used with %s faucet.", self.args.faucet)
 
             else:
                 raise NPBError(

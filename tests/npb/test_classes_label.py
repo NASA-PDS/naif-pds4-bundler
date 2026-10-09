@@ -231,7 +231,7 @@ class TestPDSLabelWriteLabel:
         ):
             setup = (label_test_helpers.make_setup_pds4() if pds_version == "4"
                     else _make_setup_pds3(label_test_helpers))
-            setup.diff = diff
+            setup.args.diff = diff
             setup.pds_version = pds_version
 
             product = label_test_helpers.make_product()
@@ -428,7 +428,7 @@ class TestPDSLabelCompare:
 
         def _build(collection_name="spice_kernels", label_name_part="kernel"):
             setup = label_test_helpers.make_setup_pds4()
-            setup.diff = "html"
+            setup.args.diff = "html"
             product = label_test_helpers.make_product()
             product.collection.name = collection_name
             product.name = "kernel.bc"
@@ -652,7 +652,7 @@ class TestPDSLabelCompareHelpers:
 
         def _build(collection_name="spice_kernels", label_name_part="kernel", subdir="ck"):
             setup = label_test_helpers.make_setup_pds4()
-            setup.diff = "html"
+            setup.args.diff = "html"
             product = label_test_helpers.make_product()
             product.collection.name = collection_name
             product.name = "kernel.bc"

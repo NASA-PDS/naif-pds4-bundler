@@ -40,6 +40,9 @@ def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
     # Attribute to check a real call, instead of a mock.
     setup.kernel_list_config = {}
 
+    # `diff` lives in the pipeline arguments, not in the setup itself.
+    setup.args = SimpleNamespace(diff=overrides.pop('diff', None))
+
     for key, value in overrides.items():
         setattr(setup, key, value)
 

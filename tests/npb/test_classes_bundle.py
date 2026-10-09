@@ -347,8 +347,8 @@ class TestBundleCopyToBundle:
             staging_directory=str(staging),
             bundle_directory=str(bundle_dir),
             mission_acronym=MISSION,
-            faucet="bundle",
-            args=SimpleNamespace(silent=True, verbose=False),
+            args=SimpleNamespace(silent=True, verbose=False,
+                                 faucet="bundle"),
         )
         return setup, staging, bundle_dir
 
@@ -375,8 +375,8 @@ class TestBundleCopyToBundle:
             bundle_directory=str(bundle_dir),
             mission_acronym=MISSION,
             volume_id=self.VOLUME_ID,
-            faucet="bundle",
-            args=SimpleNamespace(silent=True, verbose=False),
+            args=SimpleNamespace(silent=True, verbose=False,
+                                 faucet="bundle"),
         )
         return setup, staging, bundle_dir
 
@@ -501,7 +501,7 @@ class TestBundleCopyToBundle:
         """PDS4 label mode: the ``spice_kernels`` segment is stripped so the
         file lands directly under the bundle root, not in a subdirectory."""
         setup, staging, bundle_dir = self._pds4_setup(tmp_path)
-        setup.faucet = "labels"
+        setup.args.faucet = "labels"
         spk_dir = staging / "spice_kernels"
         spk_dir.mkdir()
         src = spk_dir / "test.xml"
@@ -618,7 +618,7 @@ class TestBundleCopyToBundle:
     def test_pds3_label_mode_strips_data_prefix(self, tmp_path):
         """PDS3 label mode: the ``data`` segment is stripped from the path."""
         setup, staging, bundle_dir = self._pds3_setup(tmp_path)
-        setup.faucet = "labels"
+        setup.args.faucet = "labels"
         data_dir = staging / "data"
         data_dir.mkdir()
         src = data_dir / "test.lbl"
@@ -647,13 +647,12 @@ class TestBundleFilesInStaging:
         staging.mkdir(parents=True)
         bundle_dir = tmp_path / "bundle"
         bundle_dir.mkdir()
-        args = SimpleNamespace(silent=True, verbose=False)
+        args = SimpleNamespace(silent=True, verbose=False, faucet="bundle")
         setup = SimpleNamespace(
             pds_version="4",
             staging_directory=str(staging),
             bundle_directory=str(bundle_dir),
             mission_acronym=MISSION,
-            faucet="bundle",
             args=args,
         )
         bundle = _make_bundle(setup, vid="1.0",
@@ -677,7 +676,7 @@ class TestBundleFilesInStaging:
     def test_pds4_label_mode_skips_bundle_label(self, tmp_path):
         """In label mode the bundle label XML is not added to ``_new_files``."""
         bundle, _ = self._staging_setup(tmp_path)
-        bundle.setup.faucet = "labels"
+        bundle.setup.args.faucet = "labels"
         bundle.files_in_staging()
         expected = os.path.join(
             bundle.setup.staging_directory, bundle.name

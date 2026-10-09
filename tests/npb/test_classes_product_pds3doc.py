@@ -18,7 +18,7 @@ DATA = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "msl" / "ms
 def mock_setup():
     """Minimal mock setup object with attributes needed to avoid crashes."""
     setup = MagicMock()
-    setup.diff = "diff"
+    setup.args.diff = "diff"
     setup.bundle_directory = "/mock/bundle"
     setup.working_directory = "/mock/work"
     setup.volume_id = "FakeVOL_419"

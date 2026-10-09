@@ -211,7 +211,7 @@ class MetaKernelProduct(Product):
         #
         # Compare the meta-kernels.
         #
-        if self.setup.diff:
+        if self.setup.args.diff:
             self.compare()
         logging.info("")
 
@@ -855,7 +855,7 @@ class MetaKernelProduct(Product):
         logging.info('-- Comparing %s...',
                      self.name.split(f"{self.setup.mission_acronym}_spice/")[-1])
 
-        compare_files(fromfile, tofile, work_dir, self.setup.diff)
+        compare_files(fromfile, tofile, work_dir, self.setup.args.diff)
 
     def validate(self) -> None:
         """Perform a basic validation of the Meta-kernel.

@@ -17,7 +17,7 @@ def make_setup(pds_version="4", increment=True, diff=True):
     setup = MagicMock()
     setup.pds_version = pds_version
     setup.increment = increment
-    setup.diff = diff
+    setup.args.diff = diff
     setup.staging_directory = "staging"
     setup.bundle_directory = "/bundle"
     setup.mission_acronym = "insight"
@@ -252,9 +252,9 @@ class TestInventoryProductWriteProduct:
         mock_compare.assert_called_once()
 
     def test_write_product_no_diff_skips_compare(self, caplog):
-        """When setup.diff is False, compare() is not called."""
+        """When setup.args.diff is False, compare() is not called."""
         obj = self._make_obj("4")
-        obj.setup.diff = False
+        obj.setup.args.diff = False
 
         with patch.object(obj, "write_pds4_collection_product"), \
              patch.object(obj, "validate_pds4"), \
@@ -268,7 +268,7 @@ class TestInventoryProductWriteProduct:
     def test_write_product_prints_when_not_silent_or_verbose(self, capsys):
         """Output is printed when silent=False and verbose=False."""
         obj = self._make_obj("4")
-        obj.setup.diff = False
+        obj.setup.args.diff = False
         obj.setup.args.silent = False
         obj.setup.args.verbose = False
 
@@ -282,7 +282,7 @@ class TestInventoryProductWriteProduct:
     def test_write_product_silent_suppresses_print(self):
         """No print when silent=True."""
         obj = self._make_obj("4")
-        obj.setup.diff = False
+        obj.setup.args.diff = False
         obj.setup.args.silent = True
         obj.setup.args.verbose = False
 
@@ -296,7 +296,7 @@ class TestInventoryProductWriteProduct:
     def test_write_product_verbose_suppresses_print(self):
         """No print when verbose=True."""
         obj = self._make_obj("4")
-        obj.setup.diff = False
+        obj.setup.args.diff = False
         obj.setup.args.silent = False
         obj.setup.args.verbose = True
 
@@ -697,7 +697,7 @@ class TestInventoryProductCompare:
             "/prev/v001.csv",
             obj.path,
             obj.setup.working_directory,
-            obj.setup.diff,
+            obj.setup.args.diff,
         )
 
     def test_compare_without_path_current_uses_sample(self):

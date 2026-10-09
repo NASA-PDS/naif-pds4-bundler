@@ -133,7 +133,7 @@ class SpicedsProduct(Product):
         # too, under this same self.generated check; it's built in the pipeline
         # now, which reads self.generated to decide whether to.
         #
-        if self.generated and self.setup.diff:
+        if self.generated and self.setup.args.diff:
             self._compare()
 
     def set_product_lid(self) -> None:
@@ -257,4 +257,4 @@ class SpicedsProduct(Product):
         tofile = self.path
         work_dir = self.setup.working_directory
 
-        compare_files(fromfile, tofile, work_dir, self.setup.diff)
+        compare_files(fromfile, tofile, work_dir, self.setup.args.diff)

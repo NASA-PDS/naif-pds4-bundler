@@ -20,7 +20,6 @@ def _make_setup(pds_version="4", increment=True, diff=False):
     setup = MagicMock()
     setup.pds_version = pds_version
     setup.increment = increment
-    setup.diff = diff
     setup.staging_directory = "/staging"
     setup.bundle_directory = "/bundle"
     setup.mission_acronym = "em16"
@@ -32,6 +31,7 @@ def _make_setup(pds_version="4", increment=True, diff=False):
     setup.working_directory = "/working"
     setup.args = MagicMock()
     setup.args.debug = False
+    setup.args.diff = diff
     return setup
 
 
@@ -426,7 +426,7 @@ class TestChecksumProductWriteProduct:
 
     def test_write_product_no_history_writes_file(self):
         obj = self._obj_with_products()
-        obj.setup.diff = False  # This is the default
+        obj.setup.args.diff = False  # This is the default
 
         m = mock_open()
         with patch(PATCHES["md5"], return_value="c" * 32), \
@@ -463,7 +463,7 @@ class TestChecksumProductWriteProduct:
 
     def test_write_product_diff_true_calls_compare(self):
         obj = self._obj_with_products()
-        obj.setup.diff = True
+        obj.setup.args.diff = True
 
         with patch(PATCHES["md5"], return_value="c" * 32), \
              patch(PATCHES["os_walk"], return_value=[]), \
@@ -840,7 +840,7 @@ class TestCompare:
             obj.path_current,
             obj.path,
             obj.setup.working_directory,
-            obj.setup.diff,
+            obj.setup.args.diff,
         )
 
     # Both errors must hit the same fallback: a missing previous file

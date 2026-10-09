@@ -185,7 +185,7 @@ class PDSLabel:
         #
         # Wrap lines for PDS3 labels.
         #
-        if self.setup.diff:
+        if self.setup.args.diff:
             self.compare()
 
         # If True, emits a blank log line after this label's own messages,
@@ -217,7 +217,7 @@ class PDSLabel:
         if val_label:
             logging.info("")
             compare_files(str(val_label), self.name, self.setup.working_directory,
-                          self.setup.diff)
+                          self.setup.args.diff)
 
     def _find_prior_version_label(self) -> Optional[Path]:
         """Look for a different version of the same file (fallback level 1).

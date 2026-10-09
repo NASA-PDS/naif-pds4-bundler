@@ -32,7 +32,8 @@ class PDS3DocumentProduct(Product):
         )
 
         same_files = compare_files(
-            existing_path, path, self.setup.working_directory, self.setup.diff
+            existing_path, path, self.setup.working_directory,
+            self.setup.args.diff
         )
         if not same_files:
             self.new_product = False

@@ -650,7 +650,7 @@ class KernelList:
                 logging.info("     List contains no duplicates.")
             logging.info("")
 
-        if self.setup.diff and self.setup.increment:
+        if self.setup.args.diff and self.setup.increment:
             #
             # Compare list with previous list
             #
@@ -669,7 +669,8 @@ class KernelList:
                 try:
                     tofile = kernel_lists[-2]
                     work_dir = self.setup.working_directory
-                    compare_files(fromfile, tofile, work_dir, self.setup.diff)
+                    compare_files(fromfile, tofile, work_dir,
+                                  self.setup.args.diff)
 
                 # kernel_lists[-2] raises IndexError; compare_files() raises
                 # OSError/UnicodeDecodeError on a bad file.

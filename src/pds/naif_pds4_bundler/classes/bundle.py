@@ -150,7 +150,7 @@ class Bundle:
         #
         # Include the bundle products if not running in label mode.
         #
-        if self.setup.pds_version == "4" and self.setup.faucet != "labels":
+        if self.setup.pds_version == "4" and self.setup.args.faucet != "labels":
             self._new_files.append(self.setup.staging_directory + os.sep + self.name)
             if self._readme and self._readme.new_product:
                 self._new_files.append(
@@ -193,7 +193,7 @@ class Bundle:
             # If running in label mode, the bundle directory structure is not
             # replicated.
             #
-            if self.setup.faucet == "labels":
+            if self.setup.args.faucet == "labels":
                 relative_path = relative_path.split(spice_kernels_dir)[-1]
 
             dst = self.setup.bundle_directory + relative_path

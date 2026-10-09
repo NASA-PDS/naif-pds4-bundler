@@ -36,7 +36,7 @@ def _make_setup(tmp_path: Path, *, pds_version: str = "3") -> MagicMock:
     setup.templates_directory = str(tmp_path / "templates")
     setup.staging_directory = str(tmp_path / "staging")
     setup.working_directory = str(tmp_path / "work")
-    setup.diff = False
+    setup.args.diff = False
     setup.eol_pds3 = "\r\n"
     # args namespace expected by write_label
     setup.args.silent = True

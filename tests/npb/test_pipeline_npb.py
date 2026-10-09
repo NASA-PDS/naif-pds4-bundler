@@ -127,7 +127,6 @@ def _args(**overrides) -> PipelineArgs:
 def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     """Set mock defaults that let a full PDS4 run complete without errors."""
     setup = m.Setup.return_value
-    setup.faucet = ''
     setup.pds_version = '4'
     setup.increment = False
     setup.step = 1
@@ -271,21 +270,18 @@ class TestPhase2ClearMode:
 
     def test_finish_execution_called_when_faucet_is_clear(self, mocks):
         # faucet='clear' stops the pipeline with a clean shutdown.
-        mocks.Setup.return_value.faucet = 'clear'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='clear'))
         mocks.finish_execution.assert_called_once_with(
             mocks.Setup.return_value, mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_clear_faucet(self, mocks):
         # No further steps run once the clear faucet fires.
-        mocks.Setup.return_value.faucet = 'clear'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='clear'))
         mocks.ReleasePlan.assert_not_called()
 
     def test_clear_run_and_faucet_exit_are_independent(self, mocks):
         # args.clear triggers cleanup regardless of which faucet stops the pipeline later.
-        mocks.Setup.return_value.faucet = 'checks'
         args = _args(clear='/some/path.file_list', faucet='checks')
         run_pipeline(args)
         mocks.clear_run.assert_called_once()
@@ -344,16 +340,14 @@ class TestPhase3ReleasePlan:
 
     def test_finish_execution_called_when_faucet_is_plan(self, mocks):
         # faucet='plan' stops the pipeline with a clean shutdown after the plan step.
-        mocks.Setup.return_value.faucet = 'plan'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='plan'))
         mocks.finish_execution.assert_called_once_with(
             mocks.Setup.return_value, mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_plan_faucet(self, mocks):
         # No further steps run once the plan faucet fires.
-        mocks.Setup.return_value.faucet = 'plan'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='plan'))
         mocks.KernelList.assert_not_called()
 
 
@@ -401,16 +395,14 @@ class TestPhase4KernelList:
 
     def test_finish_execution_called_when_faucet_is_list(self, mocks):
         # faucet='list' stops the pipeline with a clean shutdown after the list step.
-        mocks.Setup.return_value.faucet = 'list'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='list'))
         mocks.finish_execution.assert_called_once_with(
             mocks.Setup.return_value, mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_list_faucet(self, mocks):
         # No further steps run once the list faucet fires.
-        mocks.Setup.return_value.faucet = 'list'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='list'))
         mocks.Bundle.assert_not_called()
 
 
@@ -434,16 +426,14 @@ class TestPhase5ProductChecks:
 
     def test_finish_execution_called_when_faucet_is_checks(self, mocks):
         # faucet='checks' stops the pipeline with a clean shutdown after product validation.
-        mocks.Setup.return_value.faucet = 'checks'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='checks'))
         mocks.finish_execution.assert_called_once_with(
             mocks.Setup.return_value, mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_checks_faucet(self, mocks):
         # No further steps run once the checks faucet fires.
-        mocks.Setup.return_value.faucet = 'checks'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='checks'))
         mocks.Bundle.assert_not_called()
 
 
@@ -681,10 +671,6 @@ class TestPhase7LabelsOnlyMode:
     # any labels. Otherwise, it calls files_in_staging(), copy_to_bundle(), and
     # finish_execution() before returning — mirroring the normal tail of the
     # pipeline but without creating any new archive products.
-
-    @pytest.fixture(autouse=True)
-    def set_labels_faucet(self, mocks):
-        mocks.Setup.return_value.faucet = 'labels'
 
     def test_bundle_add_called_with_spice_kernels_collection(self, mocks):
         # The SPICE kernels collection is registered with the bundle in labels mode.
@@ -1290,16 +1276,14 @@ class TestPhase11StagingRecapAndCopy:
 
     def test_finish_execution_called_when_faucet_is_staging(self, mocks):
         # faucet='staging' stops the pipeline with a clean shutdown after staging.
-        mocks.Setup.return_value.faucet = 'staging'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='staging'))
         mocks.finish_execution.assert_called_once_with(
             mocks.Setup.return_value, mocks.Log.return_value
         )
 
     def test_copy_to_bundle_not_called_when_faucet_is_staging(self, mocks):
         # The bundle copy is skipped when the pipeline exits at the staging faucet.
-        mocks.Setup.return_value.faucet = 'staging'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='staging'))
         mocks.Bundle.return_value.copy_to_bundle.assert_not_called()
 
     def test_copy_to_bundle_called_on_full_run(self, mocks):
@@ -1309,16 +1293,14 @@ class TestPhase11StagingRecapAndCopy:
 
     def test_finish_execution_called_when_faucet_is_bundle(self, mocks):
         # faucet='bundle' stops the pipeline with a clean shutdown after the bundle copy.
-        mocks.Setup.return_value.faucet = 'bundle'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='bundle'))
         mocks.finish_execution.assert_called_once_with(
             mocks.Setup.return_value, mocks.Log.return_value
         )
 
     def test_bundle_validate_not_called_when_faucet_is_bundle(self, mocks):
         # Final validation is skipped when the pipeline exits at the bundle faucet.
-        mocks.Setup.return_value.faucet = 'bundle'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='bundle'))
         mocks.Bundle.return_value.validate.assert_not_called()
 
 
