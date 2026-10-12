@@ -1062,6 +1062,23 @@ class TestMetaKernelProductWriteProduct:
     """Tests for MetaKernelProduct.write_product."""
 
     @staticmethod
+    def _bundle_path_in_calls(mock_glk, expected_path):
+        """Check if expected_path appears in any get_latest_kernel call.
+
+        Args:
+            mock_glk: The mocked get_latest_kernel function
+            expected_path: Exact path string to search for
+
+        Returns:
+            True if the exact path was found in any call, False otherwise
+        """
+        for call in mock_glk.call_args_list:
+            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
+            if expected_path in paths:
+                return True
+        return False
+
+    @staticmethod
     def _make_stub(tmp_path, name="insight_v01.tm", grammar_patterns=None,
                    padding=None, data="", description="Test desc.", pds_version="4"):
         staging = str(tmp_path / "staging")
@@ -1529,8 +1546,8 @@ class TestMetaKernelProductWriteProduct:
         os.makedirs(bundle_dir, exist_ok=True)
 
         # Create the PDS4 bundle structure: bundle_directory/mission_acronym_spice/spice_kernels
-        bundle_kernels = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
-        os.makedirs(bundle_kernels, exist_ok=True)
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels_path, exist_ok=True)
 
         product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
         product.setup.bundle_directory = bundle_dir
@@ -1539,51 +1556,15 @@ class TestMetaKernelProductWriteProduct:
         with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
             product.write_product()
 
-        # Verify bundle path was passed to get_latest_kernel
-        calls = mock_glk.call_args_list
-        bundle_path_found = False
-        for call in calls:
-            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
-            if any("insight_spice/spice_kernels" in str(p) for p in paths):
-                bundle_path_found = True
-                break
-
-        assert bundle_path_found, "PDS4 bundle directory should be in paths"
-
-    def test_bundle_directory_searched_pds3_increment(self, tmp_path):
-        """Test PDS3 bundle directory added to paths using volume_id/data structure."""
-        bundle_dir = str(tmp_path / "bundle")
-        os.makedirs(bundle_dir, exist_ok=True)
-
-        # Create the PDS3 bundle structure: bundle_directory/volume_id/data
-        bundle_kernels = os.path.join(bundle_dir, "mrosp_1000", "data")
-        os.makedirs(bundle_kernels, exist_ok=True)
-
-        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"], pds_version="3")
-        product.setup.bundle_directory = bundle_dir
-        product.setup.volume_id = "mrosp_1000"
-        product.setup.increment = True
-
-        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
-            product.write_product()
-
-        # Verify PDS3 bundle path was passed to get_latest_kernel
-        calls = mock_glk.call_args_list
-        bundle_path_found = False
-        for call in calls:
-            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
-            if any("mrosp_1000/data" in str(p) for p in paths):
-                bundle_path_found = True
-                break
-
-        assert bundle_path_found, "PDS3 bundle directory (volume_id/data) should be in paths"
+        assert self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"Expected path {bundle_kernels_path} should be in get_latest_kernel calls"
 
     def test_bundle_directory_not_searched_when_increment_false(self, tmp_path):
         """Test bundle directory NOT searched when increment=False (first release)."""
         bundle_dir = str(tmp_path / "bundle")
         os.makedirs(bundle_dir, exist_ok=True)
-        bundle_kernels = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
-        os.makedirs(bundle_kernels, exist_ok=True)
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels_path, exist_ok=True)
 
         product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
         product.setup.bundle_directory = bundle_dir
@@ -1592,18 +1573,61 @@ class TestMetaKernelProductWriteProduct:
         with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
             product.write_product()
 
+        # Verify get_latest_kernel was called (test would pass vacuously otherwise)
+        assert mock_glk.called, "get_latest_kernel should be called"
+
         # Verify bundle path was NOT passed to get_latest_kernel
-        calls = mock_glk.call_args_list
-        for call in calls:
-            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
-            assert not any("insight_spice/spice_kernels" in str(p) for p in paths), \
-                "Bundle directory should NOT be searched for first release"
+        assert not self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"Path {bundle_kernels_path} should NOT be in calls for first release"
+
+    def test_bundle_kernels_path_constructed_for_pds4(self, tmp_path):
+        """Test that bundle_kernels_path is correctly constructed for PDS4."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+
+        # Create the PDS4 bundle structure
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels_path, exist_ok=True)
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"], pds_version="4")
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = True
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        assert self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"Expected path {bundle_kernels_path} should be in get_latest_kernel calls"
+
+    def test_bundle_not_searched_when_pds_version_not_4(self, tmp_path):
+        """Test that bundle is NOT searched when pds_version != '4'."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+
+        # Create a bundle structure that would be searched if PDS4
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels_path, exist_ok=True)
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"], pds_version="3")
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = True
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()  # Should NOT search bundle for PDS3
+
+        # Verify get_latest_kernel was called (test would pass vacuously otherwise)
+        assert mock_glk.called, "get_latest_kernel should be called"
+
+        # Verify PDS4 bundle path was NOT passed to get_latest_kernel
+        assert not self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"PDS4 path {bundle_kernels_path} should NOT be in calls when pds_version='3'"
 
     def test_bundle_directory_not_searched_when_subdir_missing_pds4(self, tmp_path):
         """Test bundle subdirectory NOT added to paths when it doesn't exist (PDS4)."""
         bundle_dir = str(tmp_path / "bundle")
         os.makedirs(bundle_dir, exist_ok=True)
         # Bundle directory exists but insight_spice/spice_kernels subdirectory does NOT exist
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
 
         product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
         product.setup.bundle_directory = bundle_dir
@@ -1612,33 +1636,87 @@ class TestMetaKernelProductWriteProduct:
         with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
             product.write_product()
 
+        # Verify get_latest_kernel was called (test would pass vacuously otherwise)
+        assert mock_glk.called, "get_latest_kernel should be called"
+
         # Verify bundle subdirectory path was NOT passed to get_latest_kernel
-        calls = mock_glk.call_args_list
-        for call in calls:
-            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
-            assert not any("insight_spice/spice_kernels" in str(p) for p in paths), \
-                "Non-existent bundle subdirectory should NOT be in paths"
+        assert not self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"Non-existent path {bundle_kernels_path} should NOT be in calls"
 
-    def test_bundle_directory_not_searched_when_subdir_missing_pds3(self, tmp_path):
-        """Test bundle subdirectory NOT added to paths when it doesn't exist (PDS3)."""
-        bundle_dir = str(tmp_path / "bundle")
-        os.makedirs(bundle_dir, exist_ok=True)
-        # Bundle directory exists but volume_id/data subdirectory does NOT exist
+    def test_kernel_only_in_bundle_included_in_mk_pds4(self, tmp_path):
+        """Integration test: kernel only in bundle (not staging/previous MK) is found and included."""
+        staging = str(tmp_path / "staging")
+        bundle = str(tmp_path / "bundle")
+        working = str(tmp_path / "working")
+        templates = str(tmp_path / "templates")
 
-        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"], pds_version="3")
-        product.setup.bundle_directory = bundle_dir
-        product.setup.volume_id = "mrosp_1000"
-        product.setup.increment = True  # Incremental release
+        # Create directories
+        os.makedirs(staging, exist_ok=True)
+        os.makedirs(working, exist_ok=True)
+        os.makedirs(templates, exist_ok=True)
 
-        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
-            product.write_product()
+        # Create staging structure for the MK output
+        mk_staging_dir = os.path.join(staging, "spice_kernels", "mk")
+        os.makedirs(mk_staging_dir, exist_ok=True)
 
-        # Verify PDS3 bundle subdirectory path was NOT passed to get_latest_kernel
-        calls = mock_glk.call_args_list
-        for call in calls:
-            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
-            assert not any("mrosp_1000/data" in str(p) for p in paths), \
-                "Non-existent bundle subdirectory (volume_id/data) should NOT be in paths"
+        # Create bundle structure with a kernel that exists ONLY in bundle
+        bundle_lsk_dir = os.path.join(bundle, "insight_spice", "spice_kernels", "lsk")
+        os.makedirs(bundle_lsk_dir, exist_ok=True)
+        bundle_kernel_path = os.path.join(bundle_lsk_dir, "naif0012.tls")
+        Path(bundle_kernel_path).write_text("LSK kernel content\n", encoding="utf-8")
+
+        # Create minimal MK template
+        template_path = os.path.join(templates, "template_metakernel.tm")
+        Path(template_path).write_text(
+            "KPL/MK\n\\begindata\nPATH_VALUES = ( '$KERNELPATH' )\nPATH_SYMBOLS = ( 'KERNELS' )\n"
+            "$KERNELS_IN_METAKERNEL\n\\begintext\n",
+            encoding="utf-8"
+        )
+
+        # Create setup with increment=True to trigger bundle search
+        setup = make_setup(
+            pds_version="4",
+            staging_directory=staging,
+            bundle_directory=bundle,
+            working_directory=working,
+            templates_directory=templates,
+            increment=True,  # This triggers the bundle directory search
+            mk_list=[{
+                "@name": "insight_v$VERSION.tm",
+                "name": [{"pattern": {"#text": "VERSION", "@length": "2"}}],
+                "grammar": {
+                    "pattern": ["naif0012.tls"],  # Looking for this kernel
+                    "padding": "False"
+                },
+                "metadata": {
+                    "description": "Test MK for bundle kernel search",
+                    "data": "",
+                },
+            }]
+        )
+
+        collection = make_collection()
+        collection.product = []
+
+        # Create the meta-kernel product - this should find the kernel in bundle
+        with (
+            patch(f"{_MODULE}.safe_make_directory"),
+            patch(f"{_MODULE}.current_date", return_value="2024-01-01"),
+            patch(f"{_MODULE}.mk_to_list", return_value=[]),
+            patch(f"{_MODULE}.MetaKernelProduct.coverage"),
+            patch(f"{_MODULE}.Product.__init__", return_value=None),
+        ):
+            product = MetaKernelProduct(setup, "insight_v01.tm", collection)
+
+        # Read the generated MK and verify the bundle kernel was included
+        mk_path = os.path.join(mk_staging_dir, "insight_v01.tm")
+        assert os.path.exists(mk_path), "Meta-kernel should be generated"
+
+        mk_content = Path(mk_path).read_text(encoding="utf-8")
+        assert "naif0012.tls" in mk_content, \
+            "Kernel from bundle directory should be included in generated meta-kernel"
+        assert "'$KERNELS/lsk/naif0012.tls'" in mk_content, \
+            "Kernel path should be correctly formatted in meta-kernel"
 
 # ===========================================================================
 # MetaKernelProduct.compare

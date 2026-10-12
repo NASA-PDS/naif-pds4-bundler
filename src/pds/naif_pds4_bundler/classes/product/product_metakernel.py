@@ -576,18 +576,13 @@ class MetaKernelProduct(Product):
                         # previous MK.
                         #
                         if self.setup.increment and os.path.isdir(self.setup.bundle_directory):
-                            if self.setup.pds_version == "3": #TODO: check if this is needed
-                                bundle_kernels_path = (
-                                    f"{self.setup.bundle_directory}/"
-                                    f"{self.setup.volume_id}/data"
-                                )
-                            else:
+                            if self.setup.pds_version == "4":
                                 bundle_kernels_path = (
                                     f"{self.setup.bundle_directory}/"
                                     f"{self.setup.mission_acronym}_spice/spice_kernels"
                                 )
-                            if os.path.isdir(bundle_kernels_path):
-                                paths.append(bundle_kernels_path)
+                                if os.path.isdir(bundle_kernels_path):
+                                    paths.append(bundle_kernels_path)
 
                         #
                         # Try to look for meta-kernels from previous
