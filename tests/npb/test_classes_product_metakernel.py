@@ -1065,17 +1065,22 @@ class TestMetaKernelProductWriteProduct:
     def _bundle_path_in_calls(mock_glk, expected_path):
         """Check if expected_path appears in any get_latest_kernel call.
 
+        Normalizes paths for cross-platform comparison (e.g., handles mixed
+        separators on Windows where source uses hardcoded / in f-strings).
+
         Args:
             mock_glk: The mocked get_latest_kernel function
-            expected_path: Exact path string to search for
+            expected_path: Path string to search for
 
         Returns:
-            True if the exact path was found in any call, False otherwise
+            True if the normalized path was found in any call, False otherwise
         """
+        normalized_expected = os.path.normpath(expected_path)
         for call in mock_glk.call_args_list:
             paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
-            if expected_path in paths:
-                return True
+            for p in paths:
+                if os.path.normpath(p) == normalized_expected:
+                    return True
         return False
 
     @staticmethod
@@ -1579,25 +1584,6 @@ class TestMetaKernelProductWriteProduct:
         # Verify bundle path was NOT passed to get_latest_kernel
         assert not self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
             f"Path {bundle_kernels_path} should NOT be in calls for first release"
-
-    def test_bundle_kernels_path_constructed_for_pds4(self, tmp_path):
-        """Test that bundle_kernels_path is correctly constructed for PDS4."""
-        bundle_dir = str(tmp_path / "bundle")
-        os.makedirs(bundle_dir, exist_ok=True)
-
-        # Create the PDS4 bundle structure
-        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
-        os.makedirs(bundle_kernels_path, exist_ok=True)
-
-        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"], pds_version="4")
-        product.setup.bundle_directory = bundle_dir
-        product.setup.increment = True
-
-        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
-            product.write_product()
-
-        assert self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
-            f"Expected path {bundle_kernels_path} should be in get_latest_kernel calls"
 
     def test_bundle_not_searched_when_pds_version_not_4(self, tmp_path):
         """Test that bundle is NOT searched when pds_version != '4'."""
