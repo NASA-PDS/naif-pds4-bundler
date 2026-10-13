@@ -307,6 +307,48 @@ class TestSetupInit:
         # removed after kernel_list_config has been built.
         assert not hasattr(setup_instance, 'kernel')
 
+    @pytest.mark.parametrize('patterns', [
+        [],
+        [r'.*\.bsp$'],
+        [r'.*\.bsp$', r'^maven_.*\.tm$', r'orbnum_[0-9]{5}\.orb$']])
+    def test_compiles_kernel_list_patterns_into_re_config(
+            self, tmp_path, monkeypatch, patterns) -> None:
+        """Compile every kernel pattern into 're_config', in config order.
+
+        The list is empty when no kernel patterns are configured.
+        """
+        # Fake a configuration with one 'kernel' entry per pattern, the way
+        # etree_to_dict returns it from the XML.
+        entries = self.make_init_config(
+            kernel_list={'kernel': [{'@pattern': pattern, 'description': 'd'}
+                                    for pattern in patterns]})
+
+        # Build the Setup.
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        # There is one compiled regex per pattern, in the same order as in the
+        # configuration.
+        assert [regex.pattern for regex in setup_instance.re_config] == patterns
+        assert all(isinstance(regex, re.Pattern)
+                   for regex in setup_instance.re_config)
+
+    @pytest.mark.parametrize('invalid_pattern', ['[', '(?P<kernel>'])
+    def test_raises_re_error_for_invalid_kernel_list_pattern(
+            self, tmp_path, monkeypatch, invalid_pattern) -> None:
+        """Raise 're.error' when a kernel pattern is not a valid regex."""
+        # Fake a configuration with a single kernel whose pattern does not
+        # compile.
+        entries = self.make_init_config(
+            kernel_list={'kernel': [{'@pattern': invalid_pattern,
+                                     'description': 'd'}]})
+
+        # Building the Setup compiles the patterns, so it is the Setup
+        # constructor that fails.
+        with pytest.raises(re.error):
+            self.instantiate_setup(tmp_path, monkeypatch, entries)
+
     def test_calls_schema_validation_and_xml_conversion_once(self, tmp_path,
                                                              monkeypatch) -> None:
         # This test checks for any side effects that occur during the execution

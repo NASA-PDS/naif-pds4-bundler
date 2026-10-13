@@ -5,7 +5,6 @@ import glob
 import json
 import logging
 import os
-import re
 import shutil
 
 from .exceptions import NPBError
@@ -76,19 +75,7 @@ class KernelList:
         """Extract the Kernel List information from the configuration file."""
         json_config = self.setup.kernel_list_config
 
-        #
-        # Build a list of computed regular expressions from the JSON config
-        #
-        re_config = []
-        for pattern in json_config:
-            re_config.append(re.compile(pattern))
-
-        self.re_config = re_config
-        #
-        # Also store it in setup for later use in meta-kernel description
-        # generation.
-        #
-        self.setup.re_config = re_config
+        self.re_config = self.setup.re_config
         self.json_config = json_config
 
         json_formatted_str = json.dumps(self.json_config, indent=2)

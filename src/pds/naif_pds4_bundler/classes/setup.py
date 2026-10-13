@@ -118,6 +118,8 @@ class Setup:
         self.kernel_list_config = kernel_list_config
         del self.kernel
 
+        self.re_config = [re.compile(pattern) for pattern in kernel_list_config]
+
         self.__dict__.update(config["meta-kernel"])
 
         if hasattr(self, "mk"):
