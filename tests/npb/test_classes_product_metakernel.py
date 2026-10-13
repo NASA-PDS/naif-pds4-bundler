@@ -399,9 +399,10 @@ class TestMetaKernelProductInit:
 
         with (patch(f"{_MODULE}.safe_make_directory"),
               patch(f"{_MODULE}.current_date", return_value="2024-01-01")):
+            run_state = RunState()
             with pytest.raises(NPBError,
                                match="Meta-kernel insight_v01.tm has not been matched in configuration."):
-                MetaKernelProduct(setup, RunState(),
+                MetaKernelProduct(setup, run_state,
                                   "insight_v01.tm", collection)
 
     @pytest.mark.parametrize("mk_list", [
@@ -467,9 +468,10 @@ class TestMetaKernelProductInit:
 
         with (patch(f"{_MODULE}.safe_make_directory"),
               patch(f"{_MODULE}.current_date", return_value="2024-01-01")):
+            run_state = RunState()
             with pytest.raises(NPBError,
                                match="Meta-kernel insight_v01.tm has not been matched in configuration."):
-                MetaKernelProduct(setup, RunState(),
+                MetaKernelProduct(setup, run_state,
                                   "insight_v01.tm", collection)
 
     def test_metak_matching_propagates_unrelated_exception(self, tmp_path):
@@ -488,8 +490,9 @@ class TestMetaKernelProductInit:
               patch(f"{_MODULE}.current_date", return_value="2024-01-01"),
               patch(f"{_MODULE}.match_patterns", side_effect=AttributeError("boom"))):
 
+            run_state = RunState()
             with pytest.raises(AttributeError, match="boom"):
-                MetaKernelProduct(setup, RunState(),
+                MetaKernelProduct(setup, run_state,
                                   "insight_v01.tm", collection)
 
     def test_collection_metakernel_set_from_mk_to_list(self, tmp_path):

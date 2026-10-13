@@ -251,22 +251,24 @@ class TestSpicedsProductInit:
         collection = make_collection()
 
         with patch(_GLOB_GLOB, return_value=[]):
+            run_state = RunState()
             with pytest.raises(
                 NPBError,
                 match='spiceds not provided and not available from previous releases.',
             ):
-                SpicedsProduct(setup, RunState(), collection)
+                SpicedsProduct(setup, run_state, collection)
 
     def test_init_no_increment_no_spiceds_calls_handle_error(self):
         # No increment and no spiceds -> NPBError raised on the else branch.
         setup = make_setup(increment=False, spiceds='')
         collection = make_collection()
 
+        run_state = RunState()
         with pytest.raises(
             NPBError,
             match='spiceds not provided and not available from previous releases.',
         ):
-            SpicedsProduct(setup, RunState(), collection)
+            SpicedsProduct(setup, run_state, collection)
 
     def test_init_missing_spiceds_attribute_treated_as_empty(self):
         # If setup.spiceds is missing, the constructor's except AttributeError
@@ -277,11 +279,12 @@ class TestSpicedsProductInit:
         del setup.spiceds
         collection = make_collection()
 
+        run_state = RunState()
         with pytest.raises(
             NPBError,
             match='spiceds not provided and not available from previous releases.',
         ):
-            SpicedsProduct(setup, RunState(), collection)
+            SpicedsProduct(setup, run_state, collection)
 
     def test_init_unexpected_spiceds_access_error_propagates(self):
         """A failure reading setup.spiceds that isn't "the attribute is missing"
@@ -295,8 +298,9 @@ class TestSpicedsProductInit:
         type(setup).spiceds = PropertyMock(side_effect=RuntimeError("boom"))
         collection = make_collection()
 
+        run_state = RunState()
         with pytest.raises(RuntimeError, match="boom"):
-            SpicedsProduct(setup, RunState(), collection)
+            SpicedsProduct(setup, run_state, collection)
 
 
 # ---------------------------------------------------------------------------

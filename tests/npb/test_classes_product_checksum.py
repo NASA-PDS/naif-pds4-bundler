@@ -296,8 +296,9 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=bad_content)):
 
+            run_state = RunState()
             with pytest.raises(NPBError, match=error):
-                ChecksumProduct(setup, RunState(),
+                ChecksumProduct(setup, run_state,
                                 collection, add_previous_checksum=False)
 
     def test_add_previous_checksum_true_adds_file_and_label_pds4(self):

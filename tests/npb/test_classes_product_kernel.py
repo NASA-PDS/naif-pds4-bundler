@@ -276,11 +276,12 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.product_mapping", return_value="nonexistent.bsp"),
         ):
+            run_state = RunState()
             with pytest.raises(
                 NPBError,
                 match=f"missing.bsp not present in {re.escape(tmp_env['kernel_dir'])}.",
             ):
-                SpiceKernelProduct(setup, RunState(), "missing.bsp", collection)
+                SpiceKernelProduct(setup, run_state, "missing.bsp", collection)
 
     def test_init_stores_missions_observers_targets(self, tmp_env):
         product, _, _ = build_product(tmp_env, name="test.bsp")

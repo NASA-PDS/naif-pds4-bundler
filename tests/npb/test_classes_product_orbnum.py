@@ -98,9 +98,10 @@ class TestOrbnumFileProductInit:
     def test_init_no_matching_pattern(self, mock_setup, mock_collection, mock_kernels_collection):
         """Test initialization fails if filename does not match pattern."""
         mock_setup.orbnum[0]["pattern"] = r"nomatch\.txt"
+        run_state = RunState()
         with pytest.raises(NPBError, match="The orbnum file does not match any type "
                                            "described in the configuration."):
-            OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
+            OrbnumFileProduct(mock_setup, run_state, "test_file.orb", mock_collection, mock_kernels_collection)
 
     @patch.object(Product, "register")
     @patch(f"{MOD}.safe_make_directory")
