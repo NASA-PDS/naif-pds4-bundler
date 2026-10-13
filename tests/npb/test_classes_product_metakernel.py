@@ -1704,7 +1704,7 @@ class TestMetaKernelProductWriteProduct:
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
         ):
-            product = MetaKernelProduct(setup, "insight_v01.tm", collection)
+            MetaKernelProduct(setup, RunState(), "insight_v01.tm", collection)
 
         # Read the generated MK and verify the bundle kernel was included
         mk_path = os.path.join(mk_staging_dir, "insight_v01.tm")
