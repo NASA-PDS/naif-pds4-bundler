@@ -469,6 +469,19 @@ class TestPhase6StagingBundleAndCollections:
         run_pipeline(_args())
         mocks.Setup.return_value.load_kernels.assert_called_once()
 
+    def test_setup_frozen_right_after_loading_kernels(self, mocks):
+        # The Setup is frozen once the kernels are loaded, and not before,
+        # since load_kernels still writes to it.
+        run_pipeline(_args())
+
+        setup = mocks.Setup.return_value
+        setup.freeze.assert_called_once()
+
+        # Of everything called on setup, keep only these two, in call order.
+        calls = [call[0] for call in setup.mock_calls
+                 if call[0] in ('load_kernels', 'freeze')]
+        assert calls == ['load_kernels', 'freeze']
+
     def test_spice_kernels_collection_constructed(self, mocks):
         # SpiceKernelsCollection receives setup, bundle, and the kernel list.
         run_pipeline(_args())

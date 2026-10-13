@@ -221,6 +221,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         log_step(setup, run_state, title='Load LSK, PCK, FK and SCLK kernels')
         setup.load_kernels()
+        setup.freeze()
 
         #
         # * Initialize the SPICE Kernels Collection.

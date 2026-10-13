@@ -17,6 +17,7 @@ import spiceypy
 import xmlschema
 
 from .exceptions import NPBError
+from .exceptions import NPBInternalError
 from ..utils import etree_to_dict
 from ..utils import FILE_READ_ERRORS
 from ..utils import kernel_name
@@ -31,6 +32,10 @@ class Setup:
     :param version: NPB version
     :type version: str
     """
+
+    # Class-level default, so the guard in __setattr__ also works while
+    # __init__ is still running and no instance attribute exists yet.
+    _frozen = False
 
     def __init__(self, args, version: str) -> None:
         """Constructor."""
@@ -253,6 +258,30 @@ class Setup:
             self.producer_email = ""
             self.dataset_id = ""
             self.volume_id = ""
+
+    def freeze(self) -> None:
+        """Make the Setup read-only once the configuration is resolved.
+
+        Any attribute assignment or deletion after this call raises an
+        :class:`NPBInternalError`. Reading attributes is not affected.
+        """
+        # The flag is set with object.__setattr__ so the write goes straight
+        # to the attribute, without passing through the guard below.
+        object.__setattr__(self, "_frozen", True)
+
+    def __setattr__(self, name: str, value) -> None:
+        if self._frozen:
+            raise NPBInternalError(
+                f"Setup is frozen; '{name}' cannot be set after the "
+                f"configuration is resolved.")
+        super().__setattr__(name, value)
+
+    def __delattr__(self, name: str) -> None:
+        if self._frozen:
+            raise NPBInternalError(
+                f"Setup is frozen; '{name}' cannot be deleted after the "
+                f"configuration is resolved.")
+        super().__delattr__(name)
 
     def check_configuration(self):
         """Performs the following checks to the loaded configuration items:

@@ -15,6 +15,7 @@ from spiceypy import SpiceyPyError
 import xmlschema
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.setup import Setup
 
 
@@ -2542,6 +2543,75 @@ class TestSetupLoadKernelGroup:
         furnsh.assert_not_called()
         assert caplog.record_tuples == [
             ('root', logging.ERROR, '-- LSK not found.')]
+
+
+class TestSetupFreeze:
+
+    @staticmethod
+    def make_frozen_setup(tmp_path) -> Setup:
+        # A Setup with one regular attribute, frozen right away.
+        setup = make_setup(tmp_path)
+        setup.mission_acronym = 'maven'
+        setup.freeze()
+
+        return setup
+
+    def test_allows_writing_and_deleting_before_freeze(self, tmp_path) -> None:
+        """Set, overwrite and delete attributes freely until it is frozen."""
+
+        # Build a Setup that has not been frozen.
+        setup = make_setup(tmp_path)
+
+        # Create, overwrite and delete attributes.
+        setup.mission_acronym = 'maven'
+        setup.mission_acronym = 'insight'
+        setup.extra = 1
+        del setup.extra
+
+        # The changes were applied.
+        assert setup.mission_acronym == 'insight'
+        assert not hasattr(setup, 'extra')
+
+    @pytest.mark.parametrize('name', ['mission_acronym', 'new_attribute'])
+    def test_rejects_setting_after_freeze(self, tmp_path, name) -> None:
+        """Raise NPBInternalError when an existing or a new attribute is set
+        after the freeze, and leave the Setup untouched."""
+
+        # Freeze a Setup that already has 'mission_acronym'.
+        setup = self.make_frozen_setup(tmp_path)
+
+        # Try to set the attribute.
+        with pytest.raises(NPBInternalError, match=name):
+            setattr(setup, name, 'changed')
+
+        # The value was not written.
+        assert vars(setup).get(name) != 'changed'
+
+    def test_rejects_deleting_after_freeze(self, tmp_path) -> None:
+        """Raise NPBInternalError when an attribute is deleted after the
+        freeze, and keep it."""
+
+        # Freeze a Setup that already has 'mission_acronym'.
+        setup = self.make_frozen_setup(tmp_path)
+
+        # Try to delete the attribute.
+        with pytest.raises(NPBInternalError, match='mission_acronym'):
+            del setup.mission_acronym
+
+        # The attribute is still there.
+        assert setup.mission_acronym == 'maven'
+
+    def test_reading_still_works_after_freeze(self, tmp_path) -> None:
+        """Reading attributes, with hasattr or getattr, is not affected."""
+
+        # Freeze a Setup that already has 'mission_acronym'.
+        setup = self.make_frozen_setup(tmp_path)
+
+        # Read an attribute that exists and one that doesn't.
+        assert setup.mission_acronym == 'maven'
+        assert hasattr(setup, 'mission_acronym')
+        assert not hasattr(setup, 'missing')
+        assert getattr(setup, 'missing', 'default') == 'default'
 
 
 class TestSetupWriteValidateConfig:
