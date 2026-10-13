@@ -47,7 +47,8 @@ def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
         setattr(setup, key, value)
 
     # Setup compiles the patterns itself; the fake one has to do the same.
-    setup.re_config = [re.compile(pattern) for pattern in setup.kernel_list_config]
+    setup.re_config = [re.compile(pattern)
+                       for pattern in setup.kernel_list_config]
 
     return setup
 
