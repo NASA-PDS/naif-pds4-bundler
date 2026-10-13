@@ -23,6 +23,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.collection.collection_kernels import SpiceKernelsCollection
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 # ---------------------------------------------------------------------------
@@ -474,12 +475,13 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = [prod]
+        run_state = RunState()
 
         with patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
-        assert setup.increment_start  == "2010-01-01T00:00:00Z"
-        assert setup.increment_finish == "2020-01-01T00:00:00Z"
+        assert run_state.increment_start  == "2010-01-01T00:00:00Z"
+        assert run_state.increment_finish == "2020-01-01T00:00:00Z"
 
     @pytest.mark.parametrize("make_prod", [
         pytest.param(lambda: MagicMock(spec=[]), id="attribute-missing"),
@@ -505,12 +507,13 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj2 = SpiceKernelsCollection(setup2, make_bundle(), make_kernels())
         obj2.product = [prod]
+        run_state = RunState()
 
         with patch(_GLOB, return_value=[]):
-            obj2.set_increment_times()
+            obj2.set_increment_times(run_state)
 
-        assert setup2.increment_start  == "2000-01-01T00:00:00.000Z"
-        assert setup2.increment_finish == "2040-01-01T00:00:00.000Z"
+        assert run_state.increment_start  == "2000-01-01T00:00:00.000Z"
+        assert run_state.increment_finish == "2040-01-01T00:00:00.000Z"
 
     def test_no_mk_uses_increment_start_from_setup(self):
         """increment_start on setup → used when no MK coverage."""
@@ -518,11 +521,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
+        run_state = RunState()
 
         with patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
-        assert setup.increment_start == "2005-01-01T00:00:00.000Z"
+        assert run_state.increment_start == "2005-01-01T00:00:00.000Z"
 
     def test_no_mk_uses_increment_finish_from_setup(self):
         """increment_finish on setup → used when no MK coverage."""
@@ -530,11 +534,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
+        run_state = RunState()
 
         with patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
-        assert setup.increment_finish == "2025-01-01T00:00:00.000Z"
+        assert run_state.increment_finish == "2025-01-01T00:00:00.000Z"
 
     def test_no_mk_no_increment_start_falls_back_to_mission_start(self, lsk, caplog):
         """No MK and no increment_start → mission_start used with warning."""
@@ -542,11 +547,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
+        run_state = RunState()
 
         with caplog.at_level(logging.WARNING), patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
-        assert setup.increment_start == '2000-01-01T00:00:00Z'
+        assert run_state.increment_start == '2000-01-01T00:00:00Z'
         assert "Mission start time will be used" in caplog.text
 
     def test_no_mk_no_increment_finish_falls_back_to_mission_finish(self, caplog):
@@ -555,11 +561,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
+        run_state = RunState()
 
         with caplog.at_level(logging.WARNING), patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
-        assert setup.increment_finish == "2040-001T00:00:00.000Z"
+        assert run_state.increment_finish == "2040-001T00:00:00.000Z"
         assert "Mission stop time will be used" in caplog.text
 
     def test_min_max_type_error_falls_back_to_mission_times(self, lsk):
@@ -586,13 +593,15 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
 
         obj.product = [prod1, prod2]
 
+        run_state = RunState()
+
         with patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
         # lsk loaded, so increment_start/finish are reformatted via et_to_date
         # (see test_no_mk_no_increment_start_falls_back_to_mission_start).
-        assert setup.increment_start == '2000-01-01T00:00:00Z'
-        assert setup.increment_finish == '2040-01-01T00:00:00Z'
+        assert run_state.increment_start == '2000-01-01T00:00:00Z'
+        assert run_state.increment_finish == '2040-01-01T00:00:00Z'
 
     def test_missing_start_stop_time_falls_back_to_mission_times(self, lsk):
         """A product with mk_sets_coverage=True but no start_time/stop_time
@@ -607,12 +616,13 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = [prod]
+        run_state = RunState()
 
         with patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
-        assert setup.increment_start == "2000-01-01T00:00:00Z"
-        assert setup.increment_finish == "2040-01-01T00:00:00Z"
+        assert run_state.increment_start == "2000-01-01T00:00:00Z"
+        assert run_state.increment_finish == "2040-01-01T00:00:00Z"
 
     # ------------------------------------------------------------------ #
     # previous bundle try block                                            #
@@ -637,11 +647,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         prod.start_time = "2010-001T00:00:00.000Z"
         prod.stop_time  = "2020-001T00:00:00.000Z"
         obj.product = [prod]
+        run_state = RunState()
 
         with caplog.at_level(logging.INFO), \
              patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
              patch(_OPEN, mock_open(read_data=bundle_content)):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
         assert "Increment start corrected from previous bundle" in caplog.text
 
@@ -664,11 +675,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         prod.start_time = "2005-001T00:00:00.000Z"
         prod.stop_time  = "2020-001T00:00:00.000Z"
         obj.product = [prod]
+        run_state = RunState()
 
         with caplog.at_level(logging.WARNING), \
              patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
              patch(_OPEN, mock_open(read_data=bundle_content)):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
         assert "Increment start from previous bundle not used" in caplog.text
 
@@ -691,11 +703,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         prod.start_time = "2010-001T00:00:00.000Z"
         prod.stop_time  = "2015-001T00:00:00.000Z"
         obj.product = [prod]
+        run_state = RunState()
 
         with caplog.at_level(logging.WARNING), \
              patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
              patch(_OPEN, mock_open(read_data=bundle_content)):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
         assert "Increment finish corrected" in caplog.text
 
@@ -706,9 +719,10 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
+        run_state = RunState()
 
         with caplog.at_level(logging.WARNING), patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
         assert "Previous bundle not found" in caplog.text
 
@@ -730,11 +744,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
+        run_state = RunState()
 
         with caplog.at_level(logging.WARNING), \
              patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
              patch(_OPEN, side_effect=open_side_effect):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
         assert "Previous bundle not found" in caplog.text
 
@@ -748,11 +763,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
+        run_state = RunState()
 
         with caplog.at_level(logging.WARNING), \
              patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
              patch(_OPEN, mock_open(read_data="<not_a_tag>foo</not_a_tag>\n")):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
         assert "Previous bundle not found" in caplog.text
 
@@ -771,15 +787,16 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
+        run_state = RunState()
 
         with (caplog.at_level(logging.WARNING),
               patch(_GLOB, return_value=[]),
               patch(_UTC2ET, side_effect=SpiceyPyError("SPICE(NOLEAPSECONDS)"))):
-            obj.set_increment_times()
+            obj.set_increment_times(run_state)
 
         assert "leapseconds kernel" in caplog.text
-        assert setup.increment_start  == "2010-001T00:00:00.000Z"
-        assert setup.increment_finish == "2020-001T00:00:00.000Z"
+        assert run_state.increment_start  == "2010-001T00:00:00.000Z"
+        assert run_state.increment_finish == "2020-001T00:00:00.000Z"
 
 
 # ===========================================================================

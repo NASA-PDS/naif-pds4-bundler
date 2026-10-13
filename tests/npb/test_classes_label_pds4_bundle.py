@@ -19,8 +19,8 @@ Why BundlePDS4Label differs from the other PDS4 label classes:
 * ``self.name`` is never set by the constructor itself; it relies entirely on
   the inherited ``PDSLabel.__init__`` derivation, which passes ``product.path``
   through verbatim because the path already ends in ``.xml``.
-* ``START_TIME`` / ``STOP_TIME`` come from ``setup.increment_start`` /
-  ``setup.increment_finish``, not from the product.
+* ``START_TIME`` / ``STOP_TIME`` come from the run state's
+  ``increment_start`` / ``increment_finish``, not from the product itself.
 * ``BUNDLE_MEMBER_ENTRIES`` is built by concatenating one
   ``<Bundle_Member_Entry>`` per collection. ``collection.name`` selects the
   reference-type suffix; ``collection.updated`` selects Primary/Secondary.
@@ -36,6 +36,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.label.pds4_bundle import BundlePDS4Label
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Fully-qualified write_label target. Centralised so a relocation only needs
 # one edit.
@@ -76,8 +77,6 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     def _make_setup(end_of_line: str = 'LF', eol_pds4: str = '\n') -> SimpleNamespace:
         setup = base_helpers.make_setup(end_of_line=end_of_line,
                                         eol_pds4=eol_pds4)
-        setup.increment_start = '2024-02-01T00:00:00Z'
-        setup.increment_finish = '2024-02-28T23:59:59Z'
         setup.author_list = 'Doe, J.; Roe, R.'
         setup.doi = '10.17189/maven_spice'
         return setup
@@ -104,6 +103,10 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
             name=name,
             lid=bundle_lid,
             collection_name='miscellaneous')
+
+        # The increment window the label copies into START_TIME / STOP_TIME.
+        readme.run_state = RunState(increment_start='2024-02-01T00:00:00Z',
+                                    increment_finish='2024-02-28T23:59:59Z')
         readme.bundle.lid = bundle_lid
         readme.bundle.vid = bundle_vid
         readme.bundle.collections = (
@@ -495,9 +498,7 @@ class TestBundlePDS4Label:
         ('author_list', '', 'AUTHOR_LIST'),
         ('author_list', 'Solo, H.', 'AUTHOR_LIST'),
         ('doi', '', 'DOI'),
-        ('doi', '10.0/x', 'DOI'),
-        ('increment_start', 'not-a-valid-datetime', 'START_TIME'),
-        ('increment_finish', '', 'STOP_TIME')])
+        ('doi', '10.0/x', 'DOI')])
     def test_setup_values_are_copied_without_validation(
             self, tmp_path: Path, helpers: SimpleNamespace,
             setup_attribute: str, value: str, label_attribute: str) -> None:
@@ -508,6 +509,21 @@ class TestBundlePDS4Label:
         readme = helpers.make_readme(tmp_path / 'staging')
 
         label = _build_label(setup, readme)
+
+        assert label._label_fields[label_attribute] == value
+
+    @pytest.mark.parametrize('run_state_attribute, value, label_attribute', [
+        ('increment_start', 'not-a-valid-datetime', 'START_TIME'),
+        ('increment_finish', '', 'STOP_TIME')])
+    def test_increment_times_are_copied_without_validation(
+            self, tmp_path: Path, helpers: SimpleNamespace,
+            run_state_attribute: str, value: str, label_attribute: str) -> None:
+        # The increment times come from the run state and are copied verbatim;
+        # the caller is responsible for validation.
+        readme = helpers.make_readme(tmp_path / 'staging')
+        setattr(readme.run_state, run_state_attribute, value)
+
+        label = _build_label(helpers.make_setup(), readme)
 
         assert label._label_fields[label_attribute] == value
 

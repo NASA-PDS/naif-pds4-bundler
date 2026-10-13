@@ -24,7 +24,8 @@ def make_setup(tmp_path, mission_acronym: str = 'maven',
 class TestRunStateInit:
 
     def test_starts_at_step_one_with_empty_records(self) -> None:
-        """A new RunState starts at step 1 with no files and no checksums."""
+        """A new RunState starts at step 1 with no files, no checksums and no
+        increment times."""
 
         # Build a RunState without giving it any value.
         run_state = RunState()
@@ -33,6 +34,8 @@ class TestRunStateInit:
         assert run_state.step == 1
         assert run_state.file_list == []
         assert run_state.checksum_registry == []
+        assert run_state.increment_start == ''
+        assert run_state.increment_finish == ''
 
     def test_instances_do_not_share_their_lists(self) -> None:
         """Adding records to one RunState leaves any other one untouched."""

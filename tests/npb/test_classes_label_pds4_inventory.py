@@ -22,7 +22,7 @@ InventoryPDS4Label is peculiar compared with the other PDS4 labels:
   ``collection.name``:
     - 'miscellaneous'  -> the min start / max stop of the checksum products
                           found in ``collection.product``.
-    - anything else    -> setup.increment_start / setup.increment_finish.
+    - anything else    -> run_state.increment_start / increment_finish.
 * N_RECORDS is the number of physical lines of the inventory file.
 * The XML label name is derived from ``inventory.path`` (the inherited
   PDSLabel derivation, shared with every other PDS4 label), not from
@@ -37,6 +37,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.label.pds4_inventory import InventoryPDS4Label
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 # ---------------------------------------------------------------------------
@@ -47,10 +48,10 @@ from pds.naif_pds4_bundler.classes.label.pds4_inventory import InventoryPDS4Labe
 def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     """Specialize the generic factories for collection-inventory labels.
 
-    Reuses ``base_helpers.make_setup`` (adding the increment_* attributes the
-    label needs in the non-miscellaneous branch) and ``base_helpers.make_product``
-    (used both for the inventory product and for the checksum products held by
-    the collection), and adds a ``make_collection`` factory.
+    Reuses ``base_helpers.make_setup`` and ``base_helpers.make_product`` (used
+    both for the inventory product, which also gets the increment window the
+    label needs in the non-miscellaneous branch, and for the checksum products
+    held by the collection), and adds a ``make_collection`` factory.
 
     :param base_helpers: generic Setup/base-product factories from conftest
     :return: container with make_setup, make_inventory, make_checksum_product
@@ -58,13 +59,8 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     """
 
     def _make_setup(end_of_line: str = 'LF', eol_pds4: str = '\n') -> MagicMock:
-        # Reuse the generic setup and add the increment window consumed by the
-        # non-miscellaneous branch of the constructor.
-        setup = base_helpers.make_setup(end_of_line=end_of_line,
-                                        eol_pds4=eol_pds4)
-        setup.increment_start = '2024-02-01T00:00:00Z'
-        setup.increment_finish = '2024-02-28T23:59:59Z'
-        return setup
+        return base_helpers.make_setup(end_of_line=end_of_line,
+                                       eol_pds4=eol_pds4)
 
     def _make_inventory(staging_dir: Path,
                         name: str = 'collection_spice_kernels_inventory_v001.csv',
@@ -79,11 +75,18 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
                     for i in range(n_records)),
             encoding='utf-8')
 
-        return base_helpers.make_product(
+        inventory = base_helpers.make_product(
             path=str(inventory_path),
             name=name,
             lid='urn:nasa:pds:maven_spice:spice_kernels',
             collection_name='spice_kernels')
+
+        # The increment window consumed by the non-miscellaneous branch of the
+        # constructor.
+        inventory.run_state = RunState(
+            increment_start='2024-02-01T00:00:00Z',
+            increment_finish='2024-02-28T23:59:59Z')
+        return inventory
 
     def _make_checksum_product(name: str, start_time: str,
                                stop_time: str) -> MagicMock:
@@ -345,11 +348,11 @@ class TestInventoryPDS4Label:
         # Guard the branch contract: in the miscellaneous branch the increment
         # window is irrelevant even if present on setup.
         setup = helpers.make_setup()
-        setup.increment_start = 'SHOULD_NOT_BE_USED_START'
-        setup.increment_finish = 'SHOULD_NOT_BE_USED_STOP'
         staging = tmp_path / 'staging'
         inventory = helpers.make_inventory(
             staging, name='collection_miscellaneous_inventory_v001.csv')
+        inventory.run_state.increment_start = 'SHOULD_NOT_BE_USED_START'
+        inventory.run_state.increment_finish = 'SHOULD_NOT_BE_USED_STOP'
 
         checksum = helpers.make_checksum_product(
             'checksum_v01.tab', '2024-01-01T00:00:00', '2024-01-31T00:00:00')

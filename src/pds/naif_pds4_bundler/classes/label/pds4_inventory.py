@@ -73,8 +73,8 @@ class InventoryPDS4Label(PDS4Label):
             # The increment start and stop times are still defined by the
             # spice_kernels collection.
             #
-            self._label_fields["START_TIME"] = self.setup.increment_start
-            self._label_fields["STOP_TIME"] = self.setup.increment_finish
+            self._label_fields["START_TIME"] = self.run_state.increment_start
+            self._label_fields["STOP_TIME"] = self.run_state.increment_finish
 
         self._label_fields["FILE_NAME"] = self.product.name
 

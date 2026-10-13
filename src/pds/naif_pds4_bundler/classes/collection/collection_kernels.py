@@ -1,7 +1,9 @@
 """Implementation of the PDS4 SPICE Kernels Collection Class."""
+from __future__ import annotations
 import glob
 import logging
 import os
+from typing import TYPE_CHECKING
 
 import spiceypy
 from spiceypy.utils.exceptions import SpiceyPyError
@@ -12,6 +14,10 @@ from ...utils import archive_subdirectory
 from ...utils import et_to_date
 from ...utils import extension_to_type
 from ...utils import FILE_READ_ERRORS
+
+# RunState is only needed for the type hints.
+if TYPE_CHECKING:
+    from ..run_state import RunState
 
 
 class SpiceKernelsCollection(Collection):
@@ -161,12 +167,14 @@ class SpiceKernelsCollection(Collection):
 
         return meta_kernels
 
-    def set_increment_times(self):
+    def set_increment_times(self, run_state: RunState) -> None:
         """Determine the archive increment start and finish times.
 
         This is done based on the identification of the coverage of a given
         SPK or CK kernel. Alternatively it can be provided as a parameter of the
         execution.
+
+        :param run_state: Run state where the determined times are stored.
         """
         increment_start = ""
         increment_finish = ""
@@ -323,8 +331,8 @@ class SpiceKernelsCollection(Collection):
         logging.info('   %s - %s', increment_start, increment_finish)
         logging.info('')
 
-        self.setup.increment_finish = increment_finish
-        self.setup.increment_start = increment_start
+        run_state.increment_finish = increment_finish
+        run_state.increment_start = increment_start
 
     def validate(self) -> None:
         """Validate the SPICE Kernels collection.
