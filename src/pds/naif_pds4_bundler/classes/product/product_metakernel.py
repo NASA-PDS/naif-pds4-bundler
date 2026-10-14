@@ -62,7 +62,6 @@ class MetaKernelProduct(Product):
 
         self.new_product = True
         self.setup = setup
-        self.run_state = run_state
         self.collection = spice_kernels_collection
         self.file_format = "Character"
 
@@ -242,7 +241,7 @@ class MetaKernelProduct(Product):
             self.targets = targets
             self.observers = observers
 
-        super().__init__()
+        super().__init__(run_state)
 
     def check_version(self) -> None:
         """Check if the provided Meta-kernel version is correct."""

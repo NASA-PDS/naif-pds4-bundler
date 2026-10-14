@@ -35,7 +35,6 @@ class OrbnumFileProduct(Product):
         self.collection = collection
         self.kernels_collection = spice_kernels_collection
         self.setup = setup
-        self.run_state = run_state
         self.name = name
         self.extension = name.split(".")[-1].strip()
         self.path = setup.orbnum_directory
@@ -142,7 +141,7 @@ class OrbnumFileProduct(Product):
             if "target" in self._orbnum_type:
                 self.targets = [self._orbnum_type["target"]]
 
-        super().__init__()
+        super().__init__(run_state)
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""

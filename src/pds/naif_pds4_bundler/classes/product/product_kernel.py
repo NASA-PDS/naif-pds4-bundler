@@ -33,7 +33,6 @@ class SpiceKernelProduct(Product):
         """Constructor."""
         self.collection = collection
         self.setup = setup
-        self.run_state = run_state
         self.name = name
 
         self.extension = name.split(".")[-1].strip()
@@ -150,7 +149,7 @@ class SpiceKernelProduct(Product):
         self.coverage()
         self.description = self.read_description()
 
-        Product.__init__(self)
+        Product.__init__(self, run_state)
 
         #
         # Extract the required information from the kernel list read from

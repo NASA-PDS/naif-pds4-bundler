@@ -24,7 +24,6 @@ class ReadmeProduct(Product):
         self.bundle = bundle
         self.path = setup.staging_directory + os.sep + self.name
         self.setup = setup
-        self.run_state = run_state
         self.vid = bundle.vid
         # TODO: Verify if this attribute is required.
         # Create an attribute named "collection", with an attribute "name".
@@ -50,7 +49,7 @@ class ReadmeProduct(Product):
             #
             self.bundle.checksum = md5(self.path)
 
-        super().__init__()
+        super().__init__(run_state)
 
         logging.info("")
 

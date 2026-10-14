@@ -23,7 +23,6 @@ def make_product_setup(tmp_path: Path, checksum: bool = False,
     setup.volume_id = 'MAVEN_1001'
     setup.working_directory = str(tmp_path / 'working')
 
-
     return setup
 
 
@@ -75,7 +74,7 @@ class TestProductInit:
         # constructor calls it only once.
         register_mock = mocker.patch.object(Product, 'register', autospec=True)
 
-        Product.__init__(product)
+        Product.__init__(product, RunState())
 
         # Check that the given date is used.
         assert product.creation_time == '2026-05-27T10:20:30Z'
@@ -130,7 +129,7 @@ class TestProductInit:
         # Mock the register call.
         register_mock = mocker.patch.object(Product, 'register', autospec=True)
 
-        Product.__init__(product)
+        Product.__init__(product, RunState())
 
         # Check that the constructor has stored the value returned by
         # creation_time().

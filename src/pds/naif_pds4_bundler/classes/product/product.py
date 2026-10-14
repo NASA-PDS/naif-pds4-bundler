@@ -15,20 +15,24 @@ class Product:
     creation time and date, and file extension.
 
     Subclasses must call ``register()`` once the product file exists on disk.
-    They must also set ``run_state``, next to ``setup``, before calling the
-    base constructor.
     """
 
     # TODO: update this method to have path and setup as input arguments.
     #
-    #   def __init__(self, path: str, setup) -> None:
+    #   def __init__(self, path: str, setup, run_state) -> None:
     #       """Constructor. Initialises attributes derivable without I/O.
     #
     #       :param path:  Absolute path to the product file
     #       :param setup: NPB execution setup object
+    #       :param run_state: State of the current pipeline execution
     #       """
-    def __init__(self) -> None:
-        """Constructor."""
+    def __init__(self, run_state) -> None:
+        """Constructor.
+
+        :param run_state: State of the current pipeline execution
+        """
+        self.run_state = run_state
+
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
         else:

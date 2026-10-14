@@ -32,7 +32,6 @@ class InventoryProduct(Product):
         self.rows = 0
         self.row_bytes = 0
         self.setup = setup
-        self.run_state = run_state
 
         if setup.pds_version == "3":
             self.path = f"{setup.staging_directory}/index/index.tab"
@@ -105,7 +104,7 @@ class InventoryProduct(Product):
         self.write_product()
         self.new_product = True
 
-        Product.__init__(self)
+        Product.__init__(self, run_state)
 
         # Labeling used to happen here (PDS3/PDS4 label picked and built), and
         # so did the PDS3 dsindex-file copy below it. Both moved out:

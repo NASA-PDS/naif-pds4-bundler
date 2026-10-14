@@ -103,7 +103,7 @@ class ChecksumProduct(Product):
         # attributes.
         #
         self.new_product = True
-        Product.__init__(self)
+        Product.__init__(self, self.run_state)
 
     def read_current_product(self, add_previous_checksum: bool = True) -> None:
         """Reads the current checksum file.

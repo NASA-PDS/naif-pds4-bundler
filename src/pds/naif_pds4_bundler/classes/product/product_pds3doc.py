@@ -19,7 +19,6 @@ class PDS3DocumentProduct(Product):
         """Constructor."""
         self.path = path
         self.setup = setup
-        self.run_state = run_state
         self.name = path.split(os.sep)[-1]
 
         #
@@ -44,7 +43,7 @@ class PDS3DocumentProduct(Product):
 
             self._validate()
 
-        super().__init__()
+        super().__init__(run_state)
 
     def _validate(self) -> None:
         """Try to validate the PDS3 document.

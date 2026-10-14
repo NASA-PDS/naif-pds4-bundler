@@ -25,7 +25,6 @@ class SpicedsProduct(Product):
     def __init__(self, setup, run_state, collection) -> None:
         """Constructor."""
         self.setup = setup
-        self.run_state = run_state
         self.collection = collection
         self.new_product = True
 
@@ -123,7 +122,7 @@ class SpicedsProduct(Product):
         # Kernels are already generated products but Inventories are not.
         #
         self.new_product = True
-        super().__init__()
+        super().__init__(run_state)
 
         #
         # Check if the spiceds has not changed.
