@@ -9,8 +9,9 @@ import pytest
 from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.product.product_kernel import SpiceKernelProduct
-from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
 from pds.naif_pds4_bundler.classes.run_state import RunState
+
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -692,9 +693,11 @@ class TestSpiceKernelProductInsertLabel:
         ("STREAM", "_insert_text_label", "_insert_binary_label"),
         ("FIXED_LENGTH", "_insert_binary_label", "_insert_text_label"),
     ])
-    def test_dispatches_on_record_type(self, bare_product, record_type, called, not_called):
+    def test_dispatches_on_record_type(self, bare_product, tmp_path, record_type, called, not_called):
         """STREAM kernels get a text insert, everything else a binary one."""
         bare_product.record_type = record_type
+        bare_product.label.name = str(tmp_path / "label.lbl")
+        (tmp_path / "label.lbl").write_text(LABEL_CONTENT)
 
         with patch.object(SpiceKernelProduct, "_insert_text_label") as mock_text, \
              patch.object(SpiceKernelProduct, "_insert_binary_label") as mock_bin:
@@ -704,14 +707,38 @@ class TestSpiceKernelProductInsertLabel:
         mocks[called].assert_called_once_with()
         mocks[not_called].assert_not_called()
 
-    def test_logs_trailing_blank_line(self, bare_product, caplog):
+    def test_logs_trailing_blank_line(self, bare_product, tmp_path, caplog):
         """The blank log line that used to close the label's __init__ now
         closes insert_label."""
+        bare_product.label.name = str(tmp_path / "label.lbl")
+        (tmp_path / "label.lbl").write_text(LABEL_CONTENT)
+
         with patch.object(SpiceKernelProduct, "_insert_binary_label"):
             with caplog.at_level(logging.INFO):
                 bare_product.insert_label()
 
         assert caplog.messages == [""]
+
+    @pytest.mark.parametrize("record_type", ["STREAM", "FIXED_LENGTH"])
+    @pytest.mark.parametrize("label_name", ["missing.lbl", "a_directory"])
+    def test_raises_when_label_is_not_a_file(
+            self, bare_product, spiceypy_mock, tmp_path, record_type, label_name):
+        """No label file at label.name is a pipeline-ordering bug: fail
+        clearly, before the kernel is opened, for both kernel flavours."""
+        (tmp_path / "a_directory").mkdir()
+        kernel = tmp_path / "fake_kernel.bsp"
+        kernel.write_text(KERNEL_CONTENT)
+        bare_product.path = str(kernel)
+        bare_product.record_type = record_type
+        bare_product.label.name = str(tmp_path / label_name)
+
+        with pytest.raises(NPBInternalError, match=re.escape(label_name)) as excinfo:
+            bare_product.insert_label()
+
+        assert "fake_kernel.bsp" in str(excinfo.value)
+        assert "does not exist" in str(excinfo.value)
+        assert kernel.read_text() == KERNEL_CONTENT
+        spiceypy_mock.dafopw.assert_not_called()
 
 
 class TestSpiceKernelProductInsertTextLabel:

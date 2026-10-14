@@ -6,7 +6,7 @@ import shutil
 import spiceypy
 
 from .product import Product
-from ..exceptions import NPBError
+from ..exceptions import NPBError, NPBInternalError
 from ...utils import archive_subdirectory
 from ...utils import ck_coverage
 from ...utils import dsk_coverage
@@ -365,10 +365,20 @@ class SpiceKernelProduct(Product):
     def insert_label(self) -> None:
         """Embed the PDS3 label of this product into the kernel itself.
 
-        The label written by ``self.label`` is spliced into the kernel:
-        text kernels (``STREAM`` records) get it after the architecture
-        line, binary kernels get it in the DAF comment area.
+        The label file at ``self.label.name`` must already exist; this
+        method only reads it. Text kernels (``STREAM`` records) get it after
+        the architecture line, binary kernels get it in the DAF comment area.
+
+        :raises NPBInternalError: if the label file does not exist.
         """
+        # A missing label here means the pipeline skipped or reordered the
+        # label write, which is an NPB bug and not a user-fixable error.
+        if not os.path.isfile(self.label.name):
+            raise NPBInternalError(
+                f'cannot insert the label into {self.name}. The label file '
+                f'{self.label.name} does not exist.'
+            )
+
         if self.record_type == "STREAM":
             self._insert_text_label()
         else:
