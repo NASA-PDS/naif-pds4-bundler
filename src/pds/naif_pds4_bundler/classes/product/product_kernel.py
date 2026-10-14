@@ -375,9 +375,8 @@ class SpiceKernelProduct(Product):
         # label write, which is an NPB bug and not a user-fixable error.
         if not os.path.isfile(self.label.name):
             raise NPBInternalError(
-                f"cannot embed the label in {self.name}: the label file "
-                f"{self.label.name} does not exist, and it must exist "
-                f"before it is embedded."
+                f'cannot insert the label into {self.name}. The label file '
+                f'{self.label.name} does not exist.'
             )
 
         if self.record_type == "STREAM":

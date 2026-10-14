@@ -736,7 +736,7 @@ class TestSpiceKernelProductInsertLabel:
             bare_product.insert_label()
 
         assert "fake_kernel.bsp" in str(excinfo.value)
-        assert "must exist" in str(excinfo.value)
+        assert "does not exist" in str(excinfo.value)
         assert kernel.read_text() == KERNEL_CONTENT
         spiceypy_mock.dafopw.assert_not_called()
 
