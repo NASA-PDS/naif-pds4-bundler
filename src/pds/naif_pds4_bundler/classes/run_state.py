@@ -22,9 +22,11 @@ class RunState:
     :param file_list: Files generated or moved during the run.
     :param checksum_registry: ``<path> <checksum>`` records of the run.
     :param increment_start: Start time of the archive increment, set once the
-        SPICE kernels collection has determined it.
+        SPICE kernels collection has determined it. ``Setup.increment_start``
+        only holds the configured value, if any.
     :param increment_finish: Finish time of the archive increment, set along
-        with the start time.
+        with the start time. ``Setup.increment_finish`` only holds the
+        configured value, if any.
     """
 
     step: int = 1

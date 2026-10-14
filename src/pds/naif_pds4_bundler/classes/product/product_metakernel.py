@@ -1069,6 +1069,10 @@ class MetaKernelProduct(Product):
             # The alternative is to set the increment times to the increment
             # or mission times provided via configuration.
             #
+            # setup.increment_* holds only what was configured. The computed
+            # increment times are derived from this coverage afterwards and
+            # live in run_state.
+            #
             if hasattr(self, "year"):
 
                 #
