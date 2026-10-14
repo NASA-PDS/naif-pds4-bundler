@@ -123,8 +123,6 @@ class Setup:
         self.kernel_list_config = kernel_list_config
         del self.kernel
 
-        self.re_config = [re.compile(pattern) for pattern in kernel_list_config]
-
         self.__dict__.update(config["meta-kernel"])
 
         if hasattr(self, "mk"):
@@ -258,6 +256,11 @@ class Setup:
             self.producer_email = ""
             self.dataset_id = ""
             self.volume_id = ""
+
+    @property
+    def re_config(self) -> list[re.Pattern]:
+        """Compiled kernel list patterns (compiled on access)."""
+        return [re.compile(pattern) for pattern in self.kernel_list_config]
 
     def freeze(self) -> None:
         """Make the Setup read-only once the configuration is resolved.

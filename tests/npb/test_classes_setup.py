@@ -336,19 +336,23 @@ class TestSetupInit:
                    for regex in setup_instance.re_config)
 
     @pytest.mark.parametrize('invalid_pattern', ['[', '(?P<kernel>'])
-    def test_raises_re_error_for_invalid_kernel_list_pattern(
+    def test_raises_re_error_on_read_for_invalid_kernel_list_pattern(
             self, tmp_path, monkeypatch, invalid_pattern) -> None:
-        """Raise 're.error' when a kernel pattern is not a valid regex."""
+        """Raise 're.error' on reading 're_config' with an invalid pattern."""
         # Fake a configuration with a single kernel whose pattern does not
         # compile.
         entries = self.make_init_config(
             kernel_list={'kernel': [{'@pattern': invalid_pattern,
                                      'description': 'd'}]})
 
-        # Building the Setup compiles the patterns, so it is the Setup
-        # constructor that fails.
+        # Building the Setup does not compile the patterns, so it succeeds.
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        # The patterns are compiled on the first read of 're_config'.
         with pytest.raises(re.error):
-            self.instantiate_setup(tmp_path, monkeypatch, entries)
+            setup_instance.re_config
 
     def test_calls_schema_validation_and_xml_conversion_once(self, tmp_path,
                                                              monkeypatch) -> None:
