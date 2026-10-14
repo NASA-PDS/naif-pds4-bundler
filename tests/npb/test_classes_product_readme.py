@@ -10,6 +10,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_readme import ReadmeProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Patch target: every name imported into product_readme is patched here so the
@@ -78,7 +79,7 @@ def build_product(setup, bundle):
     with patch(f'{MOD}.Product.__init__', return_value=None) as m_init, \
          patch(f'{MOD}.md5', return_value='d' * 32) as m_md5, \
          patch.object(ReadmeProduct, '_write_product') as m_write:
-        product = ReadmeProduct(setup, bundle)
+        product = ReadmeProduct(setup, RunState(), bundle)
         mocks = {'init': m_init, 'md5': m_md5, 'write': m_write}
         return product, mocks
 

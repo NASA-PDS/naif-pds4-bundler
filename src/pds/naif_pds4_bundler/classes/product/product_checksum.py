@@ -21,12 +21,14 @@ class ChecksumProduct(Product):
     """Class to generate a Checksum Product.
 
     :param setup:                 NPB execution setup object
+    :param run_state:             State of the current pipeline execution
     :param collection:            Miscellaneous Collection
     :param add_previous_checksum: True if there is a previous checksum file to
                                   be added, False otherwise
     """
 
-    def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
+    def __init__(self, setup, run_state, collection,
+                 add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
         # The initialization of the checksum class is lighter than the
@@ -38,6 +40,7 @@ class ChecksumProduct(Product):
         #
         self.bytes = 0
         self.setup = setup
+        self.run_state = run_state
         self.collection = collection
         self.collection_path = (
             self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
@@ -100,7 +103,7 @@ class ChecksumProduct(Product):
         # attributes.
         #
         self.new_product = True
-        Product.__init__(self)
+        Product.__init__(self, self.run_state)
 
     def read_current_product(self, add_previous_checksum: bool = True) -> None:
         """Reads the current checksum file.
@@ -549,7 +552,7 @@ class ChecksumProduct(Product):
                     entry = add_carriage_return(entry, self.setup.eol)
                     c.write(entry)
 
-            if self.setup.diff:
+            if self.setup.args.diff:
                 logging.info("-- Comparing checksum with previous version...")
                 self.compare()
 
@@ -564,7 +567,7 @@ class ChecksumProduct(Product):
                 self.path_current,
                 self.path,
                 self.setup.working_directory,
-                self.setup.diff,
+                self.setup.args.diff,
             )
 
         # compare_files() raises OSError/UnicodeDecodeError if either checksum

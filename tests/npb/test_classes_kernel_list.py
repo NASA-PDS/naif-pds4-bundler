@@ -40,8 +40,15 @@ def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
     # Attribute to check a real call, instead of a mock.
     setup.kernel_list_config = {}
 
+    # `diff` lives in the pipeline arguments, not in the setup itself.
+    setup.args = SimpleNamespace(diff=overrides.pop('diff', None))
+
     for key, value in overrides.items():
         setattr(setup, key, value)
+
+    # Setup compiles the patterns itself; the fake one has to do the same.
+    setup.re_config = [re.compile(pattern)
+                       for pattern in setup.kernel_list_config]
 
     return setup
 
@@ -168,21 +175,6 @@ class TestKernelListInit:
         # Check that read_config has saved the original configuration.
         assert kernel_list.json_config is json_config
 
-        # Check that the list of compiled regular expressions is stored in two
-        # places and that both point to the same object.
-        assert kernel_list.re_config is setup.re_config
-
-        # check that the two expected regular expressions have been compiled and
-        # are in the correct order.
-        assert [pattern.pattern for pattern in kernel_list.re_config] == [r'.*\.bsp$',
-                                                                          r'^maven_.*\.tm$']
-
-        # Check that the regular expressions work.
-        assert kernel_list.re_config[0].match('maven_001.bsp')
-        assert not kernel_list.re_config[0].match('maven_001.tsc')
-        assert kernel_list.re_config[1].match('maven_release_03.tm')
-        assert not kernel_list.re_config[1].match('release_03.tm')
-
         # Check that read_config has correctly generated the formatted
         # representation of the JSON.
         assert kernel_list.json_formatted_lst == expected_json_formatted_lst
@@ -202,11 +194,9 @@ class TestKernelListReadConfig:
 
         return kernel_list
 
-    @pytest.mark.parametrize('json_config, match_checks, expected_json_formatted_lst', [
-        ({}, [], ['{}']),
+    @pytest.mark.parametrize('json_config, expected_json_formatted_lst', [
+        ({}, ['{}']),
         ({r'.*\.bsp$': {'description': 'SPK kernels'}},
-         [(0, 'maven_001.bsp', True),
-          (0, 'maven_001.tsc', False)],
          ['{',
           '  ".*\\\\.bsp$": {',
           '    "description": "SPK kernels"',
@@ -215,12 +205,6 @@ class TestKernelListReadConfig:
         ({r'.*\.bsp$': {'description': 'SPK kernels'},
           r'^maven_.*\.tm$': {'description': 'Meta-kernels', 'mklabel_options': 'META'},
           r'orbnum_[0-9]{5}\.orb$': {'description': 'Orbnum files'}},
-         [(0, 'maven_001.bsp', True),
-          (0, 'maven_001.bc', False),
-          (1, 'maven_release_03.tm', True),
-          (1, 'release_03.tm', False),
-          (2, 'orbnum_00042.orb', True),
-          (2, 'orbnum_42.orb', False)],
          ['{',
           '  ".*\\\\.bsp$": {',
           '    "description": "SPK kernels"',
@@ -233,8 +217,8 @@ class TestKernelListReadConfig:
           '    "description": "Orbnum files"',
           '  }',
           '}'])])
-    def test_read_config_stores_compiled_regexes_and_formatted_json(
-            self, tmp_path, json_config, match_checks, expected_json_formatted_lst) -> None:
+    def test_read_config_reuses_setup_regexes_and_formats_json(
+            self, tmp_path, json_config, expected_json_formatted_lst) -> None:
         # Build a setup with the parametrized kernel-list configuration.
         setup = make_kernel_list_setup(tmp_path, kernel_list_config=json_config)
 
@@ -245,56 +229,13 @@ class TestKernelListReadConfig:
         # The original JSON config is not copied or transformed.
         assert kernel_list.json_config is json_config
 
-        # Every key in the JSON config is compiled as a regex, preserving the
-        # insertion order of the configuration.
-        assert len(kernel_list.re_config) == len(json_config)
-
-        assert [pattern.pattern
-                for pattern in kernel_list.re_config] == list(json_config)
-
-        assert all(isinstance(pattern, re.Pattern)
-                   for pattern in kernel_list.re_config)
-
-        # Also exposes the same compiled regex list through setup. This is
-        # important because other code consumes setup.re_config later.
-        assert kernel_list.setup.re_config is kernel_list.re_config
+        # The compiled regexes are the ones Setup already built, not a copy.
+        assert kernel_list.re_config is setup.re_config
 
         # The method read_config must create the pretty-printed JSON
         # representation used later when logging or displaying the kernel list
         # configuration.
         assert (kernel_list.json_formatted_lst == expected_json_formatted_lst)
-
-        # Prove that the compiled regexes are functional.
-        for pattern_index, candidate, expected_result in match_checks:
-            assert (bool(kernel_list.re_config[pattern_index].match(candidate))
-                    is expected_result)
-
-    @pytest.mark.parametrize('invalid_pattern', [
-        {'[': {'description': 'Invalid regex'}},
-        {'(?P<kernel>': {'description': 'Invalid regex'}}])
-    def test_read_config_raises_re_error_for_invalid_regex(self, tmp_path,
-                                                           invalid_pattern) -> None:
-        # This test highlights a bug in the code, as if read_config receives an
-        # invalid regex, it triggers a re.error, causing the code to crash.
-
-        # Build a setup object with an invalid regex.
-        setup = make_kernel_list_setup(tmp_path, kernel_list_config=invalid_pattern)
-
-        # Build KernelList without running __init__, so read_config may be
-        # called with an invalid regular expression and cause an error.
-        kernel_list = self.make_kernel_list_without_init(setup)
-
-        # Invalid regex patterns must raise re.error when read_config calls
-        # re.compile(pattern).
-        with pytest.raises(re.error):
-            kernel_list.read_config()
-
-        # The method assigns public state only after compiling all patterns.
-        # Therefore, when compilation fails, no partial state should be exposed.
-        assert not hasattr(kernel_list, 're_config')
-        assert not hasattr(kernel_list.setup, 're_config')
-        assert not hasattr(kernel_list, 'json_config')
-        assert not hasattr(kernel_list, 'json_formatted_lst')
 
     def test_read_config_raises_attribute_error_when_setup_has_no_config(self) -> None:
         # This test is irrelevant in the NPB environment because, due to its
@@ -317,7 +258,6 @@ class TestKernelListReadConfig:
 
         # As an error occurs, no partial state should be exposed.
         assert not hasattr(kernel_list, 're_config')
-        assert not hasattr(kernel_list.setup, 're_config')
         assert not hasattr(kernel_list, 'json_config')
         assert not hasattr(kernel_list, 'json_formatted_lst')
 

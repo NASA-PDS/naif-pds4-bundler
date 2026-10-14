@@ -30,6 +30,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.bundle import Bundle
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -347,8 +348,8 @@ class TestBundleCopyToBundle:
             staging_directory=str(staging),
             bundle_directory=str(bundle_dir),
             mission_acronym=MISSION,
-            faucet="bundle",
-            args=SimpleNamespace(silent=True, verbose=False),
+            args=SimpleNamespace(silent=True, verbose=False,
+                                 faucet="bundle"),
         )
         return setup, staging, bundle_dir
 
@@ -375,8 +376,8 @@ class TestBundleCopyToBundle:
             bundle_directory=str(bundle_dir),
             mission_acronym=MISSION,
             volume_id=self.VOLUME_ID,
-            faucet="bundle",
-            args=SimpleNamespace(silent=True, verbose=False),
+            args=SimpleNamespace(silent=True, verbose=False,
+                                 faucet="bundle"),
         )
         return setup, staging, bundle_dir
 
@@ -501,7 +502,7 @@ class TestBundleCopyToBundle:
         """PDS4 label mode: the ``spice_kernels`` segment is stripped so the
         file lands directly under the bundle root, not in a subdirectory."""
         setup, staging, bundle_dir = self._pds4_setup(tmp_path)
-        setup.faucet = "labels"
+        setup.args.faucet = "labels"
         spk_dir = staging / "spice_kernels"
         spk_dir.mkdir()
         src = spk_dir / "test.xml"
@@ -618,7 +619,7 @@ class TestBundleCopyToBundle:
     def test_pds3_label_mode_strips_data_prefix(self, tmp_path):
         """PDS3 label mode: the ``data`` segment is stripped from the path."""
         setup, staging, bundle_dir = self._pds3_setup(tmp_path)
-        setup.faucet = "labels"
+        setup.args.faucet = "labels"
         data_dir = staging / "data"
         data_dir.mkdir()
         src = data_dir / "test.lbl"
@@ -647,13 +648,12 @@ class TestBundleFilesInStaging:
         staging.mkdir(parents=True)
         bundle_dir = tmp_path / "bundle"
         bundle_dir.mkdir()
-        args = SimpleNamespace(silent=True, verbose=False)
+        args = SimpleNamespace(silent=True, verbose=False, faucet="bundle")
         setup = SimpleNamespace(
             pds_version="4",
             staging_directory=str(staging),
             bundle_directory=str(bundle_dir),
             mission_acronym=MISSION,
-            faucet="bundle",
             args=args,
         )
         bundle = _make_bundle(setup, vid="1.0",
@@ -677,7 +677,7 @@ class TestBundleFilesInStaging:
     def test_pds4_label_mode_skips_bundle_label(self, tmp_path):
         """In label mode the bundle label XML is not added to ``_new_files``."""
         bundle, _ = self._staging_setup(tmp_path)
-        bundle.setup.faucet = "labels"
+        bundle.setup.args.faucet = "labels"
         bundle.files_in_staging()
         expected = os.path.join(
             bundle.setup.staging_directory, bundle.name
@@ -787,8 +787,9 @@ class TestBundleValidate:
                               name=f"bundle_{MISSION}_spice_v001.xml")
         bundle._check_times = MagicMock()
         bundle._validate_history = MagicMock()
-        bundle.validate()
-        bundle._check_times.assert_called_once()
+        run_state = RunState()
+        bundle.validate(run_state)
+        bundle._check_times.assert_called_once_with(run_state)
         bundle._validate_history.assert_called_once()
 
 
@@ -804,17 +805,18 @@ class TestBundlePCheckTimes:
             increment_start: str,
             increment_finish: str,
             mission_finish: str,
-    ) -> Bundle:
-        """Construct a minimal ``Bundle`` with only the four time attributes that
-        ``_check_times`` reads from ``self.setup``."""
+    ) -> tuple[Bundle, RunState]:
+        """Construct a minimal ``Bundle`` and the ``RunState`` that
+        ``_check_times`` needs: the mission times are read from ``self.setup``
+        and the increment times from the run state."""
         bundle = object.__new__(Bundle)
         bundle.setup = SimpleNamespace(
             mission_start=mission_start,
-            increment_start=increment_start,
-            increment_finish=increment_finish,
             mission_finish=mission_finish,
         )
-        return bundle
+        run_state = RunState(increment_start=increment_start,
+                             increment_finish=increment_finish)
+        return bundle, run_state
 
     @pytest.mark.parametrize('m_start, i_start, i_end, m_end', [
         # Normal mode of operation (DOY format)
@@ -832,8 +834,9 @@ class TestBundlePCheckTimes:
     ])
     def test_valid_ordering(self, lsk, m_start, i_start, i_end, m_end):
         """All four times correctly ordered."""
-        bundle = self._make_times_bundle(m_start, i_start, i_end, m_end)
-        bundle._check_times()
+        bundle, run_state = self._make_times_bundle(
+            m_start, i_start, i_end, m_end)
+        bundle._check_times(run_state)
 
     @pytest.mark.parametrize('m_start, i_start, i_end, m_end', [
         # mission_start after increment_start
@@ -851,21 +854,22 @@ class TestBundlePCheckTimes:
 
     ])
     def test_invalid_ordering(self, lsk, m_start, i_start, i_end, m_end):
-        bundle = self._make_times_bundle(m_start, i_start, i_end, m_end)
+        bundle, run_state = self._make_times_bundle(
+            m_start, i_start, i_end, m_end)
         with pytest.raises(NPBError, match="The resulting Mission and Increment start "
                                            "and finish dates are incoherent."):
-            bundle._check_times()
+            bundle._check_times(run_state)
 
     @patch("pds.naif_pds4_bundler.classes.bundle.spiceypy.str2et")
     def test_spiceypy_failure_raises_npberror(self, mock_str2et):
         """A SpiceyPyError from str2et is raised as NPBError."""
         mock_str2et.side_effect = SpiceyPyError('spiceypy error')
-        bundle = self._make_times_bundle(
+        bundle, run_state = self._make_times_bundle(
             "2000-001T00:00:00", "2000-060T00:00:00",
             "2000-180T00:00:00", "2001-001T00:00:00")
 
         with pytest.raises(NPBError):
-            bundle._check_times()
+            bundle._check_times(run_state)
 
 
 # ---------------------------------------------------------------------------

@@ -15,6 +15,7 @@ from spiceypy import SpiceyPyError
 import xmlschema
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.setup import Setup
 
 
@@ -203,8 +204,6 @@ class TestSetupInit:
         assert setup_instance.run_type == 'release'
         assert setup_instance.version == '9.9.9'
         assert setup_instance.args is args
-        assert setup_instance.faucet == 'bundle'
-        assert setup_instance.diff is True
         assert setup_instance.today == '20240203'
         assert setup_instance.release_date == '2024-02-03'
         assert setup_instance.date_format == 'maklabel'
@@ -308,6 +307,52 @@ class TestSetupInit:
         # The raw 'kernel' attribute is only an intermediate representation and is
         # removed after kernel_list_config has been built.
         assert not hasattr(setup_instance, 'kernel')
+
+    @pytest.mark.parametrize('patterns', [
+        [],
+        [r'.*\.bsp$'],
+        [r'.*\.bsp$', r'^maven_.*\.tm$', r'orbnum_[0-9]{5}\.orb$']])
+    def test_compiles_kernel_list_patterns_into_re_config(
+            self, tmp_path, monkeypatch, patterns) -> None:
+        """Compile every kernel pattern into 're_config', in config order.
+
+        The list is empty when no kernel patterns are configured.
+        """
+        # Fake a configuration with one 'kernel' entry per pattern, the way
+        # etree_to_dict returns it from the XML.
+        entries = self.make_init_config(
+            kernel_list={'kernel': [{'@pattern': pattern, 'description': 'd'}
+                                    for pattern in patterns]})
+
+        # Build the Setup.
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        # There is one compiled regex per pattern, in the same order as in the
+        # configuration.
+        assert [regex.pattern for regex in setup_instance.re_config] == patterns
+        assert all(isinstance(regex, re.Pattern)
+                   for regex in setup_instance.re_config)
+
+    @pytest.mark.parametrize('invalid_pattern', ['[', '(?P<kernel>'])
+    def test_raises_re_error_on_read_for_invalid_kernel_list_pattern(
+            self, tmp_path, monkeypatch, invalid_pattern) -> None:
+        """Raise 're.error' on reading 're_config' with an invalid pattern."""
+        # Fake a configuration with a single kernel whose pattern does not
+        # compile.
+        entries = self.make_init_config(
+            kernel_list={'kernel': [{'@pattern': invalid_pattern,
+                                     'description': 'd'}]})
+
+        # Building the Setup does not compile the patterns, so it succeeds.
+        setup_instance, _, _, _, _ = self.instantiate_setup(
+            tmp_path, monkeypatch, entries,
+        )
+
+        # The patterns are compiled on the first read of 're_config'.
+        with pytest.raises(re.error):
+            setup_instance.re_config
 
     def test_calls_schema_validation_and_xml_conversion_once(self, tmp_path,
                                                              monkeypatch) -> None:
@@ -796,7 +841,7 @@ class TestSetupCheckConfiguration:
         setup.date_format = 'maklabel'
         setup.end_of_line = 'CRLF'
         setup.kernel_endianness = 'little'
-        setup.faucet = faucet
+        setup.args = SimpleNamespace(faucet=faucet)
 
         setup.working_directory = 'work' if relative_paths else str(work)
         setup.staging_directory = 'staging' if relative_paths else str(staging)
@@ -1640,7 +1685,6 @@ class TestSetupSetRelease:
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:
         setup = make_setup(tmp_path)
 
-        setup.file_list = []
         setup.bundle_directory = '/bundle'
         setup.pds_version = pds_version
         setup.args = SimpleNamespace(clear=clear, kerlist=kerlist)
@@ -2505,406 +2549,73 @@ class TestSetupLoadKernelGroup:
             ('root', logging.ERROR, '-- LSK not found.')]
 
 
-class TestSetupWriteFileList:
+class TestSetupFreeze:
+
     @staticmethod
-    def make_minimal_setup(tmp_path, file_list: list[str]) -> Setup:
-        # Build a minimal Setup instance without executing __init__ method.
+    def make_frozen_setup(tmp_path) -> Setup:
+        # A Setup with one regular attribute, frozen right away.
+        setup = make_setup(tmp_path)
+        setup.mission_acronym = 'maven'
+        setup.freeze()
+
+        return setup
+
+    def test_allows_writing_and_deleting_before_freeze(self, tmp_path) -> None:
+        """Set, overwrite and delete attributes freely until it is frozen."""
+
+        # Build a Setup that has not been frozen.
         setup = make_setup(tmp_path)
 
-        setup.file_list = file_list
-
-        return setup
-
-    @pytest.mark.parametrize('initial_file_list, file_entry, expected_file_list', [
-        ([], 'bundle_maven_spice_v001.xml', ['bundle_maven_spice_v001.xml']),
-        ([], 'spice_kernels/fk/maven_v11.tf', ['spice_kernels/fk/maven_v11.tf']),
-        ([], '/usr1/pds4/staging/maven/maven_spice/readme.txt',
-         ['/usr1/pds4/staging/maven/maven_spice/readme.txt']),
-        (['bundle_maven_spice_v001.xml',
-          'collection_spice_kernels_inventory_v001.csv'],
-         'document/spiceds_v001.html',
-         ['bundle_maven_spice_v001.xml',
-          'collection_spice_kernels_inventory_v001.csv',
-          'document/spiceds_v001.html'])])
-    def test_add_file_appends_expected_file_entry_to_file_list(
-            self, tmp_path, initial_file_list, file_entry, expected_file_list) -> None:
-        # Verify that add_file appends the received file entry unchanged to the
-        # in-memory file list and does not create any file on disk.
-
-        # Build a minimal Setup instance.
-        setup = self.make_minimal_setup(tmp_path, file_list=initial_file_list)
-
-        setup.add_file(file_entry)
-
-        # Check that the element has appended successfully as a list.
-        assert setup.file_list == expected_file_list
-
-        # Check that the temporary directory is still empty. This shows that
-        # add_file has not created any files.
-        assert list(tmp_path.iterdir()) == []
-
-    def test_add_file_does_not_log_when_entry_is_registered(self, tmp_path,
-                                                            caplog) -> None:
-        # Verify that add_file registers the file entry in memory without emitting
-        # logging records or creating files on disk.
-
-        # Build a minimal Setup instance.
-        setup = self.make_minimal_setup(tmp_path, file_list=[])
-
-        # Check the logging level and logging messages.
-        with caplog.at_level(logging.INFO):
-            setup.add_file('readme.txt')
-
-        # Check that the method added the file to file_list.
-        assert setup.file_list == ['readme.txt']
-
-        # Check that no logging messages were generated whilst add_file was
-        # running.
-        assert caplog.messages == []
-
-        # The method should not crete any file.
-        assert list(tmp_path.iterdir()) == []
-
-    def test_add_file_and_write_file_list_work_together(self, tmp_path,
-                                                        caplog) -> None:
-        # Verify the complete add_file/write_file_list flow: files registered in
-        # memory are persisted in the same order, one per line, using the
-        # expected file name.
-
-        # Build a minimal setup instance.
-        setup_instance = self.make_minimal_setup(tmp_path, file_list=[])
-
-        # Adds some files to file_list.
-        setup_instance.add_file('bundle_psyche_spice_v012.xml')
-        setup_instance.add_file('collection_spice_kernels_inventory_v012.csv')
-        setup_instance.add_file('spice_kernels/mk/psyche_2025_v01.tm')
-
-        # Check the logging level and logging messages.
-        with caplog.at_level(logging.INFO):
-            setup_instance.write_file_list()
-
-        # Build the expected path.
-        expected_path = tmp_path / 'maven_release_03.file_list'
-
-        # Check that the file_list has the added files.
-        assert setup_instance.file_list == ['bundle_psyche_spice_v012.xml',
-                                            'collection_spice_kernels_inventory_v012.csv',
-                                            'spice_kernels/mk/psyche_2025_v01.tm']
-
-        # Check that the correct file has been created and that no unexpected
-        # additional files have been created.
-        assert list(tmp_path.iterdir()) == [expected_path]
-
-        # Check the file content.
-        assert expected_path.read_text(encoding='utf-8') == (
-            'bundle_psyche_spice_v012.xml\n'
-            'collection_spice_kernels_inventory_v012.csv\n'
-            'spice_kernels/mk/psyche_2025_v01.tm\n')
-
-        assert caplog.messages == ['-- Run File List file written in working area.']
-
-    @pytest.mark.parametrize('file_list, expected_contents', [
-        (['bundle_maven_spice_v001.xml',
-          'collection_spice_kernels.csv'],
-         'bundle_maven_spice_v001.xml\n'
-         'collection_spice_kernels.csv\n'),
-        (['miscellaneous/collection_miscellaneous_inventory_v001.csv',
-          'miscellaneous/collection_miscellaneous_v001.xml',
-          'readme.txt'],
-         'miscellaneous/collection_miscellaneous_inventory_v001.csv\n'
-         'miscellaneous/collection_miscellaneous_v001.xml\n'
-         'readme.txt\n')])
-    # TODO: Update the file_list inputs to be PathLike when code gets updated.
-    def test_creates_expected_file_with_expected_content(self, tmp_path,
-                                                         file_list, expected_contents) -> None:
-        # Test how the method behaves when the 'file_list' file exists.
-        #   - Creates the correct file.
-        #   - In the correct path.
-        #   - With the correct content.
-
-        setup = self.make_minimal_setup(tmp_path, file_list=file_list)
-
-        setup.write_file_list()
-
-        # Check that the file has been created in the correct location.
-        expected_path = tmp_path / "maven_release_03.file_list"
-
-        # Check that only on file is created.
-        assert list(tmp_path.iterdir()) == [expected_path]
-
-        # Check that the contents of the file are correct.
-        assert expected_path.read_text(encoding="utf-8") == expected_contents
-
-    def test_creates_no_file_when_file_list_is_empty(self, tmp_path) -> None:
-        # Test how the method behaves when the 'file_list' file not exists.
-        #    - No file is created.
-
-        setup = self.make_minimal_setup(tmp_path, file_list=[])
-
-        setup.write_file_list()
-
-        assert list(tmp_path.iterdir()) == []
-
-    def test_logs_success_message_when_file_is_written(self, tmp_path,
-                                                       monkeypatch, caplog) -> None:
-        # When the 'file_list' exist, check the logging message is correct.
-
-        setup = self.make_minimal_setup(tmp_path, file_list=["bundle_maven_spice_v001.xml"])
-        monkeypatch.setattr("builtins.open", mock_open())
-
-        # Reset the list of log records.
-        caplog.clear()
-
-        # Capture INFO-level log messages.
-        with caplog.at_level(logging.INFO):
-            setup.write_file_list()
-
-        # Check the log message.
-        assert caplog.messages == ["-- Run File List file written in working area."]
-
-    def test_does_not_log_success_message_when_file_list_is_empty(self, tmp_path,
-                                                                  monkeypatch, caplog) -> None:
-        # When the 'file_list' does not exist, check that no log messages are recorded.
-
-        setup = self.make_minimal_setup(tmp_path, file_list=[])
-        monkeypatch.setattr("builtins.open", mock_open())
-
-        # Reset the list of log records.
-        caplog.clear()
-
-        # Capture INFO-level log messages.
-        with caplog.at_level(logging.INFO):
-            setup.write_file_list()
-
-        # Check that the register is empty.
-        assert "-- Run File List file written in working area." not in caplog.messages
-
-
-class TestSetupChecksumRegistry:
-    @staticmethod
-    def make_minimal_setup(tmp_path, checksum_registry: list[str],
-                           mission_acronym: str = "maven", run_type: str = "release",
-                           release: str = "3") -> Setup:
-        # Build a minimal Setup instance without executing __init__ method. Only
-        # required attributes by add_checksum and write_checksum_registry are
-        # populated.
-        setup = make_setup(tmp_path, mission_acronym=mission_acronym,
-                           run_type=run_type, release=release)
-
-        setup.checksum_registry = checksum_registry
-
-        return setup
-
-    @pytest.mark.parametrize('path, checksum, expected_registry', [
-        ('/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
-         'psyche_ep_rec_250616_250622.bc',
-         'fadf8e23f21b18710f8cb1d3be8eeebd',
-         ['/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
-          'psyche_ep_rec_250616_250622.bc '
-          'fadf8e23f21b18710f8cb1d3be8eeebd']),
-        ('readme.txt',
-         'dca7381138766f7f36e7468d75b725c0',
-         ['readme.txt dca7381138766f7f36e7468d75b725c0'])])
-    def test_add_checksum_appends_expected_registry_entry(
-            self, tmp_path, path, checksum, expected_registry) -> None:
-        # This test, checks add_checksum independently.
-        #   - It does not write any file.
-        #   - It appends exactly one registry entry.
-        #   - The entry format is: "<path> <checksum>".
-
-        # Build a minimal setup object with an empty registry.
-        setup = self.make_minimal_setup(tmp_path, checksum_registry=[])
-
-        setup.add_checksum(path, checksum)
-
-        # Check that the record contains exactly the expected entry.
-        assert setup.checksum_registry == expected_registry
-
-        # The add_checksum operation is an in-memory operation only, so you must
-        # ensure that nothing has been written to disk.
-        assert list(tmp_path.iterdir()) == []
-
-    def test_add_checksum_preserves_existing_entries_and_appends_at_the_end(
-            self, tmp_path) -> None:
-        # Check that add_checksum preserves the existing contents of
-        # checksum_registry and adds the new entry at the end.
-
-        # Create the object using an existing entry in checksum_registry.
-        setup = self.make_minimal_setup(tmp_path,
-                                        checksum_registry=['/usr1/pds4/staging/psyche/psyche_spice/readme.txt '
-                                                           'dca7381138766f7f36e7468d75b725c0'])
-
-        # Add a second entry using the real method.
-        setup.add_checksum('/usr1/pds4/staging/psyche/psyche_spice/document/'
-                           'spiceds_v001.html', '78a6f8dbfa6c52d0d927bacb09ba6098')
-
-        # Check that the original entry remains in the first position.
-        # Furthermore, the new entry is placed at the end and retains the path
-        # checksum format.
-        assert setup.checksum_registry == ['/usr1/pds4/staging/psyche/psyche_spice/readme.txt '
-                                           'dca7381138766f7f36e7468d75b725c0',
-                                           '/usr1/pds4/staging/psyche/psyche_spice/document/'
-                                           'spiceds_v001.html 78a6f8dbfa6c52d0d927bacb09ba6098']
-
-        # The add_checksum operation is an in-memory operation only, so you must
-        # ensure that nothing has been written to disk.
-        assert list(tmp_path.iterdir()) == []
-
-    @pytest.mark.parametrize(
-        'mission_acronym, run_type, release, checksum_registry, expected_filename, expected_contents', [
-            ('maven', 'release', '3',
-             ['bundle_maven_spice_v001.xml '
-              '11111111111111111111111111111111',
-              'collection_spice_kernels_inventory_v001.csv '
-              '22222222222222222222222222222222'],
-             'maven_release_03.checksum',
-             'bundle_maven_spice_v001.xml '
-             '11111111111111111111111111111111\n'
-             'collection_spice_kernels_inventory_v001.csv '
-             '22222222222222222222222222222222\n'),
-            ('psyche', 'labels', '12',
-             ['/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/mk/'
-              'psyche_2025_v01.tm c3e3082ac69ec1c8da5b6bf9bca7f617'],
-             'psyche_labels_12.checksum',
-             '/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/mk/'
-             'psyche_2025_v01.tm c3e3082ac69ec1c8da5b6bf9bca7f617\n')])
-    def test_write_checksum_registry_creates_expected_file_with_expected_content(
-            self, tmp_path, mission_acronym, run_type, release,
-            checksum_registry, expected_filename, expected_contents) -> None:
-        # This test checks write_checksum_registry using a pre-prepared
-        # checksum_registry and verifies that the method creates the correct
-        # file, in the correct location, with the exact content.
-
-        # Build a minimal object needed to write the file.
-        setup = self.make_minimal_setup(tmp_path, checksum_registry=checksum_registry,
-                                        mission_acronym=mission_acronym, run_type=run_type,
-                                        release=release)
-
-        setup.write_checksum_registry()
-
-        # Build the expected path.
-        expected_path = tmp_path / expected_filename
-
-        # Check that only that file has been created.
-        assert list(tmp_path.iterdir()) == [expected_path]
-
-        # Check the exact contents of the file.
-        assert expected_path.read_text(encoding='utf-8') == expected_contents
-
-    def test_write_checksum_registry_creates_no_file_when_registry_is_empty(
-            self, tmp_path) -> None:
-        # This test checks that if the registry is empty, the method should
-        # terminate without creating a file.
-
-        # Build a setup object with an empty checksum_registry.
-        setup = self.make_minimal_setup(tmp_path, checksum_registry=[])
-
-        setup.write_checksum_registry()
-
-        # When an empty checksum is passed, the method should not create
-        # anything.
-        assert list(tmp_path.iterdir()) == []
-
-    def test_write_checksum_registry_logs_success_message_when_file_is_written(
-            self, tmp_path, monkeypatch, caplog) -> None:
-        # Build a minimal setup object with an entry in the registry.
-        setup = self.make_minimal_setup(tmp_path,
-                                        checksum_registry=['bundle_maven_spice_v001.xml '
-                                                           '11111111111111111111111111111111'])
-
-        # Mocks the open call.
-        open_mock = mock_open()
-        monkeypatch.setattr("builtins.open", open_mock)
-
-        # Captures the logs generated when the method is executed.
-        with caplog.at_level(logging.INFO):
-            setup.write_checksum_registry()
-
-        # Check that the method has opened exactly the file you expected.
-        open_mock.assert_called_once_with(
-            str(tmp_path / 'maven_release_03.checksum'), 'w', encoding='utf-8')
-
-        # Check the log message.
-        assert caplog.messages == ["-- Run Checksum Registry file written in working area."]
-
-    def test_write_checksum_registry_does_not_log_or_open_when_registry_is_empty(
-            self, tmp_path, monkeypatch, caplog) -> None:
-        # Check logging separately for the empty-registry branch.
-        # No checksum records means:
-        #   - no file opening;
-        #   - no success log message.
-
-        # Build a setup object with an empty registry.
-        setup = self.make_minimal_setup(tmp_path, checksum_registry=[])
-
-        # Mock the open call.
-        open_mock = mock_open()
-        monkeypatch.setattr("builtins.open", open_mock)
-
-        # Captures the logs generated when the method is executed.
-        with caplog.at_level(logging.INFO):
-            setup.write_checksum_registry()
-
-        # Check that the call to open is not being executed.
-        open_mock.assert_not_called()
-
-        # Check that there are none logs.
-        assert caplog.messages == []
-
-    def test_add_checksum_and_write_checksum_registry_work_together(
-            self, tmp_path) -> None:
-        # Integration test for both methods.
-        #   - add_checksum builds the in-memory registry.
-        #   - write_checksum_registry persists that registry without changing
-        #     its format or order.
-
-        # Build a setup object with an empty registry.
-        setup = self.make_minimal_setup(tmp_path, checksum_registry=[])
-
-        # Add several entries using add_checksum. This allows you to verify that
-        # the order is maintained and that the data is written across multiple
-        # lines. Also, add an entry from another subdirectory.
-        setup.add_checksum('/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
-                           'psyche_ep_rec_250616_250622.bc',
-                           'fadf8e23f21b18710f8cb1d3be8eeebd')
-        setup.add_checksum('/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
-                           'psyche_ep_rec_250623_250629.bc',
-                           '55b74c3bdc78bb8c956f0464f3c628c6')
-        setup.add_checksum('/usr1/pds4/staging/psyche/psyche_spice/document/'
-                           'spiceds_v001.html',
-                           '78a6f8dbfa6c52d0d927bacb09ba6098')
-
-        setup.write_checksum_registry()
-
-        # Build the expected values (path and registry).
-        expected_path = tmp_path / 'maven_release_03.checksum'
-
-        expected_registry = ['/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
-                             'psyche_ep_rec_250616_250622.bc '
-                             'fadf8e23f21b18710f8cb1d3be8eeebd',
-                             '/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
-                             'psyche_ep_rec_250623_250629.bc '
-                             '55b74c3bdc78bb8c956f0464f3c628c6',
-                             '/usr1/pds4/staging/psyche/psyche_spice/document/'
-                             'spiceds_v001.html 78a6f8dbfa6c52d0d927bacb09ba6098']
-
-        # Check that add_checksum has stored the registry in memory in the
-        # correct format and order.
-        assert setup.checksum_registry == expected_registry
-
-        # Check that write_checksum_registry has created exactly one file.
-        assert list(tmp_path.iterdir()) == [expected_path]
-
-        # Read the file and compare its entire contents.
-        assert expected_path.read_text(encoding='utf-8') == (
-            '/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
-            'psyche_ep_rec_250616_250622.bc '
-            'fadf8e23f21b18710f8cb1d3be8eeebd\n'
-            '/usr1/pds4/staging/psyche/psyche_spice/spice_kernels/ck/'
-            'psyche_ep_rec_250623_250629.bc '
-            '55b74c3bdc78bb8c956f0464f3c628c6\n'
-            '/usr1/pds4/staging/psyche/psyche_spice/document/'
-            'spiceds_v001.html 78a6f8dbfa6c52d0d927bacb09ba6098\n')
+        # Create, overwrite and delete attributes.
+        setup.mission_acronym = 'maven'
+        setup.mission_acronym = 'insight'
+        setup.extra = 1
+        del setup.extra
+
+        # The changes were applied.
+        assert setup.mission_acronym == 'insight'
+        assert not hasattr(setup, 'extra')
+
+    @pytest.mark.parametrize('name', ['mission_acronym', 'new_attribute'])
+    def test_rejects_setting_after_freeze(self, tmp_path, name) -> None:
+        """Raise NPBInternalError when an existing or a new attribute is set
+        after the freeze, and leave the Setup untouched."""
+
+        # Freeze a Setup that already has 'mission_acronym'.
+        setup = self.make_frozen_setup(tmp_path)
+
+        # Try to set the attribute.
+        with pytest.raises(NPBInternalError, match=name):
+            setattr(setup, name, 'changed')
+
+        # The value was not written.
+        assert vars(setup).get(name) != 'changed'
+
+    def test_rejects_deleting_after_freeze(self, tmp_path) -> None:
+        """Raise NPBInternalError when an attribute is deleted after the
+        freeze, and keep it."""
+
+        # Freeze a Setup that already has 'mission_acronym'.
+        setup = self.make_frozen_setup(tmp_path)
+
+        # Try to delete the attribute.
+        with pytest.raises(NPBInternalError, match='mission_acronym'):
+            del setup.mission_acronym
+
+        # The attribute is still there.
+        assert setup.mission_acronym == 'maven'
+
+    def test_reading_still_works_after_freeze(self, tmp_path) -> None:
+        """Reading attributes, with hasattr or getattr, is not affected."""
+
+        # Freeze a Setup that already has 'mission_acronym'.
+        setup = self.make_frozen_setup(tmp_path)
+
+        # Read an attribute that exists and one that doesn't.
+        assert setup.mission_acronym == 'maven'
+        assert hasattr(setup, 'mission_acronym')
+        assert not hasattr(setup, 'missing')
+        assert getattr(setup, 'missing', 'default') == 'default'
 
 
 class TestSetupWriteValidateConfig:

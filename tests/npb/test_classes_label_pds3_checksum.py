@@ -18,6 +18,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.pds3_checksum import ChecksumPDS3Label
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Helpers – factories for the two collaborator mocks (setup & product)
@@ -36,19 +37,18 @@ def _make_setup(tmp_path: Path, *, pds_version: str = "3") -> MagicMock:
     setup.templates_directory = str(tmp_path / "templates")
     setup.staging_directory = str(tmp_path / "staging")
     setup.working_directory = str(tmp_path / "work")
-    setup.diff = False
+    setup.args.diff = False
     setup.eol_pds3 = "\r\n"
     # args namespace expected by write_label
     setup.args.silent = True
     setup.args.verbose = False
-    # add_file must be callable without side-effects
-    setup.add_file = MagicMock()
     return setup
 
 
 def _make_product(staging_dir: Path) -> MagicMock:
     """Return a mock Checksum product object."""
     product = MagicMock()
+    product.run_state = RunState()
     product.creation_time = "2024-01-15T12:00:00"
     product.creation_date = "2024-01-15"
     product.record_bytes = 80
@@ -379,11 +379,11 @@ class TestChecksumPDS3LabelIntegration:
         assert caplog.messages.count("") == 1
 
     # ------------------------------------------------------------------
-    # 7. setup.add_file is called with the relative label path
+    # 7. the run state receives the relative label path
     # ------------------------------------------------------------------
 
     def test_add_file_called_with_label_path(self, env):
-        """setup.add_file() must be invoked with the relative label path."""
+        """The run state must receive the relative label path."""
         setup = env["setup"]
         product = env["product"]
 
@@ -391,4 +391,4 @@ class TestChecksumPDS3LabelIntegration:
 
         ChecksumPDS3Label(product).write_label()
 
-        setup.add_file.assert_called_once_with("checksum.lbl")
+        assert product.run_state.file_list == ["checksum.lbl"]

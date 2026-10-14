@@ -34,6 +34,7 @@ class MetaKernelProduct(Product):
     """Class that represents a Metakernel file.
 
     :param setup:                    NPB execution setup object
+    :param run_state:                State of the current pipeline execution
     :param kernel:                   Metakernel path
     :param spice_kernels_collection: SPICE Kernel Collection
     :param user_input:               Indicates whether if the metakernel is
@@ -43,6 +44,7 @@ class MetaKernelProduct(Product):
     def __init__(
         self,
         setup,
+        run_state,
         kernel: str,
         spice_kernels_collection,
         user_input: bool = False,
@@ -211,7 +213,7 @@ class MetaKernelProduct(Product):
         #
         # Compare the meta-kernels.
         #
-        if self.setup.diff:
+        if self.setup.args.diff:
             self.compare()
         logging.info("")
 
@@ -239,7 +241,7 @@ class MetaKernelProduct(Product):
             self.targets = targets
             self.observers = observers
 
-        super().__init__()
+        super().__init__(run_state)
 
     def check_version(self) -> None:
         """Check if the provided Meta-kernel version is correct."""
@@ -855,7 +857,7 @@ class MetaKernelProduct(Product):
         logging.info('-- Comparing %s...',
                      self.name.split(f"{self.setup.mission_acronym}_spice/")[-1])
 
-        compare_files(fromfile, tofile, work_dir, self.setup.diff)
+        compare_files(fromfile, tofile, work_dir, self.setup.args.diff)
 
     def validate(self) -> None:
         """Perform a basic validation of the Meta-kernel.
@@ -1066,6 +1068,10 @@ class MetaKernelProduct(Product):
             #
             # The alternative is to set the increment times to the increment
             # or mission times provided via configuration.
+            #
+            # setup.increment_* holds only what was configured. The computed
+            # increment times are derived from this coverage afterwards and
+            # live in run_state.
             #
             if hasattr(self, "year"):
 

@@ -24,6 +24,7 @@ from ..utils import (
 # The following imports are only required for type checking.
 if TYPE_CHECKING:
     from .product import ReadmeProduct
+    from .run_state import RunState
 
 
 class Bundle:
@@ -150,7 +151,7 @@ class Bundle:
         #
         # Include the bundle products if not running in label mode.
         #
-        if self.setup.pds_version == "4" and self.setup.faucet != "labels":
+        if self.setup.pds_version == "4" and self.setup.args.faucet != "labels":
             self._new_files.append(self.setup.staging_directory + os.sep + self.name)
             if self._readme and self._readme.new_product:
                 self._new_files.append(
@@ -193,7 +194,7 @@ class Bundle:
             # If running in label mode, the bundle directory structure is not
             # replicated.
             #
-            if self.setup.faucet == "labels":
+            if self.setup.args.faucet == "labels":
                 relative_path = relative_path.split(spice_kernels_dir)[-1]
 
             dst = self.setup.bundle_directory + relative_path
@@ -266,13 +267,15 @@ class Bundle:
             logging.warning(line)
         logging.info("")
 
-    def validate(self):
+    def validate(self, run_state: RunState) -> None:
         """Validate the Bundle.
 
         The two implemented steps are to check checksum files against the
         updated bundle history and checking the bundle times.
+
+        :param run_state: Run state providing the increment times.
         """
-        self._check_times()
+        self._check_times(run_state)
         self._validate_history()
 
     # ------------------------------------------------------------------
@@ -280,11 +283,14 @@ class Bundle:
     # ------------------------------------------------------------------
 
     @spice_exception_handler
-    def _check_times(self):
-        """Check the correctness of the bundle times."""
+    def _check_times(self, run_state: RunState) -> None:
+        """Check the correctness of the bundle times.
+
+        :param run_state: Run state providing the increment times.
+        """
         str_msn_strt = self.setup.mission_start
-        str_inc_strt = self.setup.increment_start
-        str_inc_stop = self.setup.increment_finish
+        str_inc_strt = run_state.increment_start
+        str_inc_stop = run_state.increment_finish
         str_msn_stop = self.setup.mission_finish
 
         #

@@ -8,6 +8,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds3_spice_kernel import SpiceKernelPDS3Label
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Patch target strings (adjust if the real package path differs)
@@ -43,6 +44,7 @@ def _make_setup():
 def _make_product(kernel_type="SPK"):
     """Minimal mock for the *product* object."""
     product = MagicMock()
+    product.run_state = RunState()
     product.name = "fake_kernel.bsp"
     product.file_format = "BINARY"
     product.start_time = "2000-001T00:00:00Z"
@@ -67,6 +69,7 @@ def bare_label():
     label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
     label._label_fields = {}
     label.setup = _make_setup()
+    label.run_state = RunState()
     label.product = _make_product()
     label.name = "/fake/output/fake_kernel.lbl"
     return label
@@ -246,13 +249,12 @@ class TestSpiceKernelPDS3LabelWriteLabel:
 
         # MagicMock attrs are truthy by default -- must be False or
         # self.compare() runs.
-        setup.diff = False
+        setup.args.diff = False
 
         # Must be True or write_label()'s print(...) branch also runs.
         setup.args.silent = True
         setup.args.verbose = False
         setup.staging_directory = str(staging_dir)
-        setup.add_file = MagicMock()
 
         product = MagicMock()
         product.path = str(staging_dir / "kernel.bsp")
@@ -262,6 +264,7 @@ class TestSpiceKernelPDS3LabelWriteLabel:
         label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
         label._label_fields = {"FILE_NAME": "kernel.bsp"}
         label.setup = setup
+        label.run_state = RunState()
         label.product = product
         label.name = str(staging_dir / "kernel.lbl")
         label._template = str(template_path)

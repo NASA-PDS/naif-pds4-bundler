@@ -11,6 +11,7 @@ from pathlib import Path
 from unittest.mock import MagicMock
 
 from pds.naif_pds4_bundler.classes.label.pds3_label import PDS3Label
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 def _make_setup_pds3(**kwargs):
@@ -28,6 +29,7 @@ def _make_setup_pds3(**kwargs):
 
 def _make_product():
     product = MagicMock()
+    product.run_state = RunState()
     product.creation_time = "2024-01-01T00:00:00"
     product.creation_date = "2024-01-01"
     product.size = 1024
@@ -90,7 +92,7 @@ class TestPDS3LabelWriteLabelIntegration:
     def test_write_label_produces_lbl_file_with_pds3_eol(self, tmp_path):
         setup = _make_setup_pds3(eol_pds3="\r\n")
         setup.staging_directory = str(tmp_path)
-        setup.diff = False
+        setup.args.diff = False
         setup.args.silent = True
 
         product = _make_product()

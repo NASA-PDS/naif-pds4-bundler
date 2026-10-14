@@ -47,6 +47,7 @@ class PDSLabel:
         # Read setup off the product instead of taking it as a separate
         # argument -- every product already carries its own setup.
         self.setup = product.setup
+        self.run_state = product.run_state
 
         #
         # Fields from setup
@@ -180,12 +181,12 @@ class PDSLabel:
         #
         # Add label to the list of generated files.
         #
-        self.setup.add_file(str(created_file))
+        self.run_state.add_file(str(created_file))
 
         #
         # Wrap lines for PDS3 labels.
         #
-        if self.setup.diff:
+        if self.setup.args.diff:
             self.compare()
 
         # If True, emits a blank log line after this label's own messages,
@@ -217,7 +218,7 @@ class PDSLabel:
         if val_label:
             logging.info("")
             compare_files(str(val_label), self.name, self.setup.working_directory,
-                          self.setup.diff)
+                          self.setup.args.diff)
 
     def _find_prior_version_label(self) -> Optional[Path]:
         """Look for a different version of the same file (fallback level 1).

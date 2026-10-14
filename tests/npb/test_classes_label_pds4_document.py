@@ -5,6 +5,7 @@ from types import SimpleNamespace
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.pds4_document import DocumentPDS4Label
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 class TestDocumentPDS4LabelInit:
@@ -28,6 +29,7 @@ class TestDocumentPDS4LabelInit:
         inventory = SimpleNamespace(lid='urn:nasa:pds:maven_spice:document:spiceds',
                                     vid='1.0',
                                     name='spiceds_v001.html',
+                                    run_state=RunState(),
                                     collection=collection)
 
         return setup, collection, inventory
@@ -158,7 +160,6 @@ class TestDocumentPDS4LabelIntegration:
             staging_directory=str(staging_dir),
             working_directory=str(work_dir),
             bundle_directory=str(bundle_dir),
-            diff=False,
             xml_model='https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch',
             schema_location='https://pds.nasa.gov/pds4/pds/v1 PDS4_PDS_1F00.xsd',
             information_model='.'.join(['1', '16', '0', '0']),
@@ -167,8 +168,7 @@ class TestDocumentPDS4LabelIntegration:
             end_of_line='LF',
             eol_pds4='\n',
             xml_tab=1,
-            args=SimpleNamespace(silent=True, verbose=False),
-            add_file=mocker.Mock())
+            args=SimpleNamespace(silent=True, verbose=False, diff=False))
 
         collection = SimpleNamespace(
             name='document',
@@ -195,6 +195,7 @@ class TestDocumentPDS4LabelIntegration:
             size='2048',
             checksum='d41d8cd98f00b204e9800998ecf8427e',
             setup=setup,
+            run_state=RunState(),
             collection=collection,
             bundle=SimpleNamespace(context_products=context_products))
 
@@ -287,7 +288,7 @@ class TestDocumentPDS4LabelIntegration:
         expected_label_path = str(label_path.relative_to(Path(setup.staging_directory)))
 
         # The generated XML label must be registered exactly once.
-        setup.add_file.assert_called_once_with(expected_label_path)
+        assert inventory.run_state.file_list == [expected_label_path]
 
     # ------------------------------------------------------------------
     # _*_reference_type overrides

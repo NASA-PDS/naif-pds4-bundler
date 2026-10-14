@@ -596,7 +596,7 @@ class TestPDS4LabelWriteLabelIntegration:
     def test_write_label_produces_xml_file_with_pds4_eol(
             self, setup_pds4, product, tmp_path):
         setup_pds4.staging_directory = str(tmp_path)
-        setup_pds4.diff = False
+        setup_pds4.args.diff = False
         setup_pds4.args.silent = True
         product.path = str(tmp_path / "test_kernel.bc")
         product.extension = "bc"

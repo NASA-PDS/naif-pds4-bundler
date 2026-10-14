@@ -19,14 +19,20 @@ class Product:
 
     # TODO: update this method to have path and setup as input arguments.
     #
-    #   def __init__(self, path: str, setup) -> None:
+    #   def __init__(self, path: str, setup, run_state) -> None:
     #       """Constructor. Initialises attributes derivable without I/O.
     #
     #       :param path:  Absolute path to the product file
     #       :param setup: NPB execution setup object
+    #       :param run_state: State of the current pipeline execution
     #       """
-    def __init__(self) -> None:
-        """Constructor."""
+    def __init__(self, run_state) -> None:
+        """Constructor.
+
+        :param run_state: State of the current pipeline execution
+        """
+        self.run_state = run_state
+
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
         else:
@@ -81,8 +87,8 @@ class Product:
             archive_dir_index = path.parts.index(archive_dir)
             archive_path = Path(*path.parts[archive_dir_index + 1:])
 
-            self.setup.add_file(str(archive_path))
-            self.setup.add_checksum(self.path, checksum)
+            self.run_state.add_file(str(archive_path))
+            self.run_state.add_checksum(self.path, checksum)
 
     def _compute_checksum(self) -> str:
         """Resolve the product checksum.

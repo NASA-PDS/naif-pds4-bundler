@@ -18,10 +18,11 @@ class SpicedsProduct(Product):
     """Class to process the SPICEDS file.
 
     :param setup:      NPB execution setup object
+    :param run_state:  State of the current pipeline execution
     :param collection: Collection that the inventory product belongs to
     """
 
-    def __init__(self, setup, collection) -> None:
+    def __init__(self, setup, run_state, collection) -> None:
         """Constructor."""
         self.setup = setup
         self.collection = collection
@@ -121,7 +122,7 @@ class SpicedsProduct(Product):
         # Kernels are already generated products but Inventories are not.
         #
         self.new_product = True
-        super().__init__()
+        super().__init__(run_state)
 
         #
         # Check if the spiceds has not changed.
@@ -133,7 +134,7 @@ class SpicedsProduct(Product):
         # too, under this same self.generated check; it's built in the pipeline
         # now, which reads self.generated to decide whether to.
         #
-        if self.generated and self.setup.diff:
+        if self.generated and self.setup.args.diff:
             self._compare()
 
     def set_product_lid(self) -> None:
@@ -257,4 +258,4 @@ class SpicedsProduct(Product):
         tofile = self.path
         work_dir = self.setup.working_directory
 
-        compare_files(fromfile, tofile, work_dir, self.setup.diff)
+        compare_files(fromfile, tofile, work_dir, self.setup.args.diff)

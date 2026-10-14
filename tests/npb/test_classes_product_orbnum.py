@@ -10,6 +10,7 @@ import pytest
 from pds.naif_pds4_bundler.classes.product.product import Product
 from pds.naif_pds4_bundler.classes.product.product_orbnum import OrbnumFileProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 MOD = 'pds.naif_pds4_bundler.classes.product.product_orbnum'
 
@@ -97,9 +98,10 @@ class TestOrbnumFileProductInit:
     def test_init_no_matching_pattern(self, mock_setup, mock_collection, mock_kernels_collection):
         """Test initialization fails if filename does not match pattern."""
         mock_setup.orbnum[0]["pattern"] = r"nomatch\.txt"
+        run_state = RunState()
         with pytest.raises(NPBError, match="The orbnum file does not match any type "
                                            "described in the configuration."):
-            OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+            OrbnumFileProduct(mock_setup, run_state, "test_file.orb", mock_collection, mock_kernels_collection)
 
     @patch.object(Product, "register")
     @patch(f"{MOD}.safe_make_directory")
@@ -113,7 +115,7 @@ class TestOrbnumFileProductInit:
         mock_setup, mock_collection, mock_kernels_collection,
     ):
         """Test full PDS4 initialization with a new file."""
-        obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+        obj = OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         assert obj.extension == "orb"
         assert obj.new_product is True
@@ -145,7 +147,7 @@ class TestOrbnumFileProductInit:
         mock_setup.pds_version = pds_version
 
         # Build the product; the file copy and the directory creation are mocked.
-        obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+        obj = OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         # The collection is the version folder inside the staging directory, and
         # the product path is its "orbnum" folder.
@@ -164,7 +166,7 @@ class TestOrbnumFileProductInit:
         del setup.orbnum[0]["observer"]
         del setup.orbnum[0]["target"]
 
-        obj = OrbnumFileProduct(setup, "test_file.orb", mock_collection, mock_kernels_collection)
+        obj = OrbnumFileProduct(setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         assert obj.new_product is False
         assert obj.path == str(Path(setup.staging_directory, 'extras/orbnum/test_file.orb'))
@@ -185,7 +187,7 @@ class TestOrbnumFileProductInit:
         del mock_setup.orbnum[0]["observer"]
         del mock_setup.orbnum[0]["target"]
 
-        obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+        obj = OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         assert obj.new_product is False
         pds4_init_mocks["add_crs_to_file"].assert_not_called()
@@ -246,7 +248,7 @@ class TestOrbnumFileProductInit:
 
         with patch(f"{MOD}.get_latest_kernel", return_value=[]), \
                 patch.object(Product, "register"):
-            obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+            obj = OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         # Identity, LID and VID computed for real.
         assert obj.extension == "orb"

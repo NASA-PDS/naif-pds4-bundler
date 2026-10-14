@@ -17,6 +17,7 @@ import spiceypy
 import xmlschema
 
 from .exceptions import NPBError
+from .exceptions import NPBInternalError
 from ..utils import etree_to_dict
 from ..utils import FILE_READ_ERRORS
 from ..utils import kernel_name
@@ -32,12 +33,17 @@ class Setup:
     :type version: str
     """
 
+    # Class-level default, so the guard in __setattr__ also works while
+    # __init__ is still running and no instance attribute exists yet.
+    _frozen = False
+
     def __init__(self, args, version: str) -> None:
         """Constructor."""
         self.bundle_directory = ''
         self.current_release = 0
         self.increment = True
         self.information_model_float = None
+        self.mission_acronym = ''
         self.release = None
         self.schema_location = ''
         self.staging_directory = ''
@@ -153,14 +159,9 @@ class Setup:
         # configuration file.
         #
         self.root_dir = os.path.dirname(os.path.abspath(__file__))[:-7]
-        self.step = 1
         self.version = version
         self.args = args
-        self.faucet = args.faucet
-        self.diff = args.diff
         self.today = datetime.date.today().strftime("%Y%m%d")
-        self.file_list = []
-        self.checksum_registry = []
 
         #
         # If a release date is not specified it is set to today.
@@ -254,6 +255,35 @@ class Setup:
             self.producer_email = ""
             self.dataset_id = ""
             self.volume_id = ""
+
+    @property
+    def re_config(self) -> list[re.Pattern]:
+        """Compiled kernel list patterns (compiled on access)."""
+        return [re.compile(pattern) for pattern in self.kernel_list_config]
+
+    def freeze(self) -> None:
+        """Make the Setup read-only once the configuration is resolved.
+
+        Any attribute assignment or deletion after this call raises an
+        :class:`NPBInternalError`. Reading attributes is not affected.
+        """
+        # The flag is set with object.__setattr__ so the write goes straight
+        # to the attribute, without passing through the guard below.
+        object.__setattr__(self, "_frozen", True)
+
+    def __setattr__(self, name: str, value) -> None:
+        if self._frozen:
+            raise NPBInternalError(
+                f"Setup is frozen; '{name}' cannot be set after the "
+                f"configuration is resolved.")
+        super().__setattr__(name, value)
+
+    def __delattr__(self, name: str) -> None:
+        if self._frozen:
+            raise NPBInternalError(
+                f"Setup is frozen; '{name}' cannot be deleted after the "
+                f"configuration is resolved.")
+        super().__delattr__(name)
 
     def check_configuration(self):
         """Performs the following checks to the loaded configuration items:
@@ -450,9 +480,10 @@ class Setup:
             # os.mkdir() raises OSError on filesystem failures.
             except OSError:
 
-                if self.faucet in ["plan", "list", "checks"]:
+                if self.args.faucet in ["plan", "list", "checks"]:
                     logging.warning('-- Staging directory cannot be created but'
-                                    ' is not used with %s faucet.', self.faucet)
+                                    ' is not used with %s faucet.',
+                                    self.args.faucet)
 
                 else:
                     raise NPBError(
@@ -471,9 +502,9 @@ class Setup:
         #
         if not os.path.isdir(self.bundle_directory):
 
-            if self.faucet in ["plan", "list", "checks"]:
+            if self.args.faucet in ["plan", "list", "checks"]:
                 logging.warning("-- Bundle directory does not exist but is not"
-                                " used with %s faucet.", self.faucet)
+                                " used with %s faucet.", self.args.faucet)
 
             else:
                 raise NPBError(
@@ -1060,57 +1091,6 @@ class Setup:
 
     def information_model_setup(self):
         """Setup and check PDS4 Information Model related things."""
-
-    def add_file(self, file):
-        """Add file fo Product List.
-
-        Adds a product to the run by-product Product List.
-
-        :param file: Product to be added
-        :type file: str
-        """
-        self.file_list.append(file)
-
-    def add_checksum(self, path, checksum):
-        """Add checksum to Checksum record.
-
-        Adds a MD5sum entry with the product it corresponds to for the run
-        by-product Checksum record file.
-
-        :param path: File path for checksum
-        :type path: str
-        :param checksum: Checksum value for checksum
-        :type checksum: str
-        """
-        self.checksum_registry.append(f"{path} {checksum}")
-
-    def write_file_list(self):
-        """Write the run by-product File List."""
-        if self.file_list:
-            with open(
-                self.working_directory
-                + os.sep
-                + f"{self.mission_acronym}_{self.run_type}_"
-                f"{int(self.release):02d}.file_list",
-                "w", encoding='utf-8'
-            ) as l:
-                for file in self.file_list:
-                    l.write(file + "\n")
-            logging.info("-- Run File List file written in working area.")
-
-    def write_checksum_registry(self):
-        """Write the run by-product Checksum Record."""
-        if self.checksum_registry:
-            with open(
-                self.working_directory
-                + os.sep
-                + f"{self.mission_acronym}_{self.run_type}_"
-                f"{int(self.release):02d}.checksum",
-                "w", encoding='utf-8'
-            ) as l:
-                for element in self.checksum_registry:
-                    l.write(element + "\n")
-            logging.info("-- Run Checksum Registry file written in working area.")
 
     def write_validate_config(self):
         """Write a PDS validate tool configuration file.

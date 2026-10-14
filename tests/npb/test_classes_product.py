@@ -3,12 +3,12 @@ import hashlib
 import os.path
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import Mock
 
 import pytest
 
 import pds.naif_pds4_bundler.classes.product.product as product_module
 from pds.naif_pds4_bundler.classes.product.product import Product
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 def make_product_setup(tmp_path: Path, checksum: bool = False,
@@ -23,9 +23,6 @@ def make_product_setup(tmp_path: Path, checksum: bool = False,
     setup.volume_id = 'MAVEN_1001'
     setup.working_directory = str(tmp_path / 'working')
 
-    setup.add_file = Mock()
-    setup.add_checksum = Mock()
-
     return setup
 
 
@@ -38,6 +35,7 @@ def make_product_without_init(path: Path, setup: SimpleNamespace,
 
     product.path = str(path)
     product.setup = setup
+    product.run_state = RunState()
     product.new_product = new_product
 
     return product
@@ -76,7 +74,7 @@ class TestProductInit:
         # constructor calls it only once.
         register_mock = mocker.patch.object(Product, 'register', autospec=True)
 
-        Product.__init__(product)
+        Product.__init__(product, RunState())
 
         # Check that the given date is used.
         assert product.creation_time == '2026-05-27T10:20:30Z'
@@ -131,7 +129,7 @@ class TestProductInit:
         # Mock the register call.
         register_mock = mocker.patch.object(Product, 'register', autospec=True)
 
-        Product.__init__(product)
+        Product.__init__(product, RunState())
 
         # Check that the constructor has stored the value returned by
         # creation_time().
@@ -270,21 +268,22 @@ class TestProductRegister:
         product = StubHookProduct.__new__(StubHookProduct)
         product.path = str(path)
         product.setup = setup
+        product.run_state = RunState()
         product.new_product = True
         mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
 
         # Register the product.
         product.register()
 
-        # The setup receives the path below the hook's directory.
-        setup.add_file.assert_called_once_with(os.path.join('data', 'k.bsp'))
+        # The run state receives the path below the hook's directory.
+        assert product.run_state.file_list == [os.path.join('data', 'k.bsp')]
 
     def test_register_does_not_swallow_errors_from_archive_root_dir_hook(
             self, mocker, tmp_path) -> None:
         """Only NotImplementedError triggers the fallback.
 
         Any other error raised by an implemented hook is a real bug and must
-        propagate, leaving nothing registered in the setup.
+        propagate, leaving nothing registered in the run state.
         """
         # Put a real file in a layout the fallback could resolve, so a wrongly
         # swallowed error would show up as a successful registration.
@@ -298,6 +297,7 @@ class TestProductRegister:
         product = StubFailingHookProduct.__new__(StubFailingHookProduct)
         product.path = str(path)
         product.setup = setup
+        product.run_state = RunState()
         product.new_product = True
         mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
 
@@ -305,9 +305,9 @@ class TestProductRegister:
         with pytest.raises(ValueError, match='boom'):
             product.register()
 
-        # Nothing reached the setup.
-        setup.add_file.assert_not_called()
-        setup.add_checksum.assert_not_called()
+        # Nothing reached the run state.
+        assert product.run_state.file_list == []
+        assert product.run_state.checksum_registry == []
 
     @pytest.mark.parametrize('pds_version, parts, expected_relative', [
         ('4', ('bundle', 'maven_spice', 'spice_kernels', 'spk', 'k.bsp'),
@@ -320,7 +320,7 @@ class TestProductRegister:
 
         In PDS4 the archive directory is '<mission>_spice' and in PDS3 it is
         the volume id. Either way, the size and checksum end up on the product
-        and the setup is told about the file using the path below that
+        and the run state is told about the file using the path below that
         directory.
         """
         # Preparation: a real file in the layout of each PDS version. The
@@ -339,16 +339,17 @@ class TestProductRegister:
         assert product.size == str(len('kernel-content'))
         assert product.checksum == 'hook-sum'
 
-        # The setup gets the archive-relative path and the full-path checksum.
-        setup.add_file.assert_called_once_with(expected_relative)
-        setup.add_checksum.assert_called_once_with(str(path), 'hook-sum')
+        # The run state gets the archive-relative path and the full-path
+        # checksum.
+        assert product.run_state.file_list == [expected_relative]
+        assert product.run_state.checksum_registry == [f'{path} hook-sum']
 
     def test_register_does_not_record_existing_product(
             self, mocker, tmp_path) -> None:
         """Only products flagged as new are registered in the setup.
 
         For an existing product (new_product=False) the size and checksum are
-        still set, but the setup must not be told anything about it.
+        still set, but the run state must not be told anything about it.
         """
         # Preparation: a real file, not flagged as new, and a fixed checksum.
         path = tmp_path / 'maven_spice' / 'readme.txt'
@@ -364,8 +365,8 @@ class TestProductRegister:
         # Verification: attributes are set, but nothing is registered.
         assert product.size == str(len('readme'))
         assert product.checksum == 'hook-sum'
-        setup.add_file.assert_not_called()
-        setup.add_checksum.assert_not_called()
+        assert product.run_state.file_list == []
+        assert product.run_state.checksum_registry == []
 
     def test_register_uses_real_checksum_resolution_for_base_product(
             self, tmp_path) -> None:
@@ -409,9 +410,9 @@ class TestProductRegister:
             product.register()
 
         # Verification: old state untouched, no checksum computed and nothing
-        # registered in the setup.
+        # registered in the run state.
         assert product.checksum == 'previous-checksum'
         assert product.size == 'previous-size'
         hook_mock.assert_not_called()
-        setup.add_file.assert_not_called()
-        setup.add_checksum.assert_not_called()
+        assert product.run_state.file_list == []
+        assert product.run_state.checksum_registry == []

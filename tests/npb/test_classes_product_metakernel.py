@@ -12,6 +12,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Module path used to target patches
@@ -72,7 +73,6 @@ def make_setup(
     setup.mission_finish = mission_finish
     setup.eol_mk = "\n"
     setup.increment = increment
-    setup.diff = False
     # Deep-copy the shared MK_SETUP so a test that mutates self.mk_setup (e.g.
     # write_product / get_description writing back "&value") cannot leak that
     # mutation into another test through the module-level dict.
@@ -83,6 +83,7 @@ def make_setup(
     setup.args.verbose = False
     setup.args.debug = True  # prevents interrupt_to_update stdin prompt
     setup.args.checksum = False
+    setup.args.diff = False
 
     # Provide re_config and kernel_list_config so get_description works for
     # the default MK name "insight_v<N>.tm" without needing an extra mock.
@@ -198,7 +199,7 @@ def build_product(
     with ExitStack() as stack:
         for p in base_init_patches():
             stack.enter_context(p)
-        product = MetaKernelProduct(setup, kernel_arg, collection, user_input=user_input)
+        product = MetaKernelProduct(setup, RunState(), kernel_arg, collection, user_input=user_input)
 
     return product, setup, collection
 
@@ -238,6 +239,7 @@ class TestMetaKernelProductInit:
 
         extra_setup_attrs: dict of {attr: value} applied with setattr after
                            make_setup (useful for re-adding deleted attrs).
+                           Dotted names such as "args.diff" are supported.
         extra_patches: list of additional context managers to enter.
         """
         staging, bundle, work, templates = self._setup_dirs(tmp_path)
@@ -250,13 +252,18 @@ class TestMetaKernelProductInit:
             mk_list=mk_list,
         )
         for attr, value in (extra_setup_attrs or {}).items():
-            setattr(setup, attr, value)
+            # A dotted name (e.g. "args.diff") reaches into a nested object.
+            *parents, attr_name = attr.split(".")
+            target = setup
+            for parent in parents:
+                target = getattr(target, parent)
+            setattr(target, attr_name, value)
         collection = make_collection()
         all_patches = base_init_patches() + (extra_patches or [])
         with ExitStack() as stack:
             for p in all_patches:
                 stack.enter_context(p)
-            product = MetaKernelProduct(setup, name, collection)
+            product = MetaKernelProduct(setup, RunState(), name, collection)
         return product, setup
 
     @pytest.mark.parametrize("pds_version, subdir, kernelpath", [
@@ -305,7 +312,8 @@ class TestMetaKernelProductInit:
                 stack.enter_context(p)
             # Shadow the default copy2 patch with a mock we can assert on.
             mock_copy = stack.enter_context(patch(f"{_MODULE}.shutil.copy2"))
-            MetaKernelProduct(setup, src, collection, user_input=True)
+            MetaKernelProduct(setup, RunState(),
+                              src, collection, user_input=True)
 
         mock_copy.assert_called_once()
 
@@ -322,7 +330,7 @@ class TestMetaKernelProductInit:
             mock_write = stack.enter_context(
                 patch(f"{_MODULE}.MetaKernelProduct.write_product")
             )
-            MetaKernelProduct(setup, "insight_v01.tm", collection, user_input=False)
+            MetaKernelProduct(setup, RunState(), "insight_v01.tm", collection, user_input=False)
 
         mock_write.assert_called_once()
 
@@ -347,7 +355,8 @@ class TestMetaKernelProductInit:
             patch(f"{_MODULE}.Product.__init__", return_value=None),
             patch(f"{_MODULE}.get_latest_kernel", return_value=[]),
         ):
-            product = MetaKernelProduct(setup, "insight_v01.tm", collection)
+            product = MetaKernelProduct(setup, RunState(),
+                                        "insight_v01.tm", collection)
 
         # The rendered file exists in the staging mk directory and starts with
         # the KPL/MK header from the template; write_product set its attributes.
@@ -369,7 +378,7 @@ class TestMetaKernelProductInit:
         compare_mock = MagicMock()
         self._make_product(
             tmp_path,
-            extra_setup_attrs={"diff": diff},
+            extra_setup_attrs={"args.diff": diff},
             extra_patches=[patch(f"{_MODULE}.MetaKernelProduct.compare", compare_mock)],
         )
         assert compare_mock.called == expect_compare
@@ -390,9 +399,11 @@ class TestMetaKernelProductInit:
 
         with (patch(f"{_MODULE}.safe_make_directory"),
               patch(f"{_MODULE}.current_date", return_value="2024-01-01")):
+            run_state = RunState()
             with pytest.raises(NPBError,
                                match="Meta-kernel insight_v01.tm has not been matched in configuration."):
-                MetaKernelProduct(setup, "insight_v01.tm", collection)
+                MetaKernelProduct(setup, run_state,
+                                  "insight_v01.tm", collection)
 
     @pytest.mark.parametrize("mk_list", [
         pytest.param(
@@ -457,9 +468,11 @@ class TestMetaKernelProductInit:
 
         with (patch(f"{_MODULE}.safe_make_directory"),
               patch(f"{_MODULE}.current_date", return_value="2024-01-01")):
+            run_state = RunState()
             with pytest.raises(NPBError,
                                match="Meta-kernel insight_v01.tm has not been matched in configuration."):
-                MetaKernelProduct(setup, "insight_v01.tm", collection)
+                MetaKernelProduct(setup, run_state,
+                                  "insight_v01.tm", collection)
 
     def test_metak_matching_propagates_unrelated_exception(self, tmp_path):
         """A bug in match_patterns() that isn't one of the four expected
@@ -477,8 +490,10 @@ class TestMetaKernelProductInit:
               patch(f"{_MODULE}.current_date", return_value="2024-01-01"),
               patch(f"{_MODULE}.match_patterns", side_effect=AttributeError("boom"))):
 
+            run_state = RunState()
             with pytest.raises(AttributeError, match="boom"):
-                MetaKernelProduct(setup, "insight_v01.tm", collection)
+                MetaKernelProduct(setup, run_state,
+                                  "insight_v01.tm", collection)
 
     def test_collection_metakernel_set_from_mk_to_list(self, tmp_path):
         kernel_list = ["naif0012.tls", "insight_v01.bsp"]
@@ -604,7 +619,7 @@ class TestMetaKernelProductInit:
             patch(f"{_MODULE}.Product.__init__", return_value=None),
             patch(f"{_MODULE}.MetaKernelProduct.check_version") as mock_check_version,
         ):
-            MetaKernelProduct(setup, "insight_v01.tm", collection)
+            MetaKernelProduct(setup, RunState(), "insight_v01.tm", collection)
 
         mock_check_version.assert_called_once()
 
@@ -1692,7 +1707,7 @@ class TestMetaKernelProductWriteProduct:
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
         ):
-            product = MetaKernelProduct(setup, "insight_v01.tm", collection)
+            MetaKernelProduct(setup, RunState(), "insight_v01.tm", collection)
 
         # Read the generated MK and verify the bundle kernel was included
         mk_path = os.path.join(mk_staging_dir, "insight_v01.tm")
@@ -1736,7 +1751,7 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == str(tmp_path / "insight_spice/spice_kernels/mk/insight_v01.tm")
         assert work_dir == product.setup.working_directory
-        assert diff == product.setup.diff
+        assert diff == product.setup.args.diff
 
     @pytest.mark.parametrize("glob_side_effect", [
         pytest.param(None, id="no-previous-mk-found"),
@@ -1770,7 +1785,7 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == str(Path("/templates/template_metakernel.tm"))
         assert work_dir == setup.working_directory
-        assert diff == setup.diff
+        assert diff == setup.args.diff
 
         expected = [
             (logging.WARNING, '-- No other version of insight_v01.tm has been found.'),
@@ -1797,7 +1812,7 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == prev_mk
         assert work_dir == product.setup.working_directory
-        assert diff == product.setup.diff
+        assert diff == product.setup.args.diff
 
 
 # ===========================================================================

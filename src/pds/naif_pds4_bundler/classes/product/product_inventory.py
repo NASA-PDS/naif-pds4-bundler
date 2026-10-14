@@ -18,10 +18,11 @@ class InventoryProduct(Product):
     """Class that defines a Collection Inventory product.
 
     :param setup:      NPB execution setup object
+    :param run_state:  State of the current pipeline execution
     :param collection: Collection that the inventory product belongs to
     """
 
-    def __init__(self, setup, collection) -> None:
+    def __init__(self, setup, run_state, collection) -> None:
         """Constructor."""
 
         self.collection = collection
@@ -103,7 +104,7 @@ class InventoryProduct(Product):
         self.write_product()
         self.new_product = True
 
-        Product.__init__(self)
+        Product.__init__(self, run_state)
 
         # Labeling used to happen here (PDS3/PDS4 label picked and built), and
         # so did the PDS3 dsindex-file copy below it. Both moved out:
@@ -161,7 +162,7 @@ class InventoryProduct(Product):
         else:
             self.validate_pds3()
 
-        if self.setup.diff:
+        if self.setup.args.diff:
             self.compare()
 
     def write_pds4_collection_product(self) -> None:
@@ -385,7 +386,7 @@ class InventoryProduct(Product):
             tofile = self.path
             work_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, work_dir, self.setup.diff)
+            compare_files(fromfile, tofile, work_dir, self.setup.args.diff)
 
         else:
 
@@ -399,6 +400,6 @@ class InventoryProduct(Product):
             tofile = self.path
             work_dir = self.setup.working_directory
 
-            compare_files(fromfile, tofile, work_dir, self.setup.diff)
+            compare_files(fromfile, tofile, work_dir, self.setup.args.diff)
 
         logging.info("")
