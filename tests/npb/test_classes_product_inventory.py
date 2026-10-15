@@ -6,7 +6,11 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_inventory import InventoryProduct
+from pds.naif_pds4_bundler.classes.product.product_inventory_pds3 import InventoryPDS3Product
+from pds.naif_pds4_bundler.classes.product.product_inventory_pds4 import InventoryPDS4Product
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
+from pds.naif_pds4_bundler.classes.product.product_pds3 import PDS3Product
+from pds.naif_pds4_bundler.classes.product.product_pds4 import PDS4Product
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.run_state import RunState
 
@@ -757,3 +761,19 @@ class TestInventoryProductCompare:
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
+
+
+# ---------------------------------------------------------------------------
+# Inventory subclasses
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("subclass, version_base", [
+    pytest.param(InventoryPDS3Product, PDS3Product, id="pds3"),
+    pytest.param(InventoryPDS4Product, PDS4Product, id="pds4"),
+])
+def test_inventory_subclass_hierarchy(subclass, version_base):
+    """Each version-specific inventory is an InventoryProduct and also a
+    product of its own PDS version.
+    """
+    assert issubclass(subclass, InventoryProduct)
+    assert issubclass(subclass, version_base)

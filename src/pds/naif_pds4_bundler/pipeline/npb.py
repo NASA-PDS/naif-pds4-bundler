@@ -25,7 +25,8 @@ from ..classes.list import KernelList
 from ..classes.log import Log
 from ..classes.plan import ReleasePlan
 from ..classes.product import ChecksumProduct, ReadmeProduct
-from ..classes.product import InventoryProduct
+from ..classes.product import InventoryPDS3Product
+from ..classes.product import InventoryPDS4Product
 from ..classes.product import MetaKernelProduct
 from ..classes.product import OrbnumFileProduct
 from ..classes.product import SpicedsProduct
@@ -360,18 +361,21 @@ def run_pipeline(args: PipelineArgs) -> None:
                 spice_kernels_collection.set_collection_vid()
 
             log_step(setup, run_state, title=f'Generation of {spice_kernels_collection.name} collection')
-            spice_kernels_collection_inventory = InventoryProduct(
-                setup, run_state, spice_kernels_collection
-            )
 
-            # Only inventory built for both PDS versions, so both label classes
-            # are still picked here, same as InventoryProduct used to.
+            # Only inventory built for both PDS versions, so the product and
+            # label classes are both picked here.
             if setup.pds_version == "4":
+                spice_kernels_collection_inventory = InventoryPDS4Product(
+                    setup, run_state, spice_kernels_collection
+                )
                 spice_kernels_collection_inventory.label = InventoryPDS4Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
                 spice_kernels_collection_inventory.label.write_label()
 
             else:
+                spice_kernels_collection_inventory = InventoryPDS3Product(
+                    setup, run_state, spice_kernels_collection
+                )
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
                 spice_kernels_collection_inventory.label.write_label()
@@ -411,7 +415,9 @@ def run_pipeline(args: PipelineArgs) -> None:
                 document_collection.set_collection_vid()
 
                 log_step(setup, run_state, title=f'Generation of {document_collection.name} collection')
-                document_collection_inventory = InventoryProduct(setup, run_state, document_collection)
+                document_collection_inventory = InventoryPDS4Product(
+                    setup, run_state, document_collection
+                )
 
                 # This branch only runs for PDS4, so there's no PDS3 label to pick.
                 document_collection_inventory.label = InventoryPDS4Label(
@@ -484,8 +490,8 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                         # The release_miscellaneous_collection name is "miscellaneous"
                         # (PDS4 branch), therefore, we do not log the step, as we do
-                        # every other time we generate an InventoryProduct.
-                        release_miscellaneous_collection_inventory = InventoryProduct(
+                        # every other time we generate an inventory product.
+                        release_miscellaneous_collection_inventory = InventoryPDS4Product(
                             setup, run_state, release_miscellaneous_collection
                         )
 
@@ -544,8 +550,8 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             # The miscellaneous_collection name is "miscellaneous" (PDS4 branch),
             # therefore, we do not log the step, as we do every other time we
-            # generate an InventoryProduct.
-            miscellaneous_collection_inventory = InventoryProduct(
+            # generate an inventory product.
+            miscellaneous_collection_inventory = InventoryPDS4Product(
                 setup, run_state, miscellaneous_collection
             )
 
