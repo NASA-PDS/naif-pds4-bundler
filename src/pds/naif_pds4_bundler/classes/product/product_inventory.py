@@ -35,69 +35,10 @@ class InventoryProduct(Product):
         self.setup = setup
 
         if setup.pds_version == "3":
-            self.path = f"{setup.staging_directory}/index/index.tab"
-            self.name = "index.tab"
+            self._set_pds3_location()
 
         else:  # setup.pds_version == "4":
-
-            #
-            # Determine the inventory version
-            #
-            if self.setup.increment:
-                # Search both the bundle directory (previous increments) and the
-                # staging directory (current, in-progress increment) for the
-                # latest inventory file already written.
-                inventory_dirs = [
-                    Path(self.setup.bundle_directory)
-                    / f"{self.setup.mission_acronym}_spice"
-                    / collection.name,
-
-                    Path(self.setup.staging_directory) / collection.name,
-                ]
-                latest_file, latest_version = find_latest_versioned_file(
-                    inventory_dirs,
-                    f"collection_{collection.name}_inventory_v*.csv"
-                )
-
-                # latest_version is None either when no file matched, or when
-                # a file matched but its name didn't parse as expected.
-                if latest_version is not None:
-
-                    #
-                    # We store the previous version to use it to validate the
-                    # generated one.
-                    #
-                    self.path_current = latest_file
-                    self.version = latest_version + 1
-
-                    logging.info('-- Previous inventory file is: %s', latest_file)
-                    logging.info('-- Generate version %d.', self.version)
-
-                else:
-                    # No usable previous inventory file: start over at v1 rather
-                    # than guessing a version from a partial match.
-                    self.version = 1
-                    self.path_current = ""
-
-                    logging.warning('-- Previous inventory file not found.')
-                    logging.warning('-- Default to version %d.', self.version)
-                    logging.warning('-- The version of this file might be incorrect.')
-
-            else:
-                self.version = 1
-                self.path_current = ""
-
-                logging.warning('-- Default to version %d.', self.version)
-                logging.warning(
-                    '-- Make sure this is the first release of the archive.')
-
-            self.name = f"collection_{collection.name}_inventory_v{self.version:03}.csv"
-            self.path = (
-                setup.staging_directory + os.sep + collection.name + os.sep + self.name
-            )
-
-            self.set_product_lid()
-            self.set_product_vid()
+            self._set_pds4_location()
 
         #
         # Kernels are already generated products but Inventories are not.
@@ -111,6 +52,77 @@ class InventoryProduct(Product):
         # so did the PDS3 dsindex-file copy below it. Both moved out:
         # labeling to the pipeline, dsindex copying to its own method,
         # generate_dsindex_files(), also called from the pipeline.
+
+    def _set_pds3_location(self) -> None:
+        """Set the path and name of the PDS3 index file."""
+        self.path = f"{self.setup.staging_directory}/index/index.tab"
+        self.name = "index.tab"
+
+    def _set_pds4_location(self) -> None:
+        """Set the version, path, name, LID and VID of the PDS4 inventory."""
+
+        #
+        # Determine the inventory version
+        #
+        if self.setup.increment:
+            # Search both the bundle directory (previous increments) and the
+            # staging directory (current, in-progress increment) for the
+            # latest inventory file already written.
+            inventory_dirs = [
+                Path(self.setup.bundle_directory)
+                / f"{self.setup.mission_acronym}_spice"
+                / self.collection.name,
+
+                Path(self.setup.staging_directory) / self.collection.name,
+            ]
+            latest_file, latest_version = find_latest_versioned_file(
+                inventory_dirs,
+                f"collection_{self.collection.name}_inventory_v*.csv"
+            )
+
+            # latest_version is None either when no file matched, or when
+            # a file matched but its name didn't parse as expected.
+            if latest_version is not None:
+
+                #
+                # We store the previous version to use it to validate the
+                # generated one.
+                #
+                self.path_current = latest_file
+                self.version = latest_version + 1
+
+                logging.info('-- Previous inventory file is: %s', latest_file)
+                logging.info('-- Generate version %d.', self.version)
+
+            else:
+                # No usable previous inventory file: start over at v1 rather
+                # than guessing a version from a partial match.
+                self.version = 1
+                self.path_current = ""
+
+                logging.warning('-- Previous inventory file not found.')
+                logging.warning('-- Default to version %d.', self.version)
+                logging.warning('-- The version of this file might be incorrect.')
+
+        else:
+            self.version = 1
+            self.path_current = ""
+
+            logging.warning('-- Default to version %d.', self.version)
+            logging.warning(
+                '-- Make sure this is the first release of the archive.')
+
+        self.name = (
+            f"collection_{self.collection.name}_inventory_v{self.version:03}.csv"
+        )
+        self.path = (
+            self.setup.staging_directory
+            + os.sep + self.collection.name
+            + os.sep + self.name
+        )
+
+        self.set_product_lid()
+        self.set_product_vid()
 
     def generate_dsindex_files(self) -> None:
         """Copy the PDS3 index file and its label to dsindex.tab/.lbl.
@@ -152,19 +164,27 @@ class InventoryProduct(Product):
         else:
             self.write_pds3_index_product()
 
+        self._finish_product()
+
+    def _finish_product(self) -> None:
+        """Log the new file, validate it and compare it when requested."""
         logging.info(
             '-- Generated %s', Path(self.path).relative_to(self.setup.staging_directory).name)
 
         if not self.setup.args.silent and not self.setup.args.verbose:
             print('   * Created %s.', Path(self.path).relative_to(self.setup.staging_directory).name)
 
+        self.validate()
+
+        if self.setup.args.diff:
+            self.compare()
+
+    def validate(self) -> None:
+        """Validate the inventory with the checks of its PDS version."""
         if self.setup.pds_version == "4":
             self.validate_pds4()
         else:
             self.validate_pds3()
-
-        if self.setup.args.diff:
-            self.compare()
 
     def write_pds4_collection_product(self) -> None:
         """Write the PDS4 Collection product."""
