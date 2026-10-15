@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 from .product import Product
+from .product_metakernel import MetaKernelProduct
 from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import compare_files
@@ -240,7 +241,7 @@ class InventoryProduct(Product):
         new_index = []
 
         for kernel in self.collection.product:
-            if type(kernel).__name__ != "MetaKernelProduct":
+            if not isinstance(kernel, MetaKernelProduct):
                 index_row = [
                     kernel.start_time.split("Z")[0],
                     kernel.stop_time.split("Z")[0],
@@ -341,7 +342,7 @@ class InventoryProduct(Product):
         logging.info("      Check that all the products are in the collection.")
 
         for product in self.collection.product:
-            if type(product).__name__ != "InventoryProduct":
+            if not isinstance(product, InventoryProduct):
                 product_found = False
                 with open(self.path, "r", encoding='utf-8') as c:
                     for line in c:

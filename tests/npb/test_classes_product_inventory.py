@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, mock_open, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_inventory import InventoryProduct
+from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.run_state import RunState
 
@@ -41,14 +42,21 @@ def make_collection(name="spice_kernels"):
 
 
 def make_product(lid="urn:nasa:pds:insight_spice:spice_kernels::1.0", vid="1.0",
-                 new_product=True, is_inventory=False):
+                 new_product=True):
     """Return a mock product."""
     product = MagicMock()
     product.lid = lid
     product.vid = vid
     product.new_product = new_product
-    product.__class__.__name__ = "InventoryProduct" if is_inventory else "KernelProduct"
     return product
+
+
+class MetaKernelSubclass(MetaKernelProduct):
+    """Stand-in for a version-specific meta-kernel class."""
+
+
+class InventorySubclass(InventoryProduct):
+    """Stand-in for a version-specific inventory class."""
 
 
 # ---------------------------------------------------------------------------
@@ -420,7 +428,6 @@ class TestInventoryProductWritePds3IndexProduct:
         k.creation_time = "2020-001T00:00:00"
         k.type = "ck"
         k.name = "insight_ck.bc"
-        k.__class__.__name__ = "KernelProduct"
         return k
 
     def _make_obj(self, increment=False, products=None):
@@ -476,11 +483,17 @@ class TestInventoryProductWritePds3IndexProduct:
         assert obj.row_bytes == 159
         assert obj.file_types == ['bc']
 
-    def test_skips_metakernel_products(self):
-        """MetaKernelProduct instances are excluded from the index."""
+    @pytest.mark.parametrize("meta_class", [
+        pytest.param(MetaKernelProduct, id="base_class"),
+        pytest.param(MetaKernelSubclass, id="subclass"),
+    ])
+    def test_skips_metakernel_products(self, meta_class):
+        """Meta-kernels, including subclasses of MetaKernelProduct, are
+        excluded from the index.
+        """
         obj = self._make_obj()
-        meta = MagicMock()
-        meta.__class__.__name__ = "MetaKernelProduct"
+        # Skip __init__: the product is only ever checked by its type
+        meta = meta_class.__new__(meta_class)
         obj.collection.product = [meta]
 
         m = mock_open()
@@ -626,9 +639,17 @@ class TestInventoryProductValidatePds4:
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
 
-    def test_inventory_products_skipped(self, caplog):
-        """InventoryProduct instances in the collection are not validated."""
-        inv = InventoryProduct.__new__(InventoryProduct)
+    @pytest.mark.parametrize("inventory_class", [
+        pytest.param(InventoryProduct, id="base_class"),
+        pytest.param(InventorySubclass, id="subclass"),
+    ])
+    def test_inventory_products_skipped(self, caplog, inventory_class):
+        """Inventories, including subclasses of InventoryProduct, in the
+        collection are not validated.
+        """
+        # Skip __init__: the product is only ever checked by its type, and
+        # reading its 'lid' would fail if it were not skipped
+        inv = inventory_class.__new__(inventory_class)
         obj = self._make_obj(products=[inv])
 
         with patch("builtins.open", mock_open(read_data="")), \
