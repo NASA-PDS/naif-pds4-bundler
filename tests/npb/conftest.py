@@ -327,3 +327,64 @@ def label_test_helpers() -> SimpleNamespace:
         make_product=_make_product,
         make_setup_pds4=_make_setup_pds4,
     )
+
+
+# ---------------------------------------------------------------------------
+# Inventory product mock factories
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def inventory_helpers() -> SimpleNamespace:
+    """Provide the mock factories shared by the inventory product tests.
+
+    Returns a container exposing three callables:
+
+    * ``make_setup(pds_version='4', increment=True, diff=True)`` builds a
+      minimal Setup mock.
+
+    * ``make_collection(name='spice_kernels')`` builds a minimal collection
+      mock.
+
+    * ``make_product(lid=..., vid=..., new_product=True)`` builds a product
+      mock with the attributes the inventory reads.
+
+    :return: container with the ``make_setup``, ``make_collection`` and
+             ``make_product`` factories
+    """
+
+    def _make_setup(pds_version="4", increment=True, diff=True):
+        setup = MagicMock()
+        setup.pds_version = pds_version
+        setup.increment = increment
+        setup.args.diff = diff
+        setup.staging_directory = "staging"
+        setup.bundle_directory = "/bundle"
+        setup.mission_acronym = "insight"
+        setup.logical_identifier = "urn:nasa:pds:insight_spice"
+        setup.eol_pds4 = "\n"
+        setup.eol_pds3 = "\r\n"
+        setup.working_directory = "/work"
+        setup.volume_id = "INSIGHT_0001"
+        setup.root_dir = "/root/"
+        setup.args.silent = False
+        setup.args.verbose = False
+        return setup
+
+    def _make_collection(name="spice_kernels"):
+        collection = MagicMock()
+        collection.name = name
+        return collection
+
+    def _make_product(lid="urn:nasa:pds:insight_spice:spice_kernels::1.0",
+                      vid="1.0", new_product=True):
+        product = MagicMock()
+        product.lid = lid
+        product.vid = vid
+        product.new_product = new_product
+        return product
+
+    return SimpleNamespace(
+        make_setup=_make_setup,
+        make_collection=_make_collection,
+        make_product=_make_product,
+    )

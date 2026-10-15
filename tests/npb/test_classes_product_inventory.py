@@ -1,6 +1,5 @@
 """Unit tests for InventoryProduct class."""
 import logging
-from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -14,53 +13,9 @@ from pds.naif_pds4_bundler.classes.product.product_pds4 import PDS4Product
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.run_state import RunState
 
-# ---------------------------------------------------------------------------
-# Helpers / shared fixtures
-# ---------------------------------------------------------------------------
-
-def make_setup(pds_version="4", increment=True, diff=True):
-    """Return a minimal mock setup object."""
-    setup = MagicMock()
-    setup.pds_version = pds_version
-    setup.increment = increment
-    setup.args.diff = diff
-    setup.staging_directory = "staging"
-    setup.bundle_directory = "/bundle"
-    setup.mission_acronym = "insight"
-    setup.logical_identifier = "urn:nasa:pds:insight_spice"
-    setup.eol_pds4 = "\n"
-    setup.eol_pds3 = "\r\n"
-    setup.working_directory = "/work"
-    setup.volume_id = "INSIGHT_0001"
-    setup.root_dir = "/root/"
-    setup.args.silent = False
-    setup.args.verbose = False
-    return setup
-
-
-def make_collection(name="spice_kernels"):
-    """Return a minimal mock collection."""
-    collection = MagicMock()
-    collection.name = name
-    return collection
-
-
-def make_product(lid="urn:nasa:pds:insight_spice:spice_kernels::1.0", vid="1.0",
-                 new_product=True):
-    """Return a mock product."""
-    product = MagicMock()
-    product.lid = lid
-    product.vid = vid
-    product.new_product = new_product
-    return product
-
 
 class MetaKernelSubclass(MetaKernelProduct):
     """Stand-in for a version-specific meta-kernel class."""
-
-
-class InventorySubclass(InventoryProduct):
-    """Stand-in for a version-specific inventory class."""
 
 
 # ---------------------------------------------------------------------------
@@ -70,100 +25,16 @@ MODULE = "pds.naif_pds4_bundler.classes.product.product_inventory"
 
 
 # ---------------------------------------------------------------------------
-# InventoryProduct.__init__ (pds_version 4)
-# ---------------------------------------------------------------------------
-
-# The expected "previous inventory file" candidate. Built by joining path
-# segments (never embedding "/" inside a string literal) so it's correct on both
-# POSIX and Windows. Kept as a Path -- the parametrized comparison below is
-# obj.path_current == path_current, and obj.path_current is itself a Path when a
-# previous file was found, so Path.__eq__ (parsed path parts) applies instead of
-# a separator-sensitive string comparison.
-PREV_INVENTORY_PATH = Path("bundle", "insight_spice", "spice_kernels",
-                           "collection_spice_kernels_inventory_v001.csv")
-
-
-class TestInventoryProductInitPDS4:
-    """Tests for __init__ with pds_version == '4'."""
-
-    @pytest.mark.parametrize("increment, previous_version, current, "
-                             "path_current, name, path, vid", [
-        (True,
-         [str(PREV_INVENTORY_PATH)],
-         2,
-         PREV_INVENTORY_PATH,
-         "collection_spice_kernels_inventory_v002.csv",
-         str(Path("staging/spice_kernels/collection_spice_kernels_inventory_v002.csv")),
-         "2.0"),
-        (True,
-         [],
-         1,
-         "",
-         "collection_spice_kernels_inventory_v001.csv",
-         str(Path("staging/spice_kernels/collection_spice_kernels_inventory_v001.csv")),
-         "1.0"),
-        (False,
-         [],
-         1,
-         "",
-         "collection_spice_kernels_inventory_v001.csv",
-         str(Path("staging/spice_kernels/collection_spice_kernels_inventory_v001.csv")),
-         "1.0"),
-    ])
-    @patch("pathlib.Path.glob")
-    def test_pds4_attribute_settings(self, mock_glob, increment, previous_version,
-                                           current, path_current, name, path, vid):
-        mock_glob.return_value = previous_version
-        setup = make_setup(pds_version="4", increment=increment)
-        collection = make_collection()
-
-        with patch(f"{MODULE}.InventoryProduct.write_product"), \
-             patch(f"{MODULE}.Product.__init__", return_value=None):
-            obj = InventoryProduct(setup, RunState(), collection)
-
-        assert obj.version == current
-
-        # path_current is a Path when a previous file was found, and the plain
-        # sentinel string "" otherwise. path_current (parametrized) is the
-        # matching type in each case, so this compares Path == Path (parsed path
-        # parts, not separator-sensitive strings) or "" == "".
-        assert obj.path_current == path_current
-        assert obj.name == name
-        assert obj.path == path
-        assert obj.lid == "urn:nasa:pds:insight_spice:document:spiceds"
-        assert obj.vid == vid
-        assert obj.new_product is True
-
-    @pytest.mark.parametrize("increment, glob_call_count", [
-        (True, 2),
-        (False, 0)
-    ])
-    @patch("pathlib.Path.glob")
-    def test_pds4_init_logic_testing(self, mock_glob, increment, glob_call_count):
-        """new_product is always True after __init__."""
-        mock_glob.return_value = []
-        setup = make_setup(pds_version="4", increment=increment)
-        collection = make_collection()
-
-        with patch(f"{MODULE}.InventoryProduct.write_product") as mock_write_product, \
-             patch(f"{MODULE}.Product.__init__", return_value=None):
-            InventoryProduct(setup, RunState(), collection)
-
-        mock_write_product.assert_called_once()
-
-        assert mock_glob.call_count == glob_call_count
-
-# ---------------------------------------------------------------------------
 # InventoryProduct.__init__ (pds_version 3)
 # ---------------------------------------------------------------------------
 
 class TestInventoryProductInitPDS3:
     """Tests for __init__ with pds_version == '3'."""
 
-    def test_pds2_attribute_settings(self):
+    def test_pds2_attribute_settings(self, inventory_helpers):
         """For PDS3, path points to index.tab and name is 'index.tab'."""
-        setup = make_setup(pds_version="3")
-        collection = make_collection()
+        setup = inventory_helpers.make_setup(pds_version="3")
+        collection = inventory_helpers.make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product"), \
              patch(f"{MODULE}.Product.__init__", return_value=None):
@@ -173,14 +44,14 @@ class TestInventoryProductInitPDS3:
         assert obj.path == "staging/index/index.tab"
         assert obj.new_product is True
 
-    def test_pds3_write_product_called_once(self):
+    def test_pds3_write_product_called_once(self, inventory_helpers):
         """write_product() is called exactly once during __init__.
 
         dsindex generation is no longer part of __init__ -- see
         TestInventoryProductGenerateDsindexFiles below.
         """
-        setup = make_setup(pds_version="3")
-        collection = make_collection()
+        setup = inventory_helpers.make_setup(pds_version="3")
+        collection = inventory_helpers.make_collection()
 
         with patch(f"{MODULE}.InventoryProduct.write_product") as mock_write_product, \
              patch(f"{MODULE}.Product.__init__", return_value=None):
@@ -201,14 +72,14 @@ class TestInventoryProductGenerateDsindexFiles:
     """
 
     @staticmethod
-    def _make_obj():
+    def _make_obj(inventory_helpers):
         obj = InventoryProduct.__new__(InventoryProduct)
-        obj.setup = make_setup(pds_version="3")
+        obj.setup = inventory_helpers.make_setup(pds_version="3")
         obj.path = "staging/index/index.tab"
         return obj
 
-    def test_copies_index_and_label_to_dsindex(self):
-        obj = self._make_obj()
+    def test_copies_index_and_label_to_dsindex(self, inventory_helpers):
+        obj = self._make_obj(inventory_helpers)
 
         with patch(f"{MODULE}.shutil.copy2") as mock_copy, \
              patch(f"{MODULE}.replace_string_in_file") as mock_replace:
@@ -231,29 +102,17 @@ class TestInventoryProductWriteProduct:
     """Tests for write_product()."""
 
     @staticmethod
-    def _make_obj(pds_version="4"):
+    def _make_obj(inventory_helpers, pds_version="3"):
         obj = InventoryProduct.__new__(InventoryProduct)
-        obj.setup = make_setup(pds_version=pds_version, diff=True)
+        obj.setup = inventory_helpers.make_setup(
+            pds_version=pds_version, diff=True)
         obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v001.csv"
         obj.name = "collection_spice_kernels_inventory_v001.csv"
         return obj
 
-    def test_write_product_pds4_calls_correct_methods(self):
-        """write_product() calls write_pds4_collection_product and validate_pds4."""
-        obj = self._make_obj("4")
-
-        with patch.object(obj, "write_pds4_collection_product") as mock_write, \
-             patch.object(obj, "validate_pds4") as mock_validate, \
-             patch.object(obj, "compare") as mock_compare:
-            obj.write_product()
-
-        mock_write.assert_called_once()
-        mock_validate.assert_called_once()
-        mock_compare.assert_called_once()
-
-    def test_write_product_pds3_calls_correct_methods(self):
+    def test_write_product_pds3_calls_correct_methods(self, inventory_helpers):
         """write_product() calls write_pds3_index_product and validate_pds3."""
-        obj = self._make_obj("3")
+        obj = self._make_obj(inventory_helpers, "3")
 
         with patch.object(obj, "write_pds3_index_product") as mock_write, \
              patch.object(obj, "validate_pds3") as mock_validate, \
@@ -264,156 +123,69 @@ class TestInventoryProductWriteProduct:
         mock_validate.assert_called_once()
         mock_compare.assert_called_once()
 
-    def test_write_product_no_diff_skips_compare(self, caplog):
-        """When setup.args.diff is False, compare() is not called."""
-        obj = self._make_obj("4")
-        obj.setup.args.diff = False
-
-        with patch.object(obj, "write_pds4_collection_product"), \
-             patch.object(obj, "validate_pds4"), \
-             patch.object(obj, "compare") as mock_compare, \
-             caplog.at_level(logging.INFO):
-            obj.write_product()
-
-        mock_compare.assert_not_called()
-        assert caplog.messages == ['-- Generated collection_spice_kernels_inventory_v001.csv']
-
-    def test_write_product_prints_when_not_silent_or_verbose(self, capsys):
-        """Output is printed when silent=False and verbose=False."""
-        obj = self._make_obj("4")
-        obj.setup.args.diff = False
-        obj.setup.args.silent = False
-        obj.setup.args.verbose = False
-
-        with patch.object(obj, "write_pds4_collection_product"), \
-             patch.object(obj, "validate_pds4"), \
-             patch("builtins.print") as mock_print:
-            obj.write_product()
-
-        mock_print.assert_called_once()
-
-    def test_write_product_silent_suppresses_print(self):
-        """No print when silent=True."""
-        obj = self._make_obj("4")
-        obj.setup.args.diff = False
-        obj.setup.args.silent = True
-        obj.setup.args.verbose = False
-
-        with patch.object(obj, "write_pds4_collection_product"), \
-             patch.object(obj, "validate_pds4"), \
-             patch("builtins.print") as mock_print:
-            obj.write_product()
-
-        mock_print.assert_not_called()
-
-    def test_write_product_verbose_suppresses_print(self):
-        """No print when verbose=True."""
-        obj = self._make_obj("4")
-        obj.setup.args.diff = False
-        obj.setup.args.silent = False
-        obj.setup.args.verbose = True
-
-        with patch.object(obj, "write_pds4_collection_product"), \
-             patch.object(obj, "validate_pds4"), \
-             patch("builtins.print") as mock_print:
-            obj.write_product()
-
-        mock_print.assert_not_called()
-
 
 # ---------------------------------------------------------------------------
-# InventoryProduct.write_pds4_collection_product
+# InventoryProduct._finish_product
 # ---------------------------------------------------------------------------
 
-class TestInventoryProductWritePds4CollectionProduct:
-    """Tests for write_pds4_collection_product()."""
+class TestInventoryProductFinishProduct:
+    """Tests for _finish_product()."""
 
     @staticmethod
-    def _make_obj(path_current="", products=None):
+    def _make_obj(inventory_helpers):
         obj = InventoryProduct.__new__(InventoryProduct)
-        obj.setup = make_setup(pds_version="4")
-        obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v002.csv"
-        obj.path_current = path_current
-
-        if products is None:
-            products = []
-        collection = make_collection()
-        collection.product = products
-        obj.collection = collection
+        obj.setup = inventory_helpers.make_setup(diff=True)
+        obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v001.csv"
+        obj.name = "collection_spice_kernels_inventory_v001.csv"
         return obj
 
-    def test_writes_new_products_as_primary(self):
-        """New products are written as 'P,lid::vid'."""
-        product = make_product(lid="urn:nasa:pds:test::1.0", vid="1.0", new_product=True)
-        obj = self._make_obj(products=[product])
-
-        m = mock_open()
-        with patch("builtins.open", m):
-            obj.write_pds4_collection_product()
-
-        handle = m()
-        written = "".join(c.args[0] for c in handle.write.call_args_list)
-        assert written == 'P,urn:nasa:pds:test::1.0::1.0\n'
-
-    def test_skips_inventory_products(self):
-        """InventoryProduct instances in collection.product are skipped."""
-        inventory_product = InventoryProduct.__new__(InventoryProduct)
-        obj = self._make_obj(products=[inventory_product])
-
-        m = mock_open()
-        with patch("builtins.open", m):
-            obj.write_pds4_collection_product()
-
-        handle = m()
-        written = "".join(c.args[0] for c in handle.write.call_args_list)
-        assert written == ''
-
-    def test_skips_non_new_products(self):
-        """Products with new_product=False are not written."""
-        product = make_product(new_product=False)
-        obj = self._make_obj(products=[product])
-
-        m = mock_open()
-        with patch("builtins.open", m):
-            obj.write_pds4_collection_product()
-
-        handle = m()
-        written = "".join(c.args[0] for c in handle.write.call_args_list)
-        assert written == ''
-
-    def test_previous_primary_items_become_secondary(self):
-        """Lines from path_current with "P,urn" are replaced with "S,urn".
+    @pytest.mark.parametrize("diff, compares", [
+        pytest.param(True, 1, id="diff"),
+        pytest.param(False, 0, id="no_diff"),
+    ])
+    def test_compares_only_when_diff_requested(
+            self, caplog, inventory_helpers, diff, compares):
+        """The new file is logged and validated, and compared with the
+        previous one only when setup.args.diff is set.
         """
-        obj = self._make_obj(path_current="/prev/collection_v001.csv")
+        # Inventory whose setup asks for a diff, or not
+        obj = self._make_obj(inventory_helpers)
+        obj.setup.args.diff = diff
 
-        prev_content = ("P,urn:nasa:pds:insight_spice:spice_kernels:ck_v2.bc::1.0\n"
-                        "S,urn:nasa:pds:insight_spice:spice_kernels:ck_v1.bc::1.0\n")
-        m_out = mock_open()
-        m_in = mock_open(read_data=prev_content)
+        # Run the shared step with validation and comparison replaced by mocks
+        with patch.object(obj, "validate") as mock_validate, \
+             patch.object(obj, "compare") as mock_compare, \
+             caplog.at_level(logging.INFO):
+            obj._finish_product()
 
-        def open_side_effect(_, mode="r", **__):
-            if mode == "w+":
-                return m_out.return_value
-            return m_in.return_value
+        # Validation always runs; the comparison depends on the diff flag
+        mock_validate.assert_called_once()
+        assert mock_compare.call_count == compares
+        assert caplog.messages == ['-- Generated collection_spice_kernels_inventory_v001.csv']
 
-        with patch("builtins.open", side_effect=open_side_effect):
-            obj.write_pds4_collection_product()
+    @pytest.mark.parametrize("silent, verbose, prints", [
+        pytest.param(False, False, 1, id="default"),
+        pytest.param(True, False, 0, id="silent"),
+        pytest.param(False, True, 0, id="verbose"),
+    ])
+    def test_created_message_only_when_not_silent_or_verbose(
+            self, inventory_helpers, silent, verbose, prints):
+        """The 'Created' message is printed only when neither silent nor
+        verbose is set.
+        """
+        # Inventory with the silent/verbose flags of the case and no diff
+        obj = self._make_obj(inventory_helpers)
+        obj.setup.args.diff = False
+        obj.setup.args.silent = silent
+        obj.setup.args.verbose = verbose
 
-        written = "".join(c.args[0] for c in m_out.return_value.write.call_args_list)
-        expected = ('S,urn:nasa:pds:insight_spice:spice_kernels:ck_v2.bc::1.0\n'
-                    'S,urn:nasa:pds:insight_spice:spice_kernels:ck_v1.bc::1.0\n')
-        assert written == expected
+        # Run the shared step, counting what gets printed
+        with patch.object(obj, "validate"), \
+             patch("builtins.print") as mock_print:
+            obj._finish_product()
 
-    def test_no_path_current_skips_previous_file(self):
-        """When path_current is empty, only the output file is opened."""
-        obj = self._make_obj(path_current="", products=[])
-
-        m = mock_open()
-        with patch("builtins.open", m):
-            obj.write_pds4_collection_product()
-
-        # Only one file open (write mode)
-        assert m.call_count == 1
+        # One 'Created' line when printing is allowed, none otherwise
+        assert mock_print.call_count == prints
 
 
 # ---------------------------------------------------------------------------
@@ -434,12 +206,13 @@ class TestInventoryProductWritePds3IndexProduct:
         k.name = "insight_ck.bc"
         return k
 
-    def _make_obj(self, increment=False, products=None):
+    def _make_obj(self, inventory_helpers, increment=False, products=None):
         obj = InventoryProduct.__new__(InventoryProduct)
-        obj.setup = make_setup(pds_version="3", increment=increment)
+        obj.setup = inventory_helpers.make_setup(
+            pds_version="3", increment=increment)
         obj.path = "staging/index/index.tab"
 
-        collection = make_collection()
+        collection = inventory_helpers.make_collection()
         collection.list.DATA_SET_ID = "INSIGHT-M-SPICE-6-V1.0"
         collection.list.RELID = "0001"
         collection.list.RELDATE = "2020-01-01"
@@ -459,9 +232,9 @@ class TestInventoryProductWritePds3IndexProduct:
          '2020-001T00:00:00,2021-001T00:00:00,"data/ck/insight_ck.lbl","INSIGHT-M-SPICE-6-V1.0",'
          '2020-001T00:00:00,"0001",2020-01-01,"CK","insight_ck.bc","insight_0001"\r\n')
     ])
-    def test_writes_new_index_rows(self, eol, expected):
+    def test_writes_new_index_rows(self, eol, expected, inventory_helpers):
         """Kernel entries are written as rows in the index file."""
-        obj = self._make_obj()
+        obj = self._make_obj(inventory_helpers)
         obj.setup.eol_pds3 = eol
 
         m = mock_open()
@@ -473,9 +246,9 @@ class TestInventoryProductWritePds3IndexProduct:
         written = "".join(c.args[0] for c in handle.write.call_args_list)
         assert written == expected
 
-    def test_sets_rows_and_column_attributes(self):
+    def test_sets_rows_and_column_attributes(self, inventory_helpers):
         """rows, column_bytes, column_start_bytes, row_bytes, file_types are set."""
-        obj = self._make_obj()
+        obj = self._make_obj(inventory_helpers)
 
         m = mock_open()
         with patch("builtins.open", m):
@@ -491,11 +264,11 @@ class TestInventoryProductWritePds3IndexProduct:
         pytest.param(MetaKernelProduct, id="base_class"),
         pytest.param(MetaKernelSubclass, id="subclass"),
     ])
-    def test_skips_metakernel_products(self, meta_class):
+    def test_skips_metakernel_products(self, meta_class, inventory_helpers):
         """Meta-kernels, including subclasses of MetaKernelProduct, are
         excluded from the index.
         """
-        obj = self._make_obj()
+        obj = self._make_obj(inventory_helpers)
         # Skip __init__: the product is only ever checked by its type
         meta = meta_class.__new__(meta_class)
         obj.collection.product = [meta]
@@ -551,9 +324,10 @@ class TestInventoryProductWritePds3IndexProduct:
             '"CO-S/J/E/V-SPICE-6-V1.0",2005-06-24T07:11:10,"0001",2005-07-01,"EK  ",'
             '"10A.bdb                               ","cosp_1000"\r\n')
     ])
-    def test_increment_merges_existing_index(self, rows, existing_index):
+    def test_increment_merges_existing_index(
+            self, rows, existing_index, inventory_helpers):
         """When increment=True, rows from the existing index are included."""
-        obj = self._make_obj(increment=True)
+        obj = self._make_obj(inventory_helpers, increment=True)
         m_existing = mock_open(read_data=existing_index)
         m_new = mock_open()
 
@@ -569,11 +343,11 @@ class TestInventoryProductWritePds3IndexProduct:
 
         assert obj.rows == rows
 
-    def test_file_types_deduplicated(self):
+    def test_file_types_deduplicated(self, inventory_helpers):
         """file_types contains unique values only."""
         k1 = self._make_kernel()
         k2 = self._make_kernel()
-        obj = self._make_obj(products=[k1, k2])
+        obj = self._make_obj(inventory_helpers, products=[k1, k2])
 
         m = mock_open()
         with patch("builtins.open", m), \
@@ -582,93 +356,6 @@ class TestInventoryProductWritePds3IndexProduct:
             obj.write_pds3_index_product()
 
         assert len(obj.file_types) == 1
-
-
-# ---------------------------------------------------------------------------
-# InventoryProduct.validate_pds4
-# ---------------------------------------------------------------------------
-
-class TestInventoryProductValidatePds4:
-    """Tests for validate_pds4()."""
-
-    @staticmethod
-    def _make_obj(products=None):
-        obj = InventoryProduct.__new__(InventoryProduct)
-        obj.setup = make_setup()
-        obj.name = "collection_spice_kernels_inventory_v001.csv"
-        obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v001.csv"
-        collection = make_collection()
-        collection.product = products or []
-        obj.collection = collection
-        return obj
-
-    def test_all_products_found_no_error_logged(self, caplog):
-        """No error is logged when all products are present in the inventory file."""
-        product = make_product(lid="urn:nasa:pds:test::1.0")
-        obj = self._make_obj(products=[product])
-
-        csv_content = "P,urn:nasa:pds:test::1.0::1.0\r\n"
-        with patch("builtins.open", mock_open(read_data=csv_content)), \
-             caplog.at_level(logging.INFO):
-            obj.validate_pds4()
-
-        expected = [
-            (logging.INFO, '-- Validating collection_spice_kernels_inventory_v001.csv...'),
-            (logging.INFO, '      Check that all the products are in the collection.'),
-            (logging.INFO, '      OK'),
-            (logging.INFO, '')
-        ]
-
-        messages = [(r[1], r[2]) for r in caplog.record_tuples]
-        assert messages == expected
-
-    def test_missing_product_logs_error(self, caplog):
-        """An error is logged when a product is absent from the inventory file."""
-        product = make_product(lid="urn:nasa:pds:missing::1.0")
-        obj = self._make_obj(products=[product])
-
-        csv_content = "P,urn:nasa:pds:other::1.0::1.0\r\n"
-        with patch("builtins.open", mock_open(read_data=csv_content)), \
-             caplog.at_level(logging.INFO):
-            obj.validate_pds4()
-
-        expected = [
-            (logging.INFO, '-- Validating collection_spice_kernels_inventory_v001.csv...'),
-            (logging.INFO, '      Check that all the products are in the collection.'),
-            (logging.ERROR, '      Product urn:nasa:pds:missing::1.0 not found. Consider increment re-generation.'),
-            (logging.INFO, '      OK'),
-            (logging.INFO, '')
-        ]
-
-        messages = [(r[1], r[2]) for r in caplog.record_tuples]
-        assert messages == expected
-
-    @pytest.mark.parametrize("inventory_class", [
-        pytest.param(InventoryProduct, id="base_class"),
-        pytest.param(InventorySubclass, id="subclass"),
-    ])
-    def test_inventory_products_skipped(self, caplog, inventory_class):
-        """Inventories, including subclasses of InventoryProduct, in the
-        collection are not validated.
-        """
-        # Skip __init__: the product is only ever checked by its type, and
-        # reading its 'lid' would fail if it were not skipped
-        inv = inventory_class.__new__(inventory_class)
-        obj = self._make_obj(products=[inv])
-
-        with patch("builtins.open", mock_open(read_data="")), \
-             caplog.at_level(logging.INFO):
-            obj.validate_pds4()
-
-        expected = [
-            (logging.INFO, '-- Validating collection_spice_kernels_inventory_v001.csv...'),
-            (logging.INFO, '      Check that all the products are in the collection.'),
-            (logging.INFO, '      OK'),
-            (logging.INFO, '')
-        ]
-
-        messages = [(r[1], r[2]) for r in caplog.record_tuples]
-        assert messages == expected
 
 
 # ---------------------------------------------------------------------------
@@ -702,19 +389,20 @@ class TestInventoryProductCompare:
     """Tests for compare()."""
 
     @staticmethod
-    def _make_obj(path_current=""):
+    def _make_obj(inventory_helpers, path_current=""):
         obj = InventoryProduct.__new__(InventoryProduct)
-        obj.setup = make_setup(diff=True)
+        obj.setup = inventory_helpers.make_setup(diff=True)
         obj.name = "insight_spice/collection_spice_kernels_inventory_v002.csv"
         obj.path = "staging/spice_kernels/collection_spice_kernels_inventory_v002.csv"
         obj.path_current = path_current
-        collection = make_collection()
+        collection = inventory_helpers.make_collection()
         obj.collection = collection
         return obj
 
-    def test_compare_with_path_current_calls_compare_files(self):
+    def test_compare_with_path_current_calls_compare_files(
+            self, inventory_helpers):
         """compare_files is called with fromfile=path_current when it exists."""
-        obj = self._make_obj(path_current="/prev/v001.csv")
+        obj = self._make_obj(inventory_helpers, path_current="/prev/v001.csv")
 
         with patch(f"{MODULE}.compare_files") as mock_cf:
             obj.compare()
@@ -726,9 +414,9 @@ class TestInventoryProductCompare:
             obj.setup.args.diff,
         )
 
-    def test_compare_without_path_current_uses_sample(self):
+    def test_compare_without_path_current_uses_sample(self, inventory_helpers):
         """When path_current is empty, the latest InSight sample file is used."""
-        obj = self._make_obj(path_current="")
+        obj = self._make_obj(inventory_helpers, path_current="")
 
         sample_files = [
             "/root/data/insight_spice/spice_kernels/collection_spice_kernels_inventory_v001.csv"
@@ -741,9 +429,10 @@ class TestInventoryProductCompare:
         args = mock_cf.call_args[0]
         assert args[0] == sample_files[-1]
 
-    def test_compare_without_path_current_logs_warning(self, caplog):
+    def test_compare_without_path_current_logs_warning(
+            self, caplog, inventory_helpers):
         """A warning is logged when falling back to the InSight sample."""
-        obj = self._make_obj(path_current="")
+        obj = self._make_obj(inventory_helpers, path_current="")
 
         sample_files = [
             "/root/data/insight_spice/spice_kernels/collection_spice_kernels_inventory_v001.csv"
@@ -775,5 +464,7 @@ def test_inventory_subclass_hierarchy(subclass, version_base):
     """Each version-specific inventory is an InventoryProduct and also a
     product of its own PDS version.
     """
+    # Both links are needed: isinstance() checks in the inventory code rely on
+    # the first, and _archive_root_dir comes from the version base
     assert issubclass(subclass, InventoryProduct)
     assert issubclass(subclass, version_base)

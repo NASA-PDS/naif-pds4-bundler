@@ -1,7 +1,6 @@
 """Implementation of the Inventory product class."""
 import glob
 import logging
-import os
 import shutil
 from pathlib import Path
 
@@ -10,7 +9,6 @@ from .product_metakernel import MetaKernelProduct
 from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import compare_files
-from ...utils import find_latest_versioned_file
 from ...utils import replace_string_in_file
 from ...utils import type_to_extension
 
@@ -34,11 +32,7 @@ class InventoryProduct(Product):
         self.row_bytes = 0
         self.setup = setup
 
-        if setup.pds_version == "3":
-            self._set_pds3_location()
-
-        else:  # setup.pds_version == "4":
-            self._set_pds4_location()
+        self._set_location()
 
         #
         # Kernels are already generated products but Inventories are not.
@@ -46,83 +40,22 @@ class InventoryProduct(Product):
         self.write_product()
         self.new_product = True
 
-        Product.__init__(self, run_state)
+        super().__init__(run_state)
 
         # Labeling used to happen here (PDS3/PDS4 label picked and built), and
         # so did the PDS3 dsindex-file copy below it. Both moved out:
         # labeling to the pipeline, dsindex copying to its own method,
         # generate_dsindex_files(), also called from the pipeline.
 
+    def _set_location(self) -> None:
+        """Set the path and name of the inventory file."""
+        # PDS3 only for now, same as write_product().
+        self._set_pds3_location()
+
     def _set_pds3_location(self) -> None:
         """Set the path and name of the PDS3 index file."""
         self.path = f"{self.setup.staging_directory}/index/index.tab"
         self.name = "index.tab"
-
-    def _set_pds4_location(self) -> None:
-        """Set the version, path, name, LID and VID of the PDS4 inventory."""
-
-        #
-        # Determine the inventory version
-        #
-        if self.setup.increment:
-            # Search both the bundle directory (previous increments) and the
-            # staging directory (current, in-progress increment) for the
-            # latest inventory file already written.
-            inventory_dirs = [
-                Path(self.setup.bundle_directory)
-                / f"{self.setup.mission_acronym}_spice"
-                / self.collection.name,
-
-                Path(self.setup.staging_directory) / self.collection.name,
-            ]
-            latest_file, latest_version = find_latest_versioned_file(
-                inventory_dirs,
-                f"collection_{self.collection.name}_inventory_v*.csv"
-            )
-
-            # latest_version is None either when no file matched, or when
-            # a file matched but its name didn't parse as expected.
-            if latest_version is not None:
-
-                #
-                # We store the previous version to use it to validate the
-                # generated one.
-                #
-                self.path_current = latest_file
-                self.version = latest_version + 1
-
-                logging.info('-- Previous inventory file is: %s', latest_file)
-                logging.info('-- Generate version %d.', self.version)
-
-            else:
-                # No usable previous inventory file: start over at v1 rather
-                # than guessing a version from a partial match.
-                self.version = 1
-                self.path_current = ""
-
-                logging.warning('-- Previous inventory file not found.')
-                logging.warning('-- Default to version %d.', self.version)
-                logging.warning('-- The version of this file might be incorrect.')
-
-        else:
-            self.version = 1
-            self.path_current = ""
-
-            logging.warning('-- Default to version %d.', self.version)
-            logging.warning(
-                '-- Make sure this is the first release of the archive.')
-
-        self.name = (
-            f"collection_{self.collection.name}_inventory_v{self.version:03}.csv"
-        )
-        self.path = (
-            self.setup.staging_directory
-            + os.sep + self.collection.name
-            + os.sep + self.name
-        )
-
-        self.set_product_lid()
-        self.set_product_vid()
 
     def generate_dsindex_files(self) -> None:
         """Copy the PDS3 index file and its label to dsindex.tab/.lbl.
@@ -149,20 +82,11 @@ class InventoryProduct(Product):
             '"DSINDEX.TAB"',
             self.setup)
 
-    def set_product_lid(self) -> None:
-        """Set the Product LID."""
-        self.lid = f"{self.setup.logical_identifier}:document:spiceds"
-
-    def set_product_vid(self) -> None:
-        """Set the Product VID."""
-        self.vid = f'{int(self.version)}.0'
-
     def write_product(self) -> None:
         """Write and validate the Collection inventory."""
-        if self.setup.pds_version == "4":
-            self.write_pds4_collection_product()
-        else:
-            self.write_pds3_index_product()
+        # PDS3 only for now: the PDS4 class overrides this, and it moves to
+        # the PDS3 class next.
+        self.write_pds3_index_product()
 
         self._finish_product()
 
@@ -180,42 +104,9 @@ class InventoryProduct(Product):
             self.compare()
 
     def validate(self) -> None:
-        """Validate the inventory with the checks of its PDS version."""
-        if self.setup.pds_version == "4":
-            self.validate_pds4()
-        else:
-            self.validate_pds3()
-
-    def write_pds4_collection_product(self) -> None:
-        """Write the PDS4 Collection product."""
-        #
-        # If there is an existing version we need to add the items from
-        # the previous version as SECONDARY members
-        #
-        with open(self.path, "w+", encoding='utf-8') as f:
-            if self.path_current:
-                with open(self.path_current, "r", encoding='utf-8') as r:
-                    for line in r:
-                        if "P,urn" in line:
-                            #
-                            # All primary items in previous version shall
-                            # be included as secondary in the new one
-                            #
-                            line = line.replace("P,urn", "S,urn")
-                        line = add_carriage_return(line, self.setup.eol_pds4)
-                        f.write(line)
-
-            for product in self.collection.product:
-                #
-                # This conditional is added because miscellaneous inventories
-                # are added to the collection before generating the inventory
-                # product itself.
-                #
-                if not isinstance(product, InventoryProduct):
-                    if product.new_product:
-                        line = f"P,{product.lid}::{product.vid}\r\n"
-                        line = add_carriage_return(line, self.setup.eol_pds4)
-                        f.write(line)
+        """Validate the inventory."""
+        # PDS3 only for now, same as write_product().
+        self.validate_pds3()
 
     def write_pds3_index_product(self) -> None:
         """This method uses the previous index file to generate the new one.
@@ -347,34 +238,6 @@ class InventoryProduct(Product):
         self.column_start_bytes = column_start_bytes
         self.row_bytes = len(line)
         self.rows = rows
-
-    def validate_pds4(self) -> None:
-        """Validate the PDS4 Inventory Product.
-
-        The Inventory is validated by checking that all the products listed
-        are present in the archive.
-        """
-        logging.info('-- Validating %s...', self.name)
-
-        #
-        # Check that all the products are listed in the collection product.
-        #
-        logging.info("      Check that all the products are in the collection.")
-
-        for product in self.collection.product:
-            if not isinstance(product, InventoryProduct):
-                product_found = False
-                with open(self.path, "r", encoding='utf-8') as c:
-                    for line in c:
-                        if product.lid in line:
-                            product_found = True
-                    if not product_found:
-                        logging.error(
-                            '      Product %s not found. '
-                            'Consider increment re-generation.', product.lid)
-
-        logging.info("      OK")
-        logging.info("")
 
     def validate_pds3(self) -> None:
         """Validate the PDS3 Index.
