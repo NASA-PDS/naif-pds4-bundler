@@ -185,7 +185,8 @@ def test_version_specific_hooks_are_left_to_subclasses(hook):
     """
     # An inventory object built without __init__, which would call the hooks
     obj = InventoryProduct.__new__(InventoryProduct)
+    method = getattr(obj, hook)
 
     # Each hook is up to the version-specific subclass to provide
     with pytest.raises(NotImplementedError):
-        getattr(obj, hook)()
+        method()
