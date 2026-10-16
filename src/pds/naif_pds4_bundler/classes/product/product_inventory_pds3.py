@@ -181,8 +181,8 @@ class InventoryPDS3Product(InventoryProduct, PDS3Product):
     def validate(self) -> None:
         """Validate the PDS3 Index.
 
-        The Inventory is validated by checking that all the products listed
-        are present in the archive and comparing the index file with the
-        previous one.
+        No checks are implemented for PDS3: this only logs that validation
+        started. The index is not checked for missing products or compared
+        against the previous index.
         """
         logging.info('-- Validating %s...', self.name)
