@@ -80,7 +80,8 @@ _PATCH_TARGETS = [
     'MetaKernelProduct',
     'SpiceKernelProduct',
     'OrbnumFileProduct',
-    'InventoryProduct',
+    'InventoryPDS3Product',
+    'InventoryPDS4Product',
     'ChecksumProduct',
     'SpicedsProduct',
     'DocumentCollection',
@@ -735,11 +736,11 @@ class TestPhase8CollectionMetadata:
     # For PDS4, set_increment_times() is called on the SPICE kernels collection
     # to record the temporal coverage of the release. If the collection was
     # updated (spice_kernels_collection.updated is truthy), set_collection_vid()
-    # is called for PDS4 to bump the collection version identifier, and
-    # InventoryProduct is created for the collection regardless of PDS version.
+    # is called for PDS4 to bump the collection version identifier, and an
+    # inventory product is created for the collection regardless of PDS version.
     # validate() is called on the collection to check internal consistency.
     # For PDS3, set_increment_times() and set_collection_vid() are both skipped,
-    # but an InventoryProduct is still created when the collection is updated.
+    # but an inventory product is still created when the collection is updated.
 
     def test_set_increment_times_called_for_pds4(self, mocks):
         # Increment start/stop times are computed for PDS4 archives.
@@ -762,25 +763,35 @@ class TestPhase8CollectionMetadata:
         run_pipeline(_args())
         mocks.SpiceKernelsCollection.return_value.validate.assert_called_once()
 
-    def test_inventory_product_created_when_collection_updated(self, mocks):
-        # An InventoryProduct is generated for the SPICE kernels collection when it has new products.
+    @pytest.mark.parametrize("pds_version, inventory_class", [
+        pytest.param('4', 'InventoryPDS4Product', id='pds4'),
+        pytest.param('3', 'InventoryPDS3Product', id='pds3'),
+    ])
+    def test_inventory_product_created_when_collection_updated(
+            self, mocks, pds_version, inventory_class):
+        """When the SPICE kernels collection has new products, its inventory
+        is built with the class of the archive's PDS version.
+        """
+        mocks.Setup.return_value.pds_version = pds_version
         mocks.SpiceKernelsCollection.return_value.updated = True
         run_pipeline(_args())
-        # InventoryProduct should be called at least once (for the SKC)
-        mocks.InventoryProduct.assert_called()
+        inventory = getattr(mocks, inventory_class)
+        inventory.assert_called()
         # The positional arguments are (setup, run_state, collection).
-        first_call_collection = mocks.InventoryProduct.call_args_list[0][0][2]
+        first_call_collection = inventory.call_args_list[0][0][2]
         assert first_call_collection is mocks.SpiceKernelsCollection.return_value
 
     def test_inventory_product_not_created_for_skc_when_not_updated(self, mocks):
-        # No InventoryProduct is generated for the SPICE kernels collection when nothing changed.
+        # No inventory is generated for the SPICE kernels collection when nothing changed.
         mocks.SpiceKernelsCollection.return_value.updated = False
         run_pipeline(_args())
-        # When SKC is not updated, no InventoryProduct for it specifically.
-        # All InventoryProduct calls should be for other collections.
+        # When SKC is not updated, no inventory for it specifically.
+        # All inventory calls should be for other collections.
         skc = mocks.SpiceKernelsCollection.return_value
+        # Either version's class could have been used, so check both.
         calls_for_skc = [
-            c for c in mocks.InventoryProduct.call_args_list
+            c for c in (mocks.InventoryPDS3Product.call_args_list
+                        + mocks.InventoryPDS4Product.call_args_list)
             if c[0][2] is skc
         ]
         assert calls_for_skc == []
@@ -794,17 +805,19 @@ class TestPhase8CollectionMetadata:
         skc = mocks.SpiceKernelsCollection.return_value
         skc.set_collection_vid.assert_not_called()
         calls_for_skc = [
-            c for c in mocks.InventoryProduct.call_args_list
+            c for c in mocks.InventoryPDS3Product.call_args_list
             if c[0][2] is skc
         ]
         assert len(calls_for_skc) == 1
+        # The PDS3 run must not build a PDS4 inventory.
+        mocks.InventoryPDS4Product.assert_not_called()
         skc.add.assert_called()
 
     def test_skc_inventory_labeled_with_pds4_label(self, mocks):
         # Force the SKC inventory branch to run at all.
         mocks.SpiceKernelsCollection.return_value.updated = True
         run_pipeline(_args())
-        inventory = mocks.InventoryProduct.return_value
+        inventory = mocks.InventoryPDS4Product.return_value
 
         # assert_any_call, not assert_called_once: the misc inventory (built
         # later in the same run, always PDS4) calls this same label class too,
@@ -825,7 +838,7 @@ class TestPhase8CollectionMetadata:
         mocks.Setup.return_value.pds_version = '3'
         mocks.SpiceKernelsCollection.return_value.updated = True
         run_pipeline(_args())
-        inventory = mocks.InventoryProduct.return_value
+        inventory = mocks.InventoryPDS3Product.return_value
 
         # PDS3 has no misc-inventory branch, so this is the only call --
         # assert_called_once_with is safe here, unlike the PDS4 test above.
@@ -845,7 +858,7 @@ class TestPhase8CollectionMetadata:
         calls = []
         mocks.InventoryPDS3Label.return_value.write_label.side_effect = (
             lambda: calls.append('label written'))
-        dsindex = mocks.InventoryProduct.return_value.generate_dsindex_files
+        dsindex = mocks.InventoryPDS3Product.return_value.generate_dsindex_files
         dsindex.side_effect = lambda: calls.append('dsindex generated')
 
         # Run the pipeline under PDS3 with the SPICE kernels collection
@@ -866,7 +879,7 @@ class TestPhase8CollectionMetadata:
 class TestPhase9PDS4DocumentMiscChecksum:
     # Phase 9 – PDS4 document collection, miscellaneous products, and checksum
     # DocumentCollection is constructed and its VID is set. SpicedsProduct is
-    # constructed; if it was generated, both the product and an InventoryProduct
+    # constructed; if it was generated, both the product and an inventory
     # are added to the document collection. All three collections (SPICE kernels,
     # miscellaneous, document) are registered with the bundle via bundle.add().
     # ChecksumProduct is then constructed for the miscellaneous collection, with
@@ -933,7 +946,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # assert_any_call checks that spiceds was added at some point.
         doc_col.add.assert_any_call(mocks.SpicedsProduct.return_value)
         inventory_calls_for_doc = [
-            c for c in mocks.InventoryProduct.call_args_list
+            c for c in mocks.InventoryPDS4Product.call_args_list
             if c[0][2] is doc_col
         ]
         assert len(inventory_calls_for_doc) >= 1
@@ -942,11 +955,11 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # This inventory only gets built when spiceds was generated.
         mocks.SpicedsProduct.return_value.generated = True
         run_pipeline(_args())
-        inventory = mocks.InventoryProduct.return_value
+        inventory = mocks.InventoryPDS4Product.return_value
 
         # PDS4 only -- there's no PDS3 branch for the document collection.
         # assert_any_call: the misc inventory built later shares the same mock
-        # InventoryProduct/InventoryPDS4Label return values.
+        # InventoryPDS4Product/InventoryPDS4Label return values.
         mocks.InventoryPDS4Label.assert_any_call(
             inventory, mocks.DocumentCollection.return_value)
 
@@ -963,7 +976,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         doc_col = mocks.DocumentCollection.return_value
         inventory_calls_for_doc = [
-            c for c in mocks.InventoryProduct.call_args_list
+            c for c in mocks.InventoryPDS4Product.call_args_list
             if c[0][2] is doc_col
         ]
         assert inventory_calls_for_doc == []
@@ -1075,7 +1088,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # -- this is the only inventory built in this run, so it's the only
         # InventoryPDS4Label call to check for.
         run_pipeline(_args())
-        inventory = mocks.InventoryProduct.return_value
+        inventory = mocks.InventoryPDS4Product.return_value
 
         mocks.InventoryPDS4Label.assert_called_once_with(
             inventory, mocks.MiscellaneousCollection.return_value)
@@ -1506,12 +1519,22 @@ class TestNPBErrorHandling:
         ),
         pytest.param(
             {'SpiceKernelsCollection.return_value.updated': True},
-            'InventoryProduct', 'boom skc inventory', id='skc_inventory',
+            'InventoryPDS4Product', 'boom skc inventory', id='skc_inventory',
+        ),
+        # Same site as above, built under PDS3, where the pipeline picks the
+        # PDS3 class instead.
+        pytest.param(
+            {
+                'Setup.return_value.pds_version': '3',
+                'SpiceKernelsCollection.return_value.updated': True,
+            },
+            'InventoryPDS3Product', 'boom skc pds3 inventory',
+            id='skc_pds3_inventory',
         ),
         pytest.param({}, 'SpicedsProduct', 'boom spiceds', id='spiceds_product'),
         pytest.param(
             {'SpicedsProduct.return_value.generated': True},
-            'InventoryProduct', 'boom doc inventory', id='doc_inventory',
+            'InventoryPDS4Product', 'boom doc inventory', id='doc_inventory',
         ),
         pytest.param(
             {
@@ -1527,10 +1550,10 @@ class TestNPBErrorHandling:
                 'isdir.return_value': False,
                 'Bundle.return_value.history': {'release_01': ('data', 'label')},
             },
-            'InventoryProduct', 'boom release misc inventory', id='release_misc_inventory',
+            'InventoryPDS4Product', 'boom release misc inventory', id='release_misc_inventory',
         ),
         pytest.param({}, 'ChecksumProduct', 'boom checksum misc', id='misc_checksum'),
-        pytest.param({}, 'InventoryProduct', 'boom misc inventory', id='misc_inventory'),
+        pytest.param({}, 'InventoryPDS4Product', 'boom misc inventory', id='misc_inventory'),
         pytest.param({}, 'ReadmeProduct', 'boom readme', id='readme_product'),
         pytest.param(
             {'Setup.return_value.pds_version': '3'},
@@ -1616,14 +1639,14 @@ class TestNPBErrorHandling:
         pytest.param({}, 'InventoryPDS4Label', 'boom misc inventory label', id='misc_inventory_label'),
         # Forces the SKC inventory to be built under PDS3: generate_dsindex_files()
         # runs right after the PDS3 label is assigned, copying index.lbl --
-        # this is a separate call from the InventoryProduct construction
+        # this is a separate call from the InventoryPDS3Product construction
         # itself, and (unlike the label) it does have its own raise site.
         pytest.param(
             {
                 'Setup.return_value.pds_version': '3',
                 'SpiceKernelsCollection.return_value.updated': True,
             },
-            'InventoryProduct.return_value.generate_dsindex_files',
+            'InventoryPDS3Product.return_value.generate_dsindex_files',
             'boom generate_dsindex_files', id='skc_inventory_generate_dsindex_files',
         ),
         # Forces the "spiceds file changed" branch, so the document gets

@@ -8,7 +8,8 @@ that subclasses must call once the product file exists on disk.
 Available products:
 
 - :class:`~.product_checksum.ChecksumProduct`     -- checksum table file
-- :class:`~.product_inventory.InventoryProduct`   -- collection inventory (PDS4 CSV / PDS3 index)
+- :class:`~.product_inventory_pds3.InventoryPDS3Product` -- PDS3 collection inventory (index file)
+- :class:`~.product_inventory_pds4.InventoryPDS4Product` -- PDS4 collection inventory (CSV file)
 - :class:`~.product_metakernel.MetaKernelProduct` -- SPICE meta-kernel
 - :class:`~.product_orbnum.OrbnumFileProduct`     -- orbit number file
 - :class:`~.product_pds3doc.PDS3DocumentProduct`  -- PDS3 document product
@@ -18,7 +19,8 @@ Available products:
 """
 
 from .product_checksum import ChecksumProduct
-from .product_inventory import InventoryProduct
+from .product_inventory_pds3 import InventoryPDS3Product
+from .product_inventory_pds4 import InventoryPDS4Product
 from .product_metakernel import MetaKernelProduct
 from .product_orbnum import OrbnumFileProduct
 from .product_pds3doc import PDS3DocumentProduct
