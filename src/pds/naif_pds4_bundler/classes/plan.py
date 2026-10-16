@@ -107,105 +107,7 @@ class ReleasePlan:
         # In such case only the input file is provided in the release plan.
         candidates = self._get_candidate_kernels()
 
-        # Filter the kernels with the patterns in the kernel list from the
-        # configuration.
-        patterns = self._get_patterns()
-
-        kernels = []
-        for kernel in candidates:
-            kernel_name = Path(kernel).name
-
-            for pattern in patterns:
-                if re.match(pattern, kernel_name):
-                    kernels.append(kernel_name)
-
-        # Determine which meta-kernel, if any, gets added to the plan.
-        # Skipped entirely in labeling mode. A meta-kernel provided via
-        # configuration takes priority; otherwise one is inferred from the
-        # existing bundle.
-        if self.setup.args.faucet != "labels":
-            if hasattr(self.setup, "mk_inputs"):
-                mks = normalize_to_list(self.setup.mk_inputs["file"])
-                for mk in mks:
-                    mk_new_name = mk.split(os.sep)[-1]
-
-                    # Accept mk as given, or fall back to resolving it against
-                    # the current working directory.
-                    if os.path.isfile(mk):
-                        mk_path = mk
-
-                    else:
-                        mk_path = os.getcwd() + os.sep + mk
-
-                    if os.path.isfile(mk_path):
-                        kernels.append(mk_new_name)
-
-                    else:
-                        raise NPBError("Meta-kernel provided via configuration "
-                                       f"{mk_new_name} does not exist."
-                                       )
-            else:
-                # If no meta-kernel was provided via configuration, try to infer
-                # the one that needs to be generated.
-                bundle_files = Path(self.setup.bundle_directory).rglob("*")
-
-                # Meta-kernels live under a directory literally named "mk" and
-                # use the ".tm" extension.
-                mks_in_dir = [
-                    p.name
-                    for p in bundle_files
-                    if "mk" in p.parts and p.suffix.lower() == ".tm"
-                ]
-
-                if not mks_in_dir:
-                    logging.warning(
-                        "-- No former meta-kernel found to generate "
-                        "meta-kernel for the list."
-                    )
-
-                else:
-                    mk_new_name = ""
-
-                    # A meta-kernel can only be generated from the bundle
-                    # information if there are kernels in the plan to base it
-                    # on.
-                    if kernels:
-
-                        # Filenames are zero-padded by version, so the
-                        # lexicographically greatest one is also the newest.
-                        mk_name = max(mks_in_dir)
-
-                        for pattern in patterns:
-                            if re.match(pattern, mk_name):
-                                version = re.findall(r"_v\d+", mk_name)[0]
-
-                                # Strip the "_v" prefix, bump the number, and
-                                # zero-pad back to the original width (e.g.
-                                # "_v01" -> "_v02", "_v009" -> "_v010").
-                                new_version = "_v" + str(int(version[2:]) + 1).zfill(
-                                    len(version) - 2
-                                )
-
-                                # Swap the old version substring for the new one
-                                # inside the filename.
-                                mk_new_name = mk_name.replace(version, new_version, 1)
-
-                                logging.warning('-- Plan will include %s', mk_new_name)
-
-                                kernels.append(mk_new_name)
-
-                    if not mk_new_name:
-                        logging.error(
-                            "-- No former meta-kernel found to generate "
-                            "meta-kernel for the list."
-                        )
-
-        else:
-            logging.info("-- Meta-kernels not generated in labeling mode.")
-
-        # Add possible orbnum files if not running in label generation
-        # mode.
-        kernels.extend(self._collect_orbnum_files())
+        kernels = self._collect_plan_files(candidates)
 
         # The kernel list is complete.
         plan_name = self._plan_name()
@@ -314,6 +216,123 @@ class ReleasePlan:
             kernels_in_dir.sort()
 
         return kernels_in_dir
+
+    def _collect_plan_files(self, candidates: list) -> list:
+        """Build the list of files that make up the release plan.
+
+        The candidates are filtered with the configured patterns, then the
+        meta-kernel for the release is added (unless running in labeling
+        mode) and finally the orbnum files.
+
+        :param candidates: Paths of the kernels found for the release.
+        :return: File names, in plan order: kernels, meta-kernels, orbnum.
+        :raises NPBError: If a meta-kernel given in the configuration does
+                          not exist.
+        """
+        # Filter the kernels with the patterns in the kernel list from the
+        # configuration.
+        patterns = self._get_patterns()
+
+        kernels = []
+        for kernel in candidates:
+            kernel_name = Path(kernel).name
+
+            for pattern in patterns:
+                if re.match(pattern, kernel_name):
+                    kernels.append(kernel_name)
+
+                    # A kernel can match several patterns (for example its
+                    # primary and its mapping one) but is listed only once.
+                    break
+
+        # Determine which meta-kernel, if any, gets added to the plan.
+        # Skipped entirely in labeling mode. A meta-kernel provided via
+        # configuration takes priority; otherwise one is inferred from the
+        # existing bundle.
+        if self.setup.args.faucet != "labels":
+            if hasattr(self.setup, "mk_inputs"):
+                mks = normalize_to_list(self.setup.mk_inputs["file"])
+                for mk in mks:
+                    mk_new_name = mk.split(os.sep)[-1]
+
+                    # Accept mk as given, or fall back to resolving it against
+                    # the current working directory.
+                    if os.path.isfile(mk):
+                        mk_path = mk
+
+                    else:
+                        mk_path = os.getcwd() + os.sep + mk
+
+                    if os.path.isfile(mk_path):
+                        kernels.append(mk_new_name)
+
+                    else:
+                        raise NPBError("Meta-kernel provided via configuration "
+                                       f"{mk_new_name} does not exist."
+                                       )
+            else:
+                # If no meta-kernel was provided via configuration, try to infer
+                # the one that needs to be generated.
+                bundle_files = Path(self.setup.bundle_directory).rglob("*")
+
+                # Meta-kernels live under a directory literally named "mk" and
+                # use the ".tm" extension.
+                mks_in_dir = [
+                    p.name
+                    for p in bundle_files
+                    if "mk" in p.parts and p.suffix.lower() == ".tm"
+                ]
+
+                if not mks_in_dir:
+                    logging.warning(
+                        "-- No former meta-kernel found to generate "
+                        "meta-kernel for the list."
+                    )
+
+                else:
+                    mk_new_name = ""
+
+                    # A meta-kernel can only be generated from the bundle
+                    # information if there are kernels in the plan to base it
+                    # on.
+                    if kernels:
+
+                        # Filenames are zero-padded by version, so the
+                        # lexicographically greatest one is also the newest.
+                        mk_name = max(mks_in_dir)
+
+                        for pattern in patterns:
+                            if re.match(pattern, mk_name):
+                                version = re.findall(r"_v\d+", mk_name)[0]
+
+                                # Strip the "_v" prefix, bump the number, and
+                                # zero-pad back to the original width (e.g.
+                                # "_v01" -> "_v02", "_v009" -> "_v010").
+                                new_version = "_v" + str(int(version[2:]) + 1).zfill(
+                                    len(version) - 2
+                                )
+
+                                # Swap the old version substring for the new one
+                                # inside the filename.
+                                mk_new_name = mk_name.replace(version, new_version, 1)
+
+                                logging.warning('-- Plan will include %s', mk_new_name)
+
+                                kernels.append(mk_new_name)
+
+                    if not mk_new_name:
+                        logging.error(
+                            "-- No former meta-kernel found to generate "
+                            "meta-kernel for the list."
+                        )
+
+        else:
+            logging.info("-- Meta-kernels not generated in labeling mode.")
+
+        # Add possible orbnum files if not running in label generation
+        # mode.
+        kernels.extend(self._collect_orbnum_files())
+        return kernels
 
     def _collect_orbnum_files(self) -> list:
         """Collect orbnum files from the orbnum directory.
