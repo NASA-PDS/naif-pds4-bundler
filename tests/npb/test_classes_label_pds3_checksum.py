@@ -18,7 +18,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.pds3_checksum import ChecksumPDS3Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 # ---------------------------------------------------------------------------
@@ -49,7 +48,6 @@ def _make_setup(tmp_path: Path, *, pds_version: str = "3") -> MagicMock:
 def _make_product(staging_dir: Path) -> MagicMock:
     """Return a mock Checksum product object."""
     product = MagicMock()
-    product.run_state = RunState()
     product.creation_time = "2024-01-15T12:00:00"
     product.creation_date = "2024-01-15"
     product.record_bytes = 80

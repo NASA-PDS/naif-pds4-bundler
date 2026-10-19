@@ -5,7 +5,6 @@ from types import SimpleNamespace
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.pds4_document import DocumentPDS4Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 class TestDocumentPDS4LabelInit:
@@ -29,7 +28,6 @@ class TestDocumentPDS4LabelInit:
         inventory = SimpleNamespace(lid='urn:nasa:pds:maven_spice:document:spiceds',
                                     vid='1.0',
                                     name='spiceds_v001.html',
-                                    run_state=RunState(),
                                     collection=collection)
 
         return setup, collection, inventory
@@ -97,8 +95,7 @@ class TestDocumentPDS4LabelIntegration:
 
     @pytest.fixture()
     def env(self,
-            tmp_path: Path,
-            mocker) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]:
+            tmp_path: Path) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]:
         # Create the temporary PDS4 document-label environment used by
         # integration tests: real template, staging product, expected XML label
         # path and setup state.
@@ -195,7 +192,6 @@ class TestDocumentPDS4LabelIntegration:
             size='2048',
             checksum='d41d8cd98f00b204e9800998ecf8427e',
             setup=setup,
-            run_state=RunState(),
             collection=collection,
             bundle=SimpleNamespace(context_products=context_products))
 

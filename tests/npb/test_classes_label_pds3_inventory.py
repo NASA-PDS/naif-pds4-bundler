@@ -18,7 +18,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.pds3_inventory import InventoryPDS3Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Shared constants
@@ -63,7 +62,6 @@ def _make_collection(collection_type: str = "spice_kernels") -> MagicMock:
 def _make_product(staging_dir: Path) -> MagicMock:
     """Return a mock Inventory product with 10 columns."""
     product = MagicMock()
-    product.run_state = RunState()
     product.name = "INDEX.TAB"
     product.extension = "TAB"
     product.path = str(staging_dir / "INDEX.TAB")
