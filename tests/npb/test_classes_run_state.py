@@ -81,6 +81,34 @@ class TestRunStateAdd:
         assert list(tmp_path.iterdir()) == []
         assert caplog.messages == []
 
+    @pytest.mark.parametrize('initial, path, expected', [
+        ([], 'bundle_maven_spice_v001.xml', ['bundle_maven_spice_v001.xml']),
+        ([], 'spice_kernels/fk/maven_v11.xml',
+         ['spice_kernels/fk/maven_v11.xml']),
+        (['bundle_maven_spice_v001.xml'], 'document/spiceds_v001.xml',
+         ['bundle_maven_spice_v001.xml', 'document/spiceds_v001.xml']),
+        # The same label registered twice is listed twice: no deduplication
+        # and no gate, as the labels are registered unconditionally.
+        (['readme.xml'], 'readme.xml', ['readme.xml', 'readme.xml']),
+    ])
+    def test_register_label_file_appends_path_unchanged(
+            self, tmp_path, caplog, initial, path, expected) -> None:
+        """register_label_file appends the received path as is, after the
+        existing ones, and neither creates any file nor logs anything."""
+
+        # Start from a RunState that may already hold some files.
+        run_state = RunState(file_list=list(initial))
+
+        # Register one more label while capturing the log at info level.
+        with caplog.at_level(logging.INFO):
+            run_state.register_label_file(path)
+
+        # The path is the last element, the disk has not been touched and
+        # nothing was logged.
+        assert run_state.file_list == expected
+        assert list(tmp_path.iterdir()) == []
+        assert caplog.messages == []
+
     @pytest.mark.parametrize('initial, path, checksum, expected', [
         ([], 'readme.txt', 'dca7381138766f7f36e7468d75b725c0',
          ['readme.txt dca7381138766f7f36e7468d75b725c0']),

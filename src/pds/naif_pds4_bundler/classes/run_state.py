@@ -45,6 +45,16 @@ class RunState:
         """
         self.file_list.append(file)
 
+    def register_label_file(self, path: str) -> None:
+        """Add a label file to the run by-product File List.
+
+        Every label is registered, whether its product is new.
+
+        :param path: Path of the label relative to the staging directory,
+            stored unchanged.
+        """
+        self.add_file(path)
+
     def add_checksum(self, path: str, checksum: str) -> None:
         """Add an entry to the run by-product Checksum Registry.
 
