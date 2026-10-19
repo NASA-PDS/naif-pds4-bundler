@@ -36,7 +36,6 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.label.pds4_bundle import BundlePDS4Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Fully-qualified write_label target. Centralised so a relocation only needs
 # one edit.
@@ -105,8 +104,9 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
             collection_name='miscellaneous')
 
         # The increment window the label copies into START_TIME / STOP_TIME.
-        readme.run_state = RunState(increment_start='2024-02-01T00:00:00Z',
-                                    increment_finish='2024-02-28T23:59:59Z')
+        readme.bundle.spice_kernels_collection = SimpleNamespace(
+            increment_start='2024-02-01T00:00:00Z',
+            increment_finish='2024-02-28T23:59:59Z')
         readme.bundle.lid = bundle_lid
         readme.bundle.vid = bundle_vid
         readme.bundle.collections = (
@@ -512,19 +512,24 @@ class TestBundlePDS4Label:
 
         assert label._label_fields[label_attribute] == value
 
-    @pytest.mark.parametrize('run_state_attribute, value, label_attribute', [
+    @pytest.mark.parametrize('collection_attribute, value, label_attribute', [
         ('increment_start', 'not-a-valid-datetime', 'START_TIME'),
         ('increment_finish', '', 'STOP_TIME')])
     def test_increment_times_are_copied_without_validation(
             self, tmp_path: Path, helpers: SimpleNamespace,
-            run_state_attribute: str, value: str, label_attribute: str) -> None:
-        # The increment times come from the run state and are copied verbatim;
-        # the caller is responsible for validation.
+            collection_attribute: str, value: str,
+            label_attribute: str) -> None:
+        """The increment times of the SPICE Kernels collection are copied
+        verbatim into the label; validating them is the caller's job."""
+
+        # Replace one of the collection times with the value under test.
         readme = helpers.make_readme(tmp_path / 'staging')
-        setattr(readme.run_state, run_state_attribute, value)
+        setattr(readme.bundle.spice_kernels_collection, collection_attribute,
+                value)
 
         label = _build_label(helpers.make_setup(), readme)
 
+        # The value reaches the label field untouched, even if it is invalid.
         assert label._label_fields[label_attribute] == value
 
     @pytest.mark.parametrize('bundle_lid, bundle_vid', [

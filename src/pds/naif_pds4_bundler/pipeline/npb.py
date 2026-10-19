@@ -341,7 +341,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         if setup.pds_version == "4":
             log_step(setup, run_state, title='Determine archive increment start and finish times')
-            spice_kernels_collection.set_increment_times(run_state)
+            spice_kernels_collection.set_increment_times()
             spice_kernels_collection.set_collection_vid()
 
         #
@@ -666,7 +666,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         if setup.pds_version == "4":
             log_step(setup, run_state,
                      title='Validate bundle history with checksum files')
-            bundle.validate(run_state)
+            bundle.validate()
 
         #
         # * Validate Meta-kernel(s).

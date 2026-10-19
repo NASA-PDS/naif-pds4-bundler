@@ -68,13 +68,13 @@ class InventoryPDS4Label(PDS4Label):
             self._label_fields["START_TIME"] = start_times[0]
             self._label_fields["STOP_TIME"] = stop_times[-1]
 
-        else:
+        elif self.collection.name == "spice_kernels":
             #
             # The increment start and stop times are still defined by the
             # spice_kernels collection.
             #
-            self._label_fields["START_TIME"] = self.run_state.increment_start
-            self._label_fields["STOP_TIME"] = self.run_state.increment_finish
+            self._label_fields["START_TIME"] = self.collection.increment_start
+            self._label_fields["STOP_TIME"] = self.collection.increment_finish
 
         self._label_fields["FILE_NAME"] = self.product.name
 

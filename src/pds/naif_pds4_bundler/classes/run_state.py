@@ -21,17 +21,9 @@ class RunState:
     :param step: Number of the next pipeline step to be logged.
     :param file_list: Files generated or moved during the run.
     :param checksum_registry: ``<path> <checksum>`` records of the run.
-    :param increment_start: Start time of the archive increment, set once the
-        SPICE kernels collection has determined it. ``Setup.increment_start``
-        only holds the configured value, if any.
-    :param increment_finish: Finish time of the archive increment, set along
-        with the start time. ``Setup.increment_finish`` only holds the
-        configured value, if any.
     """
 
     step: int = 1
-    increment_start: str = ""
-    increment_finish: str = ""
 
     # Each instance needs its own lists; a plain '[]' default would be shared by
     # every RunState.

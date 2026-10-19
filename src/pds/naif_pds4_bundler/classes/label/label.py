@@ -47,7 +47,6 @@ class PDSLabel:
         # Read setup off the product instead of taking it as a separate
         # argument -- every product already carries its own setup.
         self.setup = product.setup
-        self.run_state = product.run_state
 
         #
         # Fields from setup
