@@ -258,7 +258,8 @@ def run_pipeline(args: PipelineArgs) -> None:
                 if setup.pds_version == "4":
                     logging.info('-- Labeling %s...', orbnum_product.name)
                     orbnum_product.label = OrbnumFilePDS4Label(orbnum_product)
-                    orbnum_product.label.write_label()
+                    run_state.register_label_file(
+                        orbnum_product.label.write_label())
 
                 miscellaneous_collection.add(orbnum_product)
 
@@ -272,11 +273,13 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 if setup.pds_version == "4":
                     kernel_product.label = SpiceKernelPDS4Label(kernel_product)
-                    kernel_product.label.write_label()
+                    run_state.register_label_file(
+                        kernel_product.label.write_label())
 
                 else:
                     kernel_product.label = SpiceKernelPDS3Label(kernel_product)
-                    kernel_product.label.write_label()
+                    run_state.register_label_file(
+                        kernel_product.label.write_label())
                     kernel_product.insert_label()
 
                 spice_kernels_collection.add(kernel_product)
@@ -300,7 +303,8 @@ def run_pipeline(args: PipelineArgs) -> None:
                     logging.info('')
                     logging.info('-- Labeling meta-kernel: %s...', meta_kernel.name)
                     meta_kernel.label = MetaKernelPDS4Label(meta_kernel)
-                    meta_kernel.label.write_label()
+                    run_state.register_label_file(
+                        meta_kernel.label.write_label())
 
                     spice_kernels_collection.add(meta_kernel)
 
@@ -369,12 +373,14 @@ def run_pipeline(args: PipelineArgs) -> None:
             if setup.pds_version == "4":
                 spice_kernels_collection_inventory.label = InventoryPDS4Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
-                spice_kernels_collection_inventory.label.write_label()
+                run_state.register_label_file(
+                    spice_kernels_collection_inventory.label.write_label())
 
             else:
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
-                spice_kernels_collection_inventory.label.write_label()
+                run_state.register_label_file(
+                    spice_kernels_collection_inventory.label.write_label())
 
                 # Must come after the label is written above, not before: this
                 # copies index.lbl, which that write produces.
@@ -404,7 +410,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # the same generated check -- a spiceds file that hasn't changed
                 # since the last release isn't relabeled.
                 spiceds.label = DocumentPDS4Label(spiceds, document_collection)
-                spiceds.label.write_label()
+                run_state.register_label_file(spiceds.label.write_label())
 
                 document_collection.add(spiceds)
 
@@ -416,7 +422,8 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # This branch only runs for PDS4, so there's no PDS3 label to pick.
                 document_collection_inventory.label = InventoryPDS4Label(
                     document_collection_inventory, document_collection)
-                document_collection_inventory.label.write_label()
+                run_state.register_label_file(
+                    document_collection_inventory.label.write_label())
 
                 document_collection.add(document_collection_inventory)
 
@@ -460,7 +467,8 @@ def run_pipeline(args: PipelineArgs) -> None:
                         # there's no PDS3 label to pick here.
                         logging.info('-- Labeling %s...', release_checksum.name)
                         release_checksum.label = ChecksumPDS4Label(release_checksum)
-                        release_checksum.label.write_label()
+                        run_state.register_label_file(
+                            release_checksum.label.write_label())
 
                         #
                         # Initialize a miscellaneous collection for this previous
@@ -494,7 +502,8 @@ def run_pipeline(args: PipelineArgs) -> None:
                         release_miscellaneous_collection_inventory.label = InventoryPDS4Label(
                             release_miscellaneous_collection_inventory,
                             release_miscellaneous_collection)
-                        release_miscellaneous_collection_inventory.label.write_label()
+                        run_state.register_label_file(
+                            release_miscellaneous_collection_inventory.label.write_label())
 
                         release_miscellaneous_collection.add(
                             release_miscellaneous_collection_inventory
@@ -552,7 +561,8 @@ def run_pipeline(args: PipelineArgs) -> None:
             # The current release's own miscellaneous inventory, PDS4-only.
             miscellaneous_collection_inventory.label = InventoryPDS4Label(
                 miscellaneous_collection_inventory, miscellaneous_collection)
-            miscellaneous_collection_inventory.label.write_label()
+            run_state.register_label_file(
+                miscellaneous_collection_inventory.label.write_label())
 
             miscellaneous_collection.add(miscellaneous_collection_inventory)
 
@@ -564,7 +574,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             logging.info("-- Generating bundle label...")
             bundle.readme.label = BundlePDS4Label(bundle.readme)
-            bundle.readme.label.write_label()
+            run_state.register_label_file(bundle.readme.label.write_label())
 
             #
             # * Generate the Checksum product a posteriori in such a way
@@ -579,7 +589,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             # here.
             logging.info('-- Labeling %s...', checksum.name)
             checksum.label = ChecksumPDS4Label(checksum)
-            checksum.label.write_label()
+            run_state.register_label_file(checksum.label.write_label())
 
             miscellaneous_collection.add(checksum)
 
@@ -606,7 +616,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             # here.
             logging.info('-- Labeling %s...', checksum.name)
             checksum.label = ChecksumPDS3Label(checksum)
-            checksum.label.write_label()
+            run_state.register_label_file(checksum.label.write_label())
 
             miscellaneous_collection.add(checksum)
 

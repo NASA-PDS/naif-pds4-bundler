@@ -274,21 +274,19 @@ class TestDocumentPDS4LabelIntegration:
             '  <stop_date_time>2026-05-04T00:00:00Z</stop_date_time>\n'
             '</document>\n')
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self,
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
-        # Verify that the real writer registers the generated document XML label using
-        # its staging-relative path.
+        """write_label returns the label path relative to staging."""
+
         setup, collection, inventory, _, label_path = env
 
-        DocumentPDS4Label(inventory, collection).write_label()
+        written_path = DocumentPDS4Label(inventory, collection).write_label()
 
-        # Convert the generated XML label path to the path expected in the file
-        # list.
+        # The expected path is the generated label relative to staging.
         expected_label_path = str(label_path.relative_to(Path(setup.staging_directory)))
 
-        # The generated XML label must be registered exactly once.
-        assert inventory.run_state.file_list == [expected_label_path]
+        assert written_path == expected_label_path
 
     # ------------------------------------------------------------------
     # _*_reference_type overrides

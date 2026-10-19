@@ -514,17 +514,17 @@ class TestInventoryPDS3LabelIntegration:
         assert written_label == expected_label
 
     # ------------------------------------------------------------------
-    # 9. the run state receives the relative label path
+    # 9. write_label returns the relative label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(self, env):
-        """The run state must receive the relative label path."""
+    def test_write_label_returns_label_path(self, env):
+        """write_label returns the label path relative to staging."""
+
         setup = env["setup"]
         product = env["product"]
         collection = env["collection"]
-
         product.setup = setup
 
-        InventoryPDS3Label(product, collection).write_label()
+        written_path = InventoryPDS3Label(product, collection).write_label()
 
-        assert product.run_state.file_list == ["INDEX.lbl"]
+        assert written_path == "INDEX.lbl"

@@ -1785,3 +1785,43 @@ class TestNPBErrorHandling:
         run_state = mocks.RunState.return_value
         run_state.write_file_list.assert_not_called()
         run_state.write_checksum_registry.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Label registration
+# ---------------------------------------------------------------------------
+
+class TestLabelRegistration:
+    """The pipeline, not the labels, adds each label to the run file list."""
+
+    @pytest.mark.parametrize('pds_version', ['3', '4'])
+    def test_every_label_written_is_registered_once_and_in_order(
+            self, mocks, pds_version: str) -> None:
+        """Each path write_label returns reaches the run state exactly once,
+        in the order the labels were written."""
+
+        mocks.Setup.return_value.pds_version = pds_version
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+
+        # Every label class hands out a unique path, in the order the labels
+        # are written, so a skipped, repeated or reordered registration shows.
+        written = []
+
+        def write_label() -> str:
+            written.append(f'label_{len(written)}')
+            return written[-1]
+
+        label_classes = [getattr(mocks, name) for name in _PATCH_TARGETS
+                         if name.endswith('Label')]
+        for label_class in label_classes:
+            label_class.return_value.write_label.side_effect = write_label
+
+        run_pipeline(_args())
+
+        registered = [
+            call.args[0] for call in
+            mocks.RunState.return_value.register_label_file.call_args_list]
+
+        # The run writes several labels, and all of them are registered.
+        assert len(written) > 1
+        assert registered == written

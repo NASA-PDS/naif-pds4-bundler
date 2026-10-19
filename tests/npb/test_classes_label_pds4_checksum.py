@@ -334,24 +334,21 @@ class TestChecksumPDS4LabelIntegration:
                                  '</checksum>\n')
 
     # ------------------------------------------------------------------
-    # run state registration
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Register the generated XML label using its staging-relative path.
+        """write_label returns the label path relative to staging."""
 
-        # Only setup and product are needed to trigger the real label
-        # generation.
+        # Only setup and product are needed to run the real label generation.
         setup, product, _, _ = env
-
-        # Generate the label using the real writer.
         product.setup = setup
-        ChecksumPDS4Label(product).write_label()
 
-        # The generated label must be registered relative to staging, not
-        # absolute.
-        assert product.run_state.file_list == ['checksum.xml']
+        written_path = ChecksumPDS4Label(product).write_label()
+
+        # The path is relative to staging, not absolute.
+        assert written_path == 'checksum.xml'
 
     # ------------------------------------------------------------------
     # Error and invalid-input integration behaviour
@@ -359,7 +356,7 @@ class TestChecksumPDS4LabelIntegration:
 
     def test_missing_template_propagates_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Missing checksum templates must fail without registering the label.
+        """A missing template makes write_label raise FileNotFoundError."""
 
         # Retrieve the integration objects and paths prepared by the fixture.
         setup, product, template_path, label_path = env
@@ -381,12 +378,9 @@ class TestChecksumPDS4LabelIntegration:
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
             assert f.read() == ''
 
-        # Check that nothing was registered in the run state.
-        assert product.run_state.file_list == []
-
     def test_invalid_xml_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Rendered XML labels are written and registered without XML validation.
+        """A malformed template is rendered and its path still returned."""
 
         # Retrieve the integration objects and paths prepared by the fixture.
         setup, product, template_path, label_path = env
@@ -399,7 +393,7 @@ class TestChecksumPDS4LabelIntegration:
 
         product.setup = setup
 
-        ChecksumPDS4Label(product).write_label()
+        written_path = ChecksumPDS4Label(product).write_label()
 
         # The writer still creates the output label.
         assert label_path.exists()
@@ -416,5 +410,5 @@ class TestChecksumPDS4LabelIntegration:
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written_label)
 
-        # Because this layer does not validate XML, the label is still registered.
-        assert product.run_state.file_list == ['checksum.xml']
+        # This layer does not validate XML, so the path is still returned.
+        assert written_path == 'checksum.xml'

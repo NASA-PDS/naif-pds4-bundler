@@ -780,20 +780,20 @@ class TestBundlePDS4LabelIntegration:
                    'Primary', 'Secondary']
 
     # ------------------------------------------------------------------
-    # run state registration
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_staging_relative_label_path(
+    def test_write_label_returns_staging_relative_path(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # write_label must register the label using its path relative to the
-        # staging directory, not as an absolute path.
-        setup, readme, _, _ = env
+        """write_label returns the label path relative to staging."""
 
+        setup, readme, _, _ = env
         readme.setup = setup
 
-        BundlePDS4Label(readme).write_label()
+        written_path = BundlePDS4Label(readme).write_label()
 
-        assert readme.run_state.file_list == ['bundle_maven_spice_v001.xml']
+        # The path is relative to staging, not absolute.
+        assert written_path == 'bundle_maven_spice_v001.xml'
 
     # ------------------------------------------------------------------
     # Error paths
@@ -801,9 +801,8 @@ class TestBundlePDS4LabelIntegration:
 
     def test_missing_template_raises_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # A missing template must raise FileNotFoundError. The output file is
-        # created empty before the template is opened, so it exists but is
-        # empty. add_file must not be called.
+        """A missing template makes write_label raise FileNotFoundError."""
+
         setup, readme, template_path, label_path = env
         template_path.unlink()
 
@@ -813,14 +812,15 @@ class TestBundlePDS4LabelIntegration:
         with pytest.raises(FileNotFoundError):
             label.write_label()
 
+        # The output file is created empty before the template is opened, so
+        # it exists even though writing failed.
         assert label_path.exists()
         assert label_path.read_text(encoding='utf-8') == ''
-        assert readme.run_state.file_list == []
 
     def test_malformed_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # write_label does not validate XML; a malformed template is rendered
-        # and registered. The caller is responsible for template correctness.
+        """A malformed template is rendered and its path still returned."""
+
         setup, readme, template_path, label_path = env
         template_path.write_text('<bundle>\n'
                                  '  <file_name>$FILE_NAME</file_name>\n',
@@ -828,13 +828,14 @@ class TestBundlePDS4LabelIntegration:
 
         readme.setup = setup
 
-        BundlePDS4Label(readme).write_label()
+        written_path = BundlePDS4Label(readme).write_label()
 
         written = label_path.read_text(encoding='utf-8')
         assert '<file_name>bundle_maven_spice_v001.xml</file_name>' in written
         assert '$FILE_NAME' not in written
 
+        # The XML is not parsed by write_label, but the path is still returned.
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written)
 
-        assert readme.run_state.file_list == ['bundle_maven_spice_v001.xml']
+        assert written_path == 'bundle_maven_spice_v001.xml'

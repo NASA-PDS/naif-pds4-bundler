@@ -87,8 +87,7 @@ class TestRunStateAdd:
          ['spice_kernels/fk/maven_v11.xml']),
         (['bundle_maven_spice_v001.xml'], 'document/spiceds_v001.xml',
          ['bundle_maven_spice_v001.xml', 'document/spiceds_v001.xml']),
-        # The same label registered twice is listed twice: no deduplication
-        # and no gate, as the labels are registered unconditionally.
+        # Registering the same label twice lists it twice, nothing is skipped.
         (['readme.xml'], 'readme.xml', ['readme.xml', 'readme.xml']),
     ])
     def test_register_label_file_appends_path_unchanged(

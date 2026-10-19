@@ -604,22 +604,22 @@ class TestInventoryPDS4LabelIntegration:
             assert b'\n' in raw
 
     # ------------------------------------------------------------------
-    # run state registration
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # The generated XML label must be registered relative to staging.
-        setup, collection, inventory, _, label_path = env
+        """write_label returns the label path relative to staging."""
 
+        setup, collection, inventory, _, label_path = env
         inventory.setup = setup
 
-        InventoryPDS4Label(inventory, collection).write_label()
+        written_path = InventoryPDS4Label(inventory, collection).write_label()
 
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        assert inventory.run_state.file_list == [expected_relative]
+        assert written_path == expected_relative
 
     # ------------------------------------------------------------------
     # Error and invalid-input integration behaviour
@@ -628,9 +628,9 @@ class TestInventoryPDS4LabelIntegration:
     def test_missing_template_propagates_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # Missing inventory templates must fail without registering the label.
-        setup, collection, inventory, template_path, label_path = env
+        """A missing template makes write_label raise FileNotFoundError."""
 
+        setup, collection, inventory, template_path, label_path = env
         template_path.unlink()
 
         inventory.setup = setup
@@ -647,13 +647,11 @@ class TestInventoryPDS4LabelIntegration:
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
             assert f.read() == ''
 
-        # Nothing was registered in the run state.
-        assert inventory.run_state.file_list == []
-
     def test_invalid_xml_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # Rendered XML labels are written and registered without XML validation.
+        """A malformed template is rendered and its path still returned."""
+
         setup, collection, inventory, template_path, label_path = env
 
         template_path.write_text('<collection>\n'
@@ -662,7 +660,7 @@ class TestInventoryPDS4LabelIntegration:
 
         inventory.setup = setup
 
-        InventoryPDS4Label(inventory, collection).write_label()
+        written_path = InventoryPDS4Label(inventory, collection).write_label()
 
         assert label_path.exists()
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
@@ -677,10 +675,10 @@ class TestInventoryPDS4LabelIntegration:
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written_label)
 
-        # The label is still registered relative to the staging directory.
+        # The path is still returned relative to the staging directory.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        assert inventory.run_state.file_list == [expected_relative]
+        assert written_path == expected_relative
 
     def test_miscellaneous_collection_renders_checksum_coverage(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
