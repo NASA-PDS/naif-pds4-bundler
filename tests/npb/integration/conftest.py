@@ -98,8 +98,11 @@ def real_setup(sandbox: SimpleNamespace,
                     for tag, name in SANDBOX_DIRECTORIES.items()}
     replacements["templates_directory"] = str(TEMPLATES)
     for tag, path in replacements.items():
+        # A function is used as the replacement because re would read the
+        # backslashes of a Windows path (such as '\Users') as escapes.
+        element = f"<{tag}>{path}</{tag}>"
         config, count = re.subn(rf"<{tag}>[^<]*</{tag}>",
-                                f"<{tag}>{path}</{tag}>", config)
+                                lambda _match: element, config)
         assert count == 1, f"{tag} not found in {BASE_CONFIG}"
 
     config_path = sandbox.root / "config.xml"
