@@ -231,9 +231,10 @@ class TestKernelListCheckProducts:
         raise.
         """
         # Add a non-ASCII line at the end of a copy of the LSK. The line
-        # number is that of the new last line.
+        # number is that of the new last line. The newline is set so that
+        # Windows does not write '\r\n', which the EOL check rejects.
         installed = install_kernel(TEXT_KERNEL)
-        with open(installed, 'a', encoding='utf-8') as f:
+        with open(installed, 'a', encoding='utf-8', newline='\n') as f:
             f.write('café\n')
         line_number = len(installed.read_text(encoding='utf-8').splitlines())
         kernel_list.kernel_list = [installed.name]

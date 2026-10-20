@@ -32,6 +32,8 @@ docs/_build/** linguist-generated
 # used in tests (npb.test_utils_files)
 tests/naif_pds4_bundler/data/kernels/mk/m2020_v09.tm text eol=lf
 tests/naif_pds4_bundler/data/kernels/fk/clps_to_2ab_v01.tf text eol=lf
+tests/naif_pds4_bundler/data/kernels/lsk/naif0012.tls text eol=lf
+tests/naif_pds4_bundler/data/kernels/pck/pck00010.tpc text eol=lf
 tests/naif_pds4_bundler/data/kernels/spk/*.bsp  binary
 tests/naif_pds4_bundler/data/kernels/dsk/*.bds  binary
 tests/naif_pds4_bundler/data/kernels/dsk/*.BDS  binary
