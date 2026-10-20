@@ -65,7 +65,7 @@ def main() -> int:
     generation pipeline.
 
     :returns: a code providing the execution result: 0 if the execution was
-              successful, 1 if the execution found a know issue with the
+              successful (or help was requested), 1 if the execution found a know issue with the
               configuration or input data, 2 if the command line parser finds
               an issue with the command line arguments provided by the user,
               and 3 if an unexpected error occurred.
@@ -88,10 +88,14 @@ def main() -> int:
 
     # Handle command line parsing errors.
     #
-    # Note: parse_arguments is based on argparse (if an issue is found, it
-    #       raises a SystemExit error (with a return code 2).
-    except SystemExit:
-        return 2
+    # Note: parse_arguments is based on argparse: if an issue is found, it
+    #       raises SystemExit with code 2, and for -h/--help it raises
+    #       SystemExit with code 0. The code is propagated so that a help
+    #       request is not reported as a failure.
+    except SystemExit as exc:
+        if exc.code is None:
+            return 0
+        return exc.code if isinstance(exc.code, int) else 2
 
     # Handle all other unexpected errors (Return code 3).
     #
