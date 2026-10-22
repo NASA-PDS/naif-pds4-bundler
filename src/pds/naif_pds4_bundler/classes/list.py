@@ -1017,16 +1017,14 @@ class KernelList:
         :param product_file: Resulting file
         :param product_dictionary: Dictionary of keys to replace
         """
-        with open(product_file, "w", encoding='utf-8') as f:
-
-            with open(self.template, "r", encoding='utf-8') as t:
-                for line in t:
-                    line = line.rstrip()
-                    for key, value in product_dictionary.items():
-                        if (isinstance(value, str) and key in line
-                                and "$" in line):
-                            line = line.replace("$" + key, value)
-                    f.write(f"{line}\n")
+        with (open(product_file, "w", encoding='utf-8') as f,
+              open(self.template, "r", encoding='utf-8') as t):
+            for line in t:
+                line = line.rstrip()
+                for key, value in product_dictionary.items():
+                    if isinstance(value, str) and key in line and "$" in line:
+                        line = line.replace("$" + key, value)
+                f.write(f"{line}\n")
 
     @staticmethod
     def _check_consecutive(lst: list[int]) -> bool:
