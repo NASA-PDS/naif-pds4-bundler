@@ -2274,7 +2274,7 @@ class TestKernelListCheckProducts:
             'check_line_length': [],
             'check_kernel_integrity': None,
             'check_binary_endianness': None,
-            'check_permissions': [],
+            'check_permissions': None,
         }
         defaults.update(return_values)
 
@@ -2662,27 +2662,18 @@ class TestKernelListCheckProducts:
 
         assert results == expected
 
-    def test_check_products_calls_permissions_twice(
-            self, mocker, caplog, _text_kernel) -> None:
-        # TODO: BUG; 'check_products' calls 'check_permissions' twice on
-        #       the same path.
+    def test_check_products_unreadable_file_raises_once(
+            self, mocker, _text_kernel) -> None:
+        # The real check raises NPBError instead of returning a message, so
+        # an unreadable file stops check_products at the first call.
         kernel_list, expected_path = _text_kernel
-        mocks = self.patch_checks(mocker, check_permissions=['not readable'])
+        mocks = self.patch_checks(mocker)
+        mocks.check_permissions.side_effect = NPBError('not readable')
 
-        with caplog.at_level(logging.INFO):
+        with pytest.raises(NPBError, match='not readable'):
             kernel_list.check_products()
 
-        expected = [
-            (logging.WARNING, '-- maven_test.tsc'),
-            (logging.WARNING, '     not readable')]
-
-        results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-        assert results == expected
-
-        assert mocks.check_permissions.call_count == 2
-        assert mocks.check_permissions.call_args_list == [
-            mocker.call(expected_path), mocker.call(expected_path)]
+        mocks.check_permissions.assert_called_once_with(expected_path)
 
     # ------------------------------------------------------------------ #
     # Reporting: logging

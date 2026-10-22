@@ -907,8 +907,6 @@ class KernelList:
             #
             origin_path = origin_paths[0]
 
-            # TODO: BUG; check_permissions is called twice on the same path. This first
-            #       call discards the return value entirely, making it redundant.
             # Check that file has read permissions.
             self._check_permissions(origin_path)
 
@@ -960,13 +958,6 @@ class KernelList:
                 )
                 if error:
                     product_errors[product].append(error)
-
-            #
-            # Check kernel permissions
-            #
-            error = self._check_permissions(origin_path)
-            if error:
-                product_warnings[product] += error
 
         #
         # With all checks performed now they need to be reported.
