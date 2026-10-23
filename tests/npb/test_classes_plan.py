@@ -1249,6 +1249,67 @@ def test_get_candidate_kernels_logs_source(
     assert caplog.messages == expected_messages
 
 
+# ===========================================================================
+# Testing of ReleasePlan._collect_plan_files method.
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# 1. Pattern-matching phase:
+#    a candidate is kept by basename, and at most once however many of the
+#    configured patterns it matches.
+# ---------------------------------------------------------------------------
+
+SPK_PATTERN = r"maven_sc_rec_\d{6}_\d{6}_v\d+\.bsp"
+SPK_NAME = "maven_sc_rec_200101_200201_v01.bsp"
+
+
+@pytest.mark.parametrize(
+    "json_config, candidates, expected",
+    [
+        pytest.param(
+            {SPK_PATTERN: {"description": "SPK kernel."}},
+            ["kernels/unrelated.txt"],
+            [],
+            id="no_pattern_matches",
+        ),
+        pytest.param(
+            {SPK_PATTERN: {"description": "SPK kernel."}},
+            [f"kernels/{SPK_NAME}"],
+            [SPK_NAME],
+            id="one_pattern_matches",
+        ),
+        pytest.param(
+            {
+                SPK_PATTERN: {
+                    "description": "SPK kernel.",
+                    # Loose on purpose: it also matches 'SPK_NAME', so the
+                    # primary and the mapping pattern both hit the same file.
+                    "mapping": r"maven_sc_rec_.*\.bsp",
+                }
+            },
+            [f"kernels/{SPK_NAME}"],
+            [SPK_NAME],
+            id="primary_and_mapping_match_once",
+        ),
+    ],
+)
+def test_collect_plan_files_pattern_matching(
+        tmp_path, json_config, candidates, expected):
+    """A candidate is returned by its file name, once, if it matches any of
+    the configured patterns, and it is left out if it matches none."""
+    # The default setup has no bundle meta-kernels and no orbnum directory,
+    # so the result only comes from the pattern matching. The candidates are
+    # never opened, only their names are read, so they need not exist.
+    setup = make_setup(tmp_path, json_config=json_config)
+    rp = make_release_plan(setup)
+
+    # Collect the plan files from the candidate paths.
+    result = rp._collect_plan_files(candidates)
+
+    # Only the file names are kept, without the directory part.
+    assert result == expected
+
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
