@@ -11,13 +11,11 @@ import logging
 import os
 import re
 import shutil
-import sys
 from pathlib import Path
 import tempfile
 from typing import Any, Literal, Optional
 
 import spiceypy
-from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
 
 from ..classes.exceptions import NPBError, NPBInternalError
 
@@ -345,26 +343,6 @@ def check_list_duplicates(list_of_elements):
     return False
 
 
-def fill_template(list_object, product_file, product_dictionary):
-    """Fill a template with uppercase keywords preceded with ``$``.
-
-    :param list_object: List object
-    :param product_file: Resulting file
-    :type product_file: str
-    :param product_dictionary: Dictionary of keys to replace
-    :type product_dictionary: dict
-    """
-    with open(product_file, "w", encoding='utf-8') as f:
-
-        with open(list_object.template, "r", encoding='utf-8') as t:
-            for line in t:
-                line = line.rstrip()
-                for key, value in product_dictionary.items():
-                    if isinstance(value, str) and key in line and "$" in line:
-                        line = line.replace("$" + key, value)
-                f.write(f"{line}\n")
-
-
 def get_context_products(setup):
     """Obtain PDS4 Context Products.
 
@@ -666,20 +644,6 @@ def find_latest_versioned_file(
     # share the same version, the earlier one in `candidates` wins, since
     # max() keeps the first pair it saw once no later one beats it.
     return max(versioned, key=lambda pv: pv[1], default=fallback)
-
-
-def check_consecutive(lst):
-    """Check if a list has consecutive numbers.
-
-    Check if a list of names with enumeration include all the elements
-    in such a way that the enumeration contains all expected numbers.
-
-    :param lst: List of names that include an enumeration
-    :type lst: list
-    :return: Check if the list has a complete enumeration
-    :rtype: bool
-    """
-    return sorted(lst) == list(range(1, max(lst) + 1))
 
 
 def compare_files(fromfile, tofile, dest_dir, display):
@@ -1065,189 +1029,6 @@ def product_mapping(name, setup, cleanup=True):
     return mapping
 
 
-def check_kernel_integrity(path):
-    """Check if the SPICE Kernel has the adequate architecture.
-
-    All SPICE kernels must have a NAIF file ID word as the first "word" on
-    the first line of the kernel. This "word" describes the architecture
-    of the kernel.
-
-    A binary kernel could have the following architectures:
-
-      * ``DAF``: The file is based on the DAF architecture.
-      * ``DAS``: The file is based on the DAS architecture.
-      * ``XFR``: The file is in a SPICE transfer file format.
-
-    For an archive only ``DAF`` is acceptable.
-
-    Text kernels must have ``KPL`` (Kernel Pool File) architecture.
-
-    **Note:** Text event kernels (``.ten``) are validated differently
-    because they use a different format than other text kernels and are not
-    loaded via standard SPICE routines.
-
-    NPB checks if binary kernels have a ``DAF`` architecture and text kernels
-    a ``KPL`` architecture.
-
-    :param path: SPICE Kernel or ORBNUM path
-    :type path: str
-    :return: Error message if error present
-    :rtype: str
-    """
-    error = ""
-    name = path.split(os.sep)[-1].strip()
-    extension = path.split(".")[-1].strip().lower()
-
-    # Filter out Text EKs since they are not loaded into SPICE and validate them
-    # differently
-    if extension == "ten":
-        # Try to read the file as UTF-8
-        try:
-            with open(path, 'r', encoding='utf-8') as f:
-                content = f.read(2000)
-        except UnicodeDecodeError:
-            return f"Kernel {name} is not a valid text file (encoding error)."
-
-        # Validate content after successful read
-        if '\\header' not in content or '\\text' not in content:
-            return (f"Kernel {name} does not contain required text event "
-                    f"kernel markers (\\header, \\text).")
-
-        return ""  # Valid .ten file
-
-    type_file = extension_to_type(name).upper()
-
-    #
-    # Determine if it is a binary or a text kernel.
-    #
-
-    file_format = "Binary" if extension[0] == "b" else "Character"
-
-    #
-    # All files that are to have labels generated must have a NAIF
-    # file ID word as the first "word" on the first line of the
-    # file. Check if it is the case.
-    #
-    (arch, f_type) = spiceypy.getfat(path)
-
-    if file_format == "Binary":
-
-        #
-        # A binary file could have the following architectures:
-        #
-        #   DAF - The file is based on the DAF architecture.
-        #   DAS - The file is based on the DAS architecture.
-        #   XFR - The file is in a SPICE transfer file format.
-        #
-        # But for an archive only DAF is acceptable.
-        #
-        if arch not in ('DAF', 'DAS'):
-            error = f"Kernel {name} architecture {arch} is invalid."
-        # else:
-        #     pass
-
-    else:  # file_format == "Character":
-
-        #
-        # Text kernels must have KPL architecture:
-        #
-        #    KPL -- Kernel Pool File (i.e., a text kernel)
-        #
-        if arch != "KPL":
-            error = f"Kernel {name} architecture {arch} is invalid."
-
-    if f_type != type_file:
-        error = f"Kernel {name} type {type_file} is not the one expected: {f_type}."
-
-    return error
-
-
-def check_binary_endianness(path: str, endianness: str) -> Optional[str]:
-    """Check if the SPICE Kernel has the adequate architecture.
-
-    PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
-    BIG-IEEE binary kernels. This behavior can be changed via configuration.
-
-    This method ensures that the endianness of binary kernels is the
-    appropriate one according to the configuration.
-
-    :param path:       Binary SPICE kernel path
-    :param endianness: Required endianness of the binary SPICE kernel file.
-
-    :return: Error message, if error present. Otherwise, None.
-    """
-    # Check the file architecture of the SPICE kernel. If the kernel is not
-    # based on DAF or DAS architecture, report the error.
-    arch, _ = spiceypy.getfat(path)
-    if arch not in ['DAF', 'DAS']:
-        return 'The binary kernel does not have a DAF or DAS architecture.'
-
-    # At this point, we can check the endianness of the binary SPICE kernel.
-    # Since there is no SPICE API to perform this check, we will try to open
-    # the file for writing and immediately after, close it. SPICE will produce
-    # a SPICE(UNSUPPORTEDBFF) error if the endianness of the file does not
-    # correspond to the endianness of the platform in which NPB is executed.
-    try:
-        if arch == "DAF":
-            handle = spiceypy.dafopw(path)
-            spiceypy.dafcls(handle)
-        else: # DAS architecture
-            handle = spiceypy.dasopw(path)
-            spiceypy.dascls(handle)
-
-        # Getting to this point means that the file and the platform in
-        # which NPB is executed have the same architecture.
-        equal_endianness = True
-
-    except SpiceUNSUPPORTEDBFF:
-        # There is no need to call the SPICE API to close the binary SPICE
-        # kernel, since the open process did not complete. The open call
-        # retuning with SPICE(UNSUPPORTEDBFF) indicates that the file and
-        # the platform in which NPB is executed have different architecture.
-        equal_endianness = False
-
-    # By comparing the result of comparing the platform byte order to the
-    # expected file endianness, and the result of the previous analysis,
-    # we can find out if the file has the expected endianness.
-    if (endianness == sys.byteorder) != equal_endianness:
-        return ("The kernel cannot be loaded because of its endianness. "
-                "Use NAIF's utility BINGO to convert the file.")
-
-    return None
-
-
-def check_badchar(file):
-    """Check NON-ASCII characters for a file.
-
-    :param file: Path to file to check
-    :return: Resulting error messages
-    :rtype: list
-    """
-    error = []
-    line_num = 1
-    with open(file, "r", encoding='utf-8') as f:
-        for line in f:
-            if not line.isascii():
-                char_count = 0
-                badchars = []
-                for char in line:
-                    if not char.isascii():
-                        badchars.append(char_count)
-                    char_count += 1
-
-                error.append(f"NON-ASCII character(s) in line {line_num}:")
-                error.append(f"{line.rstrip()}")
-                badchar_line = " " * len(line.rstrip())
-                for badchar in badchars:
-                    badchar_line = (
-                        badchar_line[:badchar] + "^" + badchar_line[badchar + 1 :]
-                    )
-                error.append(badchar_line)
-            line_num += 1
-
-    return error
-
-
 def check_eol(file: str | Path, eol: str) -> str:
     """Check that a file uses the expected end of line.
 
@@ -1295,23 +1076,3 @@ def check_line_length(file: str) -> list[str]:
             line_num += 1
 
     return error
-
-
-def check_permissions(path: str) -> None:
-    """Check that the account running NPB can read a file.
-
-    :param path: Path to the file to check.
-    :raises NPBError: if the file is not readable.
-    """
-    # Open for reading instead of inspecting the permission bits, so the
-    # check works on Unix and Windows. Binary mode because the file may be
-    # either text or binary.
-    try:
-        with Path(path).open('rb') as f:
-            f.read(0)
-
-    except PermissionError:
-        raise NPBError(
-            f"File {path} is not readable by the account that runs NPB. "
-            f"Update permissions."
-        )

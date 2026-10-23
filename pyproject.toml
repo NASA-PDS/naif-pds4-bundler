@@ -11,3 +11,8 @@ addopts = "-n auto --cov=pds --import-mode=importlib"
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+
+# Register custom markers so pytest does not warn about unknown ones
+markers = [
+    "integration: tests that run real code against real files, without mocks",
+]

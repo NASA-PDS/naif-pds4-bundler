@@ -4,7 +4,6 @@ import io
 import logging
 from pathlib import Path
 import re
-import shutil
 from typing import Literal
 from unittest.mock import call, MagicMock, patch
 from xml.etree import ElementTree
@@ -198,114 +197,6 @@ def test_archive_subdirectory_unknown(kind, pds_version):
 
 
 # ----------------------------------------------------------------------------
-# files.check_badchar tests
-# ----------------------------------------------------------------------------
-
-@pytest.mark.parametrize("contents, expected", [
-    ("the OSIRIS-REx spacecraft",[]),
-    ("where\nVersion",[]),
-    ("Mission © Bennu",["NON-ASCII character(s) in line 1:","Mission © Bennu","        ^      "]),
-    ("INS-155101_FOV_REF_ANGLE”=",["NON-ASCII character(s) in line 1:","INS-155101_FOV_REF_ANGLE”=",
-     "                        ^ "]),
-    ("π = 3.14 & Σ = sum",["NON-ASCII character(s) in line 1:","π = 3.14 & Σ = sum",
-     "^          ^      "]),
-    ("Line 1: Mission\nLine 2: Ma”rs\nLine 3: and bye”nd",["NON-ASCII character(s) in line 2:","Line 2: Ma”rs",
-     "          ^  ","NON-ASCII character(s) in line 3:","Line 3: and bye”nd","               ^  "]),
-    ("",[]),
-])
-def test_check_badchar(tmp_path, contents, expected):
-    """"Test check_badchar function using pytest."""
-    test_file = tmp_path / "test_chars.txt"
-    test_file.write_text(contents, encoding="utf-8")
-
-    errors = files.check_badchar(str(test_file))
-
-    assert errors == expected
-
-# ----------------------------------------------------------------------------
-# files.check_binary_endianness tests
-# ----------------------------------------------------------------------------
-
-@pytest.mark.parametrize("kernel, endianness, expected_error",[
-    # Tests for "required little endian kernels."
-    (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'little', None),
-    (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'little', None),
-    (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'little', None),
-    (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'little', None),
-    (Path('spk', 'mro_psp60.big.bsp'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek', 'lroevnt_2010193_2010200_v01.bes'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek','eros_n2000129x_v01_ltl.bpe'), 'little', None),
-    (Path('ek', 'eros_n2000129x_v01.bpe'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek', 'S99_CIMSSSUPa.bep'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek', '11A.bdb'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    # Tests for "required big endian kernels."
-    (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'big', None),
-    (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'big', None),
-    (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'big', None),
-    (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('spk', 'mro_psp60.big.bsp'), 'big', None),
-    (Path('ek', 'lroevnt_2010193_2010200_v01.bes'), 'big', None),
-    (Path('ek', 'eros_n2000129x_v01_ltl.bpe'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek', 'eros_n2000129x_v01.bpe'), 'big', None),
-    (Path('ek', 'S99_CIMSSSUPa.bep'), 'big', None),
-    (Path('ek', '11A.bdb'), 'big', None),
-    # Tests for "invalid SPICE kernel architecture."
-    (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'little',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('pck', 'pck00010.tpc'), 'little',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('ek', 'm01_mmdmt_ext10.ten'), 'little',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'big',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('pck', 'pck00010.tpc'), 'big',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('ek', 'm01_mmdmt_ext10.ten'), 'big',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-])
-def test_check_binary_endianness(kernel, endianness, expected_error) -> None:
-    """Test checking binary file format."""
-    error = files.check_binary_endianness(str(KERNELS / kernel), endianness=endianness)
-    assert error == expected_error
-
-# ----------------------------------------------------------------------------
-# files.check_consecutive test
-# ----------------------------------------------------------------------------
-
-@pytest.mark.parametrize( "lst, cc_bool", [
-    ([1, 2, 3, 4, 5], True),
-    ([1, 2, 3, 4, 5, 5, 5], False),
-    ([1, 2, 3, 4, 7, 5], False),
-    ([19], False),
-    ([1, 19], False),
-    ([1, 2], True),
-])
-def test_check_consecutive(lst, cc_bool):
-    """Test check_consecutive function with pytest."""
-    # Note - the function does not work if the list is empty, contains
-    # no integer values or if the numbers within the list are negative.
-    assert files.check_consecutive(list(lst)) is cc_bool
-
-# ----------------------------------------------------------------------------
 # files.check_eol tests
 # ----------------------------------------------------------------------------
 
@@ -348,113 +239,6 @@ def test_check_eol_invalid_eol_raises(tmp_path):
             NPBError, match=re.escape("Incorrect EOL in configuration: \a")):
         files.check_eol(fake_file, "\a")
 
-# ----------------------------------------------------------------------------
-# files.check_kernel_integrity tests
-# ----------------------------------------------------------------------------
-
-def test_check_kernel_integrity_binary_kernel(tmp_path):
-    """Test binary kernel integrity."""
-
-    src_kernel = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc")
-
-    # Subcase 1: Correct binary kernel architecture
-    error = files.check_kernel_integrity(src_kernel)
-    assert not error
-
-    # Subcase 2: Incorrect kernel type (wrong extension)
-    wrong_ext = tmp_path / "insight_ida_enc_200829_201220_v1.bsp"
-    shutil.copy(src_kernel, wrong_ext)
-    error = files.check_kernel_integrity(str(wrong_ext))
-    assert error
-
-    # Subcase 3: Incorrect file name → should raise ValueError
-    bad_name = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.xc")
-
-    expected_message = (
-        "Unsupported kernel extension 'XC' for kernel "
-        "insight_ida_enc_200829_201220_v1.xc: not present in the SPICE "
-        "kernel type map.")
-
-    with pytest.raises(ValueError, match=expected_message):
-        files.check_kernel_integrity(bad_name)
-
-    # Subcase 4: Incorrect architecture (copy bad file into .bc)
-    bad_arch_copy = tmp_path / "insight_ida_enc_200829_201220_v1.bc"
-    shutil.copy(bad_name, bad_arch_copy)
-    error = files.check_kernel_integrity(str(bad_arch_copy))
-    assert error
-
-def test_check_kernel_integrity_text_kernel(tmp_path):
-    """Test text kernel integrity."""
-
-    kernel_path = tmp_path / "test.tf"
-
-    # Subcase 1: Correct text kernel architecture
-    kernel_path.write_text("KPL/FK\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert not error
-
-    # Subcase 2: Non-existing kernel architecture
-    kernel_path.write_text("KPLO/FK\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert error
-
-    # Subcase 3: Incorrect text kernel architecture
-    kernel_path.write_text("DAF/FK\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert error
-
-    # Subcase 4: Mismatch text kernel type (extension vs content)
-    ti_path = tmp_path / "test.ti"
-    ti_path.write_text("KPL/FK\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert error
-
-    # Subcase 5: Non-existing text kernel type
-    kernel_path.write_text("KPL/SLC\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert error
-
-    #subcase 6: Text event kernel missing both markers should fail.
-    ten_file = tmp_path / "missing_markers.ten"
-    ten_file.write_text("This is just plain text with no event kernel markers\n")
-
-    error = files.check_kernel_integrity(str(ten_file))
-    assert error != ""
-    assert "does not contain required" in error
-    assert "\\header" in error
-    assert "\\text" in error
-
-    #subcase 6a: Text event kernel missing \\header marker should fail.
-    ten_file = tmp_path / "missing_header.ten"
-    ten_file.write_text("\\text\nSome event data\n")
-
-    error = files.check_kernel_integrity(str(ten_file))
-    assert error != ""
-    assert "does not contain required" in error
-
-    #subcase 6b: Text event kernel missing \\text marker should fail.
-    ten_file = tmp_path / "missing_text.ten"
-    ten_file.write_text("\\header\nSome header data\n")
-
-    error = files.check_kernel_integrity(str(ten_file))
-    assert error != ""
-    assert "does not contain required" in error
-
-def test_check_kernel_integrity_text_event_kernel(tmp_path, monkeypatch):
-    """Comprehensive test ensuring all exceptions are exercised for text EKs (.ten)."""
-    ten_file = tmp_path / "coverage.ten"
-
-    # Test 1: Normal operation (no exception)
-    ten_file.write_text("\\header\n\\text\n")
-    error = files.check_kernel_integrity(str(ten_file))
-    assert error == ""  # Success path
-
-    # Test 2: UnicodeDecodeError path
-    with open(ten_file, 'wb') as f:
-        f.write(b"\xff\xfe")
-    error = files.check_kernel_integrity(str(ten_file))
-    assert "encoding error" in error  # UnicodeDecodeError path
 
 # ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
@@ -509,36 +293,6 @@ def test_check_list_duplicates(lst, expected):
     result = files.check_list_duplicates(list(lst))
     assert result == expected
 
-# ----------------------------------------------------------------------------
-# files.check_permissions test
-# ----------------------------------------------------------------------------
-
-@pytest.mark.parametrize( "path", [
-    (Path(KERNELS/'ck'/'insight_ida_enc_200829_201220_v1.bc')),
-    (Path(KERNELS/'dsk'/'DEIMOS_K005_THO_V01.BDS')),
-])
-def test_check_permissions(path):
-    """Test check_permissions function using pytest."""
-    files.check_permissions(str(path))
-
-
-def test_check_permissions_unreadable_raises(monkeypatch, tmp_path):
-    """A file the account cannot read raises NPBError with the path."""
-    def raise_permission_error(*_, **__):
-        raise PermissionError()
-
-    fake_file = tmp_path / "file.txt"
-    fake_file.write_text("Secret")
-
-    monkeypatch.setattr(files.Path, "open", raise_permission_error)
-
-    expected = (
-        f"File {fake_file} is not readable by the account that runs NPB. "
-        "Update permissions."
-    )
-
-    with pytest.raises(NPBError, match=re.escape(expected)):
-        files.check_permissions(str(fake_file))
 
 # ----------------------------------------------------------------------------
 # files.checksum_from_label test
@@ -780,34 +534,6 @@ def test_extract_comments_remove_blanks_end_of_comments(monkeypatch, daf_handle,
 
     assert result == comments_out
 
-# ----------------------------------------------------------------------------
-# files.fill_template tests
-# ----------------------------------------------------------------------------
-
-@pytest.mark.parametrize("contents, dct, expected", [
-    ("$MISSION_NAME is a mission to $TARGET!", {"MISSION_NAME": "Mars2020", "TARGET": "Mars"}, "Mars2020 is a mission to Mars!\n"),
-    ("<Time_Coordinates>\n<start_date_time>$START_TIME</start_date_time>\n<stop_date_time>$STOP_TIME</stop_date_time>\n</Time_Coordinates>", {"START_TIME": "2021-10-16T10:32:00Z", "STOP_TIME": "2025-05-05T00:29:39Z"}, "<Time_Coordinates>\n<start_date_time>2021-10-16T10:32:00Z</start_date_time>\n<stop_date_time>2025-05-05T00:29:39Z</stop_date_time>\n</Time_Coordinates>\n"),
-    ("My cats like to $WHAT", {"WHAT": "purrrr"}, "My cats like to purrrr\n"),
-    ("<title>$PDS4_MISSION_NAME SPICE Kernel Collection</title>", {"PDS4_MISSION_NAME": "Lucy"}, "<title>Lucy SPICE Kernel Collection</title>\n" ),
-])
-def test_fill_template(tmp_path, contents, dct, expected):
-    """Test fill_template function using pytest."""
-
-    class MockListObject:
-        def __init__(self, template_path):
-            self.template = template_path
-
-    template_file = tmp_path / "template.txt"
-    template_file.write_text(contents)
-    product_file = tmp_path / "output.txt"
-    product_dictionary = dct
-
-    list_object = MockListObject(str(template_file))
-
-    files.fill_template(list_object, str(product_file), product_dictionary)
-
-    result = product_file.read_text()
-    assert result == expected
 
 # ----------------------------------------------------------------------------
 # files.find_latest_versioned_file tests
