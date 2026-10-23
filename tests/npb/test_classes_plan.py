@@ -6,8 +6,10 @@ A shared ``make_setup`` factory builds the minimum viable mock of the
 so individual tests only override what is relevant to them.
 """
 import logging
+import os
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import call
 
 import pytest
 
@@ -871,6 +873,73 @@ def test_write_plan_no_duplicate_mk_appended(tmp_path):
     mk_lines = [ln for ln in plan_contents(setup) if ".tm" in ln]
     assert len(mk_lines) == 1
 
+
+def test_write_plan_mk_matching_several_patterns_appended_per_match(tmp_path):
+    """A meta-kernel name matching several patterns is written to the plan
+    once per pattern it matches.
+
+    The test above holds the behavior we want; this one keeps the current
+    one visible until it is fixed.
+    """
+    # The bundle has 'maven_v01.tm' and both meta-kernel patterns match it.
+    ker_dir = tmp_path / "kernels"
+    ker_dir.mkdir()
+    (ker_dir / "maven_sc_rec_200101_200201_v01.bsp").touch()
+
+    bundle = tmp_path / "bundle"
+    make_bundle_structure(bundle, "maven_v01.tm")
+
+    json_config = {
+        r"maven_sc_rec_\d{6}_\d{6}_v\d+\.bsp": {"description": "SPK."},
+        r"maven_v\d+\.tm": {"description": "MK v1."},
+        r"maven_v\d\d\.tm": {"description": "MK v2."},
+    }
+    setup = make_setup(
+        tmp_path,
+        kernels_directory=[str(ker_dir)],
+        json_config=json_config,
+    )
+    setup.bundle_directory = str(bundle)
+
+    make_release_plan(setup).write_plan()
+
+    # The new version is in the plan twice, one per matching pattern.
+    mk_lines = [ln for ln in plan_contents(setup) if ".tm" in ln]
+    assert mk_lines == ["maven_v02.tm", "maven_v02.tm"]
+
+
+def test_write_plan_mk_without_version_raises_index_error(tmp_path):
+    """A meta-kernel that matches a pattern but has no ``_v<digits>`` in its
+    name makes writing the plan fail with an ``IndexError``.
+
+    It keeps the current behavior visible until it is fixed.
+    """
+    # The bundle has 'maven.tm', which the second pattern matches, and the
+    # plan has a kernel, so the version of the meta-kernel is looked for.
+    ker_dir = tmp_path / "kernels"
+    ker_dir.mkdir()
+    (ker_dir / "maven_sc_rec_200101_200201_v01.bsp").touch()
+
+    bundle = tmp_path / "bundle"
+    make_bundle_structure(bundle, "maven.tm")
+
+    json_config = {
+        r"maven_sc_rec_\d{6}_\d{6}_v\d+\.bsp": {"description": "SPK."},
+        r"maven\.tm": {"description": "MK."},
+    }
+    setup = make_setup(
+        tmp_path,
+        kernels_directory=[str(ker_dir)],
+        json_config=json_config,
+    )
+    setup.bundle_directory = str(bundle)
+    rp = make_release_plan(setup)
+
+    # There is no version to read in the name, so the plan cannot be written.
+    with pytest.raises(IndexError):
+        rp.write_plan()
+
+
 def test_write_plan_no_mk_inferred_when_no_kernels(tmp_path, caplog):
     """A former MK exists in the bundle but no kernels were matched —
     the MK must not be inferred and the method must return False."""
@@ -902,6 +971,7 @@ def test_write_plan_no_mk_inferred_when_no_kernels(tmp_path, caplog):
     assert caplog.messages == ['-- No former meta-kernel found to generate meta-kernel for the list.']
     assert result is False
     assert not any(".tm" in ln for ln in plan_contents(setup))
+
 
 # ---------------------------------------------------------------------------
 # 6. OrbNum files
@@ -1308,6 +1378,226 @@ def test_collect_plan_files_pattern_matching(
 
     # Only the file names are kept, without the directory part.
     assert result == expected
+
+
+# ===========================================================================
+# Testing of the ReleasePlan meta-kernel determination methods.
+# ===========================================================================
+
+MK_PATTERN = r"maven_v\d+\.tm"
+NO_FORMER_MK = (
+    "-- No former meta-kernel found to generate meta-kernel for the list."
+)
+
+
+# ---------------------------------------------------------------------------
+# 1. _determine_metakernels:
+#    it only chooses the strategy, the work is done by the two helpers.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "mk_inputs, expected, expected_config_calls, expected_inferred_calls",
+    [
+        pytest.param(
+            {"file": ["maven_v01.tm"]},
+            ["from_config.tm"],
+            [call()],
+            [],
+            id="configured",
+        ),
+        pytest.param(
+            None,
+            ["inferred.tm"],
+            [],
+            [call(["a.bsp"], [MK_PATTERN])],
+            id="not-configured",
+        ),
+    ],
+)
+def test_determine_metakernels_picks_one_strategy(
+        mocker, tmp_path, mk_inputs, expected, expected_config_calls,
+        expected_inferred_calls):
+    """With 'mk_inputs' in the configuration the meta-kernels come from it
+    and nothing is inferred; without it the meta-kernel is inferred from the
+    bundle using the kernels and patterns it was given."""
+    # Both strategies are replaced, so the test only sees which one is called
+    # and what it receives, not what it does.
+    config_mock = mocker.patch.object(
+        ReleasePlan, "_metakernel_from_config", return_value=["from_config.tm"]
+    )
+    inferred_mock = mocker.patch.object(
+        ReleasePlan, "_metakernel_inferred_from_bundle",
+        return_value=["inferred.tm"],
+    )
+    rp = make_release_plan(make_setup(tmp_path, mk_inputs=mk_inputs))
+
+    result = rp._determine_metakernels(["a.bsp"], [MK_PATTERN])
+
+    # The dispatcher returns what the chosen strategy returned, and the
+    # other strategy is never called.
+    assert result == expected
+    assert config_mock.call_args_list == expected_config_calls
+    assert inferred_mock.call_args_list == expected_inferred_calls
+
+
+# ---------------------------------------------------------------------------
+# 2. _metakernel_from_config:
+#    the meta-kernels named in 'mk_inputs' must exist, and only their file
+#    names go to the plan.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "given, created, expected",
+    [
+        pytest.param(
+            "maven_v01.tm", ["maven_v01.tm"], ["maven_v01.tm"],
+            id="single-string",
+        ),
+        pytest.param(
+            ["maven_v02.tm", "maven_v01.tm"],
+            ["maven_v01.tm", "maven_v02.tm"],
+            ["maven_v02.tm", "maven_v01.tm"],
+            id="list-keeps-configured-order",
+        ),
+        pytest.param(
+            f"mk{os.sep}maven_v01.tm", ["mk/maven_v01.tm"], ["maven_v01.tm"],
+            id="directory-part-dropped",
+        ),
+    ],
+)
+def test_metakernel_from_config_returns_file_names(
+        tmp_path, monkeypatch, given, created, expected):
+    """Every meta-kernel in 'mk_inputs', given as one string or as a list,
+    is returned by file name and in the configured order."""
+    # The configured paths are relative, so they are resolved from the
+    # directory where the files are created.
+    monkeypatch.chdir(tmp_path)
+    for name in created:
+        (tmp_path / name).parent.mkdir(exist_ok=True)
+        (tmp_path / name).touch()
+    rp = make_release_plan(make_setup(tmp_path, mk_inputs={"file": given}))
+
+    result = rp._metakernel_from_config()
+
+    assert result == expected
+
+
+@pytest.mark.parametrize(
+    "given, created, missing",
+    [
+        pytest.param(
+            ["maven_v01.tm"], [], "maven_v01.tm", id="only-one-and-missing",
+        ),
+        pytest.param(
+            ["maven_v01.tm", "maven_v02.tm"], ["maven_v01.tm"], "maven_v02.tm",
+            id="second-one-missing",
+        ),
+    ],
+)
+def test_metakernel_from_config_missing_file_raises(
+        tmp_path, monkeypatch, given, created, missing):
+    """A configured meta-kernel that does not exist is an error, even if
+    the ones before it do exist."""
+    monkeypatch.chdir(tmp_path)
+    for name in created:
+        (tmp_path / name).touch()
+    rp = make_release_plan(make_setup(tmp_path, mk_inputs={"file": given}))
+
+    with pytest.raises(NPBError) as error:
+        rp._metakernel_from_config()
+
+    # The message names the file that was not found, not the first one.
+    assert str(error.value) == (
+        f"Meta-kernel provided via configuration {missing} does not exist."
+    )
+
+
+# ---------------------------------------------------------------------------
+# 3. _metakernel_inferred_from_bundle:
+#    the next version of the latest bundle meta-kernel, when there is both
+#    one in the bundle and a kernel in the plan to base it on.
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "bundle_mks, kernels, patterns, expected, expected_logs",
+    [
+        pytest.param(
+            [], ["a.bsp"], [MK_PATTERN], [],
+            [(logging.WARNING, NO_FORMER_MK)],
+            id="no-meta-kernel-in-bundle",
+        ),
+        pytest.param(
+            ["maven_v01.tm"], [], [MK_PATTERN], [],
+            [(logging.ERROR, NO_FORMER_MK)],
+            id="no-kernels-in-plan",
+        ),
+        pytest.param(
+            ["maven_v01.tm"], ["a.bsp"], [r"other_v\d+\.tm"], [],
+            [(logging.ERROR, NO_FORMER_MK)],
+            id="no-pattern-matches",
+        ),
+        pytest.param(
+            ["maven_v01.tm"], ["a.bsp"], [MK_PATTERN], ["maven_v02.tm"],
+            [(logging.WARNING, "-- Plan will include maven_v02.tm")],
+            id="version-bumped",
+        ),
+        pytest.param(
+            ["maven_v009.tm"], ["a.bsp"], [MK_PATTERN], ["maven_v010.tm"],
+            [(logging.WARNING, "-- Plan will include maven_v010.tm")],
+            id="zero-padding-kept",
+        ),
+        pytest.param(
+            ["maven_v01.tm", "maven_v02.tm"], ["a.bsp"], [MK_PATTERN],
+            ["maven_v03.tm"],
+            [(logging.WARNING, "-- Plan will include maven_v03.tm")],
+            id="latest-one-is-used",
+        ),
+        pytest.param(
+            ["maven_v01.tm"], ["a.bsp"], [MK_PATTERN, r"maven_v\d\d\.tm"],
+            ["maven_v02.tm", "maven_v02.tm"],
+            [(logging.WARNING, "-- Plan will include maven_v02.tm")] * 2,
+            id="one-entry-per-matching-pattern",
+        ),
+    ],
+)
+def test_metakernel_inferred_from_bundle(
+        tmp_path, caplog, bundle_mks: list, kernels: list, patterns: list,
+        expected: list, expected_logs: list):
+    """The new meta-kernel is the latest one in the bundle with its version
+    increased by one, and it is returned once per pattern that matches it.
+    It is not generated, and a message says so, if the bundle has no
+    meta-kernel, the plan has no kernels or no pattern matches."""
+    # Meta-kernels are only looked for in a directory named 'mk'. The last
+    # case pins what the code does today with overlapping patterns: the
+    # same name is returned once per match.
+    mk_dir = tmp_path / "bundle" / "maven_spice" / "spice_kernels" / "mk"
+    mk_dir.mkdir(parents=True)
+    for name in bundle_mks:
+        (mk_dir / name).touch()
+    rp = make_release_plan(make_setup(tmp_path))
+
+    with caplog.at_level(logging.WARNING):
+        result = rp._metakernel_inferred_from_bundle(kernels, patterns)
+
+    assert result == expected
+    assert [(r.levelno, r.getMessage()) for r in caplog.records] == (
+        expected_logs
+    )
+
+
+def test_metakernel_inferred_from_bundle_name_without_version_raises(
+        tmp_path):
+    """A meta-kernel that matches a pattern but has no '_v<digits>' in its
+    name makes the inference fail with an 'IndexError'."""
+    # Pins what the code does today: the version is read without checking
+    # that the name has one.
+    mk_dir = tmp_path / "bundle" / "maven_spice" / "spice_kernels" / "mk"
+    mk_dir.mkdir(parents=True)
+    (mk_dir / "maven.tm").touch()
+    rp = make_release_plan(make_setup(tmp_path))
+
+    with pytest.raises(IndexError):
+        rp._metakernel_inferred_from_bundle(["a.bsp"], [r"maven\.tm"])
 
 
 # ---------------------------------------------------------------------------
