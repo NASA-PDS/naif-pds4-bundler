@@ -933,10 +933,11 @@ def test_write_plan_mk_without_version_raises_index_error(tmp_path):
         json_config=json_config,
     )
     setup.bundle_directory = str(bundle)
+    rp = make_release_plan(setup)
 
     # There is no version to read in the name, so the plan cannot be written.
     with pytest.raises(IndexError):
-        make_release_plan(setup).write_plan()
+        rp.write_plan()
 
 
 def test_write_plan_no_mk_inferred_when_no_kernels(tmp_path, caplog):
