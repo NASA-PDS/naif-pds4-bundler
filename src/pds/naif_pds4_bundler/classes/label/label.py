@@ -47,7 +47,6 @@ class PDSLabel:
         # Read setup off the product instead of taking it as a separate
         # argument -- every product already carries its own setup.
         self.setup = product.setup
-        self.run_state = product.run_state
 
         #
         # Fields from setup
@@ -147,8 +146,11 @@ class PDSLabel:
 
         return label_name
 
-    def write_label(self):
-        """Write the Label."""
+    def write_label(self) -> str:
+        """Write the Label.
+
+        :return: Path of the label relative to the staging directory.
+        """
         # Using newline guarantees that what we write into the file is what
         # we intend to write, independently of the platform.
         with open(self.name, "w+", encoding='utf-8', newline='') as f:
@@ -179,11 +181,6 @@ class PDSLabel:
             print(f'   * Created {created_file}.')
 
         #
-        # Add label to the list of generated files.
-        #
-        self.run_state.add_file(str(created_file))
-
-        #
         # Wrap lines for PDS3 labels.
         #
         if self.setup.args.diff:
@@ -193,6 +190,8 @@ class PDSLabel:
         # separating them from whatever is logged next.
         if self._trailing_blank_log:
             logging.info("")
+
+        return str(created_file)
 
     def compare(self) -> None:
         """Compare the label with another label.

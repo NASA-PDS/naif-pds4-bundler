@@ -21,17 +21,9 @@ class RunState:
     :param step: Number of the next pipeline step to be logged.
     :param file_list: Files generated or moved during the run.
     :param checksum_registry: ``<path> <checksum>`` records of the run.
-    :param increment_start: Start time of the archive increment, set once the
-        SPICE kernels collection has determined it. ``Setup.increment_start``
-        only holds the configured value, if any.
-    :param increment_finish: Finish time of the archive increment, set along
-        with the start time. ``Setup.increment_finish`` only holds the
-        configured value, if any.
     """
 
     step: int = 1
-    increment_start: str = ""
-    increment_finish: str = ""
 
     # Each instance needs its own lists; a plain '[]' default would be shared by
     # every RunState.
@@ -44,6 +36,16 @@ class RunState:
         :param file: Path of the file to be added, stored unchanged.
         """
         self.file_list.append(file)
+
+    def register_label_file(self, path: str) -> None:
+        """Add a label file to the run by-product File List.
+
+        Every label is registered, whether its product is new.
+
+        :param path: Path of the label relative to the staging directory,
+            stored unchanged.
+        """
+        self.add_file(path)
 
     def add_checksum(self, path: str, checksum: str) -> None:
         """Add an entry to the run by-product Checksum Registry.

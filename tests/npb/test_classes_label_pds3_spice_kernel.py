@@ -8,15 +8,14 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds3_spice_kernel import SpiceKernelPDS3Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Patch target strings (adjust if the real package path differs)
 # ---------------------------------------------------------------------------
-MODULE      = "pds.naif_pds4_bundler.classes.label.pds3_spice_kernel"
+MODULE = "pds.naif_pds4_bundler.classes.label.pds3_spice_kernel"
 PARENT_INIT = f"{MODULE}.PDS3Label.__init__"
-SET_IDS     = f"{MODULE}.SpiceKernelPDS3Label.set_kernel_ids"
-SET_SCLK    = f"{MODULE}.SpiceKernelPDS3Label.set_sclk_times"
+SET_IDS = f"{MODULE}.SpiceKernelPDS3Label.set_kernel_ids"
+SET_SCLK = f"{MODULE}.SpiceKernelPDS3Label.set_sclk_times"
 FORMAT_DESC = f"{MODULE}.SpiceKernelPDS3Label.format_description"
 
 
@@ -44,7 +43,6 @@ def _make_setup():
 def _make_product(kernel_type="SPK"):
     """Minimal mock for the *product* object."""
     product = MagicMock()
-    product.run_state = RunState()
     product.name = "fake_kernel.bsp"
     product.file_format = "BINARY"
     product.start_time = "2000-001T00:00:00Z"
@@ -69,7 +67,6 @@ def bare_label():
     label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
     label._label_fields = {}
     label.setup = _make_setup()
-    label.run_state = RunState()
     label.product = _make_product()
     label.name = "/fake/output/fake_kernel.lbl"
     return label
@@ -264,7 +261,6 @@ class TestSpiceKernelPDS3LabelWriteLabel:
         label = SpiceKernelPDS3Label.__new__(SpiceKernelPDS3Label)
         label._label_fields = {"FILE_NAME": "kernel.bsp"}
         label.setup = setup
-        label.run_state = RunState()
         label.product = product
         label.name = str(staging_dir / "kernel.lbl")
         label._template = str(template_path)
@@ -294,7 +290,7 @@ class TestSpiceKernelPDS3LabelSetSclkTimes:
         bare_label.set_sclk_times(bare_label.product)
 
         assert bare_label._label_fields["SPACECRAFT_CLOCK_START_COUNT"] == '"N/A"'
-        assert bare_label._label_fields["SPACECRAFT_CLOCK_STOP_COUNT"]  == '"N/A"'
+        assert bare_label._label_fields["SPACECRAFT_CLOCK_STOP_COUNT"] == '"N/A"'
 
     @pytest.mark.parametrize("system", ['UTC', 'TBD'])
     def test_ck_calls_spice_functions(self, bare_label, system):
@@ -315,7 +311,7 @@ class TestSpiceKernelPDS3LabelSetSclkTimes:
 
         # CK SCLK tick values are wrapped in double quotes on the label.
         assert bare_label._label_fields["SPACECRAFT_CLOCK_START_COUNT"] == '"1/100.000"'
-        assert bare_label._label_fields["SPACECRAFT_CLOCK_STOP_COUNT"]  == '"1/200.000"'
+        assert bare_label._label_fields["SPACECRAFT_CLOCK_STOP_COUNT"] == '"1/200.000"'
 
     def test_ck_spiceypy_failure_raises_npberror(self, bare_label):
         """A SpiceyPyError from bodn2c is raised as NPBError."""
@@ -330,6 +326,7 @@ class TestSpiceKernelPDS3LabelSetSclkTimes:
 
             with pytest.raises(NPBError):
                 bare_label.set_sclk_times(bare_label.product)
+
 
 # ===========================================================================
 # SpiceKernelPDS3Label.set_kernel_ids
@@ -372,6 +369,7 @@ class TestSpiceKernelPDS3LabelSetKernelIds:
         bare_label.set_kernel_ids(bare_label.product)
 
         assert bare_label._label_fields["NAIF_INSTRUMENT_ID"] == '"N/A"'
+
 
 # ===========================================================================
 # SpiceKernelPDS3Label.format_description

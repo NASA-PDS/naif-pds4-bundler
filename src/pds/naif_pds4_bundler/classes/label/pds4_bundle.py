@@ -30,8 +30,9 @@ class BundlePDS4Label(PDS4Label):
         self._label_fields["BUNDLE_VID"] = self.product.bundle.vid
 
         self._label_fields["AUTHOR_LIST"] = self.setup.author_list
-        self._label_fields["START_TIME"] = self.run_state.increment_start
-        self._label_fields["STOP_TIME"] = self.run_state.increment_finish
+        kernels_collection = self.product.bundle.spice_kernels_collection
+        self._label_fields["START_TIME"] = kernels_collection.increment_start
+        self._label_fields["STOP_TIME"] = kernels_collection.increment_finish
         self._label_fields["FILE_NAME"] = self.product.name
         self._label_fields["DOI"] = self.setup.doi
         self._label_fields["BUNDLE_MEMBER_ENTRIES"] = ""

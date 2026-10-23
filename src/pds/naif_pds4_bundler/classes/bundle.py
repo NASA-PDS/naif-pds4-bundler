@@ -12,7 +12,7 @@ from xml.etree import ElementTree
 
 import spiceypy
 
-from .exceptions import NPBError
+from .exceptions import NPBError, NPBInternalError
 from ..utils import (
     check_list_duplicates,
     etree_to_dict,
@@ -23,8 +23,8 @@ from ..utils import (
 
 # The following imports are only required for type checking.
 if TYPE_CHECKING:
+    from .collection import SpiceKernelsCollection
     from .product import ReadmeProduct
-    from .run_state import RunState
 
 
 class Bundle:
@@ -119,6 +119,21 @@ class Bundle:
         The Bundle VID identifies the specific version of the bundle.
         """
         return self._vid
+
+    @property
+    def spice_kernels_collection(self) -> SpiceKernelsCollection:
+        """SPICE Kernels Collection added to the bundle.
+
+        It holds the increment times of the bundle.
+
+        :raises NPBInternalError: If the collection has not been added yet.
+        """
+        for collection in self.collections:
+            if collection.name == 'spice_kernels':
+                return collection
+
+        raise NPBInternalError(
+            'the SPICE Kernels collection has not been added to the bundle.')
 
     def add(self, element):
         """Add a Collection to the Bundle."""
@@ -267,15 +282,13 @@ class Bundle:
             logging.warning(line)
         logging.info("")
 
-    def validate(self, run_state: RunState) -> None:
+    def validate(self) -> None:
         """Validate the Bundle.
 
         The two implemented steps are to check checksum files against the
         updated bundle history and checking the bundle times.
-
-        :param run_state: Run state providing the increment times.
         """
-        self._check_times(run_state)
+        self._check_times()
         self._validate_history()
 
     # ------------------------------------------------------------------
@@ -283,14 +296,11 @@ class Bundle:
     # ------------------------------------------------------------------
 
     @spice_exception_handler
-    def _check_times(self, run_state: RunState) -> None:
-        """Check the correctness of the bundle times.
-
-        :param run_state: Run state providing the increment times.
-        """
+    def _check_times(self) -> None:
+        """Check the correctness of the bundle times."""
         str_msn_strt = self.setup.mission_start
-        str_inc_strt = run_state.increment_start
-        str_inc_stop = run_state.increment_finish
+        str_inc_strt = self.spice_kernels_collection.increment_start
+        str_inc_stop = self.spice_kernels_collection.increment_finish
         str_msn_stop = self.setup.mission_finish
 
         #

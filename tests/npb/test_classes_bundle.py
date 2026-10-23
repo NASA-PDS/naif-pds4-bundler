@@ -29,8 +29,7 @@ import pytest
 from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.bundle import Bundle
-from pds.naif_pds4_bundler.classes.exceptions import NPBError
-from pds.naif_pds4_bundler.classes.run_state import RunState
+from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -54,6 +53,7 @@ _DUMMY_SECONDARY_MEMBER = {
     "lid": f"urn:nasa:pds:{MISSION}.spice:document::1.0",
     "status": "Secondary",
 }
+
 
 # ---------------------------------------------------------------------------
 # XML helpers
@@ -298,6 +298,7 @@ class TestBundleInit:
         setup = self._pds4_setup(tmp_path)
         bundle = Bundle(setup)
         assert bundle.collections == []
+
 
 # ---------------------------------------------------------------------------
 # Bundle.add method.
@@ -775,6 +776,48 @@ class TestBundleFilesInStaging:
             '']
         assert expected == caplog.messages
 
+
+# ---------------------------------------------------------------------------
+# Bundle.spice_kernels_collection property.
+# ---------------------------------------------------------------------------
+
+class TestBundleSpiceKernelsCollection:
+
+    @pytest.mark.parametrize('names, expected_index', [
+        (['spice_kernels'], 0),
+        (['document', 'spice_kernels', 'miscellaneous'], 1),
+    ])
+    def test_returns_the_spice_kernels_collection(
+            self, fake_setup, names: list[str], expected_index: int) -> None:
+        """The collection named 'spice_kernels' is returned, wherever it sits
+        in the bundle."""
+
+        # Only the name matters for the lookup, so plain namespaces will do.
+        collections = [SimpleNamespace(name=name) for name in names]
+        bundle = _make_bundle(fake_setup, vid="1.0",
+                              name=f"bundle_{MISSION}_spice_v001.xml",
+                              collections=collections)
+
+        # It is the very same object that was added, not a copy.
+        assert bundle.spice_kernels_collection is collections[expected_index]
+
+    @pytest.mark.parametrize('names', [[], ['document', 'miscellaneous']])
+    def test_raises_when_the_collection_was_not_added(
+            self, fake_setup, names: list[str]) -> None:
+        """Asking for the collection before it is added is an NPB bug."""
+
+        # A bundle with no collections, or with none of them being the SPICE
+        # Kernels one.
+        bundle = _make_bundle(
+            fake_setup, vid="1.0", name=f"bundle_{MISSION}_spice_v001.xml",
+            collections=[SimpleNamespace(name=name) for name in names])
+
+        # Reading the property is what triggers the lookup, so its value is
+        # assigned and ignored.
+        with pytest.raises(NPBInternalError, match='has not been added'):
+            _ = bundle.spice_kernels_collection
+
+
 # ---------------------------------------------------------------------------
 # Bundle.validate method.
 # ---------------------------------------------------------------------------
@@ -785,11 +828,14 @@ class TestBundleValidate:
         """``validate`` delegates to ``_check_times`` and ``_validate_history``."""
         bundle = _make_bundle(fake_setup, vid="1.0",
                               name=f"bundle_{MISSION}_spice_v001.xml")
+        # Both steps are replaced, so only the delegation is observed.
         bundle._check_times = MagicMock()
         bundle._validate_history = MagicMock()
-        run_state = RunState()
-        bundle.validate(run_state)
-        bundle._check_times.assert_called_once_with(run_state)
+
+        bundle.validate()
+
+        # _check_times gets no argument: it reads the times from the bundle.
+        bundle._check_times.assert_called_once_with()
         bundle._validate_history.assert_called_once()
 
 
@@ -805,18 +851,18 @@ class TestBundlePCheckTimes:
             increment_start: str,
             increment_finish: str,
             mission_finish: str,
-    ) -> tuple[Bundle, RunState]:
-        """Construct a minimal ``Bundle`` and the ``RunState`` that
-        ``_check_times`` needs: the mission times are read from ``self.setup``
-        and the increment times from the run state."""
+    ) -> Bundle:
+        """Construct a minimal ``Bundle`` that ``_check_times`` can use: the
+        mission times are read from ``self.setup`` and the increment times
+        from the SPICE Kernels collection."""
         bundle = object.__new__(Bundle)
-        bundle.setup = SimpleNamespace(
-            mission_start=mission_start,
-            mission_finish=mission_finish,
-        )
-        run_state = RunState(increment_start=increment_start,
-                             increment_finish=increment_finish)
-        return bundle, run_state
+        bundle.setup = SimpleNamespace(mission_start=mission_start,
+                                       mission_finish=mission_finish)
+
+        bundle.collections = [SimpleNamespace(name='spice_kernels',
+                                              increment_start=increment_start,
+                                              increment_finish=increment_finish)]
+        return bundle
 
     @pytest.mark.parametrize('m_start, i_start, i_end, m_end', [
         # Normal mode of operation (DOY format)
@@ -834,9 +880,10 @@ class TestBundlePCheckTimes:
     ])
     def test_valid_ordering(self, lsk, m_start, i_start, i_end, m_end):
         """All four times correctly ordered."""
-        bundle, run_state = self._make_times_bundle(
-            m_start, i_start, i_end, m_end)
-        bundle._check_times(run_state)
+        bundle = self._make_times_bundle(m_start, i_start, i_end, m_end)
+
+        # No exception means the times are coherent.
+        bundle._check_times()
 
     @pytest.mark.parametrize('m_start, i_start, i_end, m_end', [
         # mission_start after increment_start
@@ -854,22 +901,23 @@ class TestBundlePCheckTimes:
 
     ])
     def test_invalid_ordering(self, lsk, m_start, i_start, i_end, m_end):
-        bundle, run_state = self._make_times_bundle(
-            m_start, i_start, i_end, m_end)
+        """Times in the wrong order make _check_times raise NPBError."""
+        bundle = self._make_times_bundle(m_start, i_start, i_end, m_end)
+
         with pytest.raises(NPBError, match="The resulting Mission and Increment start "
                                            "and finish dates are incoherent."):
-            bundle._check_times(run_state)
+            bundle._check_times()
 
     @patch("pds.naif_pds4_bundler.classes.bundle.spiceypy.str2et")
     def test_spiceypy_failure_raises_npberror(self, mock_str2et):
         """A SpiceyPyError from str2et is raised as NPBError."""
         mock_str2et.side_effect = SpiceyPyError('spiceypy error')
-        bundle, run_state = self._make_times_bundle(
+        bundle = self._make_times_bundle(
             "2000-001T00:00:00", "2000-060T00:00:00",
             "2000-180T00:00:00", "2001-001T00:00:00")
 
         with pytest.raises(NPBError):
-            bundle._check_times(run_state)
+            bundle._check_times()
 
 
 # ---------------------------------------------------------------------------
@@ -1992,7 +2040,7 @@ class TestPValidateHistory:
             mission_acronym=MISSION,
             xml_model=XML_MODEL,
             args=args,
-            template_files = []  # For error cases.
+            template_files=[]  # For error cases.
         )
 
     @staticmethod
@@ -2179,7 +2227,7 @@ class TestPValidateHistory:
 
         # Excludes the self-reference entries — see docstring.
         file_products = [p for p in history_products
-                          if p not in (checksum_product, checksum_label)]
+                         if p not in (checksum_product, checksum_label)]
         self._write_checksum(
             self._bundle_root(setup), rel=1, products=file_products
         )
@@ -2420,8 +2468,8 @@ class TestPValidateHistory:
 
         self._write_checksum(self._bundle_root(setup), rel=1, products=rel1_products)
         self._write_checksum(self._bundle_root(setup), rel=2,
-                        products=[p for p in cumulative
-                                  if "v002.xml" not in p])
+                             products=[p for p in cumulative
+                                       if "v002.xml" not in p])
 
         bundle = self._validate_bundle(setup, vid="2.0", collections=["something"])
         with caplog.at_level(logging.INFO):

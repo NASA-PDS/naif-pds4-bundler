@@ -36,7 +36,6 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.label.pds4_bundle import BundlePDS4Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Fully-qualified write_label target. Centralised so a relocation only needs
 # one edit.
@@ -105,8 +104,9 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
             collection_name='miscellaneous')
 
         # The increment window the label copies into START_TIME / STOP_TIME.
-        readme.run_state = RunState(increment_start='2024-02-01T00:00:00Z',
-                                    increment_finish='2024-02-28T23:59:59Z')
+        readme.bundle.spice_kernels_collection = SimpleNamespace(
+            increment_start='2024-02-01T00:00:00Z',
+            increment_finish='2024-02-28T23:59:59Z')
         readme.bundle.lid = bundle_lid
         readme.bundle.vid = bundle_vid
         readme.bundle.collections = (
@@ -512,19 +512,24 @@ class TestBundlePDS4Label:
 
         assert label._label_fields[label_attribute] == value
 
-    @pytest.mark.parametrize('run_state_attribute, value, label_attribute', [
+    @pytest.mark.parametrize('collection_attribute, value, label_attribute', [
         ('increment_start', 'not-a-valid-datetime', 'START_TIME'),
         ('increment_finish', '', 'STOP_TIME')])
     def test_increment_times_are_copied_without_validation(
             self, tmp_path: Path, helpers: SimpleNamespace,
-            run_state_attribute: str, value: str, label_attribute: str) -> None:
-        # The increment times come from the run state and are copied verbatim;
-        # the caller is responsible for validation.
+            collection_attribute: str, value: str,
+            label_attribute: str) -> None:
+        """The increment times of the SPICE Kernels collection are copied
+        verbatim into the label; validating them is the caller's job."""
+
+        # Replace one of the collection times with the value under test.
         readme = helpers.make_readme(tmp_path / 'staging')
-        setattr(readme.run_state, run_state_attribute, value)
+        setattr(readme.bundle.spice_kernels_collection, collection_attribute,
+                value)
 
         label = _build_label(helpers.make_setup(), readme)
 
+        # The value reaches the label field untouched, even if it is invalid.
         assert label._label_fields[label_attribute] == value
 
     @pytest.mark.parametrize('bundle_lid, bundle_vid', [
@@ -780,20 +785,20 @@ class TestBundlePDS4LabelIntegration:
                    'Primary', 'Secondary']
 
     # ------------------------------------------------------------------
-    # run state registration
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_staging_relative_label_path(
+    def test_write_label_returns_staging_relative_path(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # write_label must register the label using its path relative to the
-        # staging directory, not as an absolute path.
-        setup, readme, _, _ = env
+        """write_label returns the label path relative to staging."""
 
+        setup, readme, _, _ = env
         readme.setup = setup
 
-        BundlePDS4Label(readme).write_label()
+        written_path = BundlePDS4Label(readme).write_label()
 
-        assert readme.run_state.file_list == ['bundle_maven_spice_v001.xml']
+        # The path is relative to staging, not absolute.
+        assert written_path == 'bundle_maven_spice_v001.xml'
 
     # ------------------------------------------------------------------
     # Error paths
@@ -801,9 +806,8 @@ class TestBundlePDS4LabelIntegration:
 
     def test_missing_template_raises_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # A missing template must raise FileNotFoundError. The output file is
-        # created empty before the template is opened, so it exists but is
-        # empty. add_file must not be called.
+        """A missing template makes write_label raise FileNotFoundError."""
+
         setup, readme, template_path, label_path = env
         template_path.unlink()
 
@@ -813,14 +817,15 @@ class TestBundlePDS4LabelIntegration:
         with pytest.raises(FileNotFoundError):
             label.write_label()
 
+        # The output file is created empty before the template is opened, so
+        # it exists even though writing failed.
         assert label_path.exists()
         assert label_path.read_text(encoding='utf-8') == ''
-        assert readme.run_state.file_list == []
 
     def test_malformed_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # write_label does not validate XML; a malformed template is rendered
-        # and registered. The caller is responsible for template correctness.
+        """A malformed template is rendered and its path still returned."""
+
         setup, readme, template_path, label_path = env
         template_path.write_text('<bundle>\n'
                                  '  <file_name>$FILE_NAME</file_name>\n',
@@ -828,13 +833,14 @@ class TestBundlePDS4LabelIntegration:
 
         readme.setup = setup
 
-        BundlePDS4Label(readme).write_label()
+        written_path = BundlePDS4Label(readme).write_label()
 
         written = label_path.read_text(encoding='utf-8')
         assert '<file_name>bundle_maven_spice_v001.xml</file_name>' in written
         assert '$FILE_NAME' not in written
 
+        # The XML is not parsed by write_label, but the path is still returned.
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written)
 
-        assert readme.run_state.file_list == ['bundle_maven_spice_v001.xml']
+        assert written_path == 'bundle_maven_spice_v001.xml'

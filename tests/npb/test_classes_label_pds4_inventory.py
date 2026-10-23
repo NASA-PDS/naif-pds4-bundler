@@ -22,7 +22,8 @@ InventoryPDS4Label is peculiar compared with the other PDS4 labels:
   ``collection.name``:
     - 'miscellaneous'  -> the min start / max stop of the checksum products
                           found in ``collection.product``.
-    - anything else    -> run_state.increment_start / increment_finish.
+    - 'spice_kernels'  -> the collection's increment_start / increment_finish.
+    - anything else    -> no START_TIME / STOP_TIME (the template has none).
 * N_RECORDS is the number of physical lines of the inventory file.
 * The XML label name is derived from ``inventory.path`` (the inherited
   PDSLabel derivation, shared with every other PDS4 label), not from
@@ -37,7 +38,6 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.label.pds4_inventory import InventoryPDS4Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 # ---------------------------------------------------------------------------
@@ -49,9 +49,8 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     """Specialize the generic factories for collection-inventory labels.
 
     Reuses ``base_helpers.make_setup`` and ``base_helpers.make_product`` (used
-    both for the inventory product, which also gets the increment window the
-    label needs in the non-miscellaneous branch, and for the checksum products
-    held by the collection), and adds a ``make_collection`` factory.
+    both for the inventory product and for the checksum products held by the
+    collection), and adds a ``make_collection`` factory.
 
     :param base_helpers: generic Setup/base-product factories from conftest
     :return: container with make_setup, make_inventory, make_checksum_product
@@ -80,12 +79,6 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
             name=name,
             lid='urn:nasa:pds:maven_spice:spice_kernels',
             collection_name='spice_kernels')
-
-        # The increment window consumed by the non-miscellaneous branch of the
-        # constructor.
-        inventory.run_state = RunState(
-            increment_start='2024-02-01T00:00:00Z',
-            increment_finish='2024-02-28T23:59:59Z')
         return inventory
 
     def _make_checksum_product(name: str, start_time: str,
@@ -102,8 +95,11 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
                          coll_type: str = 'spice_kernels',
                          products: list[MagicMock] | None = None) -> MagicMock:
         # 'type' drives the template path; 'name' drives the time-source
-        # branch; 'product' is only iterated in the miscellaneous branch.
+        # branch; 'product' is only iterated in the miscellaneous branch. The
+        # increment window is only read in the spice_kernels branch.
         collection = MagicMock()
+        collection.increment_start = '2024-02-01T00:00:00Z'
+        collection.increment_finish = '2024-02-28T23:59:59Z'
         collection.name = name
         collection.type = coll_type
         collection.lid = 'urn:nasa:pds:maven_spice:spice_kernels'
@@ -162,7 +158,7 @@ class TestInventoryPDS4Label:
         assert label._label_fields["COLLECTION_LID"] == 'urn:nasa:pds:maven_spice:spice_kernels'
         assert label._label_fields["COLLECTION_VID"] == '1.0'
 
-        # In the else branch the coverage comes from setup.increment_*.
+        # In the spice_kernels branch the coverage comes from the collection.
         assert label._label_fields["START_TIME"] == '2024-02-01T00:00:00Z'
         assert label._label_fields["STOP_TIME"] == '2024-02-28T23:59:59Z'
 
@@ -345,14 +341,13 @@ class TestInventoryPDS4Label:
 
     def test_miscellaneous_branch_does_not_use_increment_times(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Guard the branch contract: in the miscellaneous branch the increment
-        # window is irrelevant even if present on setup.
+        """The miscellaneous label takes its times from the checksum product,
+        never from the increment window of the collection."""
+
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         inventory = helpers.make_inventory(
             staging, name='collection_miscellaneous_inventory_v001.csv')
-        inventory.run_state.increment_start = 'SHOULD_NOT_BE_USED_START'
-        inventory.run_state.increment_finish = 'SHOULD_NOT_BE_USED_STOP'
 
         checksum = helpers.make_checksum_product(
             'checksum_v01.tab', '2024-01-01T00:00:00', '2024-01-31T00:00:00')
@@ -360,11 +355,34 @@ class TestInventoryPDS4Label:
             name='miscellaneous', coll_type='miscellaneous',
             products=[checksum])
 
+        # Marker values that would show up if the window were read.
+        collection.increment_start = 'SHOULD_NOT_BE_USED_START'
+        collection.increment_finish = 'SHOULD_NOT_BE_USED_STOP'
+
         inventory.setup = setup
         label = InventoryPDS4Label(inventory, collection)
 
+        # The checksum coverage wins.
         assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00'
         assert label._label_fields["STOP_TIME"] == '2024-01-31T00:00:00'
+
+    def test_document_collection_has_no_start_and_stop_time(
+            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
+        """The document label gets no START_TIME and STOP_TIME: its template
+        has no such fields, so the increment window is not read at all."""
+
+        setup = helpers.make_setup()
+        inventory = helpers.make_inventory(
+            tmp_path / 'staging', name='collection_document_inventory_v001.csv')
+        collection = helpers.make_collection(
+            name='document', coll_type='document')
+
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
+
+        # Neither field is set, instead of holding an empty or stale value.
+        assert "START_TIME" not in label._label_fields
+        assert "STOP_TIME" not in label._label_fields
 
     def test_miscellaneous_branch_without_checksums_raises_npbinternalerror(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -604,22 +622,22 @@ class TestInventoryPDS4LabelIntegration:
             assert b'\n' in raw
 
     # ------------------------------------------------------------------
-    # run state registration
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # The generated XML label must be registered relative to staging.
-        setup, collection, inventory, _, label_path = env
+        """write_label returns the label path relative to staging."""
 
+        setup, collection, inventory, _, label_path = env
         inventory.setup = setup
 
-        InventoryPDS4Label(inventory, collection).write_label()
+        written_path = InventoryPDS4Label(inventory, collection).write_label()
 
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        assert inventory.run_state.file_list == [expected_relative]
+        assert written_path == expected_relative
 
     # ------------------------------------------------------------------
     # Error and invalid-input integration behaviour
@@ -628,9 +646,9 @@ class TestInventoryPDS4LabelIntegration:
     def test_missing_template_propagates_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # Missing inventory templates must fail without registering the label.
-        setup, collection, inventory, template_path, label_path = env
+        """A missing template makes write_label raise FileNotFoundError."""
 
+        setup, collection, inventory, template_path, label_path = env
         template_path.unlink()
 
         inventory.setup = setup
@@ -647,13 +665,11 @@ class TestInventoryPDS4LabelIntegration:
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
             assert f.read() == ''
 
-        # Nothing was registered in the run state.
-        assert inventory.run_state.file_list == []
-
     def test_invalid_xml_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # Rendered XML labels are written and registered without XML validation.
+        """A malformed template is rendered and its path still returned."""
+
         setup, collection, inventory, template_path, label_path = env
 
         template_path.write_text('<collection>\n'
@@ -662,7 +678,7 @@ class TestInventoryPDS4LabelIntegration:
 
         inventory.setup = setup
 
-        InventoryPDS4Label(inventory, collection).write_label()
+        written_path = InventoryPDS4Label(inventory, collection).write_label()
 
         assert label_path.exists()
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
@@ -677,10 +693,10 @@ class TestInventoryPDS4LabelIntegration:
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written_label)
 
-        # The label is still registered relative to the staging directory.
+        # The path is still returned relative to the staging directory.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        assert inventory.run_state.file_list == [expected_relative]
+        assert written_path == expected_relative
 
     def test_miscellaneous_collection_renders_checksum_coverage(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:

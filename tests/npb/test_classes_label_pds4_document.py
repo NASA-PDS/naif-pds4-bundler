@@ -5,7 +5,6 @@ from types import SimpleNamespace
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.pds4_document import DocumentPDS4Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 class TestDocumentPDS4LabelInit:
@@ -29,7 +28,6 @@ class TestDocumentPDS4LabelInit:
         inventory = SimpleNamespace(lid='urn:nasa:pds:maven_spice:document:spiceds',
                                     vid='1.0',
                                     name='spiceds_v001.html',
-                                    run_state=RunState(),
                                     collection=collection)
 
         return setup, collection, inventory
@@ -97,8 +95,7 @@ class TestDocumentPDS4LabelIntegration:
 
     @pytest.fixture()
     def env(self,
-            tmp_path: Path,
-            mocker) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]:
+            tmp_path: Path) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]:
         # Create the temporary PDS4 document-label environment used by
         # integration tests: real template, staging product, expected XML label
         # path and setup state.
@@ -195,7 +192,6 @@ class TestDocumentPDS4LabelIntegration:
             size='2048',
             checksum='d41d8cd98f00b204e9800998ecf8427e',
             setup=setup,
-            run_state=RunState(),
             collection=collection,
             bundle=SimpleNamespace(context_products=context_products))
 
@@ -274,21 +270,19 @@ class TestDocumentPDS4LabelIntegration:
             '  <stop_date_time>2026-05-04T00:00:00Z</stop_date_time>\n'
             '</document>\n')
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self,
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
-        # Verify that the real writer registers the generated document XML label using
-        # its staging-relative path.
+        """write_label returns the label path relative to staging."""
+
         setup, collection, inventory, _, label_path = env
 
-        DocumentPDS4Label(inventory, collection).write_label()
+        written_path = DocumentPDS4Label(inventory, collection).write_label()
 
-        # Convert the generated XML label path to the path expected in the file
-        # list.
+        # The expected path is the generated label relative to staging.
         expected_label_path = str(label_path.relative_to(Path(setup.staging_directory)))
 
-        # The generated XML label must be registered exactly once.
-        assert inventory.run_state.file_list == [expected_label_path]
+        assert written_path == expected_label_path
 
     # ------------------------------------------------------------------
     # _*_reference_type overrides

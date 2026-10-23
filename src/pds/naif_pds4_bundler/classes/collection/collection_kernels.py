@@ -3,7 +3,6 @@ from __future__ import annotations
 import glob
 import logging
 import os
-from typing import TYPE_CHECKING
 
 import spiceypy
 from spiceypy.utils.exceptions import SpiceyPyError
@@ -15,10 +14,6 @@ from ...utils import et_to_date
 from ...utils import extension_to_type
 from ...utils import FILE_READ_ERRORS
 
-# RunState is only needed for the type hints.
-if TYPE_CHECKING:
-    from ..run_state import RunState
-
 
 class SpiceKernelsCollection(Collection):
     """Class to generate a PDS4 SPICE Kernels Collection.
@@ -26,6 +21,9 @@ class SpiceKernelsCollection(Collection):
     :param setup:   NPB execution setup object
     :param bundle:  Bundle object
     :param kernels: Kernel List object
+
+    The ``increment_start`` and ``increment_finish`` attributes only exist once
+    :meth:`set_increment_times` has run.
     """
 
     def __init__(self, setup, bundle, kernels) -> None:
@@ -167,14 +165,13 @@ class SpiceKernelsCollection(Collection):
 
         return meta_kernels
 
-    def set_increment_times(self, run_state: RunState) -> None:
+    def set_increment_times(self) -> None:
         """Determine the archive increment start and finish times.
 
         This is done based on the identification of the coverage of a given
         SPK or CK kernel. Alternatively it can be provided as a parameter of the
-        execution.
-
-        :param run_state: Run state where the determined times are stored.
+        execution. The determined times are stored in ``increment_start`` and
+        ``increment_finish``.
         """
         increment_start = ""
         increment_finish = ""
@@ -331,8 +328,8 @@ class SpiceKernelsCollection(Collection):
         logging.info('   %s - %s', increment_start, increment_finish)
         logging.info('')
 
-        run_state.increment_finish = increment_finish
-        run_state.increment_start = increment_start
+        self.increment_finish = increment_finish
+        self.increment_start = increment_start
 
     def validate(self) -> None:
         """Validate the SPICE Kernels collection.

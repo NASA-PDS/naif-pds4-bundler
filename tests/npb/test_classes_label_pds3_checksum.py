@@ -18,7 +18,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.pds3_checksum import ChecksumPDS3Label
-from pds.naif_pds4_bundler.classes.run_state import RunState
+
 
 # ---------------------------------------------------------------------------
 # Helpers – factories for the two collaborator mocks (setup & product)
@@ -48,7 +48,6 @@ def _make_setup(tmp_path: Path, *, pds_version: str = "3") -> MagicMock:
 def _make_product(staging_dir: Path) -> MagicMock:
     """Return a mock Checksum product object."""
     product = MagicMock()
-    product.run_state = RunState()
     product.creation_time = "2024-01-15T12:00:00"
     product.creation_date = "2024-01-15"
     product.record_bytes = 80
@@ -249,8 +248,8 @@ class TestChecksumPDS3LabelIntegration:
     These tests instantiate the real class (without patching write_label)
     and assert on the content of the label file written to a temp directory.
 
-    External I/O that is *unrelated* to label writing (logging, add_file,
-    compare) is still mocked to keep the tests self-contained.
+    External I/O that is *unrelated* to label writing (logging, compare) is
+    still mocked to keep the tests self-contained.
     """
 
     def test_context_from_product_attribute_is_false(self):
@@ -379,16 +378,16 @@ class TestChecksumPDS3LabelIntegration:
         assert caplog.messages.count("") == 1
 
     # ------------------------------------------------------------------
-    # 7. the run state receives the relative label path
+    # 7. write_label returns the relative label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(self, env):
-        """The run state must receive the relative label path."""
+    def test_write_label_returns_label_path(self, env):
+        """write_label returns the label path relative to staging."""
+
         setup = env["setup"]
         product = env["product"]
-
         product.setup = setup
 
-        ChecksumPDS3Label(product).write_label()
+        written_path = ChecksumPDS3Label(product).write_label()
 
-        assert product.run_state.file_list == ["checksum.lbl"]
+        assert written_path == "checksum.lbl"

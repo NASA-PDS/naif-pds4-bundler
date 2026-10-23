@@ -10,7 +10,6 @@ from unittest.mock import call, mock_open
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.label import PDSLabel
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Patch targets — resolved to where the names are looked up inside label.py
 _PATCH_ADD_CR = "pds.naif_pds4_bundler.classes.label.label.add_carriage_return"
@@ -256,7 +255,6 @@ class TestPDSLabelWriteLabel:
             # __init__ never runs, so write_label() needs this set by hand.
             label._label_fields = {}
             label.setup = setup
-            label.run_state = RunState()
             label.product = product
             label._template = "/tmpl/template.xml"
             label._label_extension = ".xml" if pds_version == "4" else ".lbl"
@@ -279,15 +277,18 @@ class TestPDSLabelWriteLabel:
         mocker.patch("builtins.open", mock_open(read_data=template_content))
         mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("rel/path"))
-        mock_add = mocker.patch.object(label.run_state, "add_file")
-        label.write_label()
-        return mock_add
+        return label.write_label()
 
     def test_pds4_writes_xml_label(self, label_for, mocker):
+        """A PDS4 label is written as XML and write_label returns its path."""
+
         label = label_for(pds_version="4")
-        mock_add = self._run_write(label, mocker)
+
+        # relative_to is mocked, so the returned path is the mocked one.
+        written_path = self._run_write(label, mocker)
+
         assert label.name.endswith(".xml")
-        mock_add.assert_called_once()
+        assert written_path == str(Path("rel/path"))
 
     def test_derive_name_pds4_uses_xml_extension(self, label_for):
         """A PDS4 label swaps the product's own extension for '.xml' when
@@ -353,7 +354,6 @@ class TestPDSLabelWriteLabel:
                                     mock_open(read_data="Line with $name\n"))
         mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("rel/path"))
-        mocker.patch.object(label.run_state, "add_file")
 
         # Write the label.
         label.write_label()
@@ -370,7 +370,6 @@ class TestPDSLabelWriteLabel:
         mocker.patch("builtins.open", mock_open(read_data="short\n"))
         mock_cr = mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("c"))
-        mocker.patch.object(label.run_state, "add_file")
         label.write_label()
         mock_cr.assert_called()
 
@@ -380,7 +379,6 @@ class TestPDSLabelWriteLabel:
         mocker.patch("builtins.open", mock_open(read_data=""))
         mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
-        mocker.patch.object(label.run_state, "add_file")
         label.write_label()
         mock_cmp.assert_called_once()
 
@@ -400,7 +398,6 @@ class TestPDSLabelWriteLabel:
         mocker.patch("builtins.open", mock_open(read_data=""))
         mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
-        mocker.patch.object(label.run_state, "add_file")
         label.write_label()
         empty_calls = [c for c in mock_log.call_args_list if c == call("")]
         assert len(empty_calls) == expected_empty_calls
@@ -412,7 +409,6 @@ class TestPDSLabelWriteLabel:
         mocker.patch("builtins.open", mock_open(read_data=""))
         mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
-        mocker.patch.object(label.run_state, "add_file")
         label.write_label()
         mock_print.assert_not_called()
 
@@ -437,7 +433,6 @@ class TestPDSLabelCompare:
             product.extension = "bc"
             label = PDSLabel.__new__(PDSLabel)
             label.setup = setup
-            label.run_state = RunState()
             label.product = product
             label.name = str(Path(f"/staging/spice_kernels/ck/{label_name_part}.xml"))
             return label
@@ -662,7 +657,6 @@ class TestPDSLabelCompareHelpers:
             product.extension = "bc"
             label = PDSLabel.__new__(PDSLabel)
             label.setup = setup
-            label.run_state = RunState()
             label.product = product
             label.name = str(Path(f"/staging/{collection_name}/{subdir}/{label_name_part}.xml"))
             return label

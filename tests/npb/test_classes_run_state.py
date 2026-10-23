@@ -24,8 +24,7 @@ def make_setup(tmp_path, mission_acronym: str = 'maven',
 class TestRunStateInit:
 
     def test_starts_at_step_one_with_empty_records(self) -> None:
-        """A new RunState starts at step 1 with no files, no checksums and no
-        increment times."""
+        """A new RunState starts at step 1 with no files and no checksums."""
 
         # Build a RunState without giving it any value.
         run_state = RunState()
@@ -34,8 +33,6 @@ class TestRunStateInit:
         assert run_state.step == 1
         assert run_state.file_list == []
         assert run_state.checksum_registry == []
-        assert run_state.increment_start == ''
-        assert run_state.increment_finish == ''
 
     def test_instances_do_not_share_their_lists(self) -> None:
         """Adding records to one RunState leaves any other one untouched."""
@@ -76,6 +73,33 @@ class TestRunStateAdd:
             run_state.add_file(entry)
 
         # The entry is the last element, the disk has not been touched and
+        # nothing was logged.
+        assert run_state.file_list == expected
+        assert list(tmp_path.iterdir()) == []
+        assert caplog.messages == []
+
+    @pytest.mark.parametrize('initial, path, expected', [
+        ([], 'bundle_maven_spice_v001.xml', ['bundle_maven_spice_v001.xml']),
+        ([], 'spice_kernels/fk/maven_v11.xml',
+         ['spice_kernels/fk/maven_v11.xml']),
+        (['bundle_maven_spice_v001.xml'], 'document/spiceds_v001.xml',
+         ['bundle_maven_spice_v001.xml', 'document/spiceds_v001.xml']),
+        # Registering the same label twice lists it twice, nothing is skipped.
+        (['readme.xml'], 'readme.xml', ['readme.xml', 'readme.xml']),
+    ])
+    def test_register_label_file_appends_path_unchanged(
+            self, tmp_path, caplog, initial, path, expected) -> None:
+        """register_label_file appends the received path as is, after the
+        existing ones, and neither creates any file nor logs anything."""
+
+        # Start from a RunState that may already hold some files.
+        run_state = RunState(file_list=list(initial))
+
+        # Register one more label while capturing the log at info level.
+        with caplog.at_level(logging.INFO):
+            run_state.register_label_file(path)
+
+        # The path is the last element, the disk has not been touched and
         # nothing was logged.
         assert run_state.file_list == expected
         assert list(tmp_path.iterdir()) == []
