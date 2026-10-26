@@ -8,7 +8,6 @@ import pytest
 from pds.naif_pds4_bundler.classes.product.product import Product
 from pds.naif_pds4_bundler.classes.product.product_inventory import InventoryProduct
 from pds.naif_pds4_bundler.classes.product.product_inventory_pds4 import InventoryPDS4Product
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 class InventorySubclass(InventoryProduct):
@@ -53,8 +52,9 @@ class TestInventoryPDS4ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS4Product, "write_product"), \
-                patch.object(Product, "__init__", return_value=None):
-            obj = InventoryPDS4Product(setup, RunState(), collection)
+                patch.object(Product, "__init__", return_value=None), \
+                patch.object(Product, "derive_file_attributes"):
+            obj = InventoryPDS4Product(setup, collection)
 
         assert obj.version == current
 
@@ -85,8 +85,9 @@ class TestInventoryPDS4ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS4Product, "write_product") as mock_write_product, \
-                patch.object(Product, "__init__", return_value=None):
-            InventoryPDS4Product(setup, RunState(), collection)
+                patch.object(Product, "__init__", return_value=None), \
+                patch.object(Product, "derive_file_attributes"):
+            InventoryPDS4Product(setup, collection)
 
         mock_write_product.assert_called_once()
 

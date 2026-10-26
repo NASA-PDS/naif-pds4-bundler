@@ -373,8 +373,9 @@ def run_pipeline(args: PipelineArgs) -> None:
             # label classes are both picked here.
             if setup.pds_version == "4":
                 spice_kernels_collection_inventory = InventoryPDS4Product(
-                    setup, run_state, spice_kernels_collection
+                    setup, spice_kernels_collection
                 )
+                run_state.register_product(spice_kernels_collection_inventory)
                 spice_kernels_collection_inventory.label = InventoryPDS4Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
                 run_state.register_label_file(
@@ -382,8 +383,9 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             else:
                 spice_kernels_collection_inventory = InventoryPDS3Product(
-                    setup, run_state, spice_kernels_collection
+                    setup, spice_kernels_collection
                 )
+                run_state.register_product(spice_kernels_collection_inventory)
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
                 run_state.register_label_file(
@@ -425,8 +427,9 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 log_step(setup, run_state, title=f'Generation of {document_collection.name} collection')
                 document_collection_inventory = InventoryPDS4Product(
-                    setup, run_state, document_collection
+                    setup, document_collection
                 )
+                run_state.register_product(document_collection_inventory)
 
                 # This branch only runs for PDS4, so there's no PDS3 label to pick.
                 document_collection_inventory.label = InventoryPDS4Label(
@@ -503,8 +506,9 @@ def run_pipeline(args: PipelineArgs) -> None:
                         # (PDS4 branch), therefore, we do not log the step, as we do
                         # every other time we generate an inventory product.
                         release_miscellaneous_collection_inventory = InventoryPDS4Product(
-                            setup, run_state, release_miscellaneous_collection
+                            setup, release_miscellaneous_collection
                         )
+                        run_state.register_product(release_miscellaneous_collection_inventory)
 
                         # This runs once per past release, always PDS4-only,
                         # same as the site above.
@@ -564,8 +568,9 @@ def run_pipeline(args: PipelineArgs) -> None:
             # therefore, we do not log the step, as we do every other time we
             # generate an inventory product.
             miscellaneous_collection_inventory = InventoryPDS4Product(
-                setup, run_state, miscellaneous_collection
+                setup, miscellaneous_collection
             )
+            run_state.register_product(miscellaneous_collection_inventory)
 
             # The current release's own miscellaneous inventory, PDS4-only.
             miscellaneous_collection_inventory.label = InventoryPDS4Label(

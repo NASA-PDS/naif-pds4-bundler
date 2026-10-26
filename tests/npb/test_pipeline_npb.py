@@ -777,8 +777,8 @@ class TestPhase8CollectionMetadata:
         run_pipeline(_args())
         inventory = getattr(mocks, inventory_class)
         inventory.assert_called()
-        # The positional arguments are (setup, run_state, collection).
-        first_call_collection = inventory.call_args_list[0][0][2]
+        # The positional arguments are (setup, collection).
+        first_call_collection = inventory.call_args_list[0][0][1]
         assert first_call_collection is mocks.SpiceKernelsCollection.return_value
 
     def test_inventory_product_not_created_for_skc_when_not_updated(self, mocks):
@@ -792,7 +792,7 @@ class TestPhase8CollectionMetadata:
         calls_for_skc = [
             c for c in (mocks.InventoryPDS3Product.call_args_list
                         + mocks.InventoryPDS4Product.call_args_list)
-            if c[0][2] is skc
+            if c[0][1] is skc
         ]
         assert calls_for_skc == []
 
@@ -806,7 +806,7 @@ class TestPhase8CollectionMetadata:
         skc.set_collection_vid.assert_not_called()
         calls_for_skc = [
             c for c in mocks.InventoryPDS3Product.call_args_list
-            if c[0][2] is skc
+            if c[0][1] is skc
         ]
         assert len(calls_for_skc) == 1
         # The PDS3 run must not build a PDS4 inventory.
@@ -947,7 +947,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         doc_col.add.assert_any_call(mocks.SpicedsProduct.return_value)
         inventory_calls_for_doc = [
             c for c in mocks.InventoryPDS4Product.call_args_list
-            if c[0][2] is doc_col
+            if c[0][1] is doc_col
         ]
         assert len(inventory_calls_for_doc) >= 1
 
@@ -977,7 +977,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         doc_col = mocks.DocumentCollection.return_value
         inventory_calls_for_doc = [
             c for c in mocks.InventoryPDS4Product.call_args_list
-            if c[0][2] is doc_col
+            if c[0][1] is doc_col
         ]
         assert inventory_calls_for_doc == []
 
