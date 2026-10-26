@@ -1368,6 +1368,127 @@ class TestPhase10PDS3Path:
 
 
 # ---------------------------------------------------------------------------
+# Registration order
+# ---------------------------------------------------------------------------
+
+def _track_products(mocks: SimpleNamespace) -> None:
+    """Make every product class return its own labeled product.
+
+    The default mocks return the same object on every call, which would hide
+    both the order and the repetitions of the registrations.
+    """
+    # 'registered_as' is the label the tests read back from each product.
+    def labeled(label: str, **attributes) -> MagicMock:
+        return MagicMock(registered_as=label, **attributes)
+
+    mocks.SpiceKernelProduct.side_effect = (
+        lambda setup, kernel, collection: labeled(f'kernel {kernel}'))
+    mocks.OrbnumFileProduct.side_effect = (
+        lambda setup, kernel, misc, skc: labeled(f'orbnum {kernel}'))
+    mocks.MetaKernelProduct.side_effect = (
+        lambda setup, kernel, collection, user_input: labeled(
+            f'meta-kernel {kernel}'))
+
+    # An inventory takes the name of the collection it lists.
+    for inventory in (mocks.InventoryPDS3Product, mocks.InventoryPDS4Product):
+        inventory.side_effect = (
+            lambda setup, collection: labeled(f'{collection.name} inventory'))
+    mocks.DocumentCollection.return_value.name = 'document'
+
+    # The pipeline only builds the document inventory for a generated spiceds.
+    mocks.SpicedsProduct.side_effect = (
+        lambda setup, collection: labeled('spiceds', generated=True))
+    mocks.ReadmeProduct.side_effect = (
+        lambda setup, bundle: labeled('readme'))
+    mocks.ChecksumProduct.side_effect = (
+        lambda *args, **kwargs: labeled('checksum'))
+
+
+def _registered(mocks: SimpleNamespace) -> list:
+    """Return the products given to the run state, in the order received."""
+    register_product = mocks.RunState.return_value.register_product
+    return [call[0][0] for call in register_product.call_args_list]
+
+
+class TestRegistrationOrder:
+    # The File List and the Checksum Registry follow the order in which the
+    # run state receives the products.
+
+    @pytest.mark.parametrize('pds_version, kernels, documents, expected', [
+        pytest.param(
+            '4',
+            ['maven_2024.bc', 'maven_2024.orb', 'maven_2024.bsp'],
+            [],
+            ['kernel maven_2024.bc',
+             'orbnum maven_2024.orb',
+             'kernel maven_2024.bsp',
+             'meta-kernel maven_v01.tm',
+             'spice_kernels inventory',
+             'spiceds',
+             'document inventory',
+             'checksum',
+             'miscellaneous inventory',
+             'checksum',
+             'miscellaneous inventory',
+             'miscellaneous inventory',
+             'readme',
+             'checksum'],
+            id='pds4'),
+        pytest.param(
+            '3',
+            ['maven_2024.bc', 'maven_2024.bsp'],
+            ['document aareadme.txt', 'document release.cat'],
+            ['kernel maven_2024.bc',
+             'kernel maven_2024.bsp',
+             'meta-kernel maven_v01.tm',
+             'spice_kernels inventory',
+             'document aareadme.txt',
+             'document release.cat',
+             'checksum'],
+            id='pds3'),
+    ])
+    def test_products_registered_once_in_generation_order(
+            self, mocks, pds_version, kernels, documents, expected) -> None:
+        """A run with every kind of product gives each one to the run state
+        exactly once, in the order it was generated.
+
+        In PDS4 the two past releases bring their own checksum, each followed
+        by the miscellaneous inventory of that release. In PDS3 the new
+        documents come between the kernels inventory and the checksum.
+        """
+
+        # Every product class returns its own labeled product, so the order
+        # and any repetition can be told apart.
+        _track_products(mocks)
+
+        # A run with a kernel list, one meta-kernel and an updated kernels
+        # collection. The two past releases only matter to PDS4 and the
+        # documents only to PDS3, so each version ignores the other's.
+        mocks.Setup.return_value.pds_version = pds_version
+        mocks.Setup.return_value.increment = True
+        mocks.isdir.return_value = False
+        mocks.Bundle.return_value.history = {
+            'release_01': ('data', 'label'), 'release_02': ('data2', 'label2')}
+        mocks.ReleasePlan.return_value.kernel_list = kernels
+        skc = mocks.SpiceKernelsCollection.return_value
+        skc.updated = True
+        skc.determine_meta_kernels.return_value = {'maven_v01.tm': None}
+        document_collection = mocks.DocumentCollection.return_value
+        document_collection.get_pds3_documents.return_value = [
+            MagicMock(registered_as=label) for label in documents]
+
+        # Run the whole pipeline.
+        run_pipeline(_args())
+
+        # The run state got the products in the expected order.
+        registered = _registered(mocks)
+        assert [p.registered_as for p in registered] == expected
+
+        # None of them was given twice.
+        assert len({id(p) for p in registered}) == len(registered)
+
+
+# ---------------------------------------------------------------------------
 # Phase 11 – Staging recap + copy
 # ---------------------------------------------------------------------------
 
