@@ -1070,7 +1070,7 @@ class MetaKernelProduct(Product):
             #
             # setup.increment_* holds only what was configured. The computed
             # increment times are derived from this coverage afterwards and
-            # live in run_state.
+            # live in the SPICE kernels collection.
             #
             if hasattr(self, "year"):
 

@@ -2,8 +2,9 @@
 
 Each class represents a distinct archive product type and inherits from
 :class:`~.product.Product`, which provides common file attributes (size,
-checksum, creation time) and the :meth:`~.product.Product.register` method
-that subclasses must call once the product file exists on disk.
+checksum, creation time) and the
+:meth:`~.product.Product.derive_file_attributes` method that subclasses must
+call once the product file exists on disk.
 
 Available products:
 

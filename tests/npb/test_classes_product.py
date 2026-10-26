@@ -1,6 +1,5 @@
 """Tests for Product class."""
 import hashlib
-import os.path
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -28,14 +27,12 @@ def make_product_setup(tmp_path: Path, checksum: bool = False,
 
 def make_product_without_init(path: Path, setup: SimpleNamespace,
                               new_product: bool = True) -> Product:
-    # Build a Product instance without calling __init__. This
-    # keeps register tests focused on register itself and avoids the
-    # constructor auto-registering the product before the test is ready.
+    # Build a Product instance without calling __init__, so the tests control
+    # every attribute the methods under test read.
     product = Product.__new__(Product)
 
     product.path = str(path)
     product.setup = setup
-    product.run_state = RunState()
     product.new_product = new_product
 
     return product
@@ -50,8 +47,8 @@ class TestProductInit:
     def test_init_uses_configured_creation_datetime_and_initializes_attributes(
             self, mocker, tmp_path, file_name, expected_extension) -> None:
         # Verify that Product.__init__ uses setup.creation_date_time when it is already
-        # configured, initializes constructor-only attributes, and delegates file-derived
-        # state to register() without calling creation_time().
+        # configured and initializes the attributes that derive_file_attributes()
+        # fills in later, without calling creation_time().
 
         # Build a minimal setup.
         setup_instance = make_product_setup(tmp_path)
@@ -70,11 +67,7 @@ class TestProductInit:
         creation_time_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.product.product.creation_time')
 
-        # Mock the register() method to avoid disk I/O and to verify that the
-        # constructor calls it only once.
-        register_mock = mocker.patch.object(Product, 'register', autospec=True)
-
-        Product.__init__(product, RunState())
+        Product.__init__(product)
 
         # Check that the given date is used.
         assert product.creation_time == '2026-05-27T10:20:30Z'
@@ -93,9 +86,6 @@ class TestProductInit:
         # It confirms that no new date was generated.
         creation_time_mock.assert_not_called()
 
-        # Check that only call once to register.
-        register_mock.assert_called_once_with(product)
-
     @pytest.mark.parametrize('date_format, generated_creation_time', [
         ('maklabel', '2026-05-27T10:20:30Z'),
         ('infomod2', '2026-05-27T10:20:30.000Z')])
@@ -103,7 +93,7 @@ class TestProductInit:
             self, mocker, tmp_path, date_format, generated_creation_time) -> None:
         # Verify that Product.__init__ generates creation_time through creation_time()
         # when setup.creation_date_time is absent, using setup.date_format and still
-        # initializing the constructor-owned attributes before delegating to register().
+        # initializing the constructor-owned attributes.
 
         # Build a minimal setup instance.
         setup_instance = make_product_setup(tmp_path)
@@ -126,10 +116,7 @@ class TestProductInit:
             'pds.naif_pds4_bundler.classes.product.product.creation_time',
             return_value=generated_creation_time)
 
-        # Mock the register call.
-        register_mock = mocker.patch.object(Product, 'register', autospec=True)
-
-        Product.__init__(product, RunState())
+        Product.__init__(product)
 
         # Check that the constructor has stored the value returned by
         # creation_time().
@@ -141,14 +128,13 @@ class TestProductInit:
         # Check that the file extension is correctly obtained from the filename.
         assert product.extension == 'xml'
 
-        # Check that the attributes calculated by register() are initialised to
+        # Check that the attributes calculated by derive_file_attributes() are initialised to
         # None in the constructor.
         assert product.checksum is None
         assert product._size is None
 
-        # Check that the creation_time and register called once.
+        # Check that creation_time was called once.
         creation_time_mock.assert_called_once_with(time_format=date_format)
-        register_mock.assert_called_once_with(product)
 
 
 class TestProductSetCommonAttributes:
@@ -284,10 +270,10 @@ class StubFailingHookProduct(Product):
 class TestProductDeriveFileAttributes:
 
     @pytest.mark.parametrize('new_product', [True, False])
-    def test_derive_file_attributes_sets_attributes_without_registering(
+    def test_derive_file_attributes_sets_attributes(
             self, mocker, tmp_path, new_product) -> None:
         """Size, checksum and the path to register are stored on the product,
-        new or not, and the run state is left untouched."""
+        new or not."""
 
         # A real file inside the archive layout and a fixed checksum.
         path = tmp_path / 'maven_spice' / 'readme.txt'
@@ -301,12 +287,10 @@ class TestProductDeriveFileAttributes:
         # Derive the attributes.
         product.derive_file_attributes()
 
-        # The attributes are there and nothing was registered.
+        # The attributes are there.
         assert product.size == str(len('readme'))
         assert product.checksum == 'hook-sum'
         assert product.registered_path == str(path)
-        assert product.run_state.file_list == []
-        assert product.run_state.checksum_registry == []
 
     def test_registered_path_is_kept_when_the_path_changes_afterwards(
             self, mocker, tmp_path) -> None:
@@ -325,30 +309,77 @@ class TestProductDeriveFileAttributes:
         # A subclass changes the path after deriving, and then the product is
         # registered.
         product.path = str(tmp_path / 'bundle_maven_spice_v001.xml')
-        product.run_state.register_product(product)
+        run_state = RunState()
+        run_state.register_product(product)
 
         # The original path is the one that reached the run state.
-        assert product.run_state.file_list == ['readme.txt']
-        assert product.run_state.checksum_registry == [f'{path} hook-sum']
+        assert run_state.file_list == ['readme.txt']
+        assert run_state.checksum_registry == [f'{path} hook-sum']
 
-    def test_init_without_run_state_does_not_register(
-            self, mocker, tmp_path) -> None:
-        """A product built without a run state only sets the common
-        attributes; it neither reads the file nor registers anything."""
+    def test_init_does_not_read_the_file(self, tmp_path) -> None:
+        """The constructor only sets the common attributes; it neither reads
+        the file nor derives anything from it."""
 
         # Product with a path that does not exist on disk.
         product = Product.__new__(Product)
         product.setup = make_product_setup(tmp_path)
         product.path = str(tmp_path / 'missing.txt')
-        register_mock = mocker.patch.object(Product, 'register', autospec=True)
 
-        # Build it without a run state.
+        # Build it.
         Product.__init__(product)
 
-        # Nothing was derived or registered.
-        register_mock.assert_not_called()
+        # Nothing was derived.
         assert product.checksum is None
+        assert product.size is None
         assert product.registered_path is None
+
+    def test_derive_file_attributes_uses_real_checksum_resolution(
+            self, tmp_path) -> None:
+        """derive_file_attributes() and the real _compute_checksum() work
+        together.
+
+        The other derive tests patch the checksum hook. This one leaves it
+        alone (only the setup is fake), so the connection between the two is
+        checked once, end to end.
+        """
+        # Preparation: a real file, with reuse off so md5 is the only source.
+        path = tmp_path / 'maven_spice' / 'readme.txt'
+        path.parent.mkdir(parents=True)
+        path.write_bytes(b'readme')
+        setup = make_product_setup(tmp_path, checksum=False)
+        product = make_product_without_init(path, setup, new_product=False)
+
+        # Execution.
+        product.derive_file_attributes()
+
+        # Verification: the stored checksum is the real md5 of the content.
+        assert product.checksum == hashlib.md5(b'readme').hexdigest()
+
+    def test_derive_file_attributes_raises_file_not_found_before_checksum(
+            self, mocker, tmp_path) -> None:
+        """A missing file makes derive_file_attributes() fail early and
+        change nothing.
+
+        The size is read first, so a missing file must raise FileNotFoundError
+        before any checksum is computed, and the product keeps the state it
+        had before.
+        """
+        # Preparation: a path that does not exist, with reuse on (it must not
+        # matter), and a previous state that has to survive the failure.
+        setup = make_product_setup(tmp_path, checksum=True)
+        product = make_product_without_init(tmp_path / 'missing.xml', setup)
+        product.checksum = 'previous-checksum'
+        product._size = 'previous-size'
+        hook_mock = mocker.patch.object(Product, '_compute_checksum')
+
+        # Execution.
+        with pytest.raises(FileNotFoundError):
+            product.derive_file_attributes()
+
+        # Verification: old state untouched and no checksum computed.
+        assert product.checksum == 'previous-checksum'
+        assert product.size == 'previous-size'
+        hook_mock.assert_not_called()
 
 
 class TestProductArchivePath:
@@ -361,6 +392,9 @@ class TestProductArchivePath:
          ('bundle', 'MAVEN_1001', 'data', 'spk', 'k.bsp'),
          Path('data', 'spk', 'k.bsp')),
         (StubHookProduct, '4',
+         ('bundle', 'custom_root', 'data', 'k.bsp'),
+         Path('data', 'k.bsp')),
+        (StubHookProduct, '3',
          ('bundle', 'custom_root', 'data', 'k.bsp'),
          Path('data', 'k.bsp')),
     ])
@@ -381,171 +415,19 @@ class TestProductArchivePath:
         # Everything up to and including the archive directory is dropped.
         assert archive_path == expected
 
-
-class TestProductRegister:
-
-    @pytest.mark.parametrize('pds_version', ['3', '4'])
-    def test_register_prefers_archive_root_dir_hook_over_pds_version(
-            self, mocker, tmp_path, pds_version) -> None:
-        """An implemented _archive_root_dir decides the archive directory."""
-        # Put a real file under the directory the hook names. That directory is
-        # neither '<mission>_spice' nor the volume id, so if the pds_version
-        # fallback ran instead, the directory lookup would fail.
-        path = tmp_path / 'custom_root' / 'data' / 'k.bsp'
-        path.parent.mkdir(parents=True)
-        path.write_text('kernel-content', encoding='utf-8')
-        setup = make_product_setup(tmp_path, pds_version=pds_version)
-
-        # Skip __init__ so the constructor does not register the product before
-        # the test is ready.
-        product = StubHookProduct.__new__(StubHookProduct)
-        product.path = str(path)
-        product.setup = setup
-        product.run_state = RunState()
-        product.new_product = True
-        mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
-
-        # Register the product.
-        product.register()
-
-        # The run state receives the path below the hook's directory.
-        assert product.run_state.file_list == [os.path.join('data', 'k.bsp')]
-
-    def test_register_does_not_swallow_errors_from_archive_root_dir_hook(
-            self, mocker, tmp_path) -> None:
+    def test_archive_path_does_not_swallow_errors_from_archive_root_dir_hook(
+            self, tmp_path) -> None:
         """Only NotImplementedError triggers the fallback.
 
         Any other error raised by an implemented hook is a real bug and must
-        propagate, leaving nothing registered in the run state.
+        propagate.
         """
-        # Put a real file in a layout the fallback could resolve, so a wrongly
-        # swallowed error would show up as a successful registration.
-        path = tmp_path / 'maven_spice' / 'k.bsp'
-        path.parent.mkdir(parents=True)
-        path.write_text('kernel-content', encoding='utf-8')
-        setup = make_product_setup(tmp_path)
-
-        # Skip __init__ so the constructor does not register the product
-        # before the test is ready.
+        # A layout the fallback could resolve, so a wrongly swallowed error
+        # would show up as a successful path.
         product = StubFailingHookProduct.__new__(StubFailingHookProduct)
-        product.path = str(path)
-        product.setup = setup
-        product.run_state = RunState()
-        product.new_product = True
-        mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
+        product.registered_path = str(tmp_path / 'maven_spice' / 'k.bsp')
+        product.setup = make_product_setup(tmp_path)
 
-        # Registering must raise the hook's own error.
+        # Reading the path must raise the hook's own error.
         with pytest.raises(ValueError, match='boom'):
-            product.register()
-
-        # Nothing reached the run state.
-        assert product.run_state.file_list == []
-        assert product.run_state.checksum_registry == []
-
-    @pytest.mark.parametrize('pds_version, parts, expected_relative', [
-        ('4', ('bundle', 'maven_spice', 'spice_kernels', 'spk', 'k.bsp'),
-         os.path.join('spice_kernels', 'spk', 'k.bsp')),
-        ('3', ('bundle', 'MAVEN_1001', 'data', 'spk', 'k.bsp'),
-         os.path.join('data', 'spk', 'k.bsp'))])
-    def test_register_records_new_product_relative_to_archive_dir(
-            self, mocker, tmp_path, pds_version, parts, expected_relative) -> None:
-        """A new product is registered with its path inside the archive.
-
-        In PDS4 the archive directory is '<mission>_spice' and in PDS3 it is
-        the volume id. Either way, the size and checksum end up on the product
-        and the run state is told about the file using the path below that
-        directory.
-        """
-        # Preparation: a real file in the layout of each PDS version. The
-        # checksum is fixed, since how it is resolved is not what we test here.
-        path = tmp_path.joinpath(*parts)
-        path.parent.mkdir(parents=True)
-        path.write_text('kernel-content', encoding='utf-8')
-        setup = make_product_setup(tmp_path, pds_version=pds_version)
-        product = make_product_without_init(path, setup)
-        mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
-
-        # Execution.
-        product.register()
-
-        # Verification: size and checksum are stored on the product.
-        assert product.size == str(len('kernel-content'))
-        assert product.checksum == 'hook-sum'
-
-        # The run state gets the archive-relative path and the full-path
-        # checksum.
-        assert product.run_state.file_list == [expected_relative]
-        assert product.run_state.checksum_registry == [f'{path} hook-sum']
-
-    def test_register_does_not_record_existing_product(
-            self, mocker, tmp_path) -> None:
-        """Only products flagged as new are registered in the setup.
-
-        For an existing product (new_product=False) the size and checksum are
-        still set, but the run state must not be told anything about it.
-        """
-        # Preparation: a real file, not flagged as new, and a fixed checksum.
-        path = tmp_path / 'maven_spice' / 'readme.txt'
-        path.parent.mkdir(parents=True)
-        path.write_text('readme', encoding='utf-8')
-        setup = make_product_setup(tmp_path)
-        product = make_product_without_init(path, setup, new_product=False)
-        mocker.patch.object(Product, '_compute_checksum', return_value='hook-sum')
-
-        # Execution.
-        product.register()
-
-        # Verification: attributes are set, but nothing is registered.
-        assert product.size == str(len('readme'))
-        assert product.checksum == 'hook-sum'
-        assert product.run_state.file_list == []
-        assert product.run_state.checksum_registry == []
-
-    def test_register_uses_real_checksum_resolution_for_base_product(
-            self, tmp_path) -> None:
-        """register() and the real _compute_checksum() work together.
-
-        The other register() tests patch the checksum hook. This one leaves
-        it alone (only the setup is fake), so the connection between the two
-        is checked once, end to end.
-        """
-        # Preparation: a real file, with reuse off so md5 is the only source.
-        path = tmp_path / 'maven_spice' / 'readme.txt'
-        path.parent.mkdir(parents=True)
-        path.write_bytes(b'readme')
-        setup = make_product_setup(tmp_path, checksum=False)
-        product = make_product_without_init(path, setup, new_product=False)
-
-        # Execution.
-        product.register()
-
-        # Verification: the stored checksum is the real md5 of the content.
-        assert product.checksum == hashlib.md5(b'readme').hexdigest()
-
-    def test_register_raises_file_not_found_before_computing_checksum(
-            self, mocker, tmp_path) -> None:
-        """A missing file makes register() fail early and change nothing.
-
-        The size is read first, so a missing file must raise FileNotFoundError
-        before any checksum is computed or anything is registered, and the
-        product keeps the state it had before.
-        """
-        # Preparation: a path that does not exist, with reuse on (it must not
-        # matter), and a previous state that has to survive the failure.
-        setup = make_product_setup(tmp_path, checksum=True)
-        product = make_product_without_init(tmp_path / 'missing.xml', setup)
-        product.checksum = 'previous-checksum'
-        product._size = 'previous-size'
-        hook_mock = mocker.patch.object(Product, '_compute_checksum')
-
-        # Execution.
-        with pytest.raises(FileNotFoundError):
-            product.register()
-
-        # Verification: old state untouched, no checksum computed and nothing
-        # registered in the run state.
-        assert product.checksum == 'previous-checksum'
-        assert product.size == 'previous-size'
-        hook_mock.assert_not_called()
-        assert product.run_state.file_list == []
-        assert product.run_state.checksum_registry == []
+            _ = product.archive_path

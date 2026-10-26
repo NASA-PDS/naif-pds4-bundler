@@ -14,29 +14,16 @@ class Product:
     Assigns value to the common attributes for all Products: file size,
     creation time and date, and file extension.
 
-    Subclasses must call ``register()`` once the product file exists on disk.
+    Subclasses must call ``derive_file_attributes()`` once the product file
+    exists on disk.
     """
 
     # Stays None for a product that returns before deriving its file
     # attributes, so the registration can tell it has no file to register.
     registered_path = None
 
-    # TODO: update this method to have path and setup as input arguments.
-    #
-    #   def __init__(self, path: str, setup, run_state) -> None:
-    #       """Constructor. Initialises attributes derivable without I/O.
-    #
-    #       :param path:  Absolute path to the product file
-    #       :param setup: NPB execution setup object
-    #       :param run_state: State of the current pipeline execution
-    #       """
-    def __init__(self, run_state=None) -> None:
-        """Constructor.
-
-        :param run_state: State of the current pipeline execution; only the
-            products not yet migrated to pipeline registration pass it
-        """
-        self.run_state = run_state
+    def __init__(self) -> None:
+        """Constructor."""
         self._set_common_attributes()
 
         # These attributes will be assigned (computed) by the
@@ -44,10 +31,6 @@ class Product:
         self.checksum = None
         self._size = None
         self.registered_path = None
-
-        # TODO: remove this call. It should be done by the subclasses instead.
-        if run_state is not None:
-            self.register()
 
     def _set_common_attributes(self) -> None:
         """Set the creation time and date and the file extension."""
@@ -78,14 +61,6 @@ class Product:
         # Registration reads this instead of self.path, which a subclass may
         # change afterward (the readme does so to name its label).
         self.registered_path = self.path
-
-    def register(self) -> None:
-        """Derive the file attributes and register the product.
-
-        Only used by the products not yet migrated to pipeline registration.
-        """
-        self.derive_file_attributes()
-        self.run_state.register_product(self)
 
     @property
     def archive_path(self) -> Path:
