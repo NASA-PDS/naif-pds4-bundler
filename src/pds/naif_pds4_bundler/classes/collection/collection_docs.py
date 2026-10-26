@@ -9,11 +9,10 @@ class DocumentCollection(Collection):
     """Class to generate a PDS3 or PDS4 Document Collection.
 
     :param setup: NPB execution setup object
-    :param run_state: State of the current pipeline execution
     :param bundle: Bundle object
     """
 
-    def __init__(self, setup, run_state, bundle) -> None:
+    def __init__(self, setup, bundle) -> None:
         """Constructor."""
         if setup.pds_version == "3":
             self.type = "DOCUMENT"
@@ -21,15 +20,21 @@ class DocumentCollection(Collection):
             self.type = "document"
 
         super().__init__(self.type, setup, bundle)
-        self.run_state = run_state
 
-    def get_pds3_documents(self):
-        """Collects the updated PDS3 documents for the increment."""
+    def get_pds3_documents(self) -> list[PDS3DocumentProduct]:
+        """Collects the updated PDS3 documents for the increment.
+
+        :return: The documents added to the collection, in the order found.
+        """
+        documents = []
         for file in glob.glob(
             f"{self.setup.staging_directory}/**/*[.]*", recursive=True
         ):
             if ".txt" in file or ".cat" in file or "aareadme." in file:
-                document = PDS3DocumentProduct(self.setup, self.run_state, file)
+                document = PDS3DocumentProduct(self.setup, file)
 
                 if document.new_product:
                     self.add(document)
+                    documents.append(document)
+
+        return documents

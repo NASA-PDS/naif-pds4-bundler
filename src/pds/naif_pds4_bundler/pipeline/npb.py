@@ -401,7 +401,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
             # * Generate the Document Collection.
             #
-            document_collection = DocumentCollection(setup, run_state, bundle)
+            document_collection = DocumentCollection(setup, bundle)
             document_collection.set_collection_vid()
 
             #
@@ -611,10 +611,11 @@ def run_pipeline(args: PipelineArgs) -> None:
 
         else:  # if setup.pds_version == "3":
 
-            document_collection = DocumentCollection(setup, run_state, bundle)
+            document_collection = DocumentCollection(setup, bundle)
 
             log_step(setup, run_state, title='Generation of PDS3 products')
-            document_collection.get_pds3_documents()
+            for document in document_collection.get_pds3_documents():
+                run_state.register_product(document)
 
             bundle.add(spice_kernels_collection)
             bundle.add(document_collection)

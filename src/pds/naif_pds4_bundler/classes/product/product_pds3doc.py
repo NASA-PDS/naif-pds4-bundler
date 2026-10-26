@@ -11,11 +11,10 @@ class PDS3DocumentProduct(Product):
     """Class that represents a PDS3 Document Product.
 
     :param setup: NPB execution setup object
-    :param run_state: State of the current pipeline execution
     :param path:  PDS3 Document path
     """
 
-    def __init__(self, setup, run_state, path: str) -> None:
+    def __init__(self, setup, path: str) -> None:
         """Constructor."""
         self.path = path
         self.setup = setup
@@ -43,7 +42,8 @@ class PDS3DocumentProduct(Product):
 
             self._validate()
 
-        super().__init__(run_state)
+        super().__init__()
+        self.derive_file_attributes()
 
     def _validate(self) -> None:
         """Try to validate the PDS3 document.

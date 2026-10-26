@@ -894,8 +894,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # DocumentCollection is constructed with the shared setup and bundle objects.
         run_pipeline(_args())
         mocks.DocumentCollection.assert_called_with(
-            mocks.Setup.return_value, mocks.RunState.return_value,
-            mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.Bundle.return_value
         )
 
     def test_document_collection_vid_set(self, mocks):
@@ -1242,14 +1241,25 @@ class TestPhase10PDS3Path:
         # DocumentCollection is constructed with setup and bundle for PDS3.
         run_pipeline(_args())
         mocks.DocumentCollection.assert_called_with(
-            mocks.Setup.return_value, mocks.RunState.return_value,
-            mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.Bundle.return_value
         )
 
     def test_get_pds3_documents_called(self, mocks):
         # PDS3 documents are retrieved from the document collection.
         run_pipeline(_args())
         mocks.DocumentCollection.return_value.get_pds3_documents.assert_called_once()
+
+    def test_pds3_documents_registered_in_order(self, mocks):
+        # Every document the collection returns is registered, in that order.
+        docs = [MagicMock(), MagicMock(), MagicMock()]
+        mocks.DocumentCollection.return_value.get_pds3_documents.return_value = docs
+        run_pipeline(_args())
+        registered = [
+            c[0][0] for c in
+            mocks.RunState.return_value.register_product.call_args_list
+            if c[0][0] in docs
+        ]
+        assert registered == docs
 
     def test_bundle_add_called_for_skc_doc_misc(self, mocks):
         # All three collections are registered with the bundle for PDS3.
