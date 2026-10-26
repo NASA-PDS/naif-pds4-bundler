@@ -408,7 +408,8 @@ def run_pipeline(args: PipelineArgs) -> None:
             # * Generate of SPICEDS document.
             #
             log_step(setup, run_state, title='Processing spiceds file')
-            spiceds = SpicedsProduct(setup, run_state, document_collection)
+            spiceds = SpicedsProduct(setup, document_collection)
+            run_state.register_product(spiceds)
 
             #
             # * If the SPICEDS document is generated, generate the
@@ -584,7 +585,8 @@ def run_pipeline(args: PipelineArgs) -> None:
             # * Generate the Bundle label and if necessary the readme file.
             #
             log_step(setup, run_state, title='Generation of bundle products')
-            bundle.readme = ReadmeProduct(setup, run_state, bundle)
+            bundle.readme = ReadmeProduct(setup, bundle)
+            run_state.register_product(bundle.readme)
 
             logging.info("-- Generating bundle label...")
             bundle.readme.label = BundlePDS4Label(bundle.readme)

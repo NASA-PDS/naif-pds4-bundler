@@ -907,9 +907,18 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # SpicedsProduct is constructed with setup and the document collection.
         run_pipeline(_args())
         mocks.SpicedsProduct.assert_called_once_with(
-            mocks.Setup.return_value, mocks.RunState.return_value,
-            mocks.DocumentCollection.return_value
+            mocks.Setup.return_value, mocks.DocumentCollection.return_value
         )
+
+    @pytest.mark.parametrize('generated', [True, False])
+    def test_spiceds_registered_whether_or_not_generated(
+            self, mocks, generated):
+        # The pipeline hands over the spiceds either way; the run state
+        # decides whether there is anything to register.
+        mocks.SpicedsProduct.return_value.generated = generated
+        run_pipeline(_args())
+        mocks.RunState.return_value.register_product.assert_any_call(
+            mocks.SpicedsProduct.return_value)
 
     def test_spiceds_labeled_with_pds4_label_when_generated(self, mocks):
         # Force the "spiceds changed" branch so labeling actually runs.
@@ -1042,8 +1051,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # A ReadmeProduct is created with the shared setup and bundle.
         run_pipeline(_args())
         mocks.ReadmeProduct.assert_called_once_with(
-            mocks.Setup.return_value, mocks.RunState.return_value,
-            mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.Bundle.return_value
         )
 
     def test_bundle_label_constructed_after_readme_product(self, mocks):

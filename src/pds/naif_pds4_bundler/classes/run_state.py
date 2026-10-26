@@ -59,12 +59,13 @@ class RunState:
     def register_product(self, product: Product) -> None:
         """Add a new product to the File List and the Checksum Registry.
 
-        Products that are not new are skipped.
+        Products that are not new, or that never derived their file
+        attributes, are skipped.
 
         :param product: Product whose file has been written and whose
             checksum is already resolved.
         """
-        if not product.new_product:
+        if not product.new_product or product.registered_path is None:
             return
 
         self.add_file(str(product.archive_path))

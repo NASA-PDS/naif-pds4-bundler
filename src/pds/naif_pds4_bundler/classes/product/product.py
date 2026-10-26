@@ -17,6 +17,10 @@ class Product:
     Subclasses must call ``register()`` once the product file exists on disk.
     """
 
+    # Stays None for a product that returns before deriving its file
+    # attributes, so the registration can tell it has no file to register.
+    registered_path = None
+
     # TODO: update this method to have path and setup as input arguments.
     #
     #   def __init__(self, path: str, setup, run_state) -> None:

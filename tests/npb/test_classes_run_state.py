@@ -164,6 +164,21 @@ class TestRunStateRegisterProduct:
         assert run_state.file_list == expected_files
         assert run_state.checksum_registry == expected_checksums
 
+    def test_register_product_skips_product_without_a_file(self) -> None:
+        """A new product that never derived its file attributes adds
+        nothing."""
+
+        # A new product that returned before reading its file.
+        product = SimpleNamespace(new_product=True, registered_path=None)
+        run_state = RunState()
+
+        # Register it.
+        run_state.register_product(product)
+
+        # Nothing was recorded, and its archive path was never needed.
+        assert run_state.file_list == []
+        assert run_state.checksum_registry == []
+
 
 class TestRunStateWriters:
 

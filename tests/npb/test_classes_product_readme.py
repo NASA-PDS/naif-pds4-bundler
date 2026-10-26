@@ -10,7 +10,6 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_readme import ReadmeProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Patch target: every name imported into product_readme is patched here so the
@@ -65,7 +64,8 @@ def make_bundle(name='bundle_insight_spice_v001.xml', vid='1.0'):
 def build_product(setup, bundle):
     """Construct a ``ReadmeProduct`` with the heavy collaborators mocked.
 
-    ``Product.__init__`` is always patched so no registration happens.
+    ``Product.__init__`` and ``derive_file_attributes`` are always patched so
+    the file is never read.
     ``md5`` is patched to a stable value. ``_write_product`` is also patched
     out, isolating the constructor logic from file generation. Label
     construction is no longer part of ``ReadmeProduct``'s own constructor
@@ -77,9 +77,10 @@ def build_product(setup, bundle):
     :return:       tuple ``(product, mocks_dict)``
     """
     with patch(f'{MOD}.Product.__init__', return_value=None) as m_init, \
+         patch(f'{MOD}.Product.derive_file_attributes'), \
          patch(f'{MOD}.md5', return_value='d' * 32) as m_md5, \
          patch.object(ReadmeProduct, '_write_product') as m_write:
-        product = ReadmeProduct(setup, RunState(), bundle)
+        product = ReadmeProduct(setup, bundle)
         mocks = {'init': m_init, 'md5': m_md5, 'write': m_write}
         return product, mocks
 
