@@ -153,7 +153,7 @@ class TestRunStateRegisterProduct:
         product = SimpleNamespace(
             new_product=new_product,
             archive_path=Path('spice_kernels', 'ck', 'x.bc'),
-            path='/stage/maven_spice/spice_kernels/ck/x.bc',
+            registered_path='/stage/maven_spice/spice_kernels/ck/x.bc',
             checksum='fadf8e23f21b18710f8cb1d3be8eeebd')
         run_state = RunState()
 

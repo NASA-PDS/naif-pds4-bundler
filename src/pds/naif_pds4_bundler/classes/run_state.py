@@ -68,7 +68,7 @@ class RunState:
             return
 
         self.add_file(str(product.archive_path))
-        self.add_checksum(product.path, product.checksum)
+        self.add_checksum(product.registered_path, product.checksum)
 
     def write_file_list(self, setup: Setup) -> None:
         """Write the run by-product File List in the working directory.

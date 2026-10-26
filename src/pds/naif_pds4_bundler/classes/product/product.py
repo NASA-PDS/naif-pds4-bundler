@@ -26,10 +26,11 @@ class Product:
     #       :param setup: NPB execution setup object
     #       :param run_state: State of the current pipeline execution
     #       """
-    def __init__(self, run_state) -> None:
+    def __init__(self, run_state=None) -> None:
         """Constructor.
 
-        :param run_state: State of the current pipeline execution
+        :param run_state: State of the current pipeline execution; only the
+            products not yet migrated to pipeline registration pass it
         """
         self.run_state = run_state
 
@@ -41,35 +42,43 @@ class Product:
         self.creation_date = self.creation_time.split("T")[0]
         self.extension = self.path.split(os.sep)[-1].split(".")[-1]
 
-        # These attributes will be assigned (computed) by the register method.
+        # These attributes will be assigned (computed) by the
+        # derive_file_attributes method.
         self.checksum = None
         self._size = None
+        self.registered_path = None
 
         # TODO: remove this call. It should be done by the subclasses instead.
-        self.register()
+        if run_state is not None:
+            self.register()
 
     @property
     def _archive_root_dir(self) -> str:
         """Name of the top-level archive directory for this product's PDS version."""
         raise NotImplementedError
 
-    def register(self) -> None:
-        """Finalize file-derived attributes and register the product.
+    def derive_file_attributes(self) -> None:
+        """Derive the attributes that depend on the product file.
 
-        Must be called once the product file exists on disk. Reads file size,
-        resolves or computes the checksum, and registers the file and checksum
-        with the pipeline.
+        Must be called once the product file exists on disk. Reads file size
+        and resolves or computes the checksum.
         """
         stat_info = os.stat(self.path)
         self._size = str(stat_info.st_size)
 
-        checksum = self._compute_checksum()
+        self.checksum = self._compute_checksum()
 
-        self.checksum = checksum
+        # Registration reads this instead of self.path, which a subclass may
+        # change afterward (the readme does so to name its label).
+        self.registered_path = self.path
 
-        if self.new_product:
-            self.run_state.add_file(str(self.archive_path))
-            self.run_state.add_checksum(self.path, checksum)
+    def register(self) -> None:
+        """Derive the file attributes and register the product.
+
+        Only used by the products not yet migrated to pipeline registration.
+        """
+        self.derive_file_attributes()
+        self.run_state.register_product(self)
 
     @property
     def archive_path(self) -> Path:
@@ -88,7 +97,7 @@ class Product:
             else:
                 archive_dir = self.setup.volume_id
 
-        path = Path(self.path)
+        path = Path(self.registered_path)
         archive_dir_index = path.parts.index(archive_dir)
         return Path(*path.parts[archive_dir_index + 1:])
 

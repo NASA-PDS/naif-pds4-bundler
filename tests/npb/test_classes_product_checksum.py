@@ -906,6 +906,7 @@ def _make_bare_checksum_product(path, checksum_arg):
     product = ChecksumProduct.__new__(ChecksumProduct)
     product.path = str(path)
     product.new_product = False
+    product.run_state = RunState()
     product.setup = MagicMock()
     product.setup.args.checksum = checksum_arg
     return product

@@ -249,6 +249,76 @@ class StubFailingHookProduct(Product):
         raise ValueError('boom')
 
 
+class TestProductDeriveFileAttributes:
+
+    @pytest.mark.parametrize('new_product', [True, False])
+    def test_derive_file_attributes_sets_attributes_without_registering(
+            self, mocker, tmp_path, new_product) -> None:
+        """Size, checksum and the path to register are stored on the product,
+        new or not, and the run state is left untouched."""
+
+        # A real file inside the archive layout and a fixed checksum.
+        path = tmp_path / 'maven_spice' / 'readme.txt'
+        path.parent.mkdir(parents=True)
+        path.write_text('readme', encoding='utf-8')
+        product = make_product_without_init(
+            path, make_product_setup(tmp_path), new_product=new_product)
+        mocker.patch.object(
+            Product, '_compute_checksum', return_value='hook-sum')
+
+        # Derive the attributes.
+        product.derive_file_attributes()
+
+        # The attributes are there and nothing was registered.
+        assert product.size == str(len('readme'))
+        assert product.checksum == 'hook-sum'
+        assert product.registered_path == str(path)
+        assert product.run_state.file_list == []
+        assert product.run_state.checksum_registry == []
+
+    def test_registered_path_is_kept_when_the_path_changes_afterwards(
+            self, mocker, tmp_path) -> None:
+        """Registering uses the path the file had when it was derived, even
+        if the product path is replaced later on."""
+
+        # Derive the attributes of a new product.
+        path = tmp_path / 'maven_spice' / 'readme.txt'
+        path.parent.mkdir(parents=True)
+        path.write_text('readme', encoding='utf-8')
+        product = make_product_without_init(path, make_product_setup(tmp_path))
+        mocker.patch.object(
+            Product, '_compute_checksum', return_value='hook-sum')
+        product.derive_file_attributes()
+
+        # A subclass changes the path after deriving, and then the product is
+        # registered.
+        product.path = str(tmp_path / 'bundle_maven_spice_v001.xml')
+        product.run_state.register_product(product)
+
+        # The original path is the one that reached the run state.
+        assert product.run_state.file_list == ['readme.txt']
+        assert product.run_state.checksum_registry == [f'{path} hook-sum']
+
+    def test_init_without_run_state_does_not_register(
+            self, mocker, tmp_path) -> None:
+        """A product built without a run state only sets the common
+        attributes; it neither reads the file nor registers anything."""
+
+        # Product with a path that does not exist on disk.
+        product = Product.__new__(Product)
+        product.setup = make_product_setup(tmp_path)
+        product.path = str(tmp_path / 'missing.txt')
+        register_mock = mocker.patch.object(Product, 'register', autospec=True)
+
+        # Build it without a run state.
+        Product.__init__(product)
+
+        # Nothing was derived or registered.
+        register_mock.assert_not_called()
+        assert product.checksum is None
+        assert product.registered_path is None
+
+
 class TestProductArchivePath:
 
     @pytest.mark.parametrize('product_class, pds_version, parts, expected', [
@@ -268,9 +338,9 @@ class TestProductArchivePath:
         """The path starts below '<mission>_spice' (PDS4), the volume id
         (PDS3) or the directory named by an implemented _archive_root_dir."""
 
-        # Skip __init__; only path and setup matter here.
+        # Skip __init__; only registered_path and setup matter here.
         product = product_class.__new__(product_class)
-        product.path = str(tmp_path.joinpath(*parts))
+        product.registered_path = str(tmp_path.joinpath(*parts))
         product.setup = make_product_setup(tmp_path, pds_version=pds_version)
 
         # Read the property.
