@@ -1,76 +1,84 @@
 """Implementation of the SPICE DS file product class."""
 import difflib
 import filecmp
-import glob
 import logging
 import os
 import shutil
 from datetime import date
+from pathlib import Path
 
 from .product import Product
 from ..exceptions import NPBError
 from ...utils import add_carriage_return
 from ...utils import compare_files
-from ..label import DocumentPDS4Label
+from ...utils import find_latest_versioned_file
 
 
 class SpicedsProduct(Product):
     """Class to process the SPICEDS file.
 
     :param setup:      NPB execution setup object
+    :param run_state:  State of the current pipeline execution
     :param collection: Collection that the inventory product belongs to
     """
 
-    def __init__(self, setup, collection) -> None:
+    def __init__(self, setup, run_state, collection) -> None:
         """Constructor."""
         self.setup = setup
         self.collection = collection
         self.new_product = True
+
         try:
             spiceds = self.setup.spiceds
-        except BaseException:
+
+        # "spiceds" is an optional setup attribute.
+        except AttributeError:
             spiceds = ""
 
         if not spiceds:
             logging.info("-- No spiceds file provided.")
 
-        #
-        # Obtain the previous spiceds file if it exists
-        #
-        path = (
-            setup.bundle_directory
-            + os.sep
-            + setup.mission_acronym
-            + "_spice"
-            + os.sep
-            + collection.name
-        )
         if self.setup.increment:
-            spiceds_files = glob.glob(path + os.sep + "spiceds_v*.html")
-            spiceds_files.sort()
-            try:
-                latest_spiceds = spiceds_files[-1]
-                latest_version = latest_spiceds.split("_v")[-1].split(".")[0]
+
+            # Obtain the previous spiceds file if it exists
+            latest_spiceds, latest_version = find_latest_versioned_file(
+                paths=[Path(setup.bundle_directory)
+                       / f"{setup.mission_acronym}_spice" / collection.name],
+                pattern="spiceds_v*.html"
+            )
+
+            # latest_version is None either when no file matched, or when a file
+            # matched but its name didn't parse as expected.
+            if latest_version is not None:
                 self.latest_spiceds = latest_spiceds
                 self.latest_version = latest_version
-                self.version = int(latest_version) + 1
+                self.version = latest_version + 1
 
                 if not spiceds:
 
+                    # No new spiceds was supplied in the configuration, so the
+                    # previous increment's file is reused as-is: nothing to
+                    # stage, no version bump beyond what was just derived.
                     logging.info('-- Previous spiceds found: %s', latest_spiceds)
 
                     self.generated = False
                     return
 
-            except BaseException:
+            else:
                 logging.warning("-- No previous version of spiceds_v*.html file found.")
+
                 if not spiceds:
+
+                    # Nothing to fall back to: no previous file and no new one
+                    # provided in the configuration.
                     raise NPBError(
                         "spiceds not provided and not available "
                         "from previous releases."
                     )
+
                 self.version = 1
                 self.latest_spiceds = ""
+
         else:
             self.version = 1
             self.latest_spiceds = ""
@@ -114,7 +122,7 @@ class SpicedsProduct(Product):
         # Kernels are already generated products but Inventories are not.
         #
         self.new_product = True
-        super().__init__()
+        super().__init__(run_state)
 
         #
         # Check if the spiceds has not changed.
@@ -122,13 +130,12 @@ class SpicedsProduct(Product):
         self.generated = self._check_product()
 
         #
-        # Validate the product by comparing it and then generate the label.
+        # Validate the product by comparing it. Labeling used to happen here
+        # too, under this same self.generated check; it's built in the pipeline
+        # now, which reads self.generated to decide whether to.
         #
-        if self.generated:
-            if self.setup.diff:
-                self._compare()
-
-            self.label = DocumentPDS4Label(setup, collection, self)
+        if self.generated and self.setup.args.diff:
+            self._compare()
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""
@@ -157,7 +164,7 @@ class SpicedsProduct(Product):
         with open(self.path, "r", encoding='utf-8') as s:
             with open(temporary_file, "w+", encoding='utf-8') as t:
                 for line in s:
-                    line = add_carriage_return(line, self.setup.eol_pds4, self.setup)
+                    line = add_carriage_return(line, self.setup.eol_pds4)
                     t.write(line)
 
         #
@@ -218,36 +225,37 @@ class SpicedsProduct(Product):
         #
         # Compare spiceds with latest. First try with previous increment.
         #
-        try:
-            # TODO: BUG, path separators are hardcoded as '/' via f-strings,
-            #       unlike __init__ which uses os.sep throughout. On Windows the
-            #       forward-slash paths still resolve correctly for glob and
-            #       open, but the inconsistency is a maintenance hazard.
-            val_spd_path = (
-                f"{self.setup.bundle_directory}/"
-                f"{self.setup.mission_acronym}_spice/document"
-            )
+        val_spd_path = (
+            Path(self.setup.bundle_directory)
+            / f"{self.setup.mission_acronym}_spice"
+            / "document"
+        )
 
-            val_spds = glob.glob(f"{val_spd_path}/spiceds_v*.html")
-            val_spds.sort()
-            val_spd = val_spds[-1]
+        # Only the path is needed here, not a version, so the returned version
+        # is ignored.
+        #
+        # TODO: BUG, "spiceds_v*.html" matches "_v" followed by anything, not
+        #       just digits, so a non-numeric match can silently be returned
+        #       as `fromfile` here instead of None.
+        fromfile, _ = find_latest_versioned_file(
+            [val_spd_path], "spiceds_v*.html"
+        )
 
-        except BaseException:
+        if fromfile is None:
 
             #
-            # If previous increment does not work, compare with InSight
-            # example.
+            # No spiceds from a previous increment was found: compare with the
+            # InSight example bundled with NPB instead.
             #
             logging.warning('-- No other version of %s has been found.', self.name)
             logging.warning('-- Comparing with default InSight example.')
 
-            val_spd = (
+            fromfile = Path(
                 f"{self.setup.root_dir}/data/insight_spice/document/spiceds_v002.html"
             )
 
         logging.info("")
-        fromfile = val_spd
         tofile = self.path
         work_dir = self.setup.working_directory
 
-        compare_files(fromfile, tofile, work_dir, self.setup.diff)
+        compare_files(fromfile, tofile, work_dir, self.setup.args.diff)

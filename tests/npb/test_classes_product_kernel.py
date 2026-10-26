@@ -1,13 +1,17 @@
 """Unit tests for SpiceKernelProduct class."""
+import logging
 import os
 import re
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.product.product_kernel import SpiceKernelProduct
-from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
+from pds.naif_pds4_bundler.classes.run_state import RunState
+
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -134,10 +138,8 @@ def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None
         patch(f"{_MODULE}.pck_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.dsk_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.Product.__init__", return_value=None),
-        patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
-        patch(f"{_MODULE}.SpiceKernelPDS3Label", return_value=MagicMock()),
     ):
-        product = SpiceKernelProduct(setup, name, collection)
+        product = SpiceKernelProduct(setup, RunState(), name, collection)
 
     return product, setup, collection
 
@@ -196,10 +198,9 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
             product = SpiceKernelProduct.__new__(SpiceKernelProduct)
-            product.__init__(setup, "test.bsp", collection)
+            product.__init__(setup, RunState(), "test.bsp", collection)
 
         assert product.collection_path == str(Path(f"{tmp_env['staging']}/spice_kernels/"))
 
@@ -227,9 +228,9 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
-            product = SpiceKernelProduct(setup, "test.bsp", collection)
+            product = SpiceKernelProduct(setup, RunState(),
+                                         "test.bsp", collection)
 
         assert product.new_product is True
 
@@ -253,9 +254,9 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
-            product = SpiceKernelProduct(setup, "test.bsp", collection)
+            product = SpiceKernelProduct(setup, RunState(),
+                                         "test.bsp", collection)
 
         assert product.new_product is True
 
@@ -274,11 +275,12 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.product_mapping", return_value="nonexistent.bsp"),
         ):
+            run_state = RunState()
             with pytest.raises(
                 NPBError,
                 match=f"missing.bsp not present in {re.escape(tmp_env['kernel_dir'])}.",
             ):
-                SpiceKernelProduct(setup, "missing.bsp", collection)
+                SpiceKernelProduct(setup, run_state, "missing.bsp", collection)
 
     def test_init_stores_missions_observers_targets(self, tmp_env):
         product, _, _ = build_product(tmp_env, name="test.bsp")
@@ -286,33 +288,17 @@ class TestSpiceKernelProductInit:
         assert product.observers == ["SPACECRAFT"]
         assert product.targets == ["MARS"]
 
-    @pytest.mark.parametrize("pds_version, label_class_name", [
-        ("4", "SpiceKernelPDS4Label"),
-        ("3", "SpiceKernelPDS3Label"),
-    ])
-    def test_label_is_created(self, tmp_env, pds_version, label_class_name):
-        """Test that appropriate label class is created for PDS3 and PDS4."""
-        with (
-            patch(f"{_MODULE}.extension_to_type", return_value="spk"),
-            patch(f"{_MODULE}.safe_make_directory"),
-            patch(f"{_MODULE}.shutil.copy2"),
-            patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.{label_class_name}") as mock_label,
-        ):
-            setup = make_setup(
-                pds_version=pds_version,
-                staging_directory=tmp_env["staging"],
-                kernels_directory=[tmp_env["kernel_dir"]],
-                working_directory=tmp_env["work"],
-            )
-            write_kernel_file(tmp_env, "test.bsp")
-            write_kernel_list(tmp_env, setup, "test.bsp")
-            collection = make_collection()
+    def test_pds3_reads_maklabel_options(self, tmp_env):
+        # Labeling itself moved to the pipeline, but PDS3 labeling reads
+        # maklabel_options back off the product, so it still has to be set
+        # here.
+        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="3")
+        assert product.maklabel_options == ['MAKLABEL_OPT']
 
-            SpiceKernelProduct(setup, "test.bsp", collection)
-
-        mock_label.assert_called_once()
+    def test_pds4_does_not_set_maklabel_options(self, tmp_env):
+        # PDS4 labeling doesn't use maklabel_options at all.
+        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="4")
+        assert not hasattr(product, "maklabel_options")
 
 
 # ===========================================================================
@@ -689,14 +675,13 @@ class TestSpiceKernelProductEKCoverage:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.ek_coverage") as mock_ek_cov,
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
             mock_ek_cov.return_value = [
                 "2021-03-15T10:30:00.000Z",
                 "2021-06-20T18:45:30.000Z"
             ]
 
-            product = SpiceKernelProduct(setup, "test_events.bes", collection)
+            product = SpiceKernelProduct(setup, RunState(), "test_events.bes", collection)
 
             # Should use coverage from ek_coverage
             assert product.start_time == "2021-03-15T10:30:00.000Z"
@@ -737,11 +722,10 @@ class TestSpiceKernelProductEKCoverage:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.ek_coverage") as mock_ek_cov,
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
             mock_ek_cov.return_value = ["", ""]
 
-            product = SpiceKernelProduct(setup, filename, collection)
+            product = SpiceKernelProduct(setup, RunState(), filename, collection)
 
             # Should use mission defaults
             assert product.start_time == "2020-01-01T00:00:00Z"
@@ -771,9 +755,8 @@ class TestSpiceKernelProductEKCoverage:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.ek_coverage", return_value=["", ""]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS3Label", return_value=MagicMock()),
         ):
-            product = SpiceKernelProduct(setup, "activities.bdb", collection)
+            product = SpiceKernelProduct(setup, RunState(), "activities.bdb", collection)
             assert product.start_time == '"N/A"'
             assert product.stop_time == '"N/A"'
 
@@ -797,9 +780,8 @@ class TestSpiceKernelProductEKCoverage:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.ek_coverage", return_value=["2010-07-12T00:00:00Z", "2010-07-19T23:59:59Z"]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS3Label", return_value=MagicMock()),
         ):
-            product = SpiceKernelProduct(setup, "events.bes", collection)
+            product = SpiceKernelProduct(setup, RunState(), "events.bes", collection)
             assert product.start_time == "2010-07-12T00:00:00Z"
             assert product.stop_time == "2010-07-19T23:59:59Z"
 
@@ -824,10 +806,9 @@ class TestSpiceKernelProductEKCoverage:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.ek_coverage") as mock_ek_cov,
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
             mock_ek_cov.return_value = ["2020-01-01T00:00:00.000Z", "2020-12-31T23:59:59.000Z"]
-            product = SpiceKernelProduct(setup, "test.bes", collection)
+            product = SpiceKernelProduct(setup, RunState(), "test.bes", collection)
 
             call_args = mock_ek_cov.call_args
             assert call_args is not None
@@ -857,8 +838,401 @@ class TestSpiceKernelProductEKCoverage:
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.ek_coverage", return_value=["2021-01-01T00:00:00Z", ""]),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.SpiceKernelPDS4Label", return_value=MagicMock()),
         ):
-            product = SpiceKernelProduct(setup, "partial.bes", collection)
+            product = SpiceKernelProduct(setup, RunState(), "partial.bes", collection)
             assert product.start_time == "2021-01-01T00:00:00Z"
             assert product.stop_time == ""
+
+
+# ---------------------------------------------------------------------------
+# SpiceKernelProduct.insert_label and its text / binary helpers
+# ---------------------------------------------------------------------------
+
+LABEL_CONTENT = "PDS_VERSION_ID = PDS3\nEND\n"
+KERNEL_CONTENT = "KPL/SPK\n\\begintext\nsome content\n"
+BIN_LABEL_CONTENT = "PDS_VERSION_ID = PDS3\nKERNEL_TYPE = SPK\nEND\n"
+
+
+@pytest.fixture
+def bare_product():
+    """SpiceKernelProduct with __init__ skipped and a stubbed label."""
+    product = SpiceKernelProduct.__new__(SpiceKernelProduct)
+    product.name = "fake_kernel.bsp"
+    product.path = "/fake/fake_kernel.bsp"
+    product.record_type = "FIXED_LENGTH"
+    product.label = MagicMock()
+    product.label.name = "/fake/label.lbl"
+    return product
+
+
+def _open_factory(kernel_data=KERNEL_CONTENT, label_data=LABEL_CONTENT, written=None):
+    """Return an open() side effect that serves different data per path."""
+    def side_effect(path, mode="r", **_kwargs):
+        data = label_data if "label" in str(path) else kernel_data
+        m = mock_open(read_data=data)()
+        if written is not None and mode == "w":
+            m.write.side_effect = lambda s: written.append(s)
+        return m
+    return side_effect
+
+
+class TestSpiceKernelProductInsertLabel:
+    """Tests for SpiceKernelProduct.insert_label (the dispatcher)."""
+
+    @pytest.mark.parametrize("record_type, called, not_called", [
+        ("STREAM", "_insert_text_label", "_insert_binary_label"),
+        ("FIXED_LENGTH", "_insert_binary_label", "_insert_text_label"),
+    ])
+    def test_dispatches_on_record_type(self, bare_product, tmp_path, record_type, called, not_called):
+        """STREAM kernels get a text insert, everything else a binary one."""
+        bare_product.record_type = record_type
+        bare_product.label.name = str(tmp_path / "label.lbl")
+        (tmp_path / "label.lbl").write_text(LABEL_CONTENT)
+
+        with patch.object(SpiceKernelProduct, "_insert_text_label") as mock_text, \
+             patch.object(SpiceKernelProduct, "_insert_binary_label") as mock_bin:
+            bare_product.insert_label()
+
+        mocks = {"_insert_text_label": mock_text, "_insert_binary_label": mock_bin}
+        mocks[called].assert_called_once_with()
+        mocks[not_called].assert_not_called()
+
+    def test_logs_trailing_blank_line(self, bare_product, tmp_path, caplog):
+        """The blank log line that used to close the label's __init__ now
+        closes insert_label."""
+        bare_product.label.name = str(tmp_path / "label.lbl")
+        (tmp_path / "label.lbl").write_text(LABEL_CONTENT)
+
+        with patch.object(SpiceKernelProduct, "_insert_binary_label"):
+            with caplog.at_level(logging.INFO):
+                bare_product.insert_label()
+
+        assert caplog.messages == [""]
+
+    @pytest.mark.parametrize("record_type", ["STREAM", "FIXED_LENGTH"])
+    @pytest.mark.parametrize("label_name", ["missing.lbl", "a_directory"])
+    def test_raises_when_label_is_not_a_file(
+            self, bare_product, spiceypy_mock, tmp_path, record_type, label_name):
+        """No label file at label.name is a pipeline-ordering bug: fail
+        clearly, before the kernel is opened, for both kernel flavours."""
+        (tmp_path / "a_directory").mkdir()
+        kernel = tmp_path / "fake_kernel.bsp"
+        kernel.write_text(KERNEL_CONTENT)
+        bare_product.path = str(kernel)
+        bare_product.record_type = record_type
+        bare_product.label.name = str(tmp_path / label_name)
+
+        with pytest.raises(NPBInternalError, match=re.escape(label_name)) as excinfo:
+            bare_product.insert_label()
+
+        assert "fake_kernel.bsp" in str(excinfo.value)
+        assert "does not exist" in str(excinfo.value)
+        assert kernel.read_text() == KERNEL_CONTENT
+        spiceypy_mock.dafopw.assert_not_called()
+
+
+class TestSpiceKernelProductInsertTextLabel:
+    """Tests for SpiceKernelProduct._insert_text_label."""
+
+    def test_opens_label_for_reading(self, bare_product):
+        """_insert_text_label opens the .lbl file at least once."""
+        with patch("builtins.open", side_effect=_open_factory()) as mock_open_:
+            bare_product._insert_text_label()
+
+        opened = [str(c.args[0]) for c in mock_open_.call_args_list]
+        assert any("label" in p for p in opened)
+
+    def test_opens_kernel_file(self, bare_product):
+        """_insert_text_label opens the kernel file at least once."""
+        opened_modes = []
+
+        def tracking_open(path, mode="r", **_kwargs):
+            opened_modes.append((str(path), mode))
+            return mock_open(read_data=KERNEL_CONTENT)()
+
+        with patch("builtins.open", side_effect=tracking_open):
+            bare_product._insert_text_label()
+
+        kernel_opens = [p for p in opened_modes if "kernel" in p[0] or "bsp" in p[0]]
+        assert len(kernel_opens) >= 1
+
+    def test_raises_on_missing_kpl_header(self, bare_product):
+        """NPBError is raised when the kernel lacks a KPL/ first line."""
+        bad_kernel = "NOT_KPL\nsome data\n"
+
+        with patch("builtins.open", side_effect=_open_factory(kernel_data=bad_kernel)):
+            with pytest.raises(NPBError, match='architecture spec as first line.'):
+                bare_product._insert_text_label()
+
+    @pytest.mark.parametrize("kernel_data, expected, logs", [
+        # Kernel does not have a label.
+        ('KPL/SPK\n'
+         '\\begintext\n'
+         'some content\n',
+         'KPL/SPK\n'
+         '\n'
+         '\\beginlabel\n'
+         'PDS_VERSION_ID = PDS3\n'
+         '\\endlabel\n'
+         '\\begintext\n'
+         'some content\n',
+         ["-- Label inserted to text kernel."]),
+        # Kernel does have a label (same label).
+        ('KPL/SPK\n'
+         '\n'
+         '\\beginlabel\n'
+         'PDS_VERSION_ID = PDS3\n'
+         '\\endlabel\n'
+         '\\begintext\n'
+         'some content\n',
+         'KPL/SPK\n'
+         '\n'
+         '\\beginlabel\n'
+         'PDS_VERSION_ID = PDS3\n'
+         '\\endlabel\n'
+         '\\begintext\n'
+         'some content\n',
+         ["-- Updating label in kernel.",
+          "-- Label inserted to text kernel."]),
+        # Kernel does have a label (another label).
+        ('KPL/SPK\n'
+         '\n'
+         '\\beginlabel\n'
+         'PDS_VERSION_ID = WRONG_PDS_IDENTIFIER\n'
+         'SOME_OTHER_KEY = WRONG_VALUE_TO_BE_REMOVED\n'
+         '\\endlabel\n'
+         '\\begintext\n'
+         'some content\n',
+         'KPL/SPK\n'
+         '\n'
+         '\\beginlabel\n'
+         'PDS_VERSION_ID = PDS3\n'
+         '\\endlabel\n'
+         '\\begintext\n'
+         'some content\n',
+         ["-- Updating label in kernel.",
+          "-- Label inserted to text kernel."]),
+        # Kernel does not have an EOL character at the end of the file.
+        ('KPL/SPK\n'
+         '\\begintext\n'
+         'some content',
+         'KPL/SPK\n'
+         '\n'
+         '\\beginlabel\n'
+         'PDS_VERSION_ID = PDS3\n'
+         '\\endlabel\n'
+         '\\begintext\n'
+         'some content\n',
+         ["-- Label inserted to text kernel."]),
+        # Kernel does have empty blank lines at the end of the file.
+        ('KPL/SPK\n'
+         '\\begintext\n'
+         'some content\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n',
+         'KPL/SPK\n'
+         '\n'
+         '\\beginlabel\n'
+         'PDS_VERSION_ID = PDS3\n'
+         '\\endlabel\n'
+         '\\begintext\n'
+         'some content\n',
+         ["-- Label inserted to text kernel."]),
+    ])
+    def test_lines_written_to_kernel(self, bare_product, caplog, kernel_data, expected, logs):
+        written = []
+
+        with patch("builtins.open", side_effect=_open_factory(kernel_data=kernel_data,
+                                                              written=written)):
+            with caplog.at_level(logging.INFO):
+                bare_product._insert_text_label()
+
+        assert expected == "".join(written)
+        assert caplog.messages == logs
+
+
+@pytest.fixture
+def spiceypy_mock():
+    """Patch spiceypy inside the module under test."""
+    with patch(f"{_MODULE}.spiceypy") as mock_spy:
+        mock_spy.dafopw.return_value = 1
+        yield mock_spy
+
+
+@pytest.fixture
+def extract_comment_mock():
+    """Patch extract_comment to return an empty list by default."""
+    with patch(f"{_MODULE}.extract_comment", return_value=[]) as mock_ec:
+        yield mock_ec
+
+
+class TestSpiceKernelProductInsertBinaryLabel:
+    """Tests for SpiceKernelProduct._insert_binary_label."""
+
+    def test_opens_label_file(self, bare_product, spiceypy_mock, extract_comment_mock):
+        """_insert_binary_label reads the label file in text mode."""
+        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)) as m:
+            bare_product._insert_binary_label()
+
+        m.assert_called_with("/fake/label.lbl", "r", encoding="utf-8")
+        spiceypy_mock.dafopw.assert_called_once_with(bare_product.path)
+
+    def test_comment_deleted_before_new_one_added(self, bare_product, spiceypy_mock, extract_comment_mock):
+        """dafdc (delete) is called strictly before dafac (add)."""
+        call_order = []
+        spiceypy_mock.dafdc.side_effect = lambda h:    call_order.append("dafdc")
+        spiceypy_mock.dafac.side_effect = lambda h, c: call_order.append("dafac")
+        extract_comment_mock.return_value = ["existing line"]
+
+        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)):
+            bare_product._insert_binary_label()
+
+        assert call_order == ["dafdc", "dafac"]
+
+    def test_dafcls_called_on_completion(self, bare_product, spiceypy_mock, extract_comment_mock):
+        """The DAF file handle is always closed after the label is written."""
+        spiceypy_mock.dafopw.return_value = 99
+
+        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)):
+            bare_product._insert_binary_label()
+
+        spiceypy_mock.dafcls.assert_called_once_with(99)
+
+    @pytest.mark.parametrize("make_fail", [
+        lambda spy, ec: setattr(ec, "side_effect", SpiceyPyError("spiceypy error")),
+        lambda spy, ec: setattr(spy.dafdc, "side_effect", SpiceyPyError("spiceypy error")),
+        lambda spy, ec: setattr(spy.dafac, "side_effect", SpiceyPyError("spiceypy error")),
+    ], ids=["extract_comment", "dafdc", "dafac"])
+    def test_dafcls_called_when_error_raised(self, bare_product, spiceypy_mock,
+                                             extract_comment_mock, make_fail):
+        """dafcls is called even when extract_comment, dafdc, or dafac raises.
+
+        Parametrized over the three calls that run between dafopw and dafcls,
+        each exercised in isolation, to confirm the DAF handle is always
+        released no matter which one of them fails.
+        """
+        make_fail(spiceypy_mock, extract_comment_mock)
+
+        with patch("builtins.open", mock_open(read_data=BIN_LABEL_CONTENT)):
+            # _insert_binary_label is decorated with @spice_exception_handler,
+            # which catches the SpiceyPyError and re-raises it as NPBError,
+            # so NPBError is what actually escapes the call.
+            with pytest.raises(NPBError):
+                bare_product._insert_binary_label()
+
+        # The correct handle value is already verified by
+        # test_dafcls_called_on_completion on the success path.
+        spiceypy_mock.dafcls.assert_called_once()
+
+    @pytest.mark.parametrize('label, comments, expected', [
+        # No comments in the binary kernel.
+        ('PDS_VERSION_ID = PDS3\n'
+         'KERNEL_TYPE = SPK\n'
+         'END\n',
+         [],
+         ['\\beginlabel',
+          'PDS_VERSION_ID = PDS3',
+          'KERNEL_TYPE = SPK',
+          '\\endlabel',
+          ' ',
+          ' ']),
+        # Some comments in the binary kernel.
+        ('PDS_VERSION_ID = PDS3\n'
+         'KERNEL_TYPE = SPK\n'
+         'END\n',
+         ['First line of comments.',
+          'Second line of comments.',],
+         ['\\beginlabel',
+          'PDS_VERSION_ID = PDS3',
+          'KERNEL_TYPE = SPK',
+          '\\endlabel',
+          ' ',
+          ' ',
+          'First line of comments.',
+          'Second line of comments.']),
+        # Some comments in the binary kernel, starting with blank lines.
+        ('PDS_VERSION_ID = PDS3\n'
+         'KERNEL_TYPE = SPK\n'
+         'END\n',
+         ['', '', '', '',
+          'First line of comments.',
+          'Second line of comments.', ],
+         ['\\beginlabel',
+          'PDS_VERSION_ID = PDS3',
+          'KERNEL_TYPE = SPK',
+          '\\endlabel',
+          ' ',
+          ' ',
+          'First line of comments.',
+          'Second line of comments.']),
+        # Some comments in the binary kernel, with empty lines between paragraphs.
+        ('PDS_VERSION_ID = PDS3\n'
+         'KERNEL_TYPE = SPK\n'
+         'END\n',
+         ['First line of comments.',
+          '',
+          'Second line of comments.', ],
+         ['\\beginlabel',
+          'PDS_VERSION_ID = PDS3',
+          'KERNEL_TYPE = SPK',
+          '\\endlabel',
+          ' ',
+          ' ',
+          'First line of comments.',
+          ' ',
+          'Second line of comments.']),
+        # Comment area of the binary kernel has already a label. Same label.
+        # TODO: This is a bug. It should not add extra blank lines between the label and the comments.
+        ('PDS_VERSION_ID = PDS3\n'
+         'KERNEL_TYPE = SPK\n'
+         'END\n',
+         ['\\beginlabel',
+          'PDS_VERSION_ID = PDS3',
+          'KERNEL_TYPE = SPK',
+          '\\endlabel',
+          ' ',
+          ' ',
+          'First line of comments.'],
+         ['\\beginlabel',
+          'PDS_VERSION_ID = PDS3',
+          'KERNEL_TYPE = SPK',
+          '\\endlabel',
+          ' ',
+          ' ',
+          ' ',
+          ' ',
+          'First line of comments.']),
+        # Comment area of the binary kernel has already a label. Different label.
+        # TODO: Same issue as previous test.
+        ('PDS_VERSION_ID = PDS3\n'
+         'KERNEL_TYPE = PCK\n'
+         'END\n',
+         ['\\beginlabel',
+          'PDS_VERSION_ID = PDS3',
+          'KERNEL_TYPE = SPK',
+          '\\endlabel',
+          ' ',
+          ' ',
+          'First line of comments.'],
+         ['\\beginlabel',
+          'PDS_VERSION_ID = PDS3',
+          'KERNEL_TYPE = PCK',
+          '\\endlabel',
+          ' ',
+          ' ',
+          ' ',
+          ' ',
+          'First line of comments.']),
+
+    ])
+    def test_written_comment(self, bare_product, spiceypy_mock, extract_comment_mock, caplog,
+                             label, comments, expected):
+        """The comment passed to dafac includes both \\beginlabel and \\endlabel."""
+        captured = []
+        spiceypy_mock.dafac.side_effect = lambda _, c: captured.extend(c)
+        extract_comment_mock.side_effect = lambda _, handle: comments
+
+        with patch("builtins.open", mock_open(read_data=label)):
+            with caplog.at_level(logging.INFO):
+                bare_product._insert_binary_label()
+
+        assert expected == captured
+        assert caplog.messages == ["-- Label inserted to binary kernel."]

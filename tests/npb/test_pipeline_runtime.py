@@ -22,6 +22,8 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 import spiceypy
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 from pds.naif_pds4_bundler.pipeline import runtime
 
 # ---------------------------------------------------------------------------
@@ -86,7 +88,13 @@ def file_list_with_byproducts(dirs):
 @pytest.fixture()
 def mock_setup():
     """Minimal Setup-like object suitable for log_step tests."""
-    return _LogStepSetup(step=1)
+    return _LogStepSetup()
+
+
+@pytest.fixture
+def run_state():
+    """Fresh RunState, starting at step 1."""
+    return RunState()
 
 # ---------------------------------------------------------------------------
 # runtime.clean_run tests
@@ -108,7 +116,7 @@ def mock_setup():
 # the need for a real XML config file, a real SPICE installation, or any
 # other infrastructure.
 #
-# handle_npb_error raises RuntimeError. We patch it with a side_effect of RuntimeError
+# handle_npb_error raises NPBError. We patch it with a side_effect of NPBError
 # so assertions are possible.
 #
 # All filesystem interaction uses tmp_path (pytest's built-in temporary
@@ -139,8 +147,8 @@ class TestClearRun:
         with patch(
                 "pds.naif_pds4_bundler.pipeline.runtime.handle_npb_error"
         ) as mock_err:
-            mock_err.side_effect = RuntimeError("handle_npb_error called")
-            with pytest.raises(RuntimeError):
+            mock_err.side_effect = NPBError("handle_npb_error called")
+            with pytest.raises(NPBError):
                 runtime.clear_run(setup)
 
         mock_err.assert_called_once_with(message=expected_error, setup=None)
@@ -465,7 +473,7 @@ class TestFinishExecution:
         )
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         assert not tpl1.exists(), "template_a.xml should have been removed"
         assert not tpl2.exists(), "template_b.xml should have been removed"
@@ -480,19 +488,20 @@ class TestFinishExecution:
         log_manager = MagicMock()
 
         # Should complete without raising FileNotFoundError.
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
     def test_file_list_and_checksum_registry_written(self, tmp_path, monkeypatch):
         """write_file_list and write_checksum_registry are both called."""
         monkeypatch.setattr(spiceypy, "kclear", MagicMock())
 
         setup = self._make_finish_setup(tmp_path)
+        run_state = MagicMock()
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, run_state, log_manager)
 
-        setup.write_file_list.assert_called_once()
-        setup.write_checksum_registry.assert_called_once()
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
 
     def test_validate_config_written_for_pds4_non_clear(self, tmp_path, monkeypatch):
         """write_validate_config is called when pds_version='4' and faucet!='clear'."""
@@ -501,7 +510,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path, pds_version="4", faucet="final")
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         setup.write_validate_config.assert_called_once()
 
@@ -512,7 +521,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path, pds_version="4", faucet="clear")
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         setup.write_validate_config.assert_not_called()
 
@@ -523,7 +532,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path, pds_version="3", faucet="final")
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         setup.write_validate_config.assert_not_called()
 
@@ -535,7 +544,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path)
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         mock_kclear.assert_called_once()
 
@@ -546,7 +555,7 @@ class TestFinishExecution:
         setup = self._make_finish_setup(tmp_path)
         log_manager = MagicMock()
 
-        runtime.finish_execution(setup, log_manager)
+        runtime.finish_execution(setup, RunState(), log_manager)
 
         log_manager.stop.assert_called_once()
 
@@ -558,15 +567,17 @@ class TestFinishExecution:
         call_order: list[str] = []
 
         setup = self._make_finish_setup(tmp_path)
-        setup.step = 1
-        setup.write_file_list.side_effect = lambda: call_order.append("write_file_list")
-        setup.write_checksum_registry.side_effect = lambda: call_order.append("write_checksum_registry")
+        run_state = MagicMock()
+        run_state.write_file_list.side_effect = (
+            lambda s: call_order.append("write_file_list"))
+        run_state.write_checksum_registry.side_effect = (
+            lambda s: call_order.append("write_checksum_registry"))
 
         with patch(
                 "pds.naif_pds4_bundler.pipeline.runtime.log_step",
-                side_effect=lambda s, title: call_order.append("log_step"),
+                side_effect=lambda s, r, title: call_order.append("log_step"),
         ):
-            runtime.finish_execution(setup, MagicMock())
+            runtime.finish_execution(setup, run_state, MagicMock())
 
         assert call_order.index("log_step") < call_order.index("write_file_list"), (
             "log_step must be called before write_file_list"
@@ -578,11 +589,11 @@ class TestFinishExecution:
 class TestHandleNpbError:
     """Tests for runtime.handle_npb_error."""
 
-    def test_always_raises_runtime_error_with_message(self, caplog):
-        """Verifies that the function always raises RuntimeError with the message."""
+    def test_always_raises_npb_error_with_message(self, caplog):
+        """Verifies that the function always raises NPBError with the message."""
         message = "Test failure message"
 
-        with pytest.raises(RuntimeError, match=message):
+        with pytest.raises(NPBError, match=message):
             runtime.handle_npb_error(message)
 
         assert f"-- {message}" in caplog.text
@@ -591,7 +602,7 @@ class TestHandleNpbError:
         """The error message must be logged at the ERROR level."""
         message = "Something went wrong"
         with caplog.at_level(logging.ERROR):
-            with pytest.raises(RuntimeError):
+            with pytest.raises(NPBError):
                 runtime.handle_npb_error(message)
 
         assert ['-- Something went wrong'] == caplog.messages
@@ -601,8 +612,7 @@ class TestHandleNpbError:
         must both be called before the exception propagates."""
         # Setup mocks
         mock_setup = MagicMock()
-        mock_setup.write_file_list = MagicMock()
-        mock_setup.write_checksum_registry = MagicMock()
+        run_state = MagicMock()
 
         # Create a dummy template file to test removal
         temp_file = tmp_path / "template.xml"
@@ -612,12 +622,13 @@ class TestHandleNpbError:
         # Mock SPICE and os.remove
         monkeypatch.setattr(spiceypy, "kclear", MagicMock())
 
-        with pytest.raises(RuntimeError):
-            runtime.handle_npb_error("Error", setup=mock_setup)
+        with pytest.raises(NPBError):
+            runtime.handle_npb_error("Error", setup=mock_setup,
+                                     run_state=run_state)
 
         # Verify side effects
-        mock_setup.write_file_list.assert_called_once()
-        mock_setup.write_checksum_registry.assert_called_once()
+        run_state.write_file_list.assert_called_once_with(mock_setup)
+        run_state.write_checksum_registry.assert_called_once_with(mock_setup)
 
     def test_spice_pool_cleared_with_setup(self, monkeypatch):
         """spiceypy.kclear must be called even when setup is provided."""
@@ -627,7 +638,7 @@ class TestHandleNpbError:
         mock_setup = MagicMock()
         mock_setup.template_files = []
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Error", setup=mock_setup)
 
         mock_kclear.assert_called_once()
@@ -637,7 +648,7 @@ class TestHandleNpbError:
         mock_kclear = MagicMock()
         monkeypatch.setattr(spiceypy, "kclear", mock_kclear)
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Quick Error", setup=None)
 
         mock_kclear.assert_called_once()
@@ -651,7 +662,7 @@ class TestHandleNpbError:
         temp_file.write_text("<xml/>")
         mock_setup.template_files = [str(temp_file)]
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Error", setup=mock_setup)
 
         assert not temp_file.exists(), "Template file should have been removed"
@@ -662,23 +673,45 @@ class TestHandleNpbError:
 
         mock_setup = MagicMock()
         mock_setup.template_files = []
+        run_state = MagicMock()
 
-        with pytest.raises(RuntimeError):
-            runtime.handle_npb_error("Error with no templates", setup=mock_setup)
+        with pytest.raises(NPBError):
+            runtime.handle_npb_error("Error with no templates",
+                                     setup=mock_setup, run_state=run_state)
 
-        mock_setup.write_file_list.assert_called_once()
-        mock_setup.write_checksum_registry.assert_called_once()
+        run_state.write_file_list.assert_called_once_with(mock_setup)
+        run_state.write_checksum_registry.assert_called_once_with(mock_setup)
+
+    def test_with_setup_but_no_run_state_removes_templates_and_writes_nothing(
+            self, tmp_path, monkeypatch):
+        """With a setup but no run state there is nothing to write, yet the
+        templates are still removed and the NPBError still propagates."""
+
+        # A setup that owns one template file on disk.
+        temp_file = tmp_path / "template.xml"
+        temp_file.write_text("<xml/>")
+        mock_setup = MagicMock()
+        mock_setup.template_files = [str(temp_file)]
+        monkeypatch.setattr(spiceypy, "kclear", MagicMock())
+
+        # Raise the error without giving it a run state.
+        with pytest.raises(NPBError):
+            runtime.handle_npb_error("Error", setup=mock_setup)
+
+        # The template is gone and no writer of the setup was involved.
+        assert not temp_file.exists()
+        mock_setup.write_file_list.assert_not_called()
 
     def test_missing_template_does_not_raise_file_not_found(self, monkeypatch):
         """If a template listed in setup is already gone, no FileNotFoundError
-        must propagate — only the expected RuntimeError."""
+        must propagate — only the expected NPBError."""
         mock_setup = MagicMock()
         mock_setup.template_files = ["/non/existent/path.xml"]
 
         monkeypatch.setattr(spiceypy, "kclear", MagicMock())
 
         # This should not raise FileNotFoundError because of the os.path.exists check
-        with pytest.raises(RuntimeError):
+        with pytest.raises(NPBError):
             runtime.handle_npb_error("Error with missing template", setup=mock_setup)
 
 # ---------------------------------------------------------------------------
@@ -688,21 +721,22 @@ class TestLogStep:
     """Tests for runtime.log_step."""
 
     @patch("logging.info")
-    def test_increments_counter(self, _mock_log, mock_setup):
+    def test_increments_counter(self, _mock_log, mock_setup, run_state):
         """Verify that the step counter increments every time the function is called."""
-        initial_step = mock_setup.step
-        runtime.log_step(mock_setup, title="Test Title")
-        assert mock_setup.step == initial_step + 1
+        initial_step = run_state.step
+        runtime.log_step(mock_setup, run_state, title="Test Title")
+        assert run_state.step == initial_step + 1
 
     @patch("logging.info")
-    def test_increments_step_counter_on_repeated_calls(self, _mock_log, mock_setup):
+    def test_increments_step_counter_on_repeated_calls(
+            self, _mock_log, mock_setup, run_state):
         """Each successive call increments the counter once more."""
-        runtime.log_step(mock_setup, title="First")
-        runtime.log_step(mock_setup, title="Second")
-        runtime.log_step(mock_setup, title="Third")
-        assert mock_setup.step == 4  # started at 1
+        runtime.log_step(mock_setup, run_state, title="First")
+        runtime.log_step(mock_setup, run_state, title="Second")
+        runtime.log_step(mock_setup, run_state, title="Third")
+        assert run_state.step == 4  # started at 1
 
-    def test_log_messages_format(self, caplog, mock_setup):
+    def test_log_messages_format(self, caplog, mock_setup, run_state):
         """Verify the formatting of the logs and that they include the title."""
         # Set level to INFO since caplog defaults to WARNING
         caplog.set_level(logging.INFO)
@@ -711,7 +745,7 @@ class TestLogStep:
         expected_header = "Step 1 - Initialize Database"
         expected_separator =  "----------------------------"
 
-        runtime.log_step(mock_setup, title)
+        runtime.log_step(mock_setup, run_state, title)
 
         assert caplog.messages == ["", expected_header, expected_separator, ""]
 
@@ -724,10 +758,10 @@ class TestLogStep:
     @patch("logging.info")
     def test_print_conditions(self, _mock_log, silent, verbose, stdout, capsys):
         """Test the logic that determines if 'print' is called based on args."""
-        setup = _LogStepSetup(step=5, silent=silent, verbose=verbose)
+        setup = _LogStepSetup(silent=silent, verbose=verbose)
         title = "Conditional Print Test"
 
-        runtime.log_step(setup, title)
+        runtime.log_step(setup, RunState(step=5), title)
 
         captured = capsys.readouterr()
         assert stdout == captured.out
@@ -775,6 +809,5 @@ def _make_setup(
 
 class _LogStepSetup:
     """Minimal stand-in for Setup used by log_step tests."""
-    def __init__(self, step: int = 1, silent: bool = False, verbose: bool = False):
-        self.step = step
+    def __init__(self, silent: bool = False, verbose: bool = False):
         self.args = MagicMock(silent=silent, verbose=verbose)

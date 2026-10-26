@@ -19,14 +19,20 @@ class Product:
 
     # TODO: update this method to have path and setup as input arguments.
     #
-    #   def __init__(self, path: str, setup) -> None:
+    #   def __init__(self, path: str, setup, run_state) -> None:
     #       """Constructor. Initialises attributes derivable without I/O.
     #
     #       :param path:  Absolute path to the product file
     #       :param setup: NPB execution setup object
+    #       :param run_state: State of the current pipeline execution
     #       """
-    def __init__(self) -> None:
-        """Constructor."""
+    def __init__(self, run_state) -> None:
+        """Constructor.
+
+        :param run_state: State of the current pipeline execution
+        """
+        self.run_state = run_state
+
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
         else:
@@ -42,6 +48,11 @@ class Product:
         # TODO: remove this call. It should be done by the subclasses instead.
         self.register()
 
+    @property
+    def _archive_root_dir(self) -> str:
+        """Name of the top-level archive directory for this product's PDS version."""
+        raise NotImplementedError
+
     def register(self) -> None:
         """Finalize file-derived attributes and register the product.
 
@@ -52,43 +63,59 @@ class Product:
         stat_info = os.stat(self.path)
         self._size = str(stat_info.st_size)
 
-        #
-        # If specified via configuration, try to obtain the checksum from a
-        # checksum registry file, if not present, try to obtain it from the
-        # label if the product is in the staging area. Otherwise, compute the
-        # checksum.
-        #
-        # Checksums for checksum files are always re-calculated.
-        #
-        if self.__class__.__name__ != "ChecksumProduct":
-            if self.setup.args.checksum:
-                checksum = checksum_from_registry(
-                    self.path, self.setup.working_directory
-                )
-                if not checksum:
-                    checksum = checksum_from_label(self.path)
-            else:
-                checksum = ""
-            if not checksum:
-                checksum = str(md5(self.path))
-        else:
-            checksum = str(md5(self.path))
+        checksum = self._compute_checksum()
 
         self.checksum = checksum
 
         if self.new_product:
 
-            if self.setup.pds_version == "4":
-                archive_dir = f"{self.setup.mission_acronym}_spice"
-            else:
-                archive_dir = self.setup.volume_id
+            # TODO(product-split): remove once all products migrate off Product
+            #  directly
+            try:
+                archive_dir = self._archive_root_dir
+
+            # The base-class property raises this until a version base class
+            # implements it.
+            except NotImplementedError:
+                if self.setup.pds_version == "4":
+                    archive_dir = f"{self.setup.mission_acronym}_spice"
+                    
+                else:
+                    archive_dir = self.setup.volume_id
 
             path = Path(self.path)
             archive_dir_index = path.parts.index(archive_dir)
             archive_path = Path(*path.parts[archive_dir_index + 1:])
 
-            self.setup.add_file(str(archive_path))
-            self.setup.add_checksum(self.path, checksum)
+            self.run_state.add_file(str(archive_path))
+            self.run_state.add_checksum(self.path, checksum)
+
+    def _compute_checksum(self) -> str:
+        """Resolve the product checksum.
+
+        If specified via configuration, try to obtain it from a checksum
+        registry file and, if not present, from the label (if the product is
+        in the staging area). Otherwise, compute it directly. Subclasses
+        override this when the checksum must always be recomputed.
+        """
+        # Reusing a known checksum only makes sense if the user asked for it.
+        if self.setup.args.checksum:
+            checksum = checksum_from_registry(
+                self.path, self.setup.working_directory
+            )
+
+            # The registry may not know the file, so fall back to its label.
+            if not checksum:
+                checksum = checksum_from_label(self.path)
+
+            # Either lookup can come back empty (or None), so only return
+            # here when one of them really found something.
+            if checksum:
+                return checksum
+
+        # Last resort. It never comes back empty, so a checksum is always
+        # returned, and it is also the only path taken when reuse is off.
+        return str(md5(self.path))
 
     @property
     def size(self) -> str:

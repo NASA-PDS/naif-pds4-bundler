@@ -1,4 +1,6 @@
 """File and Text Management Functions to support NPB Classes."""
+from __future__ import annotations
+
 from collections import defaultdict
 import difflib
 import glob
@@ -9,15 +11,19 @@ import logging
 import os
 import re
 import shutil
-import sys
 from pathlib import Path
 import tempfile
-from typing import Optional
+from typing import Any, Literal, Optional
 
 import spiceypy
-from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
 
-from ..pipeline.runtime import handle_npb_error
+from ..classes.exceptions import NPBError, NPBInternalError
+
+#: Raised by open()/read() on a text file that can't be read (OSError) or
+#: isn't valid UTF-8 (UnicodeDecodeError, for files opened with
+#: encoding='utf-8'). Shared by the several call sites that read a text file
+#: and treat either failure the same way.
+FILE_READ_ERRORS = (OSError, UnicodeDecodeError)
 
 
 def etree_to_dict(etree):
@@ -53,6 +59,21 @@ def etree_to_dict(etree):
     return jtree
 
 
+def normalize_to_list(value: list[Any] | Any) -> list[Any]:
+    """Wrap a value in a list unless it already is one.
+
+    XML elements that may repeat are parsed by ``etree_to_dict`` as a bare
+    value when they occur once and as a list when they occur more than
+    once; this restores a single, consistent list shape.
+
+    :param value: Value to normalize.
+    :return: ``value`` unchanged if it is already a list, otherwise
+        ``[value]``.
+    :rtype: list
+    """
+    return value if isinstance(value, list) else [value]
+
+
 def md5(fname):
     """Returns the MD5 sum (checksum) of the provided file.
 
@@ -82,7 +103,8 @@ def safe_make_directory(path):
         logging.info('-- Generated directory: %s  ', path)
         logging.info('')
 
-    except BaseException:
+    # os.mkdir fails with OSError: exists, missing parent, or no permission.
+    except OSError:
         pass
 
 
@@ -137,12 +159,8 @@ def extension_to_type(kernel):
     try:
         kernel_type = kernel_type_map[extension].lower()
     except KeyError:
-        # TODO: investigate whether this should raise a ValueError or go through
-        #       handle_npb_error() instead. This function has no access to a
-        #       Setup object, and handle_npb_error() writes run artifacts and
-        #       clears the SPICE kernel pool via that object, so routing through
-        #       it would require passing setup down to every one of this
-        #       function's call sites.
+        # TODO: investigate whether this should raise NPBError, like the other
+        #       functions in this module, instead of ValueError.
         raise ValueError(
             f"Unsupported kernel extension '{extension}' for kernel "
             f"{kernel}: not present in the SPICE kernel type map.")
@@ -177,7 +195,10 @@ def type_to_pds3_type(kernel):
         # Kernel is an object
         #
         kernel_type = kernel_type_map[kernel.extension.upper()]
-    except BaseException:
+
+    # kernel.extension raises AttributeError when kernel is a plain string
+    # (no .extension attribute), meaning it's a filename, not an object.
+    except AttributeError:
         #
         # Kernel is a string
         #
@@ -215,20 +236,64 @@ def type_to_extension(kernel_type):
     return kernel_extension
 
 
-def add_carriage_return(line: str, eol: str, setup: object = False) -> str:
+def archive_subdirectory(kind: Literal["kernel", "orbnum", "mk"],
+                         pds_version: str) -> str:
+    """Given a kind of archive file provide its top-level subdirectory.
+
+    The subdirectory is relative to the staging directory and is only the
+    first level. Whatever sits below it (the kernel type directory such as
+    ``spk``, or the ``orbnum`` and ``mk`` directories) is not part of the
+    result.
+
+    :param kind: Kind of file: ``"kernel"`` (SPICE kernel), ``"orbnum"``
+       (orbit number file) or ``"mk"`` (meta-kernel)
+    :param pds_version: PDS version of the archive: ``"3"`` or ``"4"``
+    :return: Name of the archive subdirectory where the file is staged
+    :raises NPBInternalError: If the kind or the PDS version are not
+       supported
+    """
+
+    # Each (kind, PDS version) pair maps to one subdirectory. In PDS3 the
+    # orbnum files and the meta-kernels share "extras", while in PDS4 they
+    # are split: orbnum files go to "miscellaneous" and meta-kernels join the
+    # kernels in "spice_kernels".
+    subdirectory_map = {
+        ("kernel", "3"): "data",
+        ("kernel", "4"): "spice_kernels",
+        ("orbnum", "3"): "extras",
+        ("orbnum", "4"): "miscellaneous",
+        ("mk", "3"): "extras",
+        ("mk", "4"): "spice_kernels",
+    }
+
+    # The lookup key is the pair, so an unsupported kind and an unsupported
+    # PDS version both end up as a missing key.
+    try:
+        return subdirectory_map[(kind, pds_version)]
+
+    # Report the missing key as an NPBInternalError naming both inputs. Callers
+    # only pass hardcoded kinds and a validated PDS version, so reaching this
+    # means a bug in the code, not bad user input. "from None" drops the
+    # KeyError, whose message would only be the raw key tuple.
+    except KeyError:
+        raise NPBInternalError(
+            f"No archive subdirectory for kind '{kind}' and PDS version "
+            f"'{pds_version}'.") from None
+
+
+def add_carriage_return(line: str, eol: str) -> str:
     """Normalise the line terminator of a line to the requested EOL.
 
     Replaces any existing EOL sequence (``\\r\\n`` or ``\\n``) with ``eol``.
-    If the line contains no EOL, ``eol`` is appended. Raises an NPB error
-    if ``eol`` is not one of the two accepted values (``"\\n"`` or ``"\\r\\n"``).
+    If the line contains no EOL, ``eol`` is appended.
 
-    :param line:  Input line to normalize.
+    :param line:  Input line to normalise.
     :param eol:   Target end-of-line sequence; must be ``"\\n"`` or ``"\\r\\n"``.
-    :param setup: NPB run Setup object, forwarded to the error handler.
     :return: Line with its terminator replaced or appended.
+    :raises NPBError: if ``eol`` is neither of the two accepted values.
     """
     if eol not in ("\n", "\r\n"):
-        handle_npb_error(f"Invalid EOL requested: {repr(eol)}.", setup=setup)
+        raise NPBError(f"Invalid EOL requested: {repr(eol)}.")
 
     line = line.replace("\r\n", "\n").replace("\n", eol)
     if eol not in line:
@@ -237,26 +302,29 @@ def add_carriage_return(line: str, eol: str, setup: object = False) -> str:
     return line
 
 
-def add_crs_to_file(file, eol, setup=False):
-    """Adds Carriage Return (``<CR>``) to a file.
+def add_crs_to_file(file: str, eol: str) -> None:
+    """Rewrite the line endings of a file, so they all match ``eol``.
 
-    :param line: Input file
-    :type line: str
-    :param eol: End of Line character as indicated by the configuration file
-    :type eol: str
-    :raise: If CR cannot be added to the file
+    The file is changed in place.
+
+    :param file: Path to the file to rewrite.
+    :param eol: Line ending to use, either ``"\\n"`` or ``"\\r\\n"``.
+    :raises NPBError: if the file can't be rewritten, or if ``eol`` is invalid
+        and the file has at least one line.
     """
     try:
         file_crs = Path(file).parent / (Path(file).stem + "crs_tmp")
         with open(file, "r", encoding='utf-8') as r:
             with open(file_crs, "w+", encoding='utf-8') as f:
                 for line in r:
-                    line = add_carriage_return(line, eol, setup)
+                    line = add_carriage_return(line, eol)
                     f.write(line)
         shutil.move(file_crs, file)
 
-    except BaseException:
-        handle_npb_error(f"Carriage return adding error for {file}.", setup)
+    # open()/shutil.move() raise OSError on filesystem failures, or
+    # UnicodeDecodeError if file isn't valid UTF-8.
+    except FILE_READ_ERRORS:
+        raise NPBError(f"Carriage return adding error for {file}.")
 
 
 def check_list_duplicates(list_of_elements):
@@ -273,26 +341,6 @@ def check_list_duplicates(list_of_elements):
             return True
 
     return False
-
-
-def fill_template(list_object, product_file, product_dictionary):
-    """Fill a template with uppercase keywords preceded with ``$``.
-
-    :param list_object: List object
-    :param product_file: Resulting file
-    :type product_file: str
-    :param product_dictionary: Dictionary of keys to replace
-    :type product_dictionary: dict
-    """
-    with open(product_file, "w", encoding='utf-8') as f:
-
-        with open(list_object.template, "r", encoding='utf-8') as t:
-            for line in t:
-                line = line.rstrip()
-                for key, value in product_dictionary.items():
-                    if isinstance(value, str) and key in line and "$" in line:
-                        line = line.replace("$" + key, value)
-                f.write(f"{line}\n")
 
 
 def get_context_products(setup):
@@ -382,20 +430,18 @@ def get_context_products(setup):
             if cp["name"][0].lower() in config_context_products]
 
 
-def mk_to_list(mk, setup):
+def mk_to_list(mk):
     """Generate a list of kernels from a Meta-kernel.
 
     This function assumes that the meta-kernel will contain a PATH_SYMBOLS
     definition that will be present in each kernel entry preceded by a dollar
     sign ``$``.
 
-    If no kernel is found an error is raised.
-
     :param mk: Meta-kernel path from which the list of kernels is generated
     :type mk: str
-    :param setup: NPB run Setup
     :return: List of kernels present in the meta-kernel
     :rtype: list
+    :raises NPBError: if the meta-kernel does not list any kernel.
     """
     # TODO: Update the code to work also with a metakernel like the one provided
     #       in the example #2 of the `furnsh_c` API (furnsh_ex2.tm)
@@ -436,12 +482,15 @@ def mk_to_list(mk, setup):
                     #
                     path_symbol = "$" + line.split("'")[1]
                     get_symbol = False
-                except BaseException:
+
+                # split("'")[1] raises IndexError with no quote-delimited value
+                # (e.g. PATH_SYMBOLS on its own line).
+                except IndexError:
                     pass
 
     if not ker_mk_list:
-        handle_npb_error(
-            f"No kernels present in {mk}. Please review MK generation.", setup=setup
+        raise NPBError(
+            f"No kernels present in {mk}. Please review MK generation."
         )
 
     return ker_mk_list
@@ -492,7 +541,9 @@ def get_latest_kernel(
             kernels_with_path += [
                 f for f in os.listdir(f"{kernel_path}/") if re.search(pattern, f)
             ]
-        except BaseException:
+
+        # os.listdir raises OSError when the type subdirectory is missing.
+        except OSError:
             pass
 
     if mks:
@@ -525,7 +576,9 @@ def get_latest_kernel(
         #
         try:
             return kernels.pop()
-        except BaseException:
+
+        # list.pop() raises IndexError when kernels is empty.
+        except IndexError:
             logging.warning("        No kernels found with pattern %s", pattern)
             return []
     else:
@@ -548,18 +601,49 @@ def get_latest_kernel(
         return kernels_date
 
 
-def check_consecutive(lst):
-    """Check if a list has consecutive numbers.
+def find_latest_versioned_file(
+        paths: list[Path], pattern: str) -> tuple[Optional[Path], Optional[int]]:
+    """Return the candidate with the highest version number in its filename.
 
-    Check if a list of names with enumeration include all the elements
-    in such a way that the enumeration contains all expected numbers.
+    Globs ``pattern`` in each of ``paths`` and pools the results into one
+    candidate list. A candidate's version is the digits immediately following
+    ``"_v"`` at the end of its filename stem (the extension is not considered).
+    Among candidates with a parseable version, the numerically highest one wins;
+    if two candidates share the same version, the one found first (directories
+    searched in ``paths`` order, matching order within a directory) is
+    returned.
 
-    :param lst: List of names that include an enumeration
-    :type lst: list
-    :return: Check if the list has a complete enumeration
-    :rtype: bool
+    :param paths: Directories to search for ``pattern``.
+    :type paths: list[Path]
+    :param pattern: Filename glob pattern to search for in each of
+                    ``paths``.
+    :type pattern: str
+    :return: ``(path, version)`` of the candidate with the highest version.
+             ``(None, None)`` if no candidate is found. ``(candidates[0],
+             None)`` if a candidate is found but none matches the
+             ``"_v<digits>"`` pattern.
+    :rtype: tuple[Optional[Path], Optional[int]]
     """
-    return sorted(lst) == list(range(1, max(lst) + 1))
+    candidates = [Path(match) for directory in paths for match in directory.glob(pattern)]
+
+    # Matches the digits after "_v" only when they reach the end of the
+    # stem (Path.stem has already stripped the file's extension).
+    version_re = re.compile(r"_v(\d+)$")
+
+    # Builds (path, version) pairs one at a time, as max() below asks for
+    # them. A path whose stem doesn't end in "_v<digits>" produces no
+    # match and is left out of this sequence entirely.
+    versioned = ((path, int(match.group(1)))
+                 for path in candidates if (match := version_re.search(path.stem)))
+
+    # Returned by max() only when the sequence above is empty, i.e. no
+    # candidate's filename matched.
+    fallback = (candidates[0], None) if candidates else (None, None)
+
+    # Picks the pair with the highest version (pv[1]). If two candidates
+    # share the same version, the earlier one in `candidates` wins, since
+    # max() keeps the first pair it saw once no later one beats it.
+    return max(versioned, key=lambda pv: pv[1], default=fallback)
 
 
 def compare_files(fromfile, tofile, dest_dir, display):
@@ -692,7 +776,7 @@ def match_patterns(name, name_w_pattern, patterns):
         elif (n == "$") and value_bool:
             value += name[i]
         else:
-            raise RuntimeError(
+            raise ValueError(
                 f"Pattern mismatch at index {i}: "
                 f"expected '{n}' but got '{name[i]}' in '{name}'."
             )
@@ -776,14 +860,24 @@ def checksum_from_label(path):
     return checksum
 
 
-def extract_comment(path, handle=False):
-    """Extract comment from SPICE DAF file.
+def extract_comment(path: str, handle: Optional[int] = None) -> list[str]:
+    """Extract the comment area of a SPICE DAF kernel.
 
-    :param path: Path of SPICE kernel
-    :type path: str
-    :return: SPICE kernel comment
-    :rtype: list
+    Trailing blank lines are dropped. If ``handle`` is not given the kernel
+    is opened for reading and closed again before returning; a handle
+    supplied by the caller is left open when the call succeeds.
+
+    :param path:   Path of the SPICE kernel; used to open it when ``handle`` is
+                   not given, and in the error message.
+    :param handle: Handle of an already open DAF, or ``None`` to open ``path``.
+
+    :return: Comment lines of the kernel.
+
+    :raises NPBError: if the comment does not fit in the read buffer. The DAF
+        is closed before raising, even when the handle came from the caller.
     """
+    # Open the file if the handle has not been provided by the caller, or the
+    # provided handle is zero.
     if not handle:
         close_file = True
         handle = spiceypy.dafopr(path)
@@ -796,7 +890,7 @@ def extract_comment(path, handle=False):
     (_, commnt, done) = spiceypy.dafec(handle, buffsz, linlen)
     if not done:
         spiceypy.dafcls(handle)
-        handle_npb_error(f"Comment from {path} is longer than buffer size.")
+        raise NPBError(f"Comment from {path} is longer than buffer size.")
 
     #
     # Remove empty lines at the end of the comment.
@@ -864,7 +958,7 @@ def replace_string_in_file(file, old_string, new_string, setup):
     with open(file, 'rt', encoding='utf-8') as handle:
         for line in handle:
             new_line = line.replace(old_string, new_string)
-            new_file_content += add_carriage_return(new_line, setup.eol_pds3, setup)
+            new_file_content += add_carriage_return(new_line, setup.eol_pds3)
 
     # Create unique temp file in the same directory as the source file,
     # and keep it so that we can replace the original one with the updated
@@ -898,10 +992,15 @@ def format_multiple_values(value):
 
 
 def product_mapping(name, setup, cleanup=True):
-    """Obtain the kernel mapping.
+    """Look up the mapping of a kernel in the current release's kernel list.
 
-    :return: Kernel Mapping
-    :rtype: str
+    :param name: Name of the kernel to look up.
+    :param setup: NPB run Setup, used to locate the kernel list file.
+    :param cleanup: When False, a missing mapping is an expected result
+        because the caller is only probing, so nothing is raised.
+    :return: The mapping, or ``False`` if there is none and ``cleanup`` is
+        False.
+    :raises NPBError: if there is no mapping and ``cleanup`` is True.
     """
     kernel_list_file = (
         setup.working_directory + os.sep + f"{setup.mission_acronym}_{setup.run_type}_"
@@ -919,212 +1018,28 @@ def product_mapping(name, setup, cleanup=True):
                 mapping = line.split("=")[-1].strip()
                 get_map = False
 
-    if not cleanup:
-        setup = False
     #
     # If cleanup is not being performed this is an indication that if the kernel
     # mapping does not exist, this can be intentional and therefore an error
     # does not have to be reported.
     #
     if not mapping and cleanup:
-        handle_npb_error(
-            f"{name} does not have mapping on {kernel_list_file}.",
-            setup=setup,
-        )
+        raise NPBError(f"{name} does not have mapping on {kernel_list_file}.")
 
     return mapping
 
 
-def check_kernel_integrity(path):
-    """Check if the SPICE Kernel has the adequate architecture.
+def check_eol(file: str | Path, eol: str) -> str:
+    """Check that a file uses the expected end of line.
 
-    All SPICE kernels must have a NAIF file ID word as the first "word" on
-    the first line of the kernel. This "word" describes the architecture
-    of the kernel.
+    A file expected to be LF is reported if it contains any CRLF; a file
+    expected to be CRLF is reported if it contains any LF that is not part of
+    a CRLF. A file with no line breaks passes either check.
 
-    A binary kernel could have the following architectures:
-
-      * ``DAF``: The file is based on the DAF architecture.
-      * ``DAS``: The file is based on the DAS architecture.
-      * ``XFR``: The file is in a SPICE transfer file format.
-
-    For an archive only ``DAF`` is acceptable.
-
-    Text kernels must have ``KPL`` (Kernel Pool File) architecture.
-
-    **Note:** Text event kernels (``.ten``) are validated differently
-    because they use a different format than other text kernels and are not
-    loaded via standard SPICE routines.
-
-    NPB checks if binary kernels have a ``DAF`` architecture and text kernels
-    a ``KPL`` architecture.
-
-    :param path: SPICE Kernel or ORBNUM path
-    :type path: str
-    :return: Error message if error present
-    :rtype: str
-    """
-    error = ""
-    name = path.split(os.sep)[-1].strip()
-    extension = path.split(".")[-1].strip().lower()
-
-    # Filter out Text EKs since they are not loaded into SPICE and validate them
-    # differently
-    if extension == "ten":
-        # Try to read the file as UTF-8
-        try:
-            with open(path, 'r', encoding='utf-8') as f:
-                content = f.read(2000)
-        except UnicodeDecodeError:
-            return f"Kernel {name} is not a valid text file (encoding error)."
-
-        # Validate content after successful read
-        if '\\header' not in content or '\\text' not in content:
-            return (f"Kernel {name} does not contain required text event "
-                    f"kernel markers (\\header, \\text).")
-
-        return ""  # Valid .ten file
-
-    type_file = extension_to_type(name).upper()
-
-    #
-    # Determine if it is a binary or a text kernel.
-    #
-
-    file_format = "Binary" if extension[0] == "b" else "Character"
-
-    #
-    # All files that are to have labels generated must have a NAIF
-    # file ID word as the first "word" on the first line of the
-    # file. Check if it is the case.
-    #
-    (arch, f_type) = spiceypy.getfat(path)
-
-    if file_format == "Binary":
-
-        #
-        # A binary file could have the following architectures:
-        #
-        #   DAF - The file is based on the DAF architecture.
-        #   DAS - The file is based on the DAS architecture.
-        #   XFR - The file is in a SPICE transfer file format.
-        #
-        # But for an archive only DAF is acceptable.
-        #
-        if arch not in ('DAF', 'DAS'):
-            error = f"Kernel {name} architecture {arch} is invalid."
-        # else:
-        #     pass
-
-    else:  # file_format == "Character":
-
-        #
-        # Text kernels must have KPL architecture:
-        #
-        #    KPL -- Kernel Pool File (i.e., a text kernel)
-        #
-        if arch != "KPL":
-            error = f"Kernel {name} architecture {arch} is invalid."
-
-    if f_type != type_file:
-        error = f"Kernel {name} type {type_file} is not the one expected: {f_type}."
-
-    return error
-
-
-def check_binary_endianness(path: str, endianness: str) -> Optional[str]:
-    """Check if the SPICE Kernel has the adequate architecture.
-
-    PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
-    BIG-IEEE binary kernels. This behavior can be changed via configuration.
-
-    This method ensures that the endianness of binary kernels is the
-    appropriate one according to the configuration.
-
-    :param path:       Binary SPICE kernel path
-    :param endianness: Required endianness of the binary SPICE kernel file.
-
-    :return: Error message, if error present. Otherwise, None.
-    """
-    # Check the file architecture of the SPICE kernel. If the kernel is not
-    # based on DAF or DAS architecture, report the error.
-    arch, _ = spiceypy.getfat(path)
-    if arch not in ['DAF', 'DAS']:
-        return 'The binary kernel does not have a DAF or DAS architecture.'
-
-    # At this point, we can check the endianness of the binary SPICE kernel.
-    # Since there is no SPICE API to perform this check, we will try to open
-    # the file for writing and immediately after, close it. SPICE will produce
-    # a SPICE(UNSUPPORTEDBFF) error if the endianness of the file does not
-    # correspond to the endianness of the platform in which NPB is executed.
-    try:
-        if arch == "DAF":
-            handle = spiceypy.dafopw(path)
-            spiceypy.dafcls(handle)
-        else: # DAS architecture
-            handle = spiceypy.dasopw(path)
-            spiceypy.dascls(handle)
-
-        # Getting to this point means that the file and the platform in
-        # which NPB is executed have the same architecture.
-        equal_endianness = True
-
-    except SpiceUNSUPPORTEDBFF:
-        # There is no need to call the SPICE API to close the binary SPICE
-        # kernel, since the open process did not complete. The open call
-        # retuning with SPICE(UNSUPPORTEDBFF) indicates that the file and
-        # the platform in which NPB is executed have different architecture.
-        equal_endianness = False
-
-    # By comparing the result of comparing the platform byte order to the
-    # expected file endianness, and the result of the previous analysis,
-    # we can find out if the file has the expected endianness.
-    if (endianness == sys.byteorder) != equal_endianness:
-        return ("The kernel cannot be loaded because of its endianness. "
-                "Use NAIF's utility BINGO to convert the file.")
-
-    return None
-
-
-def check_badchar(file):
-    """Check NON-ASCII characters for a file.
-
-    :param file: Path to file to check
-    :return: Resulting error messages
-    :rtype: list
-    """
-    error = []
-    line_num = 1
-    with open(file, "r", encoding='utf-8') as f:
-        for line in f:
-            if not line.isascii():
-                char_count = 0
-                badchars = []
-                for char in line:
-                    if not char.isascii():
-                        badchars.append(char_count)
-                    char_count += 1
-
-                error.append(f"NON-ASCII character(s) in line {line_num}:")
-                error.append(f"{line.rstrip()}")
-                badchar_line = " " * len(line.rstrip())
-                for badchar in badchars:
-                    badchar_line = (
-                        badchar_line[:badchar] + "^" + badchar_line[badchar + 1 :]
-                    )
-                error.append(badchar_line)
-            line_num += 1
-
-    return error
-
-
-def check_eol(file, eol):
-    """Check file EOL.
-
-    :param file: Path to file to check
-    :param eol: Expected End of Line
-    :return: Resulting error messages
-    :rtype: str
+    :param file: Path to the file to check.
+    :param eol: Expected end of line: ``"\\n"`` or ``"\\r\\n"``.
+    :return: Error message, or an empty string if the EOL is as expected.
+    :raises NPBError: if ``eol`` is neither LF nor CRLF.
     """
     error = ""
 
@@ -1138,17 +1053,19 @@ def check_eol(file, eol):
         if content.count(b"\r\n") != content.count(b"\n"):
             error = "Incorrect EOL in file, CRLF (\\r\\n) expected."
     else:
-        handle_npb_error(f"Incorrect EOL in configuration: {eol}")
+        raise NPBError(f"Incorrect EOL in configuration: {eol}")
 
     return error
 
 
-def check_line_length(file):
-    """Check SPICE text kernel line length.
+def check_line_length(file: str) -> list[str]:
+    """Check the line length of a SPICE text kernel.
 
-    :param file: Path to file to check
-    :return: Resulting error messages
-    :rtype: str
+    The line terminator counts towards the length, so a terminated line of
+    exactly 80 characters is reported. A last line with no terminator is not.
+
+    :param file: Path to the file to check.
+    :return: One message per line longer than 80 characters; empty if none.
     """
     error = []
     line_num = 1
@@ -1159,24 +1076,3 @@ def check_line_length(file):
             line_num += 1
 
     return error
-
-
-def check_permissions(path: str) -> None:
-    """Check if the file has read permissions.
-    This method ensures that the file has the adequate file permissions.
-
-    :param path: file path
-    """
-    # Try to open the file for read access. Use binary mode, since the input
-    # file might be either binary or text. If it fails, we don't have
-    # read permissions. This method works both in Unix and Windows. If
-    # the read operation succeeds, don't do anything else.
-    try:
-        with Path(path).open('rb') as f:
-            f.read(0)
-
-    except PermissionError:
-        handle_npb_error(
-            f"File {path} is not readable by the account that runs NPB. "
-            f"Update permissions."
-        )

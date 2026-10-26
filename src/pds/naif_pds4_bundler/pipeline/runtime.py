@@ -15,20 +15,20 @@ clear_run(setup)
     final (bundle) areas, using ``.file_list`` file as the manifest of targets.
     Handles both standard bundle-layout runs and label-only runs transparently.
 
-finish_execution(setup, log_manager)
+finish_execution(setup, run_state, log_manager)
     Coordinates the orderly shutdown of a successful run: removes temporary
     templates, writes the file-list and checksum-registry by-products,
     optionally emits a PDS4 validate configuration, clears the SPICE kernel
     pool, and closes the log.
 
-handle_npb_error(message, setup=None)
+handle_npb_error(message, setup=None, run_state=None)
     Centralised error handler. Logs the error, flushes any partially-generated
     by-products, removes templates, clears the kernel pool, and raises a
-    ``RuntimeError``. This function never returns (return type: ``NoReturn``).
+    ``NPBError``. This function never returns (return type: ``NoReturn``).
 
-log_step(setup, title)
+log_step(setup, run_state, title)
     Records a numbered pipeline step to the log (and optionally to stdout)
-    and increments the step counter on *setup*.
+    and increments the step counter on *run_state*.
 
 Notes
 -----
@@ -57,9 +57,12 @@ from typing import NoReturn, Optional, TYPE_CHECKING
 
 import spiceypy
 
+from ..classes.exceptions import NPBError
+
 if TYPE_CHECKING:
     from ..classes.setup import Setup
     from ..classes.log import Log
+    from ..classes.run_state import RunState
 
 
 def clear_run(setup: Setup) -> None:
@@ -125,7 +128,8 @@ def clear_run(setup: Setup) -> None:
             setup=None)
 
 
-def finish_execution(setup: Setup, log_manager: Log) -> None:
+def finish_execution(setup: Setup, run_state: RunState,
+                     log_manager: Log) -> None:
     """Coordinator function for the 'stop' sequence."""
 
     # Business Logic: Cleanup Templates
@@ -133,13 +137,13 @@ def finish_execution(setup: Setup, log_manager: Log) -> None:
         if os.path.exists(template):
             os.remove(template)
 
-    log_step(setup, title='Generate run by-product files')
+    log_step(setup, run_state, title='Generate run by-product files')
 
     # Business Logic: Generate Artifacts
     #
     # Write the run-by product file list and checksum record
-    setup.write_file_list()
-    setup.write_checksum_registry()
+    run_state.write_file_list(setup)
+    run_state.write_checksum_registry(setup)
 
     # The validate file is not generated for an NPB clear run.
     if setup.pds_version == "4" and setup.args.faucet != "clear":
@@ -152,19 +156,22 @@ def finish_execution(setup: Setup, log_manager: Log) -> None:
     log_manager.stop()
 
 
-def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
+def handle_npb_error(message: str, setup: Optional[Setup] = None,
+                     run_state: Optional[RunState] = None) -> NoReturn:
     """Signal a NPB error and write run artifacts.
 
     Side effects:
-        - Writes file list and checksum registry if setup is provided
+        - Writes file list and checksum registry if setup and run_state are
+          provided
         - Removes template files
         - Clears SPICE kernel pool
-        - Raises RuntimeError
+        - Raises NPBError
 
     :param message: Error message
     :param setup:   Optional Setup object for writing artifacts
+    :param run_state: Optional RunState holding the records to write
 
-    :raises RuntimeError: always, with the provided error message.
+    :raises NPBError: always, with the provided error message.
     """
     logging.error('-- %s', message)
 
@@ -173,8 +180,9 @@ def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
     #
     # In addition, generate the checksum registry file
     if setup:
-        setup.write_file_list()
-        setup.write_checksum_registry()
+        if run_state is not None:
+            run_state.write_file_list(setup)
+            run_state.write_checksum_registry(setup)
 
         # Remove the templates. Make sure they exist before attempting the
         # deletion.
@@ -185,16 +193,17 @@ def handle_npb_error(message: str, setup: Optional[Setup] = None) -> NoReturn:
     # Clear the kernel pool.
     spiceypy.kclear()
 
-    raise RuntimeError(message)
+    raise NPBError(message)
 
 
-def log_step(setup: Setup, title: str) -> None:
+def log_step(setup: Setup, run_state: RunState, title: str) -> None:
     """Logs the current execution step and increments the counter.
 
     :param setup: NPB configuration.
+    :param run_state: State of the current execution, holding the counter.
     :param title: Step title
     """
-    message = f"Step {setup.step} - {title}"
+    message = f"Step {run_state.step} - {title}"
     logging.info("")
     logging.info(message)
     logging.info("-" * len(message))
@@ -203,7 +212,7 @@ def log_step(setup: Setup, title: str) -> None:
     if not setup.args.silent and not setup.args.verbose:
         print(f"-- {title}.")
 
-    setup.step += 1
+    run_state.step += 1
 
 # ---------------------------------------------------------------------------
 # runtime utility functions

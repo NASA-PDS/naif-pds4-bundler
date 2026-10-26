@@ -1,15 +1,20 @@
 """Unit tests for the SpicedsProduct class."""
 import logging
 import os
-from unittest.mock import MagicMock, patch
+from pathlib import Path
+from unittest.mock import MagicMock, patch, PropertyMock
 
 import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_spiceds import SpicedsProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
+# find_latest_versioned_file globs candidates itself now via Path.glob, so
+# that's what's patched here instead of anything in this module.
+_GLOB_GLOB = 'pathlib.Path.glob'
 
 
 # ---------------------------------------------------------------------------
@@ -27,7 +32,7 @@ def make_setup(spiceds='/input/spiceds.html', increment=False, diff=False,
     setup = MagicMock()
     setup.spiceds = spiceds
     setup.increment = increment
-    setup.diff = diff
+    setup.args.diff = diff
     setup.staging_directory = staging_directory
     setup.bundle_directory = bundle_directory
     setup.working_directory = working_directory
@@ -64,17 +69,18 @@ def base_init_patches():
 
     Every constructor test that reaches the 'spiceds provided' tail needs the
     same external collaborators stubbed: the file copy into staging, the CR
-    normalisation, the product self-check, the optional comparison, the base
-    ``Product.__init__`` and the PDS4 label. A fresh list per call keeps the
-    patch objects single-use.
+    normalisation, the product self-check, the optional comparison and the
+    base ``Product.__init__``. Labeling is no longer part of this
+    constructor (it now happens in the pipeline), so there's nothing
+    label-related left to stub here. A fresh list per call keeps the patch
+    objects single-use.
     """
     return [
         patch(f'{_MODULE}.shutil.copy2'),
         patch.object(SpicedsProduct, '_check_cr'),
         patch.object(SpicedsProduct, '_check_product', return_value=True),
         patch.object(SpicedsProduct, '_compare'),
-        patch(f'{_MODULE}.Product.__init__', return_value=None),
-        patch(f'{_MODULE}.DocumentPDS4Label', return_value=MagicMock())]
+        patch(f'{_MODULE}.Product.__init__', return_value=None)]
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +97,7 @@ class TestSpicedsProductInit:
         # Common first-release path: no increment and a 'spiceds' provided.
         # Drives the whole tail of the constructor and pins down the derived
         # name/path/lid/vid plus the ordering side effects (copy, CR check,
-        # product check, label).
+        # product check).
         setup = make_setup(increment=False, diff=False)
         collection = make_collection(name='document')
 
@@ -100,9 +106,8 @@ class TestSpicedsProductInit:
                 patches[1] as check_cr, \
                 patches[2] as check_product, \
                 patches[3] as compare, \
-                patches[4] as base_init, \
-                patches[5] as label:
-            product = SpicedsProduct(setup, collection)
+                patches[4] as base_init:
+            product = SpicedsProduct(setup, RunState(), collection)
 
         # Version 1 because there is no previous increment.
         assert product.version == 1
@@ -130,50 +135,45 @@ class TestSpicedsProductInit:
         check_product.assert_called_once_with()
         base_init.assert_called_once()
 
-        # diff is False so _compare must be skipped, but the label is built.
+        # diff is False so _compare must be skipped.
         compare.assert_not_called()
-        label.assert_called_once_with(setup, collection, product)
 
     def test_init_runs_compare_when_diff_enabled(self):
-        # When setup.diff is truthy and the product is generated, _compare runs
-        # before the label is built.
+        # When args.diff is truthy and the product is generated, _compare runs.
         setup = make_setup(increment=False, diff=True)
         collection = make_collection()
 
         patches = base_init_patches()
         with patches[0], patches[1], \
                 patches[2], patches[3] as compare, \
-                patches[4], patches[5] as label:
-            product = SpicedsProduct(setup, collection)
+                patches[4]:
+            product = SpicedsProduct(setup, RunState(), collection)
 
         compare.assert_called_once_with()
-        label.assert_called_once()
         assert product.generated is True
 
-    def test_init_skips_label_when_not_generated(self):
+    def test_init_skips_compare_when_not_generated(self):
         # When _check_product returns False the product is not generated, so
-        # neither the comparison nor the label run.
+        # the comparison doesn't run either -- self.generated is also what
+        # the pipeline reads to decide whether to build the label.
         setup = make_setup(increment=False, diff=True)
         collection = make_collection()
 
         patches = base_init_patches()
         with patches[0], patches[1], \
                 patch.object(SpicedsProduct, '_check_product', return_value=False), \
-                patches[3] as compare, patches[4], \
-                patches[5] as label:
-            product = SpicedsProduct(setup, collection)
+                patches[3] as compare, patches[4]:
+            product = SpicedsProduct(setup, RunState(), collection)
 
-        # Not generated => neither the comparison nor the label run.
         assert product.generated is False
         compare.assert_not_called()
-        label.assert_not_called()
 
     def test_init_increment_with_previous_version_and_new_spiceds(self):
         # Increment + previous 'spiceds' files + a new 'spiceds' provided. glob
-        # returns out-of-order versions; the constructor must sort them, pick the
-        # highest, store it as latest_spiceds/latest_version and bump version by
-        # one. Because a new 'spiceds' is also provided it continues to the staging
-        # tail rather than early-returning.
+        # returns out-of-order versions; the constructor must sort them, pick
+        # the highest, store it as latest_spiceds/latest_version and bump
+        # version by one. Because a new 'spiceds' is also provided it continues
+        # to the staging tail rather than early-returning.
         setup = make_setup(increment=True, spiceds='/input/spiceds.html')
         collection = make_collection(name='document')
 
@@ -183,19 +183,24 @@ class TestSpicedsProductInit:
             '/bundle/insight_spice/document/spiceds_v002.html']
 
         patches = base_init_patches()
-        with patch(f'{_MODULE}.glob.glob', return_value=list(previous)) as glob_mock, \
+        with patch(_GLOB_GLOB, autospec=True, return_value=list(previous)) as glob_mock, \
                 patches[0] as copy2, patches[1], patches[2], \
-                patches[3], patches[4], patches[5]:
-            product = SpicedsProduct(setup, collection)
+                patches[3], patches[4]:
+            product = SpicedsProduct(setup, RunState(), collection)
 
-        # The search path is bundle/<acronym>_spice/<collection>.
-        expected_glob = os.path.join(
-            '/bundle', 'insight_spice', 'document', 'spiceds_v*.html')
-        glob_mock.assert_called_once_with(expected_glob)
+        # The search path is bundle/<acronym>_spice/<collection>. Asserted as
+        # a Path (via autospec=True, which makes the mock receive the
+        # directory as its own argument) rather than a joined string, since
+        # Path equality compares parsed components and is therefore correct
+        # on both POSIX and Windows regardless of separator style.
+        glob_mock.assert_called_once_with(
+            Path('/bundle', 'insight_spice', 'document'), 'spiceds_v*.html')
 
         # Highest version after sorting is v003 -> new version is 4.
-        assert product.latest_version == '003'
-        assert product.latest_spiceds.endswith('spiceds_v003.html')
+        # latest_version is now an int (parsed by find_latest_versioned_file)
+        # rather than the raw zero-padded string.
+        assert product.latest_version == 3
+        assert product.latest_spiceds.name == 'spiceds_v003.html'
         assert product.version == 4
         assert product.name == 'spiceds_v004.html'
         assert product.vid == '4.0'
@@ -208,12 +213,14 @@ class TestSpicedsProductInit:
         setup = make_setup(increment=True, spiceds='')
         collection = make_collection()
 
-        with patch(f'{_MODULE}.glob.glob',
+        with patch(_GLOB_GLOB,
                    return_value=['/bundle/insight_spice/document/spiceds_v005.html']):
-            product = SpicedsProduct(setup, collection)
+            product = SpicedsProduct(setup, RunState(), collection)
 
         assert product.version == 6
-        assert product.latest_version == '005'
+        # latest_version is now an int (parsed by find_latest_versioned_file)
+        # rather than the raw zero-padded string.
+        assert product.latest_version == 5
         assert product.generated is False
 
         # Early return happened before the staging tail.
@@ -221,18 +228,18 @@ class TestSpicedsProductInit:
         assert not hasattr(product, 'lid')
 
     def test_init_increment_no_previous_with_spiceds_provided(self):
-        # Increment but glob finds nothing, yet a spiceds is provided. The
-        # empty-list [-1] raises IndexError -> the except branch sets version 1
-        # and empty latest_spiceds; NPBError must NOT fire because a spiceds was
-        # supplied.
+        # Increment but glob finds nothing, yet a spiceds is provided.
+        # find_latest_versioned_file returns None -> the fallback branch sets
+        # version 1 and empty latest_spiceds; NPBError must NOT fire because a
+        # spiceds was supplied.
         setup = make_setup(increment=True, spiceds='/input/spiceds.html')
         collection = make_collection()
 
         patches = base_init_patches()
-        with patch(f'{_MODULE}.glob.glob', return_value=[]), \
+        with patch(_GLOB_GLOB, return_value=[]), \
                 patches[0], patches[1], patches[2], \
-                patches[3], patches[4], patches[5]:
-            product = SpicedsProduct(setup, collection)
+                patches[3], patches[4]:
+            product = SpicedsProduct(setup, RunState(), collection)
 
         assert product.version == 1
         assert product.latest_spiceds == ''
@@ -243,38 +250,57 @@ class TestSpicedsProductInit:
         setup = make_setup(increment=True, spiceds='')
         collection = make_collection()
 
-        with patch(f'{_MODULE}.glob.glob', return_value=[]):
+        with patch(_GLOB_GLOB, return_value=[]):
+            run_state = RunState()
             with pytest.raises(
                 NPBError,
                 match='spiceds not provided and not available from previous releases.',
             ):
-                SpicedsProduct(setup, collection)
+                SpicedsProduct(setup, run_state, collection)
 
     def test_init_no_increment_no_spiceds_calls_handle_error(self):
         # No increment and no spiceds -> NPBError raised on the else branch.
         setup = make_setup(increment=False, spiceds='')
         collection = make_collection()
 
+        run_state = RunState()
         with pytest.raises(
             NPBError,
             match='spiceds not provided and not available from previous releases.',
         ):
-            SpicedsProduct(setup, collection)
+            SpicedsProduct(setup, run_state, collection)
 
     def test_init_missing_spiceds_attribute_treated_as_empty(self):
-        # If accessing setup.spiceds raises, the constructor's try/except
-        # BaseException must swallow it and treat 'spiceds' as empty, behaving
-        # exactly like spiceds='' (here on the no-increment else branch). A mock
-        # with the attribute deleted makes access raise AttributeError.
+        # If setup.spiceds is missing, the constructor's except AttributeError
+        # must swallow it and treat 'spiceds' as empty, behaving exactly like
+        # spiceds='' (here on the no-increment else branch). A mock with the
+        # attribute deleted makes access raise AttributeError.
         setup = make_setup(increment=False)
         del setup.spiceds
         collection = make_collection()
 
+        run_state = RunState()
         with pytest.raises(
             NPBError,
             match='spiceds not provided and not available from previous releases.',
         ):
-            SpicedsProduct(setup, collection)
+            SpicedsProduct(setup, run_state, collection)
+
+    def test_init_unexpected_spiceds_access_error_propagates(self):
+        """A failure reading setup.spiceds that isn't "the attribute is missing"
+        (here a RuntimeError, standing in for a real bug) must propagate, not be
+        silently treated as spiceds='' - proving except AttributeError no longer
+        masks it."""
+        setup = make_setup(increment=False)
+
+        # PropertyMock lets a MagicMock attribute raise on access instead of
+        # just returning a value, unlike a plain assignment.
+        type(setup).spiceds = PropertyMock(side_effect=RuntimeError("boom"))
+        collection = make_collection()
+
+        run_state = RunState()
+        with pytest.raises(RuntimeError, match="boom"):
+            SpicedsProduct(setup, run_state, collection)
 
 
 # ---------------------------------------------------------------------------
@@ -316,7 +342,7 @@ class TestSpicedsProductCheckCr:
 
         with patch(f'{_MODULE}.date') as date_mock, \
                 patch(f'{_MODULE}.add_carriage_return',
-                      side_effect=lambda line, eol, setup: line):
+                      side_effect=lambda line, eol: line):
             date_mock.today.return_value = mock_date
             product._check_cr()
 
@@ -333,7 +359,7 @@ class TestSpicedsProductCheckCr:
         mock_date.strftime.return_value = '2026-06-29T000000.000000'
         with patch(f'{_MODULE}.date') as date_mock, \
                 patch(f'{_MODULE}.add_carriage_return',
-                      side_effect=lambda line, eol, setup: line.replace('\n', '\r\n')):
+                      side_effect=lambda line, eol: line.replace('\n', '\r\n')):
             date_mock.today.return_value = mock_date
             with caplog.at_level(logging.INFO):
                 product._check_cr()
@@ -347,24 +373,23 @@ class TestSpicedsProductCheckCr:
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
 
-    def test_check_cr_passes_eol_and_setup_to_helper(self, tmp_path):
+    def test_check_cr_passes_eol_to_helper(self, tmp_path):
         # Each line is forwarded to add_carriage_return with the configured
-        # eol_pds4 and the setup object.
+        # eol_pds4.
         product, _ = self._make_product(tmp_path, 'a\nb\n', eol_pds4='\r\n')
 
         mock_date = MagicMock()
         mock_date.strftime.return_value = '2026-06-29T000000.000000'
         with patch(f'{_MODULE}.date') as date_mock, \
                 patch(f'{_MODULE}.add_carriage_return',
-                      side_effect=lambda line, eol, setup: line) as helper:
+                      side_effect=lambda line, eol: line) as helper:
             date_mock.today.return_value = mock_date
             product._check_cr()
 
-        # Two lines -> two calls, each with the configured eol and setup object.
+        # Two lines -> two calls, each with the configured eol.
         assert helper.call_count == 2
         for call_args in helper.call_args_list:
             assert call_args.args[1] == '\r\n'
-            assert call_args.args[2] is product.setup
 
 
 # ---------------------------------------------------------------------------
@@ -447,22 +472,28 @@ class TestSpicedsProductCompare:
             '/bundle/insight_spice/document/spiceds_v003.html',
             '/bundle/insight_spice/document/spiceds_v002.html']
 
-        with patch(f'{_MODULE}.glob.glob', return_value=list(found)) as glob_mock, \
+        with patch(_GLOB_GLOB, autospec=True, return_value=list(found)) as glob_mock, \
                 patch(f'{_MODULE}.compare_files') as compare_files:
             product._compare()
 
-        # The glob targets the bundle document directory
-        expected_glob = '/bundle/insight_spice/document/spiceds_v*.html'
-        glob_mock.assert_called_once_with(expected_glob)
+        # The glob targets the bundle document directory. Asserted as a Path
+        # (via autospec=True, which makes the mock receive the directory as
+        # its own argument) rather than a joined string, since Path equality
+        # compares parsed components and is therefore correct on both POSIX
+        # and Windows regardless of separator style.
+        glob_mock.assert_called_once_with(
+            Path('/bundle', 'insight_spice', 'document'), 'spiceds_v*.html')
 
-        # fromfile is the highest sorted match; tofile is the product path.
+        # fromfile is the highest sorted match (now a Path); tofile is the
+        # product path (unchanged, a plain string).
         compare_files.assert_called_once_with(
-            '/bundle/insight_spice/document/spiceds_v003.html',
+            Path('/bundle/insight_spice/document/spiceds_v003.html'),
             '/staging/spiceds_v004.html', '/work', True)
 
     def test_compare_falls_back_to_insight_example(self, caplog):
-        # With no previous increment (empty glob -> IndexError), _compare falls
-        # back to the bundled InSight sample and logs the fallback.
+        # With no previous increment (empty glob -> find_latest_versioned_file
+        # returns None), _compare falls back to the bundled InSight sample and
+        # logs the fallback.
 
         # TODO: BUG, _compare builds val_spd_path and the InSight fallback path
         #       with hardcoded '/' separators via f-strings, unlike __init__
@@ -473,13 +504,14 @@ class TestSpicedsProductCompare:
         product = make_spiceds_without_init(
             setup=setup, name='spiceds_v001.html', path='/staging/spiceds_v001.html')
 
-        # Empty glob -> [-1] raises IndexError -> fallback branch.
-        with patch(f'{_MODULE}.glob.glob', return_value=[]), \
+        # Empty glob -> find_latest_versioned_file returns None -> fallback branch.
+        with patch(_GLOB_GLOB, return_value=[]), \
                 patch(f'{_MODULE}.compare_files') as compare_files:
             with caplog.at_level(logging.INFO):
                 product._compare()
 
-        expected_from = '/root/data/insight_spice/document/spiceds_v002.html'
+        # The InSight fallback path is also wrapped in Path() by _compare now.
+        expected_from = Path('/root/data/insight_spice/document/spiceds_v002.html')
         compare_files.assert_called_once_with(
             expected_from, '/staging/spiceds_v001.html', '/work', True)
 

@@ -1,8 +1,10 @@
 """Collection Class amd Child Classes Implementation."""
-import glob
 import logging
 import re
+from pathlib import Path
 from typing import Tuple
+
+from ...utils import find_latest_versioned_file
 
 
 class Collection:
@@ -130,43 +132,48 @@ class Collection:
         """Set the Bundle VID.
 
         In general Collection versions are not equal to the release number.
-        If the collection has been updated we obtain the increased
-        version, but if it has not been updated we use the previous
-        version.
+        If the collection has been updated we obtain the increased version, but
+        if it has not been updated we use the previous version.
 
-        Given the case thatt he version cannot be determined: if it is the
-        SPICE kernels collection assume is the same version as the bundle,
-        otherwise we set it to 1.
+        Given the case that the version cannot be determined: if it is the SPICE
+        kernels collection assume is the same version as the bundle, otherwise
+        we set it to 1.
         """
         if self.setup.increment:
-            try:
-                versions = glob.glob(
-                    f"{self.setup.bundle_directory}/"
-                    f"{self.setup.mission_acronym}_spice/"
-                    f"{self.name}/*{self.name}*"
-                )
-                versions += glob.glob(
-                    f"{self.setup.staging_directory}/{self.name}/*{self.name}*"
-                )
 
-                versions.sort()
+            candidate_dirs = [
+                Path(f"{self.setup.bundle_directory}/"
+                     f"{self.setup.mission_acronym}_spice/{self.name}"),
+                Path(f"{self.setup.staging_directory}/{self.name}"),
+            ]
+            latest_file, latest_version = find_latest_versioned_file(
+                candidate_dirs, f"*{self.name}*"
+            )
 
-                if self.updated:
-                    version = int(versions[-1].split("v")[-1].split(".")[0]) + 1
-                else:
-                    version = int(versions[-1].split("v")[-1].split(".")[0])
+            # latest_version is None either when no file matched, or when a file
+            # matched but its name didn't parse as expected.
+            if latest_version is not None:
+
+                # A collection that hasn't changed keeps its previous version;
+                # only an updated collection bumps it.
+                version = latest_version + 1 if self.updated else latest_version
 
                 vid = f'{version}.0'
 
                 logging.info(
                     '-- Collection of %s version set to %s, derived from:',
                     self.type, version)
-                logging.info('   %s', versions[-1])
+                logging.info('   %s', latest_file)
                 logging.info('')
 
-            except BaseException:
-                if self.name == "spice_kernel":
+            else:
+
+                # No usable previous version found: fall back to the bundle
+                # release number for the SPICE kernels collection (it always
+                # tracks the release), or to 1 for any other collection.
+                if self.name == "spice_kernels":
                     ver = int(self.setup.release)
+
                 else:
                     ver = 1
 

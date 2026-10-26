@@ -6,6 +6,7 @@ import sys
 import pytest
 
 from pds.naif_pds4_bundler.__main__ import main
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 
 def test_main_success(mocker):
@@ -24,7 +25,7 @@ def test_main_success(mocker):
     assert result == 0
     mock_parse.assert_called_once_with()
     mock_run.assert_called_once_with(mock_args)
-    assert mock_run.call_args.args[0] is mock_args
+
 
 def test_main_cli_error(mocker):
     """Test main returns 2 when argument parsing fails."""
@@ -39,8 +40,27 @@ def test_main_cli_error(mocker):
     assert result == 2
 
 
-def test_main_unexpected_error(mocker):
-    """Test main returns 2 when an unexpected Exception occurs in the pipeline."""
+def test_main_system_exit_from_pipeline_coerced_to_2(mocker):
+    """Test main returns 2 for any SystemExit, regardless of its code.
+
+    except SystemExit: return 2 does not inspect the actual exit code — it
+    assumes SystemExit only ever comes from argparse (always code 2). This
+    documents that assumption explicitly: a SystemExit raised elsewhere
+    (here, from run_pipeline) with a different code is still coerced to 2.
+    """
+    mocker.patch('pds.naif_pds4_bundler.__main__.cli_npb.parse_arguments',
+                 return_value=object())
+
+    mocker.patch('pds.naif_pds4_bundler.__main__.npb.run_pipeline',
+                 side_effect=SystemExit(1))
+
+    result = main()
+
+    assert result == 2
+
+
+def test_main_unexpected_error(mocker, capsys):
+    """Test main returns 3 and prints the crash message to stderr only."""
     mocker.patch('pds.naif_pds4_bundler.__main__.cli_npb.parse_arguments',
                  return_value=object())
 
@@ -49,8 +69,54 @@ def test_main_unexpected_error(mocker):
                  side_effect=Exception("Unexpected Crash"))
 
     result = main()
+    captured = capsys.readouterr()
 
     assert result == 3
+    assert "Unexpected Crash" in captured.err
+    assert captured.out == ""
+
+
+def test_main_unexpected_error_prints_even_when_silent(mocker, capsys):
+    """Test main prints unexpected-error messages regardless of -s/--silent.
+
+    Unlike NPBError, an unexpected exception signals a bug in the code, not
+    an issue with the input arguments or NPB data, so -s/--silent must not
+    suppress it.
+    """
+    mocker.patch('pds.naif_pds4_bundler.__main__.cli_npb.parse_arguments',
+                 return_value=mocker.Mock(silent=True))
+
+    mocker.patch('pds.naif_pds4_bundler.__main__.npb.run_pipeline',
+                 side_effect=Exception("Unexpected Crash"))
+
+    result = main()
+    captured = capsys.readouterr()
+
+    assert result == 3
+    assert "Unexpected Crash" in captured.err
+    assert captured.out == ""
+
+
+def test_main_npb_error(mocker, capsys):
+    """Test main returns 1 when run_pipeline raises a known NPBError.
+
+    Also confirms the NPBError branch itself prints nothing: handle_npb_error
+    already logs the message elsewhere via logging.error, not print, so no
+    output should reach stderr from main() for this path.
+    """
+    mocker.patch('pds.naif_pds4_bundler.__main__.cli_npb.parse_arguments',
+                 return_value=object())
+
+    # NPBError is a RuntimeError/Exception subclass, so this also confirms
+    # the except NPBError branch is checked before the generic except Exception
+    # branch (return 1, not 3).
+    mocker.patch('pds.naif_pds4_bundler.__main__.npb.run_pipeline',
+                 side_effect=NPBError("Known configuration issue"))
+
+    result = main()
+
+    assert result == 1
+    assert capsys.readouterr().err == ""
 
 
 def test_main_entry_point():

@@ -1,5 +1,6 @@
 """Tests for KernelList class."""
 import os.path
+import shutil
 import sys
 from datetime import datetime as real_datetime
 import logging
@@ -8,12 +9,22 @@ import re
 from types import SimpleNamespace
 
 import pytest
+from spiceypy.utils.exceptions import SpiceyPyError
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.list import KernelList
+
+# Get the directory where the test kernels are located.
+KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
 
 # ---------------------------------------------------------------------------
 # Constants shared by TestKernelListCheckProducts
 # ---------------------------------------------------------------------------
+
+# Checks that KernelList owns as private methods (named with a leading
+# underscore), as opposed to the ones imported from the utils package.
+_KERNEL_LIST_CHECKS = ('check_badchar', 'check_kernel_integrity',
+                       'check_binary_endianness', 'check_permissions')
 
 # Message logged and raised as RuntimeError when any product has errors.
 _CHECK_FATAL_MESSAGE = 'Products listed above require work.'
@@ -38,8 +49,15 @@ def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
     # Attribute to check a real call, instead of a mock.
     setup.kernel_list_config = {}
 
+    # `diff` lives in the pipeline arguments, not in the setup itself.
+    setup.args = SimpleNamespace(diff=overrides.pop('diff', None))
+
     for key, value in overrides.items():
         setattr(setup, key, value)
+
+    # Setup compiles the patterns itself; the fake one has to do the same.
+    setup.re_config = [re.compile(pattern)
+                       for pattern in setup.kernel_list_config]
 
     return setup
 
@@ -166,21 +184,6 @@ class TestKernelListInit:
         # Check that read_config has saved the original configuration.
         assert kernel_list.json_config is json_config
 
-        # Check that the list of compiled regular expressions is stored in two
-        # places and that both point to the same object.
-        assert kernel_list.re_config is setup.re_config
-
-        # check that the two expected regular expressions have been compiled and
-        # are in the correct order.
-        assert [pattern.pattern for pattern in kernel_list.re_config] == [r'.*\.bsp$',
-                                                                          r'^maven_.*\.tm$']
-
-        # Check that the regular expressions work.
-        assert kernel_list.re_config[0].match('maven_001.bsp')
-        assert not kernel_list.re_config[0].match('maven_001.tsc')
-        assert kernel_list.re_config[1].match('maven_release_03.tm')
-        assert not kernel_list.re_config[1].match('release_03.tm')
-
         # Check that read_config has correctly generated the formatted
         # representation of the JSON.
         assert kernel_list.json_formatted_lst == expected_json_formatted_lst
@@ -200,11 +203,9 @@ class TestKernelListReadConfig:
 
         return kernel_list
 
-    @pytest.mark.parametrize('json_config, match_checks, expected_json_formatted_lst', [
-        ({}, [], ['{}']),
+    @pytest.mark.parametrize('json_config, expected_json_formatted_lst', [
+        ({}, ['{}']),
         ({r'.*\.bsp$': {'description': 'SPK kernels'}},
-         [(0, 'maven_001.bsp', True),
-          (0, 'maven_001.tsc', False)],
          ['{',
           '  ".*\\\\.bsp$": {',
           '    "description": "SPK kernels"',
@@ -213,12 +214,6 @@ class TestKernelListReadConfig:
         ({r'.*\.bsp$': {'description': 'SPK kernels'},
           r'^maven_.*\.tm$': {'description': 'Meta-kernels', 'mklabel_options': 'META'},
           r'orbnum_[0-9]{5}\.orb$': {'description': 'Orbnum files'}},
-         [(0, 'maven_001.bsp', True),
-          (0, 'maven_001.bc', False),
-          (1, 'maven_release_03.tm', True),
-          (1, 'release_03.tm', False),
-          (2, 'orbnum_00042.orb', True),
-          (2, 'orbnum_42.orb', False)],
          ['{',
           '  ".*\\\\.bsp$": {',
           '    "description": "SPK kernels"',
@@ -231,8 +226,8 @@ class TestKernelListReadConfig:
           '    "description": "Orbnum files"',
           '  }',
           '}'])])
-    def test_read_config_stores_compiled_regexes_and_formatted_json(
-            self, tmp_path, json_config, match_checks, expected_json_formatted_lst) -> None:
+    def test_read_config_reuses_setup_regexes_and_formats_json(
+            self, tmp_path, json_config, expected_json_formatted_lst) -> None:
         # Build a setup with the parametrized kernel-list configuration.
         setup = make_kernel_list_setup(tmp_path, kernel_list_config=json_config)
 
@@ -243,56 +238,13 @@ class TestKernelListReadConfig:
         # The original JSON config is not copied or transformed.
         assert kernel_list.json_config is json_config
 
-        # Every key in the JSON config is compiled as a regex, preserving the
-        # insertion order of the configuration.
-        assert len(kernel_list.re_config) == len(json_config)
-
-        assert [pattern.pattern
-                for pattern in kernel_list.re_config] == list(json_config)
-
-        assert all(isinstance(pattern, re.Pattern)
-                   for pattern in kernel_list.re_config)
-
-        # Also exposes the same compiled regex list through setup. This is
-        # important because other code consumes setup.re_config later.
-        assert kernel_list.setup.re_config is kernel_list.re_config
+        # The compiled regexes are the ones Setup already built, not a copy.
+        assert kernel_list.re_config is setup.re_config
 
         # The method read_config must create the pretty-printed JSON
         # representation used later when logging or displaying the kernel list
         # configuration.
         assert (kernel_list.json_formatted_lst == expected_json_formatted_lst)
-
-        # Prove that the compiled regexes are functional.
-        for pattern_index, candidate, expected_result in match_checks:
-            assert (bool(kernel_list.re_config[pattern_index].match(candidate))
-                    is expected_result)
-
-    @pytest.mark.parametrize('invalid_pattern', [
-        {'[': {'description': 'Invalid regex'}},
-        {'(?P<kernel>': {'description': 'Invalid regex'}}])
-    def test_read_config_raises_re_error_for_invalid_regex(self, tmp_path,
-                                                           invalid_pattern) -> None:
-        # This test highlights a bug in the code, as if read_config receives an
-        # invalid regex, it triggers a re.error, causing the code to crash.
-
-        # Build a setup object with an invalid regex.
-        setup = make_kernel_list_setup(tmp_path, kernel_list_config=invalid_pattern)
-
-        # Build KernelList without running __init__, so read_config may be
-        # called with an invalid regular expression and cause an error.
-        kernel_list = self.make_kernel_list_without_init(setup)
-
-        # Invalid regex patterns must raise re.error when read_config calls
-        # re.compile(pattern).
-        with pytest.raises(re.error):
-            kernel_list.read_config()
-
-        # The method assigns public state only after compiling all patterns.
-        # Therefore, when compilation fails, no partial state should be exposed.
-        assert not hasattr(kernel_list, 're_config')
-        assert not hasattr(kernel_list.setup, 're_config')
-        assert not hasattr(kernel_list, 'json_config')
-        assert not hasattr(kernel_list, 'json_formatted_lst')
 
     def test_read_config_raises_attribute_error_when_setup_has_no_config(self) -> None:
         # This test is irrelevant in the NPB environment because, due to its
@@ -315,7 +267,6 @@ class TestKernelListReadConfig:
 
         # As an error occurs, no partial state should be exposed.
         assert not hasattr(kernel_list, 're_config')
-        assert not hasattr(kernel_list.setup, 're_config')
         assert not hasattr(kernel_list, 'json_config')
         assert not hasattr(kernel_list, 'json_formatted_lst')
 
@@ -333,8 +284,8 @@ class TestKernelListWriteList:
             with open(output_path, 'w', encoding='utf-8') as out:
                 out.write(template_content)
 
-        fill_template_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.fill_template',
+        fill_template_mock = mocker.patch.object(
+            KernelList, '_fill_template', autospec=True,
             side_effect=fake_fill_template)
 
         validate_mock = mocker.patch.object(KernelList, 'validate',
@@ -634,6 +585,32 @@ class TestKernelListWriteList:
         # Check validate call.
         mocks.validate.assert_called_once_with(kernel_list)
 
+    def test_write_list_spiceypy_failure_raises_npberror(
+            self, mocker, tmp_path) -> None:
+        """A SpiceyPyError from extract_comment is raised as NPBError."""
+
+        self.patch_write_list_file_and_validation_boundaries(mocker)
+
+        kernel = 'maven_kernel_v01.bc'
+
+        mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.extract_comment',
+            side_effect=SpiceyPyError('spiceypy error'))
+
+        kernel_list_config = {
+            r'^maven_kernel_v01\.bc$': {
+                'description': 'Original kernel: $ORIGINAL',
+                'patterns': {'ORIGINAL': {'@file': 'comment',
+                                          '#text': 'ORIGINAL_NAME'}}}}
+
+        kernel_list, _, _ = self.make_kernel_list(
+            tmp_path,
+            kernel_list_config=kernel_list_config,
+            kernels=[kernel])
+
+        with pytest.raises(NPBError):
+            kernel_list.write_list()
+
     @pytest.mark.parametrize('patterns_el, kernel, expected_description', [
         ({'@value': 'edr', '#text': 'EDR'},
          'maven_edr_index.bsp',
@@ -760,9 +737,9 @@ class TestKernelListWriteList:
             kernel_list_config=kernel_list_config,
             kernels=kernels)
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=expected_error):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match=expected_error):
             kernel_list.write_list()
 
         # Check the validate call.
@@ -1068,8 +1045,8 @@ class TestKernelListValidate:
             (kernels_directory / name).write_text('x', encoding='utf-8')
 
         # Mock the dependencies.
-        mocker.patch('pds.naif_pds4_bundler.classes.list.check_badchar',
-                     return_value=(badchar_errors or []))
+        mocker.patch.object(KernelList, '_check_badchar',
+                            return_value=(badchar_errors or []))
         mocker.patch('pds.naif_pds4_bundler.classes.list.check_list_duplicates',
                      return_value=duplicates)
         mocker.patch('pds.naif_pds4_bundler.classes.list.extension_to_type',
@@ -1143,11 +1120,7 @@ class TestKernelListValidate:
     def test_validate_ignores_file_line_without_value(
             self, mocker, tmp_path) -> None:
         # Check that even if the FILE line contains nothing after the following
-        # equal sign, a file is created anyway.
-
-        # Mock the handle_npb_error call.
-        handle_npb_error_mock = mocker.patch(
-            'pds.naif_pds4_bundler.classes.list.handle_npb_error')
+        # equal sign, a file is created anyway (no NPBError raised).
 
         # Build a KernelList with a FILE line that contains nothing after equal
         # sign.
@@ -1155,9 +1128,6 @@ class TestKernelListValidate:
             mocker, tmp_path, 'FILE             = \n', kernels=[])
 
         kernel_list.validate()
-
-        # Check that handle_npb_error is not called.
-        handle_npb_error_mock.assert_not_called()
 
     def test_validate_skips_none_option_token(self, mocker, caplog,
                                               tmp_path) -> None:
@@ -1227,9 +1197,9 @@ class TestKernelListValidate:
             kernels=kernels, present_kernels=('unplanned.bsp',),
             duplicates=duplicates)
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match=expected_message):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match=expected_message):
             kernel_list.validate()
 
     @pytest.mark.parametrize('kernel, log_lines', [
@@ -1368,9 +1338,9 @@ class TestKernelListValidate:
             pds3_mission_template={'DATA_SET_ID': 'X',
                                    'maklabel_options': {'SPK': {}}})
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match='CK not in configuration.'):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match='CK not in configuration.'):
             kernel_list.validate()
 
     def test_validate_aborts_when_complete_kernel_list_contains_duplicates(
@@ -1401,9 +1371,9 @@ class TestKernelListValidate:
             self.block('spice_kernels/spk/current.bsp', 'SPK', 'description'),
             encoding='utf-8')
 
-        # This behaviour will be handled by handle_npb_error, which will raise a
-        # RuntimeError. Also, checks the returned message.
-        with pytest.raises(RuntimeError, match='List contains duplicates.'):
+        # This behaviour raises NPBError directly. Also, checks the returned
+        # message.
+        with pytest.raises(NPBError, match='List contains duplicates.'):
             kernel_list.validate()
 
     def test_validate_diff_compares_with_previous_list(self, mocker,
@@ -1438,10 +1408,6 @@ class TestKernelListValidate:
         # only one release list present, kernel_lists[-2] raises IndexError,
         # which the except clause turns into an error log instead of crashing.
 
-        # TODO: BUG; in the diff branch fromfile = kernel_lists[-1] runs BEFORE
-        #       the try, so if the glob returns nothing kernel_lists[-1] raises
-        #       an uncaught IndexError.
-
         # Build a KernleList.
         kernel_list, setup, output_path = self.make_kernel_list(
             mocker, tmp_path, self.block('spice_kernels/spk/k.bsp', 'SPK', 'd'),
@@ -1461,6 +1427,94 @@ class TestKernelListValidate:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
+
+    def test_validate_diff_current_list_unavailable(self, mocker, caplog,
+                                                    tmp_path) -> None:
+        """With diff and increment enabled but no release list found at all,
+        validate() must log that the current list is missing instead of
+        raising an IndexError, and must not report it as a missing previous
+        list (that message is for the single-list case)."""
+        # Build a KernelList.
+        kernel_list, _, _ = self.make_kernel_list(
+            mocker, tmp_path, self.block('spice_kernels/spk/k.bsp', 'SPK', 'd'),
+            kernels=['k.bsp'], present_kernels=('k.bsp',),
+            diff='diff-arg', increment=True)
+
+        # Make the release-list glob come back empty.
+        mocker.patch('pds.naif_pds4_bundler.classes.list.glob.glob',
+                     return_value=[])
+
+        # Capture the logs and check the log messages and log level.
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+
+        assert (logging.ERROR, '-- Current list not available.') in results
+        assert (logging.ERROR, '-- Previous list not available.') not in results
+
+    @pytest.mark.parametrize("side_effect", [
+        pytest.param(OSError("boom"), id="oserror-bad-file"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="unicodedecodeerror-non-utf8"),
+    ])
+    def test_validate_diff_previous_list_compare_files_error(
+            self, mocker, caplog, tmp_path, side_effect) -> None:
+        """compare_files() opens both lists with encoding='utf-8' and can fail
+        with either an OSError (e.g. the file becomes unreadable between the
+        glob and the open) or UnicodeDecodeError (a legacy previous list that
+        isn't valid UTF-8) - except (IndexError, OSError, UnicodeDecodeError)
+        must catch both, falling back to the same "not available" error as a
+        missing file."""
+        compare_files_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.compare_files')
+        compare_files_mock.side_effect = side_effect
+
+        content = self.block('spice_kernels/spk/k.bsp', 'SPK', 'd')
+
+        # Unlike test_validate_diff_previous_list_unavailable above, a SECOND
+        # release list must exist on disk: this test is about compare_files()
+        # itself failing, which only runs once kernel_lists[-2] has already
+        # succeeded (a single-file glob would raise IndexError before
+        # compare_files() is ever called, testing the wrong code path).
+        kernel_list, setup, _ = self.make_kernel_list(
+            mocker, tmp_path, content, kernels=['k.bsp'],
+            present_kernels=('k.bsp',), diff='diff-arg', increment=True)
+
+        (Path(setup.working_directory) / 'maven_release_02.kernel_list').write_text(
+            self.block('spice_kernels/spk/old.bsp', 'SPK', 'd'),
+            encoding='utf-8')
+
+        with caplog.at_level(logging.INFO):
+            kernel_list.validate()
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert (logging.ERROR, '-- Previous list not available.') in results
+
+    def test_validate_diff_previous_list_propagates_unrelated_exception(
+            self, mocker, tmp_path) -> None:
+        """A bug in compare_files() that isn't a missing-file or bad-encoding
+        case (here a stand-in TypeError) must propagate and crash validate(),
+        not be misreported as "previous list not available" - proving
+        except (IndexError, OSError, UnicodeDecodeError) is still a narrow
+        catch, not a route back to swallowing everything."""
+        compare_files_mock = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.compare_files')
+        compare_files_mock.side_effect = TypeError("boom")
+
+        content = self.block('spice_kernels/spk/k.bsp', 'SPK', 'd')
+
+        kernel_list, setup, _ = self.make_kernel_list(
+            mocker, tmp_path, content, kernels=['k.bsp'],
+            present_kernels=('k.bsp',), diff='diff-arg', increment=True)
+
+        (Path(setup.working_directory) / 'maven_release_02.kernel_list').write_text(
+            self.block('spice_kernels/spk/old.bsp', 'SPK', 'd'),
+            encoding='utf-8')
+
+        with pytest.raises(TypeError, match="boom"):
+            kernel_list.validate()
 
 
 class TestKernelListWriteCompleteList:
@@ -1542,9 +1596,8 @@ class TestKernelListWriteCompleteList:
             self, mocker, tmp_path) -> None:
         # Verify the empty-input path: when no release lists are found,
         # check_consecutive([]) raises ValueError (via max() on an empty
-        # sequence), which write_complete_list catches and routes through
-        # handle_npb_error, raising RuntimeError with the same message that
-        # used to be a plain warning.
+        # sequence), which write_complete_list catches and re-raises as
+        # NPBError, with the same message that used to be a plain warning.
 
         # Mock the validate_complete call so this test isolates the
         # empty-release-list path.
@@ -1554,7 +1607,7 @@ class TestKernelListWriteCompleteList:
         # Create a KernelList instance with a temporal and empty working_directory
         kernel_list, _, output_path = self.make_kernel_list(tmp_path)
 
-        with pytest.raises(RuntimeError, match='No release kernel lists available.'):
+        with pytest.raises(NPBError, match='No release kernel lists available.'):
             kernel_list.write_complete_list()
 
         # Check that the file exists and is empty.
@@ -1579,8 +1632,8 @@ class TestKernelListWriteCompleteList:
 
         # In this case, the check_consecutive mock uses return_value=True to
         # avoid a warning.
-        mocker.patch('pds.naif_pds4_bundler.classes.list.check_consecutive',
-                     return_value=True)
+        mocker.patch.object(KernelList, '_check_consecutive',
+                            return_value=True)
 
         # Build a real KernelList with a minimal setup and the expected file
         # path.
@@ -1685,8 +1738,8 @@ class TestKernelListWriteCompleteList:
     def test_write_complete_list_raises_on_non_numeric_release_token(
             self, tmp_path) -> None:
         # Verify that a kernel list filename whose release token cannot be
-        # converted to int causes handle_npb_error to raise RuntimeError with
-        # a message that identifies both the bad token and the filename.
+        # converted to int causes NPBError to be raised with a message that
+        # identifies both the bad token and the filename.
 
         kernel_list, _, _ = self.make_kernel_list(tmp_path)
         working_directory = Path(kernel_list.setup.working_directory)
@@ -1696,7 +1749,7 @@ class TestKernelListWriteCompleteList:
         bad_release = working_directory / 'maven_release_abc.kernel_list'
         bad_release.write_text('RELEASE BAD\n', encoding='utf-8')
 
-        with pytest.raises(RuntimeError, match="Non-numeric release token 'abc'"):
+        with pytest.raises(NPBError, match="Non-numeric release token 'abc'"):
             kernel_list.write_complete_list()
 
 
@@ -1712,9 +1765,10 @@ class TestKernelListValidateComplete:
          template file as ``--<option>``.
 
     The method is heavily side effect driven (it logs almost everything and only
-    raises through ``handle_npb_error`` / a bare ``Exception``), so the tests
-    below isolate the *logging* from the *control-flow* boundaries exactly as the
-    sibling ``TestKernelListValidate`` class does.
+    raises via ``NPBError`` -- for checks 2 and 3 -- or a bare ``Exception``
+    for check 1), so the tests below isolate the *logging* from the
+    *control-flow* boundaries exactly as the sibling ``TestKernelListValidate``
+    class does.
     """
 
     @staticmethod
@@ -1748,8 +1802,10 @@ class TestKernelListValidateComplete:
         working_directory.mkdir(exist_ok=True)
         config_directory.mkdir(exist_ok=True)
 
-        # check_list_duplicates is the only collaborator inside the method (other
-        # than handle_npb_error, mocked per-test). Default: no duplicates.
+        # check_list_duplicates is the only mocked collaborator inside the
+        # method -- there is no longer a function call to intercept on the
+        # error path, since it raises NPBError directly. Default: no
+        # duplicates.
         mocker.patch('pds.naif_pds4_bundler.classes.list.check_list_duplicates',
                      return_value=duplicates)
 
@@ -1881,8 +1937,8 @@ class TestKernelListValidateComplete:
     def test_validate_complete_raises_on_entry_count_mismatch(
             self, mocker, tmp_path, content) -> None:
         # Diverging FILE/OPTIONS/DESCRIPTION counts must abort validation with a
-        # bare Exception (NOT handle_npb_error). This is the only failure path in
-        # validate_complete that raises directly.
+        # bare Exception, not NPBError -- this is the only failure path in
+        # validate_complete that does not go through the domain exception.
 
         kernel_list, _, _ = self.make_kernel_list(mocker, tmp_path, content)
 
@@ -1949,23 +2005,20 @@ class TestKernelListValidateComplete:
             kernel_list.validate_complete()
 
     # ------------------------------------------------------------------
-    # Duplicate detection: routed through handle_npb_error.
+    # Duplicate detection: raises NPBError.
     # ------------------------------------------------------------------
 
-    def test_validate_complete_reports_duplicates_via_handle_npb_error(
+    def test_validate_complete_reports_duplicates_via_npberror(
             self, mocker, tmp_path) -> None:
-        # When check_list_duplicates returns True, validate_complete calls
-        # handle_npb_error("List contains duplicates."), which always raises
-        # RuntimeError. The real function is used — exactly as
-        # TestKernelListValidate.test_validate_reports_error_condition does —
-        # because spiceypy.kclear() is safe to call with no kernels loaded.
+        # When check_list_duplicates returns True, validate_complete raises
+        # NPBError("List contains duplicates.") directly.
 
         content = self.block('spice_kernels/spk/dup.bsp', 'SPK', 'd')
 
         kernel_list, _, _ = self.make_kernel_list(
             mocker, tmp_path, content, duplicates=True)
 
-        with pytest.raises(RuntimeError, match='List contains duplicates.'):
+        with pytest.raises(NPBError, match='List contains duplicates.'):
             kernel_list.validate_complete()
 
     # ------------------------------------------------------------------
@@ -1989,8 +2042,9 @@ class TestKernelListValidateComplete:
                 self.block('spice_kernels/spk/a.bsp', 'SPK LSK', 'd')
                 + self.block('spice_kernels/ck/b.bc', 'CK SPK', 'd'))
 
-        # Template must contain every distinct option as --<option> to avoid the
-        # handle_npb_error escalation; this isolates the display/order logic.
+        # Template must contain every distinct option as --<option> to avoid
+        # the NPBError raised for a missing option; this isolates the
+        # display/order logic.
         template = '--SPK\n--LSK\n--CK\n'
 
         kernel_list, _, _ = self.make_kernel_list(
@@ -2026,8 +2080,8 @@ class TestKernelListValidateComplete:
 
     def test_validate_complete_pds3_rejects_option_absent_from_template(
             self, mocker, tmp_path) -> None:
-        # On PDS3, an option missing from the mission template must escalate via
-        # handle_npb_error with the "<option> not in template." message.
+        # On PDS3, an option missing from the mission template must raise
+        # NPBError with the "<option> not in template." message.
 
         content = self.block('spice_kernels/ck/b.bc', 'CK', 'd')
 
@@ -2038,7 +2092,7 @@ class TestKernelListValidateComplete:
             mocker, tmp_path, content, pds_version='3',
             template_content=template)
 
-        with pytest.raises(RuntimeError, match='CK not in template.'):
+        with pytest.raises(NPBError, match='CK not in template.'):
             kernel_list.validate_complete()
 
     def test_validate_complete_pds3_collects_literal_none_option(
@@ -2177,9 +2231,6 @@ class TestKernelListCheckProducts:
         # Build a real KernelList without running the heavy __init__.
         # check_products only consumes kernel_list and a handful of
         # setup attributes, so a SimpleNamespace setup is enough.
-        #
-        # template_files, write_file_list and write_checksum_registry are
-        # required by the real handle_npb_error when setup is not None.
         kernels_directory = tmp_path / 'kernels'
         orbnum_directory = tmp_path / 'orbnum'
         kernels_directory.mkdir(exist_ok=True)
@@ -2190,10 +2241,7 @@ class TestKernelListCheckProducts:
             orbnum_directory=str(orbnum_directory),
             pds_version=pds_version,
             eol=eol,
-            args=SimpleNamespace(silent=silent, verbose=verbose),
-            template_files=[],
-            write_file_list=lambda: None,
-            write_checksum_registry=lambda: None)
+            args=SimpleNamespace(silent=silent, verbose=verbose))
 
         kernel_list = KernelList.__new__(KernelList)
         kernel_list.kernel_list = kernels
@@ -2218,29 +2266,32 @@ class TestKernelListCheckProducts:
         # the already-imported object, so no second import statement is needed.
         list_module = sys.modules[KernelList.__module__]
 
-        # Patch every 'check_*' boundary on the list module.
+        # Patch every 'check_*' boundary: the helpers KernelList owns are
+        # private methods on the class, the rest live on the list module.
         defaults = {
             'check_eol': None,
             'check_badchar': [],
             'check_line_length': [],
             'check_kernel_integrity': None,
             'check_binary_endianness': None,
-            'check_permissions': [],
+            'check_permissions': None,
         }
         defaults.update(return_values)
 
         mocks = SimpleNamespace()
         for name, value in defaults.items():
-            setattr(mocks, name,
-                    mocker.patch.object(list_module, name, return_value=value))
+            if name in _KERNEL_LIST_CHECKS:
+                mock = mocker.patch.object(KernelList, f'_{name}',
+                                           return_value=value)
+            else:
+                mock = mocker.patch.object(list_module, name,
+                                           return_value=value)
+            setattr(mocks, name, mock)
 
         # 'product_mapping' is only reached on the fallback path; by default
         # it returns a sentinel that never matches a real filename.
         mocks.product_mapping = mocker.patch.object(
             list_module, 'product_mapping', return_value='__no_match__')
-
-        # Prevent SPICE pool operations in every test.
-        mocks.kclear = mocker.patch('spiceypy.kclear')
 
         return mocks
 
@@ -2311,24 +2362,95 @@ class TestKernelListCheckProducts:
         mocks.check_binary_endianness.assert_called_once_with(
             expected_path, endianness='little')
 
+    def test_check_products_mapping_fallback_bug_propagates(self, mocker,
+                                                            tmp_path) -> None:
+        """A bug inside product_mapping (TypeError) is not a "file not
+        found" case, so it must propagate instead of being misreported
+        as a missing product. This proves the fallback except clause was
+        narrowed from Exception to IndexError: before the fix, any
+        exception here - including this one - was silently swallowed."""
+        # A file must exist in the kernels directory so os.walk yields a
+        # candidate filename for check_products to compare against; otherwise
+        # the fallback list comprehension has nothing to iterate over and never
+        # calls product_mapping at all.
+        self.write_kernel(tmp_path, 'maven_mapped.bc')
+
+        mocks = self.patch_checks(mocker)
+
+        # Force the mapping call to fail with a bug-like exception instead of
+        # returning a name, standing in for a real defect in product_mapping.
+        mocks.product_mapping.side_effect = TypeError("boom")
+
+        # This name deliberately doesn't match any file on disk, so the
+        # exact-match lookup fails first (IndexError, correctly swallowed) and
+        # check_products falls through to the product_mapping path.
+        product = 'maven_logical.bc'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        # The TypeError from product_mapping must reach the caller unchanged,
+        # not be turned into a "product not present" NPBError.
+        with pytest.raises(TypeError, match="boom"):
+            kernel_list.check_products()
+
+    @pytest.mark.parametrize("side_effect", [
+        pytest.param(
+            FileNotFoundError("maven_release_01.kernel_list"),
+            id="missing-kernel-list-file"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="non-utf8-kernel-list-file"),
+        pytest.param(
+            ValueError("invalid literal for int() with base 10: 'bad'"),
+            id="non-numeric-setup-release"),
+    ])
+    def test_check_products_mapping_fallback_reports_absent(
+            self, mocker, caplog, tmp_path, side_effect) -> None:
+        """product_mapping() unconditionally opens the current release's
+        .kernel_list file with encoding='utf-8' (raising FileNotFoundError if
+        check_products() runs before that file exists, e.g. a checks-only
+        run, or UnicodeDecodeError if it isn't valid UTF-8) and computes
+        int(setup.release) first (raising ValueError if setup.release is
+        misconfigured). Either way, this must be treated as a real "no
+        mapping" result - "product not present" - not crash, proving the
+        fallback except clause covers FILE_READ_ERRORS and ValueError, not
+        just IndexError."""
+        # A file must exist so os.walk yields a candidate for check_products
+        # to compare against and fall through to product_mapping (see the
+        # bug_propagates test above for the same reasoning).
+        self.write_kernel(tmp_path, 'maven_mapped.bc')
+
+        mocks = self.patch_checks(mocker)
+        mocks.product_mapping.side_effect = side_effect
+
+        product = 'maven_logical.bc'
+        kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
+
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
+                kernel_list.check_products()
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert (logging.ERROR,
+                '     Product not present in any kernel directory(ies)'
+                ) in results
+
     def test_check_products_missing_non_mk_records_error_and_skips_checks(
             self, mocker, caplog, tmp_path) -> None:
         # A non meta-kernel product that cannot be found anywhere records a
         # fatal error, skips all file checks for that product via continue,
-        # and raises RuntimeError through the real handle_npb_error.
+        # and raises NPBError.
         mocks = self.patch_checks(mocker)
         product = 'maven_absent.tsc'
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, '     Product not present in any kernel directory(ies)'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2337,8 +2459,6 @@ class TestKernelListCheckProducts:
         # No file check ran: the product was skipped via continue.
         mocks.check_permissions.assert_not_called()
         mocks.check_kernel_integrity.assert_not_called()
-        # 'handle_npb_error' called kclear before raising.
-        mocks.kclear.assert_called_once()
 
     def test_check_products_missing_meta_kernel_records_warning_only(
             self, mocker, caplog, tmp_path) -> None:
@@ -2361,7 +2481,6 @@ class TestKernelListCheckProducts:
         assert results == expected
 
         mocks.check_permissions.assert_not_called()
-        mocks.kclear.assert_not_called()
 
     def test_check_products_present_in_multiple_directories_warns(
             self, mocker, caplog, tmp_path) -> None:
@@ -2400,7 +2519,6 @@ class TestKernelListCheckProducts:
         assert results == expected
         # The first directory wins: every file check uses the first path.
         mocks.check_kernel_integrity.assert_called_once_with(str(first_path))
-        mocks.kclear.assert_not_called()
 
     # ------------------------------------------------------------------ #
     # EOL selection and text checks
@@ -2441,7 +2559,7 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path) -> None:
         # A bad EOL on an ORBNUM file is recorded as a warning, so no
         # RuntimeError is raised.
-        mocks = self.patch_checks(mocker, check_eol='Wrong EOL')
+        self.patch_checks(mocker, check_eol='Wrong EOL')
         product = 'm01_rec.orb'
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
@@ -2455,8 +2573,6 @@ class TestKernelListCheckProducts:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
-
-        mocks.kclear.assert_not_called()
 
     def test_check_products_badchar_and_line_length_warn(
             self, mocker, caplog, _text_kernel) -> None:
@@ -2482,8 +2598,6 @@ class TestKernelListCheckProducts:
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
-
-        mocks.kclear.assert_not_called()
 
     def test_check_products_orbnum_skips_line_length(
             self, mocker, tmp_path) -> None:
@@ -2528,52 +2642,38 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, tmp_path, product, failing_check,
             error_text, log_line) -> None:
         # Any check that returns an error string for a regular kernel must be
-        # logged at ERROR level and cause RuntimeError via handle_npb_error.
-        # The three error-producing checks are parametrized to prove they share
-        # the same fatal path without duplicating the test body.
-        mocks = self.patch_checks(mocker, **{failing_check: error_text})
+        # logged at ERROR level and cause NPBError to be raised. The three
+        # error-producing checks are parametrized to prove they share the
+        # same fatal path without duplicating the test body.
+        self.patch_checks(mocker, **{failing_check: error_text})
         self.write_kernel(tmp_path, product)
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, f'{log_line}'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert results == expected
 
-        mocks.kclear.assert_called_once()
-
-    def test_check_products_calls_permissions_twice(
-            self, mocker, caplog, _text_kernel) -> None:
-        # TODO: BUG; 'check_products' calls 'check_permissions' twice on
-        #       the same path.
+    def test_check_products_unreadable_file_raises_once(
+            self, mocker, _text_kernel) -> None:
+        # The real check raises NPBError instead of returning a message, so
+        # an unreadable file stops check_products at the first call.
         kernel_list, expected_path = _text_kernel
-        mocks = self.patch_checks(mocker, check_permissions=['not readable'])
+        mocks = self.patch_checks(mocker)
+        mocks.check_permissions.side_effect = NPBError('not readable')
 
-        with caplog.at_level(logging.INFO):
+        with pytest.raises(NPBError, match='not readable'):
             kernel_list.check_products()
 
-        expected = [
-            (logging.WARNING, '-- maven_test.tsc'),
-            (logging.WARNING, '     not readable')]
-
-        results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-        assert results == expected
-
-        assert mocks.check_permissions.call_count == 2
-        assert mocks.check_permissions.call_args_list == [
-            mocker.call(expected_path), mocker.call(expected_path)]
-
-        mocks.kclear.assert_not_called()
+        mocks.check_permissions.assert_called_once_with(expected_path)
 
     # ------------------------------------------------------------------ #
     # Reporting: logging
@@ -2582,22 +2682,20 @@ class TestKernelListCheckProducts:
             self, mocker, caplog, _text_kernel) -> None:
         # Verify the logging side of reporting end to end for a single product:
         # header at WARNING, then each warning at WARNING, then each error at
-        # ERROR, then the empty ERROR line from handle_npb_error, and finally
-        # handle_npb_error's own fatal line at ERROR.
+        # ERROR, then the empty ERROR line preceding the NPBError raise.
         kernel_list, _ = _text_kernel
         self.patch_checks(mocker, check_eol='Wrong EOL',
                           check_badchar=['bad char'])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError):
+            with pytest.raises(NPBError):
                 kernel_list.check_products()
 
         expected = [
             (logging.WARNING, '-- maven_test.tsc'),
             (logging.WARNING, '     bad char'),
             (logging.ERROR, '     Wrong EOL'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2649,7 +2747,7 @@ class TestKernelListCheckProducts:
             tmp_path, kernels=[clean, warned, failed])
 
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
@@ -2657,8 +2755,7 @@ class TestKernelListCheckProducts:
             (logging.WARNING, '     bad char'),
             (logging.WARNING, f'-- {failed}'),
             (logging.ERROR, '     Wrong EOL'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2714,14 +2811,13 @@ class TestKernelListCheckProducts:
         kernel_list = self.make_kernel_list(tmp_path, kernels=[product],
                                             silent=False, verbose=False)
         with caplog.at_level(logging.INFO):
-            with pytest.raises(RuntimeError, match=_CHECK_FATAL_MESSAGE):
+            with pytest.raises(NPBError, match=_CHECK_FATAL_MESSAGE):
                 kernel_list.check_products()
 
         expected = [
             (logging.WARNING, f'-- {product}'),
             (logging.ERROR, '     Bad arch'),
-            (logging.ERROR, ''),
-            (logging.ERROR, f'-- {_CHECK_FATAL_MESSAGE}')]
+            (logging.ERROR, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
 
@@ -2749,3 +2845,294 @@ class TestKernelListCheckProducts:
         kernel_list.check_products()
 
         assert capsys.readouterr().out == ''
+
+
+# ---------------------------------------------------------------------------
+# Tests of the helpers moved from utils/files.py into KernelList
+# ---------------------------------------------------------------------------
+
+class TestKernelListCheckBadchar:
+    """Tests for the ``_check_badchar`` method.
+    """
+
+    @pytest.mark.parametrize("contents, expected", [
+        ("the OSIRIS-REx spacecraft", []),
+        ("where\nVersion", []),
+        ("Mission © Bennu", ["NON-ASCII character(s) in line 1:", "Mission © Bennu", "        ^      "]),
+        ("INS-155101_FOV_REF_ANGLE”=", ["NON-ASCII character(s) in line 1:", "INS-155101_FOV_REF_ANGLE”=",
+         "                        ^ "]),
+        ("π = 3.14 & Σ = sum", ["NON-ASCII character(s) in line 1:", "π = 3.14 & Σ = sum",
+         "^          ^      "]),
+        ("Line 1: Mission\nLine 2: Ma”rs\nLine 3: and bye”nd", ["NON-ASCII character(s) in line 2:", "Line 2: Ma”rs",
+         "          ^  ", "NON-ASCII character(s) in line 3:", "Line 3: and bye”nd", "               ^  "]),
+        ("", []),
+    ])
+    def test_check_badchar(self, tmp_path, contents, expected):
+        """"Test _check_badchar method using pytest."""
+        test_file = tmp_path / "test_chars.txt"
+        test_file.write_text(contents, encoding="utf-8")
+
+        errors = KernelList._check_badchar(str(test_file))
+
+        assert errors == expected
+
+
+class TestKernelListCheckBinaryEndianness:
+    """Tests for the ``_check_binary_endianness`` method."""
+
+    @pytest.mark.parametrize("kernel, endianness, expected_error", [
+        # Tests for "required little endian kernels."
+        (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'little', None),
+        (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'little',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'little', None),
+        (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'little',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'little', None),
+        (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'little',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'little', None),
+        (Path('spk', 'mro_psp60.big.bsp'), 'little',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('ek', 'lroevnt_2010193_2010200_v01.bes'), 'little',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('ek', 'eros_n2000129x_v01_ltl.bpe'), 'little', None),
+        (Path('ek', 'eros_n2000129x_v01.bpe'), 'little',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('ek', 'S99_CIMSSSUPa.bep'), 'little',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('ek', '11A.bdb'), 'little',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        # Tests for "required big endian kernels."
+        (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'big',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'big', None),
+        (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'big',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'big', None),
+        (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'big',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'big', None),
+        (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'big',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('spk', 'mro_psp60.big.bsp'), 'big', None),
+        (Path('ek', 'lroevnt_2010193_2010200_v01.bes'), 'big', None),
+        (Path('ek', 'eros_n2000129x_v01_ltl.bpe'), 'big',
+         "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
+        (Path('ek', 'eros_n2000129x_v01.bpe'), 'big', None),
+        (Path('ek', 'S99_CIMSSSUPa.bep'), 'big', None),
+        (Path('ek', '11A.bdb'), 'big', None),
+        # Tests for "invalid SPICE kernel architecture."
+        (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'little',
+         'The binary kernel does not have a DAF or DAS architecture.'),
+        (Path('pck', 'pck00010.tpc'), 'little',
+         'The binary kernel does not have a DAF or DAS architecture.'),
+        (Path('ek', 'm01_mmdmt_ext10.ten'), 'little',
+         'The binary kernel does not have a DAF or DAS architecture.'),
+        (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'big',
+         'The binary kernel does not have a DAF or DAS architecture.'),
+        (Path('pck', 'pck00010.tpc'), 'big',
+         'The binary kernel does not have a DAF or DAS architecture.'),
+        (Path('ek', 'm01_mmdmt_ext10.ten'), 'big',
+         'The binary kernel does not have a DAF or DAS architecture.')
+    ])
+    def test_check_binary_endianness(self, kernel, endianness, expected_error) -> None:
+        """Test checking binary file format."""
+        error = KernelList._check_binary_endianness(str(KERNELS / kernel), endianness=endianness)
+        assert error == expected_error
+
+
+class TestKernelListCheckConsecutive:
+    """Tests for the ``_check_consecutive`` method."""
+
+    @pytest.mark.parametrize("lst, cc_bool", [
+        ([1, 2, 3, 4, 5], True),
+        ([1, 2, 3, 4, 5, 5, 5], False),
+        ([1, 2, 3, 4, 7, 5], False),
+        ([19], False),
+        ([1, 19], False),
+        ([1, 2], True),
+    ])
+    def test_check_consecutive(self, lst, cc_bool):
+        """Test _check_consecutive method with pytest."""
+        # Note - the function does not work if the list is empty, contains
+        # no integer values or if the numbers within the list are negative.
+        assert KernelList._check_consecutive(list(lst)) is cc_bool
+
+
+class TestKernelListCheckKernelIntegrity:
+    """Tests for the ``_check_kernel_integrity`` method."""
+
+    def test_check_kernel_integrity_binary_kernel(self, tmp_path):
+        """Test binary kernel integrity."""
+
+        src_kernel = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc")
+
+        # Subcase 1: Correct binary kernel architecture
+        error = KernelList._check_kernel_integrity(src_kernel)
+        assert not error
+
+        # Subcase 2: Incorrect kernel type (wrong extension)
+        wrong_ext = tmp_path / "insight_ida_enc_200829_201220_v1.bsp"
+        shutil.copy(src_kernel, wrong_ext)
+        error = KernelList._check_kernel_integrity(str(wrong_ext))
+        assert error
+
+        # Subcase 3: Incorrect file name → should raise ValueError
+        bad_name = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.xc")
+
+        expected_message = (
+            "Unsupported kernel extension 'XC' for kernel "
+            "insight_ida_enc_200829_201220_v1.xc: not present in the SPICE "
+            "kernel type map.")
+
+        with pytest.raises(ValueError, match=expected_message):
+            KernelList._check_kernel_integrity(bad_name)
+
+        # Subcase 4: Incorrect architecture (copy bad file into .bc)
+        bad_arch_copy = tmp_path / "insight_ida_enc_200829_201220_v1.bc"
+        shutil.copy(bad_name, bad_arch_copy)
+        error = KernelList._check_kernel_integrity(str(bad_arch_copy))
+        assert error
+
+    def test_check_kernel_integrity_text_kernel(self, tmp_path):
+        """Test text kernel integrity."""
+
+        kernel_path = tmp_path / "test.tf"
+
+        # Subcase 1: Correct text kernel architecture
+        kernel_path.write_text("KPL/FK\n")
+        error = KernelList._check_kernel_integrity(str(kernel_path))
+        assert not error
+
+        # Subcase 2: Non-existing kernel architecture
+        kernel_path.write_text("KPLO/FK\n")
+        error = KernelList._check_kernel_integrity(str(kernel_path))
+        assert error
+
+        # Subcase 3: Incorrect text kernel architecture
+        kernel_path.write_text("DAF/FK\n")
+        error = KernelList._check_kernel_integrity(str(kernel_path))
+        assert error
+
+        # Subcase 4: Mismatch text kernel type (extension vs content)
+        ti_path = tmp_path / "test.ti"
+        ti_path.write_text("KPL/FK\n")
+        error = KernelList._check_kernel_integrity(str(kernel_path))
+        assert error
+
+        # Subcase 5: Non-existing text kernel type
+        kernel_path.write_text("KPL/SLC\n")
+        error = KernelList._check_kernel_integrity(str(kernel_path))
+        assert error
+
+        # subcase 6: Text event kernel missing both markers should fail.
+        ten_file = tmp_path / "missing_markers.ten"
+        ten_file.write_text("This is just plain text with no event kernel markers\n")
+
+        error = KernelList._check_kernel_integrity(str(ten_file))
+        assert error != ""
+        assert "does not contain required" in error
+        assert "\\header" in error
+        assert "\\text" in error
+
+        # subcase 6a: Text event kernel missing \\header marker should fail.
+        ten_file = tmp_path / "missing_header.ten"
+        ten_file.write_text("\\text\nSome event data\n")
+
+        error = KernelList._check_kernel_integrity(str(ten_file))
+        assert error != ""
+        assert "does not contain required" in error
+
+        # subcase 6b: Text event kernel missing \\text marker should fail.
+        ten_file = tmp_path / "missing_text.ten"
+        ten_file.write_text("\\header\nSome header data\n")
+
+        error = KernelList._check_kernel_integrity(str(ten_file))
+        assert error != ""
+        assert "does not contain required" in error
+
+    def test_check_kernel_integrity_text_event_kernel(self, tmp_path, monkeypatch):
+        """Comprehensive test ensuring all exceptions are exercised for text EKs (.ten)."""
+        ten_file = tmp_path / "coverage.ten"
+
+        # Test 1: Normal operation (no exception)
+        ten_file.write_text("\\header\n\\text\n")
+        error = KernelList._check_kernel_integrity(str(ten_file))
+        assert error == ""  # Success path
+
+        # Test 2: UnicodeDecodeError path
+        with open(ten_file, 'wb') as f:
+            f.write(b"\xff\xfe")
+        error = KernelList._check_kernel_integrity(str(ten_file))
+        assert "encoding error" in error  # UnicodeDecodeError path
+
+
+class TestKernelListCheckPermissions:
+    """Tests for the ``_check_permissions`` method.
+    """
+
+    @pytest.mark.parametrize("path", [
+        (Path(KERNELS/'ck'/'insight_ida_enc_200829_201220_v1.bc')),
+        (Path(KERNELS/'dsk'/'DEIMOS_K005_THO_V01.BDS')),
+    ])
+    def test_check_permissions(self, path):
+        """Test _check_permissions method using pytest."""
+        KernelList._check_permissions(str(path))
+
+    def test_check_permissions_unreadable_raises(self, monkeypatch, tmp_path):
+        """A file the account cannot read raises NPBError with the path."""
+        def raise_permission_error(*_, **__):
+            raise PermissionError()
+
+        fake_file = tmp_path / "file.txt"
+        fake_file.write_text("Secret")
+
+        monkeypatch.setattr(Path, "open", raise_permission_error)
+
+        expected = (
+            f"File {fake_file} is not readable by the account that runs NPB. "
+            "Update permissions."
+        )
+
+        with pytest.raises(NPBError, match=re.escape(expected)):
+            KernelList._check_permissions(str(fake_file))
+
+
+class TestKernelListFillTemplate:
+    """Tests for the ``_fill_template`` method.
+    """
+
+    @pytest.mark.parametrize("contents, dct, expected", [
+        ("$MISSION_NAME is a mission to $TARGET!",
+         {"MISSION_NAME": "Mars2020", "TARGET": "Mars"},
+         "Mars2020 is a mission to Mars!\n"),
+        ("<Time_Coordinates>\n"
+         "<start_date_time>$START_TIME</start_date_time>\n"
+         "<stop_date_time>$STOP_TIME</stop_date_time>\n"
+         "</Time_Coordinates>",
+         {"START_TIME": "2021-10-16T10:32:00Z", "STOP_TIME": "2025-05-05T00:29:39Z"},
+         "<Time_Coordinates>\n"
+         "<start_date_time>2021-10-16T10:32:00Z</start_date_time>\n"
+         "<stop_date_time>2025-05-05T00:29:39Z</stop_date_time>\n"
+         "</Time_Coordinates>\n"),
+        ("My cats like to $WHAT",
+         {"WHAT": "purrrr"},
+         "My cats like to purrrr\n"),
+        ("<title>$PDS4_MISSION_NAME SPICE Kernel Collection</title>",
+         {"PDS4_MISSION_NAME": "Lucy"},
+         "<title>Lucy SPICE Kernel Collection</title>\n")
+    ])
+    def test_fill_template(self, tmp_path, contents, dct, expected):
+        """Test _fill_template method using pytest."""
+        template_file = tmp_path / "template.txt"
+        template_file.write_text(contents)
+        product_file = tmp_path / "output.txt"
+
+        kernel_list = KernelList.__new__(KernelList)
+        kernel_list.template = str(template_file)
+
+        kernel_list._fill_template(str(product_file), dct)
+
+        result = product_file.read_text()
+        assert result == expected

@@ -6,7 +6,6 @@ from types import SimpleNamespace
 
 from .product import Product
 from ..exceptions import NPBError
-from ..label import BundlePDS4Label
 from ...utils import add_carriage_return
 from ...utils import md5
 
@@ -15,10 +14,11 @@ class ReadmeProduct(Product):
     """Class to generate the Readme Product.
 
     :param setup:  NPB execution setup object
+    :param run_state: State of the current pipeline execution
     :param bundle: Bundle that contains the Readme Product
     """
 
-    def __init__(self, setup, bundle) -> None:
+    def __init__(self, setup, run_state, bundle) -> None:
         """Constructor."""
         self.name = "readme.txt"
         self.bundle = bundle
@@ -49,7 +49,7 @@ class ReadmeProduct(Product):
             #
             self.bundle.checksum = md5(self.path)
 
-        super().__init__()
+        super().__init__(run_state)
 
         logging.info("")
 
@@ -57,9 +57,6 @@ class ReadmeProduct(Product):
         # Now we change the path for the difference of the name in the label
         #
         self.path = setup.staging_directory + os.sep + bundle.name
-
-        logging.info("-- Generating bundle label...")
-        self.label = BundlePDS4Label(setup, self)
 
     def _write_product(self) -> None:
         """Write the Readme product."""
@@ -89,38 +86,30 @@ class ReadmeProduct(Product):
                             #       self.setup.eol instead. This inconsistency
                             #       means the generated readme can mix two
                             #       different line endings in the same file.
-                            line = add_carriage_return(
-                                line, self.setup.eol_pds4, self.setup
-                            )
+                            line = add_carriage_return(line, self.setup.eol_pds4)
                             f.write(line)
                         elif "$UNDERLINE" in line:
                             line = line.replace("$UNDERLINE", "=" * line_length)
                             line_length = len(line) - 1
                             # TODO: BUG; same eol_pds4 vs eol inconsistency as
                             #       the $SPICE_NAME branch above.
-                            line = add_carriage_return(
-                                line, self.setup.eol_pds4, self.setup
-                            )
+                            line = add_carriage_return(line, self.setup.eol_pds4)
                             f.write(line)
                         elif "$OVERVIEW" in line:
                             overview = self.setup.readme["overview"]
                             for line in overview.split("\n"):
                                 line = " " * 3 + line.strip() + "\n"
-                                line = add_carriage_return(
-                                    line, self.setup.eol, self.setup
-                                )
+                                line = add_carriage_return(line, self.setup.eol)
                                 f.write(line)
                         elif "$COGNISANT_AUTHORITY" in line:
                             cognisant = self.setup.readme["cognisant_authority"]
                             for line in cognisant.split("\n"):
                                 line = " " * 3 + line.strip() + "\n"
-                                line = add_carriage_return(
-                                    line, self.setup.eol, self.setup
-                                )
+                                line = add_carriage_return(line, self.setup.eol)
                                 f.write(line)
                         else:
                             line_length = len(line) - 1
-                            line = add_carriage_return(line, self.setup.eol, self.setup)
+                            line = add_carriage_return(line, self.setup.eol)
                             f.write(line)
 
         logging.info("-- Created readme file.")

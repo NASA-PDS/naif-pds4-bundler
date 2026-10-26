@@ -21,7 +21,6 @@ class DummySetup:
         self.run_type = "archive"
         self.working_directory = str(tmp_path)
         self.template_files = []
-        self.step = 3
         self.pds_version = "4"
         self.release = "1"
 

@@ -2,8 +2,8 @@
 
 Two test classes are provided:
 
-* TestOrbnumFilePDS4Label – unit tests that mock the inherited label
-  writing so the constructor, ``get_table_character_fields``,
+* TestOrbnumFilePDS4Label – unit tests that build the label without
+  writing it, so the constructor, ``get_table_character_fields``,
   ``get_table_character_description`` and ``field_template`` can be
   exercised in isolation.
 
@@ -160,12 +160,11 @@ class TestOrbnumFilePDS4Label:
     @pytest.fixture()
     def label(self, tmp_path: Path,
               helpers: SimpleNamespace) -> OrbnumFilePDS4Label:
-        """Build an OrbnumFilePDS4Label instance while mocking inherited file
-        writing.
+        """Build an OrbnumFilePDS4Label instance.
 
         :param tmp_path: pytest temporary directory
         :param helpers:  specialized OrbNum factories
-        :return: constructed label with write_label patched out
+        :return: constructed label
         """
         # Create a controlled Setup mock with the PDS4 attributes needed by the
         # label.
@@ -179,55 +178,51 @@ class TestOrbnumFilePDS4Label:
         # OrbnumFilePDS4Label.
         product = helpers.make_product(staging)
 
-        # Avoid real template reading and file writing in unit tests.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            # Instantiate the real class so its constructor assignments are
-            # executed.
-            instance = OrbnumFilePDS4Label(setup, product)
-
-        return instance
+        # Instantiate the real class so its constructor assignments are
+        # executed.
+        product.setup = setup
+        return OrbnumFilePDS4Label(product)
 
     # ------------------------------------------------------------------
     # Regular tests
     # ------------------------------------------------------------------
 
-    def test_attribute_assignments(self, label: OrbnumFilePDS4Label) -> None:
+    def test_attribute_assignments(self, tmp_path: Path, label: OrbnumFilePDS4Label) -> None:
         # Validate the PDS4 OrbNum label attributes populated during
         # construction.
 
         # Check that FILE_NAME has been copied from product.name.
-        assert label.FILE_NAME == 'maven_orb_v01.orb'
+        assert label._label_fields["FILE_NAME"] == 'maven_orb_v01.orb'
 
         # Check that the PDS4 logical identifier and the product version have
         # been copied correctly from product.lid and product.vid.
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:miscellaneous:orbnum_maven_orb_v01.orb')
-        assert label.PRODUCT_VID == '1.0'
+        assert label._label_fields["PRODUCT_VID"] == '1.0'
 
         # Check the fixed value defined by OrbnumFilePDS4Label.
-        assert label.FILE_FORMAT == 'Character'
+        assert label._label_fields["FILE_FORMAT"] == 'Character'
 
         # Check that the time coverage is copied from product.start_time and
         # product.stop_time, respectively.
-        assert label.START_TIME == '2024-01-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-01-31T23:59:59Z'
+        assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-01-31T23:59:59Z'
 
         # Check that the description is copied from product.description.
-        assert label.DESCRIPTION == 'MAVEN orbit number file'
+        assert label._label_fields["DESCRIPTION"] == 'MAVEN orbit number file'
 
         # Check that the numeric metadata is str()-coerced. HEADER_LENGTH and
         # TABLE_OFFSET both come from product.header_length because the table
         # data begins right after the header.
-        assert label.HEADER_LENGTH == '873'
-        assert label.TABLE_OFFSET == '873'
-        assert label.TABLE_RECORDS == '100'
+        assert label._label_fields["HEADER_LENGTH"] == '873'
+        assert label._label_fields["TABLE_OFFSET"] == '873'
+        assert label._label_fields["TABLE_RECORDS"] == '100'
 
         # Check that the number of fields is the str() of len(product.params).
-        assert label.NUMBER_OF_FIELDS == '3'
+        assert label._label_fields["NUMBER_OF_FIELDS"] == '3'
 
         # Check that the XML label name is derived from the product name.
-        assert label.name == 'maven_orb_v01.xml'
+        assert label.name == str(tmp_path / 'staging' / 'miscellaneous' / 'maven_orb_v01.xml')
 
     def test_template_path_is_orbnum_template(
             self, label: OrbnumFilePDS4Label) -> None:
@@ -258,9 +253,10 @@ class TestOrbnumFilePDS4Label:
         assert instance._mission_reference_type == expected_mission
         assert instance._target_reference_type == expected_target
 
-    def test_constructor_stores_references_and_writes_label_once(
+    def test_constructor_stores_references_and_does_not_write_label(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Validate constructor wiring and its single write_label side effect.
+        # Validate constructor wiring and that building the label has no
+        # write_label side effect.
 
         # Build the collaborators required by the label constructor.
         setup = helpers.make_setup()
@@ -271,10 +267,11 @@ class TestOrbnumFilePDS4Label:
 
         product = helpers.make_product(staging)
 
-        # Avoid real file writing while checking the constructor side effect.
+        # Patch write_label to detect any write triggered by the constructor.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
-            label = OrbnumFilePDS4Label(setup, product)
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         # Verify that label.setup is exactly the same setup object that was
         # passed to the constructor, and the same applies to label.product with
@@ -282,9 +279,8 @@ class TestOrbnumFilePDS4Label:
         assert label.setup is setup
         assert label.product is product
 
-        # Check that write_label() was called once and that it was called with
-        # the label instance.
-        mock_write.assert_called_once_with(label)
+        # Constructing the label must not write it; the pipeline does that.
+        mock_write.assert_not_called()
 
     @pytest.mark.parametrize('product_attribute, value, label_attribute', [
         ('lid', '', 'PRODUCT_LID'),
@@ -313,14 +309,12 @@ class TestOrbnumFilePDS4Label:
         # Dynamically override the product attribute under test.
         setattr(product, product_attribute, value)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
         # Check that the expected label attribute contains exactly the value
         # assigned to the product.
-        assert getattr(label, label_attribute) == value
+        assert label._label_fields[label_attribute] == value
 
     @pytest.mark.parametrize('product_attribute, value, label_attribute, expected', [
         ('header_length', 0, 'HEADER_LENGTH', '0'),
@@ -343,11 +337,10 @@ class TestOrbnumFilePDS4Label:
         product = helpers.make_product(staging)
         setattr(product, product_attribute, value)
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert getattr(label, label_attribute) == expected
+        assert label._label_fields[label_attribute] == expected
 
     def test_child_overrides_parent_field_assignments(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -365,13 +358,12 @@ class TestOrbnumFilePDS4Label:
         product.lid = 'urn:nasa:pds:maven_spice:miscellaneous:orbnum_distinct'
         product.vid = '9.9'
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:miscellaneous:orbnum_distinct')
-        assert label.PRODUCT_VID == '9.9'
+        assert label._label_fields["PRODUCT_VID"] == '9.9'
 
     @pytest.mark.parametrize('product_name, expected_label_name', [
         ('maven_orb_v01.orb', 'maven_orb_v01.xml'),
@@ -393,16 +385,14 @@ class TestOrbnumFilePDS4Label:
         # Build the product mock with the parametrized name.
         product = helpers.make_product(staging, name=product_name)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
         # FILE_NAME is the verbatim product name (no truncation there).
-        assert label.FILE_NAME == product_name
+        assert label._label_fields["FILE_NAME"] == product_name
 
         # The XML label name is the truncated-at-first-dot value.
-        assert label.name == expected_label_name
+        assert label.name == str(staging / 'miscellaneous' / expected_label_name)
 
     @pytest.mark.parametrize('end_of_line, record_fixed_length, expected', [
         ('LF', 128, '128'),
@@ -425,11 +415,10 @@ class TestOrbnumFilePDS4Label:
         product = helpers.make_product(staging)
         product.record_fixed_length = record_fixed_length
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS_LENGTH == expected
+        assert label._label_fields["FIELDS_LENGTH"] == expected
 
     def test_constructor_raises_when_record_length_is_not_numeric(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -447,10 +436,9 @@ class TestOrbnumFilePDS4Label:
         # Replace the fixed record length with a non-numeric value.
         product.record_fixed_length = 'not-a-number'
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            with pytest.raises(TypeError):
-                OrbnumFilePDS4Label(setup, product)
+        with pytest.raises(TypeError):
+            product.setup = setup
+            OrbnumFilePDS4Label(product)
 
     # ------------------------------------------------------------------
     # get_table_character_fields / field_template – the field blocks
@@ -475,11 +463,10 @@ class TestOrbnumFilePDS4Label:
         # Build the product mock with the parametrized params mapping.
         product = helpers.make_product(staging, params=params)
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.NUMBER_OF_FIELDS == expected_number_of_fields
+        assert label._label_fields["NUMBER_OF_FIELDS"] == expected_number_of_fields
 
     def test_get_table_character_fields_empty_params_returns_empty_string(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -492,11 +479,10 @@ class TestOrbnumFilePDS4Label:
 
         product = helpers.make_product(staging, params={})
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS == ''
+        assert label._label_fields["FIELDS"] == ''
 
     @pytest.mark.parametrize('name, unit, blank_records, expected', [
         ('Alt', '', False,
@@ -560,11 +546,10 @@ class TestOrbnumFilePDS4Label:
             staging, blank_records=blank_records,
             params={name: make_param(name, unit=unit)})
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS == expected
+        assert label._label_fields["FIELDS"] == expected
 
     def test_get_table_character_fields_concatenates_in_order(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -578,17 +563,16 @@ class TestOrbnumFilePDS4Label:
         # Default product carries three fields in the order No., UTC, Alt.
         product = helpers.make_product(staging, blank_records=False)
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
         # One block per param.
-        assert label.FIELDS.count('<Field_Character>') == 3
+        assert label._label_fields["FIELDS"].count('<Field_Character>') == 3
 
         # The blocks appear in insertion order.
-        assert (label.FIELDS.index('<name>No.</name>')
-                < label.FIELDS.index('<name>UTC</name>')
-                < label.FIELDS.index('<name>Alt</name>'))
+        assert (label._label_fields["FIELDS"].index('<name>No.</name>')
+                < label._label_fields["FIELDS"].index('<name>UTC</name>')
+                < label._label_fields["FIELDS"].index('<name>Alt</name>'))
 
     @pytest.mark.parametrize('xml_tab, expected', [
         (1,
@@ -627,15 +611,14 @@ class TestOrbnumFilePDS4Label:
             staging, blank_records=False,
             params={'Alt': make_param('Alt')})
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS == expected
+        assert label._label_fields["FIELDS"] == expected
 
         # Explicitly assert the leading indentation width to make the contract
         # unambiguous.
-        first_line = label.FIELDS.split(setup.eol_pds4)[0]
+        first_line = label._label_fields["FIELDS"].split(setup.eol_pds4)[0]
         assert first_line == f"{' ' * 4 * xml_tab}<Field_Character>"
 
     @pytest.mark.parametrize('eol_pds4, expected', [
@@ -674,12 +657,11 @@ class TestOrbnumFilePDS4Label:
             staging, blank_records=False,
             params={'Alt': make_param('Alt')})
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.FIELDS == expected
-        assert label.FIELDS.endswith(eol_pds4)
+        assert label._label_fields["FIELDS"] == expected
+        assert label._label_fields["FIELDS"].endswith(eol_pds4)
 
     def test_field_template_forwards_all_descriptor_values(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -700,15 +682,14 @@ class TestOrbnumFilePDS4Label:
                 length='12', format_field='%12.3f', description='altitude',
                 unit='km')})
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            with patch.object(OrbnumFilePDS4Label, 'field_template',
-                              autospec=True,
-                              return_value='STUB') as mock_field:
-                label = OrbnumFilePDS4Label(setup, product)
+        with patch.object(OrbnumFilePDS4Label, 'field_template',
+                          autospec=True,
+                          return_value='STUB') as mock_field:
+            product.setup = setup
+            label = OrbnumFilePDS4Label(product)
 
         # The fields string is exactly the stubbed return value.
-        assert label.FIELDS == 'STUB'
+        assert label._label_fields["FIELDS"] == 'STUB'
 
         # field_template received every descriptor value positionally, in order,
         # with product.blank_records as the trailing ``blanks`` argument.
@@ -737,11 +718,10 @@ class TestOrbnumFilePDS4Label:
         product = helpers.make_product(
             staging, table_char_description=table_char_description)
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.TABLE_CHARACTER_DESCRIPTION == expected
+        assert label._label_fields["TABLE_CHARACTER_DESCRIPTION"] == expected
 
     @pytest.mark.parametrize('xml_tab, expected', [
         (1, '\n      <description>ORBNUM table</description>\n'),
@@ -761,11 +741,10 @@ class TestOrbnumFilePDS4Label:
         product = helpers.make_product(
             staging, table_char_description='ORBNUM table')
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.TABLE_CHARACTER_DESCRIPTION == expected
+        assert label._label_fields["TABLE_CHARACTER_DESCRIPTION"] == expected
 
     @pytest.mark.parametrize('eol_pds4, expected', [
         ('\n', '\n      <description>ORBNUM table</description>\n'),
@@ -784,11 +763,10 @@ class TestOrbnumFilePDS4Label:
         product = helpers.make_product(
             staging, table_char_description='ORBNUM table')
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
 
-        assert label.TABLE_CHARACTER_DESCRIPTION == expected
+        assert label._label_fields["TABLE_CHARACTER_DESCRIPTION"] == expected
 
 
 # ===========================================================================
@@ -817,6 +795,16 @@ TEMPLATE_CONTENT = (
 
 class TestOrbnumFilePDS4LabelIntegration:
     """Integration tests for OrbnumFilePDS4Label + PDSLabel + template."""
+
+    def test_context_from_product_attribute_is_true(self):
+        """Guards against a silent regression if this class is renamed
+        without carrying the attribute over."""
+        assert OrbnumFilePDS4Label._context_from_product is True
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert OrbnumFilePDS4Label._trailing_blank_log is True
 
     # ------------------------------------------------------------------
     # Fixtures
@@ -861,6 +849,26 @@ class TestOrbnumFilePDS4LabelIntegration:
         return setup, product, template_path, expected_label_path
 
     # ------------------------------------------------------------------
+    # _context_from_product effect
+    # ------------------------------------------------------------------
+
+    def test_context_from_product_effect_on_context_fields(
+            self, env: tuple[MagicMock, MagicMock, Path, Path],
+            context_effect_helpers: SimpleNamespace) -> None:
+        """_context_from_product=True must source MISSIONS/OBSERVERS/TARGETS
+        from the product, not from setup."""
+        setup, product, _, _ = env
+
+        # product now differs from setup
+        context_effect_helpers.diverge(product)
+
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
+
+        # product must win
+        context_effect_helpers.assert_source(label, from_product=True)
+
+    # ------------------------------------------------------------------
     # File creation and content
     # ------------------------------------------------------------------
 
@@ -875,14 +883,16 @@ class TestOrbnumFilePDS4LabelIntegration:
         setup.end_of_line = 'LF'
         setup.eol_pds4 = '\n'
 
-        # Instantiate the real label so the template is read and the XML is
-        # written.
-        label = OrbnumFilePDS4Label(setup, product)
+        # Instantiate the real label and write it so the template is read and
+        # the XML is written.
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
+        label.write_label()
 
         # Check that the class resolved the configured OrbNum template.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from product.path.
         assert Path(label.name) == label_path
 
         # Check that the final XML file has been created in staging.
@@ -952,7 +962,9 @@ class TestOrbnumFilePDS4LabelIntegration:
         # substituted by the label state.
         setup, product, _, label_path = env
 
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+
+        OrbnumFilePDS4Label(product).write_label()
 
         # Parse the rendered label; a malformed result would raise ParseError.
         tree = ElementTree.parse(label_path)
@@ -981,7 +993,9 @@ class TestOrbnumFilePDS4LabelIntegration:
         # Override the description to be empty.
         product.table_char_description = ''
 
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+
+        OrbnumFilePDS4Label(product).write_label()
 
         tree = ElementTree.parse(label_path)
         root = tree.getroot()
@@ -1003,7 +1017,9 @@ class TestOrbnumFilePDS4LabelIntegration:
         setup.end_of_line = end_of_line
         setup.eol_pds4 = eol_pds4
 
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+
+        OrbnumFilePDS4Label(product).write_label()
 
         # Read the raw bytes to inspect the actual line terminators.
         raw = label_path.read_bytes()
@@ -1017,25 +1033,23 @@ class TestOrbnumFilePDS4LabelIntegration:
             assert b'\n' in raw
 
     # ------------------------------------------------------------------
-    # setup.add_file side-effect
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Register the generated XML label using its staging-relative path.
+        """write_label returns the label path relative to staging."""
 
-        # Only setup and product are needed to trigger the real label
-        # generation.
+        # Only setup and product are needed to run the real label generation.
         setup, product, _, label_path = env
+        product.setup = setup
 
-        # Generate the label using the real writer.
-        OrbnumFilePDS4Label(setup, product)
+        written_path = OrbnumFilePDS4Label(product).write_label()
 
-        # The generated label must be registered relative to staging, not
-        # absolute.
+        # The path is relative to staging, not absolute.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert written_path == expected_relative
 
     # ------------------------------------------------------------------
     # Error and invalid-input integration behaviour
@@ -1043,7 +1057,7 @@ class TestOrbnumFilePDS4LabelIntegration:
 
     def test_missing_template_propagates_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Missing OrbNum templates must fail without registering the label.
+        """A missing template makes write_label raise FileNotFoundError."""
 
         # Retrieve the integration objects and paths prepared by the fixture.
         setup, product, template_path, label_path = env
@@ -1051,9 +1065,12 @@ class TestOrbnumFilePDS4LabelIntegration:
         # Physically delete the XML template created by the fixture.
         template_path.unlink()
 
+        product.setup = setup
+        label = OrbnumFilePDS4Label(product)
+
         # Capture the exception.
         with pytest.raises(FileNotFoundError):
-            OrbnumFilePDS4Label(setup, product)
+            label.write_label()
 
         # The writer opens the output file before the template, so the empty
         # output label is created even though writing fails.
@@ -1063,12 +1080,9 @@ class TestOrbnumFilePDS4LabelIntegration:
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
             assert f.read() == ''
 
-        # Check that setup.add_file() was not called.
-        setup.add_file.assert_not_called()
-
     def test_invalid_xml_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Rendered XML labels are written and registered without XML validation.
+        """A malformed template is rendered and its path still returned."""
 
         # Retrieve the integration objects and paths prepared by the fixture.
         setup, product, template_path, label_path = env
@@ -1079,7 +1093,9 @@ class TestOrbnumFilePDS4LabelIntegration:
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        OrbnumFilePDS4Label(setup, product)
+        product.setup = setup
+
+        written_path = OrbnumFilePDS4Label(product).write_label()
 
         # The writer still creates the output label.
         assert label_path.exists()
@@ -1096,8 +1112,8 @@ class TestOrbnumFilePDS4LabelIntegration:
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written_label)
 
-        # Because this layer does not validate XML, the label is still
-        # registered relative to the staging directory.
+        # Because this layer does not validate XML, the path is still
+        # returned relative to the staging directory.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert written_path == expected_relative

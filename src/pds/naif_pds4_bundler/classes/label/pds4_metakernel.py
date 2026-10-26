@@ -9,36 +9,37 @@ from ...utils import extension_to_type
 class MetaKernelPDS4Label(PDS4Label):
     """Class to generate a PDS4 SPICE Kernel MK Label.
 
-    :param setup:   NPB execution Setup object
     :param product: MK product to label
     """
 
-    def __init__(self, setup, product) -> None:
-        """Constructor."""
-        super().__init__(setup, product)
+    # Missions, observers and targets are read from the product, not setup.
+    _context_from_product = True
 
-        self._template = str(Path(setup.templates_directory)
+    def __init__(self, product) -> None:
+        """Constructor."""
+        # PDSLabel.__init__ sets self.setup from product.setup.
+        super().__init__(product)
+
+        # Template path now reads templates_directory via self.setup instead
+        # of a separate setup argument.
+        self._template = str(Path(self.setup.templates_directory)
                              / "template_product_spice_kernel_mk.xml")
 
         #
         # Fields from Kernels
         #
-        self.FILE_NAME = product.name
-        self.PRODUCT_LID = self.product.lid
-        self.FILE_FORMAT = "Character"
-        self.START_TIME = product.start_time
-        self.STOP_TIME = product.stop_time
+        self._label_fields["FILE_NAME"] = product.name
+        self._label_fields["PRODUCT_LID"] = self.product.lid
+        self._label_fields["FILE_FORMAT"] = "Character"
+        self._label_fields["START_TIME"] = product.start_time
+        self._label_fields["STOP_TIME"] = product.stop_time
         # TODO: BUG, product.type.upper() raises AttributeError if product.type
         #       is not a string
-        self.KERNEL_TYPE_ID = product.type.upper()
-        self.PRODUCT_VID = self.product.vid
-        self.SPICE_KERNEL_DESCRIPTION = product.description
+        self._label_fields["KERNEL_TYPE_ID"] = product.type.upper()
+        self._label_fields["PRODUCT_VID"] = self.product.vid
+        self._label_fields["SPICE_KERNEL_DESCRIPTION"] = product.description
 
-        self.KERNEL_INTERNAL_REFERENCES = self.get_kernel_internal_references()
-
-        self.name = Path(product.name).with_suffix(".xml").name
-
-        self.write_label()
+        self._label_fields["KERNEL_INTERNAL_REFERENCES"] = self.get_kernel_internal_references()
 
     def get_kernel_internal_references(self):
         """Get the MK label internal references.

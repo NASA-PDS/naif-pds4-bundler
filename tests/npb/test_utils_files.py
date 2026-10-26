@@ -3,13 +3,15 @@ from dataclasses import dataclass
 import io
 import logging
 from pathlib import Path
-import shutil
+import re
+from typing import Literal
 from unittest.mock import call, MagicMock, patch
 from xml.etree import ElementTree
 
 import pytest
 import spiceypy
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
 from pds.naif_pds4_bundler.utils import files
 
 # Get the directory where the data is located.
@@ -26,7 +28,8 @@ def daf_handle():
     handle = spiceypy.dafopr(daf_file)
     yield handle
 
-    spiceypy.dafcls(handle) # Cleanup after the test finishes
+    spiceypy.dafcls(handle)  # Cleanup after the test finishes
+
 
 # ----------------------------------------------------------------------------
 # files.add_carriage_return tests
@@ -51,37 +54,17 @@ def test_add_carriage_return(inputs, eol, outputs):
     result = files.add_carriage_return(inputs, eol)
     assert result == outputs
 
-@pytest.mark.parametrize("inputs, eol, expected", [
-    ("Meww", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
-    ("Meww", "\a", [(logging.ERROR, "Invalid EOL requested: '\\x07'.")]),
-    ("Meww", "\n", []),
-    ("Meww", "\r\n", []),
-    ("Meww\n", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
-    ("Meww\r\n", "", [(logging.ERROR, "Invalid EOL requested: ''.")]),
-    ("Meww\n", "\r\n", []),
-    ("Meww\r\n", "\n", []),
-    ("Meww\n", "\n", []),
-    ("Meww\r\n", "\r\n", []),
+
+@pytest.mark.parametrize("inputs, eol, message", [
+    ("Meww", "", "Invalid EOL requested: ''."),
+    ("Meww", "\a", "Invalid EOL requested: '\\x07'."),
+    ("Meww\n", "", "Invalid EOL requested: ''."),
+    ("Meww\r\n", "", "Invalid EOL requested: ''."),
 ])
-def test_add_carriage_return_logging_error(monkeypatch, inputs, eol, expected,  caplog):
-    """Test add_carriage_return function using pytest.
-    This is to test logging errors"""
-
-    def mock_handle_error(msg, setup):
-        if not setup:
-            logging.error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-
-    # Capture and check the logging level and logging messages.
-    with caplog.at_level(files.logging.ERROR):
-        files.add_carriage_return(inputs, eol, setup=False)
-
-    results = [(r[1], r[2]) for r in caplog.record_tuples]
-    # [1] is log level (logging.ERROR = 40)
-    # [2] is log message
-
-    assert results == expected
+def test_add_carriage_return_invalid_eol_raises(inputs, eol, message):
+    """An EOL other than LF or CRLF is rejected."""
+    with pytest.raises(NPBError, match=re.escape(message)):
+        files.add_carriage_return(inputs, eol)
 
 # ----------------------------------------------------------------------------
 # files.add_crs_to_file tests
@@ -103,136 +86,115 @@ def test_add_crs_to_file_success_alt(tmp_path, inputs, outputs):
     fake_file = tmp_path / "file.txt"
     fake_file.write_text(inputs, newline='')
 
-    files.add_crs_to_file(str(fake_file), eol="\n", setup=False)
+    files.add_crs_to_file(str(fake_file), eol="\n")
 
     assert fake_file.read_text() == outputs
 
-def test_add_crs_to_file_logging_error(monkeypatch, caplog):
-    """Test add_crs_to_file function using pytest.
-    This is to test logging errors"""
-    def mock_handle_error(msg, setup):
-        if not setup:
-            logging.error(msg)
 
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-    bad_path = "/bad/path/file.txt"
+def _nonexistent_file(tmp_path):
+    # Never created: open() raises FileNotFoundError, an OSError subclass.
+    return tmp_path / "does-not-exist" / "file.txt"
 
-    with caplog.at_level(files.logging.ERROR):
-        files.add_crs_to_file(bad_path, eol="\n")
 
-    expected = [(logging.ERROR, 'Carriage return adding error for /bad/path/file.txt.')]
+def _non_utf8_file(tmp_path):
+    # Real file with bytes that aren't valid UTF-8 (e.g. a legacy-encoded
+    # kernel comment): open(..., encoding='utf-8') raises UnicodeDecodeError
+    # while reading it.
+    bad_file = tmp_path / "file.txt"
+    bad_file.write_bytes(b"\xff\xfe not valid utf-8\n")
+    return bad_file
 
-    results = [(r[1], r[2]) for r in caplog.record_tuples]
 
-    assert results == expected
-
-# ----------------------------------------------------------------------------
-# files.check_badchar tests
-# ----------------------------------------------------------------------------
-
-@pytest.mark.parametrize("contents, expected", [
-    ("the OSIRIS-REx spacecraft",[]),
-    ("where\nVersion",[]),
-    ("Mission © Bennu",["NON-ASCII character(s) in line 1:","Mission © Bennu","        ^      "]),
-    ("INS-155101_FOV_REF_ANGLE”=",["NON-ASCII character(s) in line 1:","INS-155101_FOV_REF_ANGLE”=",
-     "                        ^ "]),
-    ("π = 3.14 & Σ = sum",["NON-ASCII character(s) in line 1:","π = 3.14 & Σ = sum",
-     "^          ^      "]),
-    ("Line 1: Mission\nLine 2: Ma”rs\nLine 3: and bye”nd",["NON-ASCII character(s) in line 2:","Line 2: Ma”rs",
-     "          ^  ","NON-ASCII character(s) in line 3:","Line 3: and bye”nd","               ^  "]),
-    ("",[]),
+# Both a missing file and a non-UTF-8 file must be reported as NPBError -
+# proving except (OSError, UnicodeDecodeError) catches both real conditions
+# rather than propagating either raw.
+@pytest.mark.parametrize("make_bad_file", [
+    pytest.param(_nonexistent_file, id="missing-file"),
+    pytest.param(_non_utf8_file, id="non-utf8-file"),
 ])
-def test_check_badchar(tmp_path, contents, expected):
-    """"Test check_badchar function using pytest."""
-    test_file = tmp_path / "test_chars.txt"
-    test_file.write_text(contents, encoding="utf-8")
+def test_add_crs_to_file_unreadable_file_raises(tmp_path, make_bad_file):
+    bad_file = make_bad_file(tmp_path)
 
-    errors = files.check_badchar(str(test_file))
+    with pytest.raises(
+            NPBError,
+            match=re.escape(f"Carriage return adding error for {bad_file}.")):
+        files.add_crs_to_file(str(bad_file), eol="\n")
 
-    assert errors == expected
+
+def test_add_crs_to_file_invalid_eol_propagates(tmp_path):
+    """An invalid `eol` is a caller bug (add_carriage_return raises its own
+    NPBError for it), not a file I/O failure - it must propagate with its
+    own message rather than being masked as a generic "adding error"."""
+    fake_file = tmp_path / "file.txt"
+    fake_file.write_text("Kitty\n")
+
+    # eol="bad-eol" is neither "\n" nor "\r\n", so add_carriage_return raises
+    # NPBError on the first line it processes; match checks that its own
+    # message survives instead of the generic "adding error".
+    with pytest.raises(NPBError, match="Invalid EOL requested"):
+        files.add_crs_to_file(str(fake_file), eol="bad-eol")
+
 
 # ----------------------------------------------------------------------------
-# files.check_binary_endianness tests
+# files.archive_subdirectory tests
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("kernel, endianness, expected_error",[
-    # Tests for "required little endian kernels."
-    (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'little', None),
-    (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'little', None),
-    (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'little', None),
-    (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'little', None),
-    (Path('spk', 'mro_psp60.big.bsp'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek', 'lroevnt_2010193_2010200_v01.bes'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek','eros_n2000129x_v01_ltl.bpe'), 'little', None),
-    (Path('ek', 'eros_n2000129x_v01.bpe'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek', 'S99_CIMSSSUPa.bep'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek', '11A.bdb'), 'little',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    # Tests for "required big endian kernels."
-    (Path('ck', 'insight_ida_enc_200829_201220_v1.bc'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ck', 'mro_sc_psp_210706_210712.big.bc'), 'big', None),
-    (Path('dsk', 'DEIMOS_K005_THO_V01.BDS'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('dsk', 'deimos_k005_tho_v01.big.bds'), 'big', None),
-    (Path('pck', 'lunar_de403s_pa_v0.bpc'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('pck', 'lunar_de403s_pa_v0.big.bpc'), 'big', None),
-    (Path('spk', 'm2020_cruise_od138_v1.bsp'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('spk', 'mro_psp60.big.bsp'), 'big', None),
-    (Path('ek', 'lroevnt_2010193_2010200_v01.bes'), 'big', None),
-    (Path('ek', 'eros_n2000129x_v01_ltl.bpe'), 'big',
-     "The kernel cannot be loaded because of its endianness. Use NAIF's utility BINGO to convert the file."),
-    (Path('ek', 'eros_n2000129x_v01.bpe'), 'big', None),
-    (Path('ek', 'S99_CIMSSSUPa.bep'), 'big', None),
-    (Path('ek', '11A.bdb'), 'big', None),
-    # Tests for "invalid SPICE kernel architecture."
-    (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'little',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('pck', 'pck00010.tpc'), 'little',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('ek', 'm01_mmdmt_ext10.ten'), 'little',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('ck', 'insight_ida_enc_200829_201220_v1.xc'), 'big',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('pck', 'pck00010.tpc'), 'big',
-     'The binary kernel does not have a DAF or DAS architecture.'),
-    (Path('ek', 'm01_mmdmt_ext10.ten'), 'big',
-     'The binary kernel does not have a DAF or DAS architecture.'),
+@pytest.mark.parametrize("kind, pds_version, expected", [
+    ("kernel", "3", "data"),
+    ("kernel", "4", "spice_kernels"),
+    # PDS3 keeps orbnum files and meta-kernels together in "extras".
+    ("orbnum", "3", "extras"),
+    ("orbnum", "4", "miscellaneous"),
+    ("mk", "3", "extras"),
+    # PDS4 stores meta-kernels next to the kernels, not with the orbnum files.
+    ("mk", "4", "spice_kernels"),
 ])
-def test_check_binary_endianness(kernel, endianness, expected_error) -> None:
-    """Test checking binary file format."""
-    error = files.check_binary_endianness(str(KERNELS / kernel), endianness=endianness)
-    assert error == expected_error
+def test_archive_subdirectory(kind: Literal["kernel", "orbnum", "mk"],
+                              pds_version, expected):
+    """Test that each kind and PDS version maps to its archive subdirectory."""
+    # The kind, the PDS version and the expected directory come from the
+    # parametrization, one row per kind and PDS version combination.
 
-# ----------------------------------------------------------------------------
-# files.check_consecutive test
-# ----------------------------------------------------------------------------
+    # Ask for the top-level directory of the kind.
+    subdirectory = files.archive_subdirectory(kind, pds_version)
 
-@pytest.mark.parametrize( "lst, cc_bool", [
-    ([1, 2, 3, 4, 5], True),
-    ([1, 2, 3, 4, 5, 5, 5], False),
-    ([1, 2, 3, 4, 7, 5], False),
-    ([19], False),
-    ([1, 19], False),
-    ([1, 2], True),
+    # It must be the directory of the archive layout, not a default.
+    assert subdirectory == expected
+
+
+@pytest.mark.parametrize("kind, pds_version", [
+    # Unsupported PDS version.
+    ("kernel", "5"),
+    # Unsupported kind.
+    ("label", "4"),
+    # Both unsupported.
+    ("label", "5"),
+    # PDS version as a number (e.g. from a config parser) is not "3" or "4".
+    ("kernel", 3),
 ])
-def test_check_consecutive(lst, cc_bool):
-    """Test check_consecutive function with pytest."""
-    # Note - the function does not work if the list is empty, contains
-    # no integer values or if the numbers within the list are negative.
-    assert files.check_consecutive(list(lst)) is cc_bool
+def test_archive_subdirectory_unknown(kind, pds_version):
+    """Test that an unsupported kind or PDS version raises an error.
+
+    The error is an NPBInternalError, since callers only pass hardcoded
+    kinds and a validated PDS version.
+    """
+    # The error must name the two inputs it received. NPBInternalError adds
+    # its own "NPB bug: " prefix.
+    expected_message = (
+        f"NPB bug: No archive subdirectory for kind '{kind}' and PDS version "
+        f"'{pds_version}'."
+    )
+
+    # The request must be rejected instead of falling back to a default
+    # directory. The invalid kind and PDS version are passed on purpose, so
+    # the type check on the call is silenced.
+    with pytest.raises(NPBInternalError) as error:
+        # noinspection PyTypeChecker
+        files.archive_subdirectory(kind, pds_version)
+
+    # The message reports the rejected kind and PDS version.
+    assert str(error.value) == expected_message
+
 
 # ----------------------------------------------------------------------------
 # files.check_eol tests
@@ -267,137 +229,16 @@ def test_check_eol_alt(tmp_path, words, eol, expected):
     result = files.check_eol(str(file_path), eol)
     assert result == expected
 
-def test_check_eol_logging_error(monkeypatch, tmp_path, caplog):
-    """Test check_eol function using pytest.
-    This is to test logging errors"""
 
-    def mock_handle_error(msg, setup=False):
-        if not setup:
-            logging.error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-
+def test_check_eol_invalid_eol_raises(tmp_path):
+    """An EOL that is neither LF nor CRLF is a configuration error."""
     fake_file = tmp_path / "file.txt"
     fake_file.write_text("Hi \a")
-    eol = "\a"
 
-    # Capture and check the logging level and logging messages.
-    with caplog.at_level(files.logging.ERROR):
-        files.check_eol(fake_file, eol)
+    with pytest.raises(
+            NPBError, match=re.escape("Incorrect EOL in configuration: \a")):
+        files.check_eol(fake_file, "\a")
 
-    expected = [(logging.ERROR,'Incorrect EOL in configuration: \a')]
-
-    results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-    assert results == expected
-
-# ----------------------------------------------------------------------------
-# files.check_kernel_integrity tests
-# ----------------------------------------------------------------------------
-
-def test_check_kernel_integrity_binary_kernel(tmp_path):
-    """Test binary kernel integrity."""
-
-    src_kernel = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.bc")
-
-    # Subcase 1: Correct binary kernel architecture
-    error = files.check_kernel_integrity(src_kernel)
-    assert not error
-
-    # Subcase 2: Incorrect kernel type (wrong extension)
-    wrong_ext = tmp_path / "insight_ida_enc_200829_201220_v1.bsp"
-    shutil.copy(src_kernel, wrong_ext)
-    error = files.check_kernel_integrity(str(wrong_ext))
-    assert error
-
-    # Subcase 3: Incorrect file name → should raise ValueError
-    bad_name = str(KERNELS / "ck" / "insight_ida_enc_200829_201220_v1.xc")
-
-    expected_message = (
-        "Unsupported kernel extension 'XC' for kernel "
-        "insight_ida_enc_200829_201220_v1.xc: not present in the SPICE "
-        "kernel type map.")
-
-    with pytest.raises(ValueError, match=expected_message):
-        files.check_kernel_integrity(bad_name)
-
-    # Subcase 4: Incorrect architecture (copy bad file into .bc)
-    bad_arch_copy = tmp_path / "insight_ida_enc_200829_201220_v1.bc"
-    shutil.copy(bad_name, bad_arch_copy)
-    error = files.check_kernel_integrity(str(bad_arch_copy))
-    assert error
-
-def test_check_kernel_integrity_text_kernel(tmp_path):
-    """Test text kernel integrity."""
-
-    kernel_path = tmp_path / "test.tf"
-
-    # Subcase 1: Correct text kernel architecture
-    kernel_path.write_text("KPL/FK\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert not error
-
-    # Subcase 2: Non-existing kernel architecture
-    kernel_path.write_text("KPLO/FK\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert error
-
-    # Subcase 3: Incorrect text kernel architecture
-    kernel_path.write_text("DAF/FK\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert error
-
-    # Subcase 4: Mismatch text kernel type (extension vs content)
-    ti_path = tmp_path / "test.ti"
-    ti_path.write_text("KPL/FK\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert error
-
-    # Subcase 5: Non-existing text kernel type
-    kernel_path.write_text("KPL/SLC\n")
-    error = files.check_kernel_integrity(str(kernel_path))
-    assert error
-
-    #subcase 6: Text event kernel missing both markers should fail.
-    ten_file = tmp_path / "missing_markers.ten"
-    ten_file.write_text("This is just plain text with no event kernel markers\n")
-
-    error = files.check_kernel_integrity(str(ten_file))
-    assert error != ""
-    assert "does not contain required" in error
-    assert "\\header" in error
-    assert "\\text" in error
-
-    #subcase 6a: Text event kernel missing \\header marker should fail.
-    ten_file = tmp_path / "missing_header.ten"
-    ten_file.write_text("\\text\nSome event data\n")
-
-    error = files.check_kernel_integrity(str(ten_file))
-    assert error != ""
-    assert "does not contain required" in error
-
-    #subcase 6b: Text event kernel missing \\text marker should fail.
-    ten_file = tmp_path / "missing_text.ten"
-    ten_file.write_text("\\header\nSome header data\n")
-
-    error = files.check_kernel_integrity(str(ten_file))
-    assert error != ""
-    assert "does not contain required" in error
-
-def test_check_kernel_integrity_text_event_kernel(tmp_path, monkeypatch):
-    """Comprehensive test ensuring all exceptions are exercised for text EKs (.ten)."""
-    ten_file = tmp_path / "coverage.ten"
-
-    # Test 1: Normal operation (no exception)
-    ten_file.write_text("\\header\n\\text\n")
-    error = files.check_kernel_integrity(str(ten_file))
-    assert error == ""  # Success path
-
-    # Test 2: UnicodeDecodeError path
-    with open(ten_file, 'wb') as f:
-        f.write(b"\xff\xfe")
-    error = files.check_kernel_integrity(str(ten_file))
-    assert "encoding error" in error  # UnicodeDecodeError path
 
 # ----------------------------------------------------------------------------
 # files.check_kernel_integrity tests
@@ -452,41 +293,6 @@ def test_check_list_duplicates(lst, expected):
     result = files.check_list_duplicates(list(lst))
     assert result == expected
 
-# ----------------------------------------------------------------------------
-# files.check_permissions test
-# ----------------------------------------------------------------------------
-
-@pytest.mark.parametrize( "path", [
-    (Path(KERNELS/'ck'/'insight_ida_enc_200829_201220_v1.bc')),
-    (Path(KERNELS/'dsk'/'DEIMOS_K005_THO_V01.BDS')),
-])
-def test_check_permissions(path):
-    """Test check_permissions function using pytest."""
-    files.check_permissions(str(path))
-
-def test_check_permissions_error(monkeypatch, tmp_path, caplog):
-    """Test check_permissions function using pytest.
-    This is to test logging errors"""
-    def mock_handle_error(msg):
-        logging.error(msg)
-
-    def raise_permission_error(*_, **__):
-        raise PermissionError()
-
-
-    fake_file = tmp_path / "file.txt"
-    fake_file.write_text("Secret")
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-    monkeypatch.setattr(files.Path, "open", raise_permission_error)
-
-    with caplog.at_level(logging.ERROR):
-        files.check_permissions(str(fake_file))
-
-    assert (
-        f"File {fake_file} is not readable by the account that runs NPB. "
-        "Update permissions." in caplog.text
-    )
 
 # ----------------------------------------------------------------------------
 # files.checksum_from_label test
@@ -541,36 +347,22 @@ def test_checksum_from_label_multi_dot_name(tmp_path, caplog):
 # files.checksum_from_registry test
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("prod_path, chcksm", [
-    ("ladee_v10.tm", {"1.checksum": "path/ladee_v10.tm   abcdefg10987654321"}),
-    ("mars2020_v04.bc", {"1.checksum": "not_the_right.bc  wrong", "2.checksum": "path/mars2020_v04.bc  looksright6789"}),
-    ("missing.tf", {"1.checksum": "other.tf  nothere12345"}),
-    ("any.bsp", {}),
+@pytest.mark.parametrize("prod_path, chcksm, expected", [
+    ("ladee_v10.tm", {"1.checksum": "path/ladee_v10.tm   abcdefg10987654321"},
+     "abcdefg10987654321"),
+    ("mars2020_v04.bc",
+     {"1.checksum": "not_the_right.bc  wrong",
+      "2.checksum": "path/mars2020_v04.bc  looksright6789"},
+     "looksright6789"),
+    ("missing.tf", {"1.checksum": "other.tf  nothere12345"}, ""),
+    ("any.bsp", {}, ""),
 ])
-def test_checksum_from_registry_logging_error(monkeypatch, tmp_path, prod_path, chcksm, caplog):
-    """Test checksum_from_registry function using pytest
-    This is to test logging errors"""
-    # checksum_found will always be False: the for loop in line 731 will either finish when one checksum is found
-    # -- see break in line 743, or when no checksum is found and no more registries are in checksum_registries
+def test_checksum_from_registry(tmp_path, prod_path, chcksm, expected):
+    """The checksum is read from whichever registry lists the product."""
     for filename, content in chcksm.items():
-        file_path = tmp_path / filename
-        file_path.write_text(content)
+        (tmp_path / filename).write_text(content)
 
-    def mock_handle_error(msg, setup):
-        if not setup:
-            logging.error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-
-    # Capture and check the logging level and logging messages.
-    with caplog.at_level(files.logging.ERROR):
-        files.checksum_from_registry(prod_path, str(tmp_path))
-
-    expected = []
-
-    results = [(r[1], r[2]) for r in caplog.record_tuples]
-
-    assert results == expected
+    assert files.checksum_from_registry(prod_path, str(tmp_path)) == expected
 
 # ----------------------------------------------------------------------------
 # files.compare_files test
@@ -651,6 +443,22 @@ def test_etree_to_dict(xml, outputs):
     assert result == outputs
 
 # ----------------------------------------------------------------------------
+# files.normalize_to_list test
+# ----------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("value, expected", [
+    ("maven_*.bc", ["maven_*.bc"]),
+    ({"pattern": "maven_*.bc"}, [{"pattern": "maven_*.bc"}]),
+    (["maven_*.bc"], ["maven_*.bc"]),
+    ([{"pattern": "maven_*.bc"}, {"pattern": "maven_orbnum_*.orb"}],
+     [{"pattern": "maven_*.bc"}, {"pattern": "maven_orbnum_*.orb"}])])
+def test_normalize_to_list(value, expected):
+    """Test normalize_to_list function using pytest."""
+    result = files.normalize_to_list(value)
+    assert result == expected
+
+# ----------------------------------------------------------------------------
 # files.extract_comment tests
 # ----------------------------------------------------------------------------
 
@@ -676,21 +484,27 @@ def test_extract_comment_ck_2(kern, comment, num):
 
     assert comment == result[int(num)]
 
-@pytest.mark.parametrize("kern",[
-    (KERNELS/"ck"/"buffer_buster.bc"),
+
+@pytest.mark.parametrize("open_handle", [
+    pytest.param(lambda path: False, id="opens-its-own-handle"),
+    pytest.param(spiceypy.dafopr, id="caller-supplied-handle"),
 ])
-def test_extract_comment_error(monkeypatch, kern, caplog):
-    """Test extract_comment function using pytest. This is to test logging errors"""
+def test_extract_comment_buffer_overflow_raises(open_handle):
+    """A comment longer than the read buffer raises NPBError, and the DAF is
+    closed before doing so, whether or not the caller supplied the handle."""
+    kern = KERNELS / "ck" / "buffer_buster.bc"
+    handle = open_handle(str(kern))
 
-    def mock_handle_error(msg, **_):
-        files.logging.getLogger("files").error(msg)
+    with patch.object(
+            files.spiceypy, "dafcls", wraps=files.spiceypy.dafcls) as dafcls, \
+            pytest.raises(
+                NPBError,
+                match=re.escape(
+                    f"Comment from {kern} is longer than buffer size.")):
+        files.extract_comment(str(kern), handle)
 
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
+    dafcls.assert_called_once()
 
-    with caplog.at_level(files.logging.ERROR):
-        files.extract_comment(str(kern))
-
-    assert f"Comment from {kern} is longer than buffer size." in caplog.text
 
 def test_extract_comments_with_daf_handle(daf_handle):
     """Test that the function also operates on already opened DAF files.
@@ -720,34 +534,71 @@ def test_extract_comments_remove_blanks_end_of_comments(monkeypatch, daf_handle,
 
     assert result == comments_out
 
+
 # ----------------------------------------------------------------------------
-# files.fill_template tests
+# files.find_latest_versioned_file tests
 # ----------------------------------------------------------------------------
 
-@pytest.mark.parametrize("contents, dct, expected", [
-    ("$MISSION_NAME is a mission to $TARGET!", {"MISSION_NAME": "Mars2020", "TARGET": "Mars"}, "Mars2020 is a mission to Mars!\n"),
-    ("<Time_Coordinates>\n<start_date_time>$START_TIME</start_date_time>\n<stop_date_time>$STOP_TIME</stop_date_time>\n</Time_Coordinates>", {"START_TIME": "2021-10-16T10:32:00Z", "STOP_TIME": "2025-05-05T00:29:39Z"}, "<Time_Coordinates>\n<start_date_time>2021-10-16T10:32:00Z</start_date_time>\n<stop_date_time>2025-05-05T00:29:39Z</stop_date_time>\n</Time_Coordinates>\n"),
-    ("My cats like to $WHAT", {"WHAT": "purrrr"}, "My cats like to purrrr\n"),
-    ("<title>$PDS4_MISSION_NAME SPICE Kernel Collection</title>", {"PDS4_MISSION_NAME": "Lucy"}, "<title>Lucy SPICE Kernel Collection</title>\n" ),
+
+@pytest.mark.parametrize("filenames, pattern, expected_name, expected_version", [
+    # The highest version wins even when it isn't the last file created.
+    (["checksum_v010.tab", "checksum_v002.tab", "checksum_v001.tab"],
+     "checksum_v*.tab", "checksum_v010.tab", 10),
+    # Versions are compared numerically, not lexically: "_v10" beats "_v9"
+    # even though "9" sorts after "1" as characters.
+    (["checksum_v9.tab", "checksum_v10.tab"],
+     "checksum_v*.tab", "checksum_v10.tab", 10),
+    # No candidate's filename ends in "_v<digits>": the only match is
+    # returned with an unknown version instead of nothing.
+    (["checksum_no_version.tab"],
+     "checksum_no_version.tab", "checksum_no_version.tab", None),
+    # A non-matching filename in the pool is skipped, not picked as a
+    # fallback winner: the one real match still wins.
+    (["readme.txt", "checksum_v003.tab"], "*", "checksum_v003.tab", 3),
 ])
-def test_fill_template(tmp_path, contents, dct, expected):
-    """Test fill_template function using pytest."""
+def test_find_latest_versioned_file(tmp_path, filenames, pattern, expected_name, expected_version):
+    """find_latest_versioned_file globs `pattern` under each given directory,
+    compares matches by the version parsed from their filename stem, and
+    returns the numerically highest one, falling back to (None, None) or
+    (candidates[0], None) when nothing matches.
+    """
+    for name in filenames:
+        (tmp_path / name).write_text("")
 
-    class MockListObject:
-        def __init__(self, template_path):
-            self.template = template_path
+    path, version = files.find_latest_versioned_file([tmp_path], pattern)
 
-    template_file = tmp_path / "template.txt"
-    template_file.write_text(contents)
-    product_file = tmp_path / "output.txt"
-    product_dictionary = dct
+    assert path == tmp_path / expected_name
+    assert version == expected_version
 
-    list_object = MockListObject(str(template_file))
 
-    files.fill_template(list_object, str(product_file), product_dictionary)
+def test_find_latest_versioned_file_directory_does_not_affect_comparison(tmp_path):
+    """A candidate's directory never affects the comparison: "aaa_staging" sorts
+    before "bundle_zzz" lexically, but its file has the higher version and still
+    wins.
+    """
+    bundle_zzz = tmp_path / "bundle_zzz"
+    aaa_staging = tmp_path / "aaa_staging"
+    bundle_zzz.mkdir()
+    aaa_staging.mkdir()
+    (bundle_zzz / "inventory_v001.csv").write_text("")
+    (aaa_staging / "inventory_v010.csv").write_text("")
 
-    result = product_file.read_text()
-    assert result == expected
+    path, version = files.find_latest_versioned_file(
+        [bundle_zzz, aaa_staging], "inventory_v*.csv"
+    )
+
+    assert path == aaa_staging / "inventory_v010.csv"
+    assert version == 10
+
+
+def test_find_latest_versioned_file_no_candidates(tmp_path):
+    """No file matches `pattern` in any of the given directories: returns
+    (None, None).
+    """
+    path, version = files.find_latest_versioned_file([tmp_path], "checksum_v*.tab")
+
+    assert path is None
+    assert version is None
 
 # ----------------------------------------------------------------------------
 # files.format_multiple_values tests
@@ -1028,12 +879,35 @@ def test_get_latest_kernel_success():
     result = files.get_latest_kernel("ck", [str(KERNELS)], pattern)
     assert result == 'insight_ida_enc_200829_201220_v1.bc'
 
-def test_get_latest_kernel_invalid_pattern_no_kernels_found():
-    """Test get_latest_kernel using pytest - basic."""
-    pattern = "([a-z]+"  # --> this produces a re.error.
 
-    result = files.get_latest_kernel("ck", [str(KERNELS)], pattern)
+def test_get_latest_kernel_invalid_pattern_raises():
+    """An invalid regex pattern is a configuration bug, not a "no kernels
+    found" condition, and must propagate rather than be masked as one."""
+    pattern = "([a-z]+"  # unbalanced parenthesis: re.search raises re.error
+
+    with pytest.raises(re.error):
+        files.get_latest_kernel("ck", [str(KERNELS)], pattern)
+
+
+@pytest.mark.parametrize("type_dir_exists", [
+    pytest.param(False, id="missing-type-directory-oserror"),
+    pytest.param(True, id="existing-type-directory-no-matches"),
+])
+def test_get_latest_kernel_logs_warning_when_no_kernels_found(
+        tmp_path, caplog, type_dir_exists):
+    """No kernels ever match: kernels.pop() at the end of get_latest_kernel()
+    raises IndexError. The type subdirectory can either not exist at all
+    (os.listdir() raises OSError, caught earlier and silently skipped) or
+    exist but be empty (os.listdir() succeeds with []) - either way the
+    function must log a warning and return [] rather than crash."""
+    if type_dir_exists:
+        (tmp_path / "ck").mkdir()
+
+    with caplog.at_level(logging.WARNING):
+        result = files.get_latest_kernel("ck", [str(tmp_path)], r".*\.bc")
+
     assert result == []
+    assert "No kernels found with pattern" in caplog.text
 
 def test_get_latest_kernel_with_dates_logic(tmp_path):
     """Test get_latest_kernel using pytest.
@@ -1166,6 +1040,7 @@ def test_match_patterns_basic():
 
     assert values == {"YEAR": "2021", "VERSION": "02"}
 
+
 def test_match_patterns_missing_pattern():
     """Test match_patterns utils function using pytest.
     Check for missing patterns."""
@@ -1173,8 +1048,9 @@ def test_match_patterns_missing_pattern():
     name = "insight_2021_v02.tm"
     patterns = [{"@length": "2", "#text": "VERSION"}]
 
-    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
+    with pytest.raises(ValueError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
+
 
 def test_match_patterns_typo_in_template():
     """Test match_patterns utils function using pytest.
@@ -1186,8 +1062,9 @@ def test_match_patterns_typo_in_template():
         {"@length": "4", "#text": "YEAR"},
     ]
 
-    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
+    with pytest.raises(ValueError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
+
 
 def test_match_patterns_typo_in_patterns():
     """Test match_patterns utils function using pytest.
@@ -1199,8 +1076,9 @@ def test_match_patterns_typo_in_patterns():
         {"@length": "4", "#text": "YAR"},
     ]
 
-    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
+    with pytest.raises(ValueError, match=r"Pattern mismatch at index 9: expected 'Y' but got '0'"):
         files.match_patterns(name, name_w_pattern, patterns)
+
 
 def test_match_patterns_wrong_length():
     """Test match_patterns utils function using pytest.
@@ -1212,7 +1090,7 @@ def test_match_patterns_wrong_length():
         {"@length": "10", "#text": "YEAR"},
     ]
 
-    with pytest.raises(RuntimeError, match=r"Pattern mismatch at index 18: expected '_' but got 'm'"):
+    with pytest.raises(ValueError, match=r"Pattern mismatch at index 18: expected '_' but got 'm'"):
         files.match_patterns(name, name_w_pattern, patterns)
 
 # ----------------------------------------------------------------------------
@@ -1237,14 +1115,14 @@ def test_md5(fname, expected):
 ])
 def test_mk_to_list(mk, num_kernels, first, last):
     """Test mk_to_list function using pytest."""
-    kernels = files.mk_to_list(str(mk), False)
+    kernels = files.mk_to_list(str(mk))
     assert num_kernels == len(kernels)
     assert kernels[0] == first  # First kernel in the list
     assert kernels[-1] == last  # Last kernel in the list
 
 
-def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
-    """Test mk_to_list function using pytest. This is to test logging errors"""
+def test_mk_to_list_no_kernels_raises(tmp_path):
+    """A meta-kernel that lists no kernels is rejected."""
     mk_content = (
         "KPL/MK\n"
         "\n"
@@ -1258,15 +1136,11 @@ def test_mk_to_list_error(monkeypatch, tmp_path, caplog):
     mk = tmp_path / "empty_kernels.tm"
     mk.write_text(mk_content)
 
-    def mock_handle_error(msg, **_):
-        files.logging.getLogger("files").error(msg)
-
-    monkeypatch.setattr(files, "handle_npb_error", mock_handle_error)
-
-    with caplog.at_level(files.logging.ERROR):
-        files.mk_to_list(str(mk), setup=False)
-
-    assert [f"No kernels present in {mk}. Please review MK generation."] == caplog.messages
+    with pytest.raises(
+            NPBError,
+            match=re.escape(
+                f"No kernels present in {mk}. Please review MK generation.")):
+        files.mk_to_list(str(mk))
 
 # TODO: BUG: This demonstrates an issue with the code. The proposed metakernel is
 #       not valid. If loaded into SPICE,  it would produce a SPICE(FILEREADFAILED)
@@ -1291,7 +1165,7 @@ def test_mk_to_list_skips_empty_kernel_after_trailing_slash(tmp_path):
     mk = tmp_path / "trailing_slash.tm"
     mk.write_text(mk_content)
 
-    kernels = files.mk_to_list(str(mk), setup=False)
+    kernels = files.mk_to_list(str(mk))
     assert kernels == ["naif0012.tls"]
 
 
@@ -1328,8 +1202,8 @@ def test_product_mapping(tmp_path, miss_acr,  rel, ker_list, text, name, expecte
 
     assert result == expected
 
-def test_product_mapping_error_handling(monkeypatch, tmp_path):
-    """Test product_mapping using pytest. Check error handling is triggered correctly."""
+def test_product_mapping_no_mapping_raises(monkeypatch, tmp_path):
+    """A kernel with no mapping is an error unless the caller opts out."""
     setup = MagicMock()
     setup.working_directory = str(tmp_path)
     setup.mission_acronym = "NoOne"
@@ -1338,22 +1212,12 @@ def test_product_mapping_error_handling(monkeypatch, tmp_path):
 
     monkeypatch.setattr("builtins.open", lambda f, read, encoding: io.StringIO(""))
 
-    # Track calls to handle_npb_error in list
-    called = []
-
-    def mock_error_handler(msg, **_):
-        called.append(msg)
-
-    monkeypatch.setattr(files,"handle_npb_error", mock_error_handler)
-
-    files.product_mapping("NON_EXISTENT", setup, cleanup=True)
-
-    assert len(called) == 1
-    assert "does not have mapping" in called[0]
+    with pytest.raises(NPBError, match="does not have mapping"):
+        files.product_mapping("NON_EXISTENT", setup, cleanup=True)
 
 
 def test_product_mapping_cleanup(monkeypatch, tmp_path):
-    """Test product_mapping using pytest - check cleanup=False prevents the error handler from running."""
+    """Test product_mapping using pytest - check cleanup=False returns False instead of raising."""
     setup = MagicMock()
     setup.working_directory = str(tmp_path)
     setup.mission_acronym = "NoOne"
@@ -1392,16 +1256,30 @@ def test_replace_string_in_file(tmp_path, contents, old_str, new_str, eol_pds3, 
 # files.safe_make_directory test
 # ----------------------------------------------------------------------------
 
-def test_safe_make_directory(tmp_path):
-    """Test safe_make_directory function using pytest.
-    This is for a successful case"""
+def test_safe_make_directory_existing_directory_is_silently_ignored(tmp_path, caplog):
+    """The directory already exists, so os.mkdir() raises FileExistsError (an
+    OSError subclass) - the except OSError: pass fallback swallows it
+    silently, without logging anything, unlike the real success path covered
+    by test_safe_make_directory_logging below."""
     path = tmp_path / "dir_path"
     path.mkdir()
 
-    files.safe_make_directory(str(path))
+    with caplog.at_level(logging.INFO):
+        files.safe_make_directory(str(path))
 
     assert path.exists()
     assert path.is_dir()
+    assert caplog.record_tuples == []
+
+def test_safe_make_directory_propagates_unrelated_exception(mocker, tmp_path):
+    """A bug in os.mkdir() that isn't a filesystem failure (here a stand-in
+    TypeError) must propagate, not be silently swallowed - proving except
+    OSError no longer masks it."""
+    mocker.patch("os.mkdir", side_effect=TypeError("boom"))
+    path = tmp_path / "dir_path"
+
+    with pytest.raises(TypeError, match="boom"):
+        files.safe_make_directory(str(path))
 
 def test_safe_make_directory_logging(mocker, tmp_path):
     """Test safe_make_directory function using pytest.
@@ -1510,6 +1388,13 @@ def test_type_to_extension_object(kern, expected):
 def test_type_to_pds3_type(inputs, outputs):
     """Test type_to_pds3 function using pytest."""
     assert files.type_to_pds3_type(inputs) == outputs
+
+def test_type_to_pds3_type_accepts_kernel_object_with_extension_attribute():
+    """type_to_pds3_type() also accepts an object with an .extension
+    attribute (the try branch) rather than only a plain string (the
+    except AttributeError fallback exercised by every case above)."""
+    kernel = MagicMock(extension="ik")
+    assert files.type_to_pds3_type(kernel) == "INSTRUMENT"
 
 # ----------------------------------------------------------------------------
 # files.utf8len test

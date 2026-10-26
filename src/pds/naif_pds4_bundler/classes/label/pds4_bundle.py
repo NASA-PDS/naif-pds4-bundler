@@ -3,34 +3,39 @@
 from pathlib import Path
 
 from .pds4_label import PDS4Label
+from ..exceptions import NPBInternalError
 
 
 class BundlePDS4Label(PDS4Label):
     """Class to generate a PDS4 Bundle Label.
 
-    :param setup:  NPB execution Setup object
-    :param readme: Readme product
+    :param product: Readme product
     """
 
     _mission_reference_type = "bundle_to_investigation"
     _target_reference_type = "bundle_to_target"
 
-    def __init__(self, setup, readme) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
-        super().__init__(setup, readme)
+        # The parameter used to be named "readme" even though it was just
+        # the product being labeled; renamed to match PDSLabel.__init__'s
+        # single-argument signature. self.product (set by the base class)
+        # already refers to the same object.
+        super().__init__(product)
 
-        self._template = str(Path(setup.templates_directory)
+        self._template = str(Path(self.setup.templates_directory)
                              / "template_bundle.xml")
 
-        self.BUNDLE_LID = self.product.bundle.lid
-        self.BUNDLE_VID = self.product.bundle.vid
+        self._label_fields["BUNDLE_LID"] = self.product.bundle.lid
+        self._label_fields["BUNDLE_VID"] = self.product.bundle.vid
 
-        self.AUTHOR_LIST = setup.author_list
-        self.START_TIME = setup.increment_start
-        self.STOP_TIME = setup.increment_finish
-        self.FILE_NAME = readme.name
-        self.DOI = self.setup.doi
-        self.BUNDLE_MEMBER_ENTRIES = ""
+        self._label_fields["AUTHOR_LIST"] = self.setup.author_list
+        kernels_collection = self.product.bundle.spice_kernels_collection
+        self._label_fields["START_TIME"] = kernels_collection.increment_start
+        self._label_fields["STOP_TIME"] = kernels_collection.increment_finish
+        self._label_fields["FILE_NAME"] = self.product.name
+        self._label_fields["DOI"] = self.setup.doi
+        self._label_fields["BUNDLE_MEMBER_ENTRIES"] = ""
 
         eol = self.setup.eol_pds4
         tab = self.setup.xml_tab
@@ -53,27 +58,27 @@ class BundlePDS4Label(PDS4Label):
                 coll_name = 'document'
 
             elif collection.name == "miscellaneous":
-                coll_name = "miscellaneous" if setup.information_model_float >= 1011001000.0 else "member"
+                coll_name = "miscellaneous" if self.setup.information_model_float >= 1011001000.0 else "member"
 
             else:
-                raise ValueError(
-                    f'NPB bug: the collection name {collection.name} is not '
+                raise NPBInternalError(
+                    f'the collection name {collection.name} is not '
                     f'supported in PDS4 Bundle Label.')
 
-            self.COLL_NAME = coll_name
-            self.COLL_LIDVID = collection.lid + "::" + collection.vid
-            self.COLL_STATUS = "Primary" if collection.updated else "Secondary"
+            # coll_lidvid/coll_status are scratch, local to this iteration --
+            # no template substitutes them, only the XML appended below
+            # (BUNDLE_MEMBER_ENTRIES) is ever read from _label_fields.
+            coll_lidvid = collection.lid + "::" + collection.vid
+            coll_status = "Primary" if collection.updated else "Secondary"
 
-            self.BUNDLE_MEMBER_ENTRIES += (
+            self._label_fields["BUNDLE_MEMBER_ENTRIES"] += (
                 f"{' ' * tab}<Bundle_Member_Entry>{eol}"
                 f"{' ' * 2 * tab}<lidvid_reference>"
-                f"{self.COLL_LIDVID}</lidvid_reference>{eol}"
+                f"{coll_lidvid}</lidvid_reference>{eol}"
                 f"{' ' * 2 * tab}<member_status>"
-                f"{self.COLL_STATUS}</member_status>{eol}"
+                f"{coll_status}</member_status>{eol}"
                 f"{' ' * 2 * tab}<reference_type>"
-                f"bundle_has_{self.COLL_NAME}_collection"
+                f"bundle_has_{coll_name}_collection"
                 f"</reference_type>{eol}"
                 f"{' ' * tab}</Bundle_Member_Entry>{eol}"
             )
-
-        self.write_label()

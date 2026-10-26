@@ -12,8 +12,7 @@ from xml.etree import ElementTree
 
 import spiceypy
 
-from .exceptions import NPBError
-from ..pipeline.runtime import handle_npb_error
+from .exceptions import NPBError, NPBInternalError
 from ..utils import (
     check_list_duplicates,
     etree_to_dict,
@@ -24,6 +23,7 @@ from ..utils import (
 
 # The following imports are only required for type checking.
 if TYPE_CHECKING:
+    from .collection import SpiceKernelsCollection
     from .product import ReadmeProduct
 
 
@@ -120,6 +120,21 @@ class Bundle:
         """
         return self._vid
 
+    @property
+    def spice_kernels_collection(self) -> SpiceKernelsCollection:
+        """SPICE Kernels Collection added to the bundle.
+
+        It holds the increment times of the bundle.
+
+        :raises NPBInternalError: If the collection has not been added yet.
+        """
+        for collection in self.collections:
+            if collection.name == 'spice_kernels':
+                return collection
+
+        raise NPBInternalError(
+            'the SPICE Kernels collection has not been added to the bundle.')
+
     def add(self, element):
         """Add a Collection to the Bundle."""
         self.collections.append(element)
@@ -151,7 +166,7 @@ class Bundle:
         #
         # Include the bundle products if not running in label mode.
         #
-        if self.setup.pds_version == "4" and self.setup.faucet != "labels":
+        if self.setup.pds_version == "4" and self.setup.args.faucet != "labels":
             self._new_files.append(self.setup.staging_directory + os.sep + self.name)
             if self._readme and self._readme.new_product:
                 self._new_files.append(
@@ -194,7 +209,7 @@ class Bundle:
             # If running in label mode, the bundle directory structure is not
             # replicated.
             #
-            if self.setup.faucet == "labels":
+            if self.setup.args.faucet == "labels":
                 relative_path = relative_path.split(spice_kernels_dir)[-1]
 
             dst = self.setup.bundle_directory + relative_path
@@ -267,7 +282,7 @@ class Bundle:
             logging.warning(line)
         logging.info("")
 
-    def validate(self):
+    def validate(self) -> None:
         """Validate the Bundle.
 
         The two implemented steps are to check checksum files against the
@@ -281,11 +296,11 @@ class Bundle:
     # ------------------------------------------------------------------
 
     @spice_exception_handler
-    def _check_times(self):
+    def _check_times(self) -> None:
         """Check the correctness of the bundle times."""
         str_msn_strt = self.setup.mission_start
-        str_inc_strt = self.setup.increment_start
-        str_inc_stop = self.setup.increment_finish
+        str_inc_strt = self.spice_kernels_collection.increment_start
+        str_inc_stop = self.spice_kernels_collection.increment_finish
         str_msn_stop = self.setup.mission_finish
 
         #
@@ -311,10 +326,9 @@ class Bundle:
             or (et_inc_stop > et_msn_stop)
             or (et_msn_strt >= et_msn_stop)
         ):
-            handle_npb_error(
+            raise NPBError(
                 "The resulting Mission and Increment start and finish dates "
-                "are incoherent."
-            )
+                "are incoherent.")
 
     @staticmethod
     def _get_collection_versions_from_label(label: dict) -> dict[str, list[int]]:
@@ -579,7 +593,7 @@ class Bundle:
                         # TODO: Perform these checks elsewhere, probably at setup loading.
                         #       Maybe it is worth using a "derived" attribute similar to
                         #       "version_length".
-                        handle_npb_error(
+                        raise NPBError(
                             f"Meta-kernel version length of {version_length} "
                             "digits is incorrect.")
 

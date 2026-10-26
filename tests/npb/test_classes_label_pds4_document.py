@@ -12,7 +12,7 @@ class TestDocumentPDS4LabelInit:
     @staticmethod
     def make_document_label_inputs(
             tmp_path: Path,
-            collection_name: str = 'collection_document_inventory_v001.csv'
+            collection_name: str = 'document'
     ) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace]:
         # Build only the attributes consumed directly by DocumentPDS4Label.
         # This keeps the test focused on this constructor and avoids executing
@@ -23,36 +23,45 @@ class TestDocumentPDS4LabelInit:
 
         collection = SimpleNamespace(name=collection_name)
 
+        # product.collection is read directly by DocumentPDS4Label.__init__
+        # (PDS4Label.__init__ is mocked below, so it never runs to set it).
         inventory = SimpleNamespace(lid='urn:nasa:pds:maven_spice:document:spiceds',
                                     vid='1.0',
-                                    name='spiceds_v001.html')
+                                    name='spiceds_v001.html',
+                                    collection=collection)
 
         return setup, collection, inventory
 
-    def test_init_sets_document_label_state_and_requests_label_write(
+    def test_init_sets_document_label_state_and_does_not_write_label(
             self, mocker, tmp_path: Path) -> None:
-        # Verify the successful constructor path: parent initialization,
-        # document-label state assignment, template path construction and
-        # write_label invocation.
+        """The constructor calls the parent initializer, stores the collection,
+        builds the template path and fills the label fields, but does not
+        write the label."""
 
         # Create the minimal objects.
         setup, collection, inventory = self.make_document_label_inputs(tmp_path)
 
         # This mock allows you to verify that the call is made, but without
-        # executing the actual logic of PDS4Label.
+        # executing the actual logic of PDS4Label. The real PDS4Label.__init__
+        # would set self.setup/self.product from product; replicate just those
+        # two side effects so the assertions below still have something to check.
         parent_init_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.label.pds4_document.PDS4Label.__init__',
-            autospec=True)
+            autospec=True,
+            side_effect=lambda self, product: (
+                setattr(self, 'setup', setup),
+                setattr(self, 'product', product),
+                setattr(self, '_label_fields', {})))
 
-        # Mock write_label to verify that label generation is requested without
-        # creating files on disk.
+        # Mock write_label so the test can check that building the label
+        # never triggers a write.
         write_label_mock = mocker.patch.object(DocumentPDS4Label, 'write_label',
                                                autospec=True)
 
-        document_label = DocumentPDS4Label(setup, collection, inventory)
+        document_label = DocumentPDS4Label(inventory, collection)
 
         # Verification of the call to the parent.
-        parent_init_mock.assert_called_once_with(document_label, setup, inventory)
+        parent_init_mock.assert_called_once_with(document_label, inventory)
 
         # Check that the class stores the same references as those received.
         assert document_label.setup is setup
@@ -61,42 +70,32 @@ class TestDocumentPDS4LabelInit:
                                                'template_product_html_document.xml')
 
         # Check the product details.
-        assert document_label.PRODUCT_LID == inventory.lid
-        assert document_label.PRODUCT_VID == inventory.vid
-        assert document_label.START_TIME == setup.mission_start
-        assert document_label.STOP_TIME == setup.mission_finish
-        assert document_label.FILE_NAME == inventory.name
-        assert document_label.name == 'collection_document_inventory_v001.xml'
+        assert document_label._label_fields["PRODUCT_LID"] == inventory.lid
+        assert document_label._label_fields["PRODUCT_VID"] == inventory.vid
+        assert document_label._label_fields["START_TIME"] == setup.mission_start
+        assert document_label._label_fields["STOP_TIME"] == setup.mission_finish
+        assert document_label._label_fields["FILE_NAME"] == inventory.name
 
-        # Check that the constructor requests the label to be generated exactly
-        # once.
-        write_label_mock.assert_called_once_with(document_label)
-
-    def test_init_derives_collection_name_from_stem(
-            self, mocker, tmp_path: Path) -> None:
-        # Create an object with a valid file name with more than one dot.
-        setup, collection, inventory = self.make_document_label_inputs(
-            tmp_path, collection_name='collection.document_inventory_v001.csv')
-
-        mocker.patch(
-            'pds.naif_pds4_bundler.classes.label.pds4_document.PDS4Label.__init__',
-            autospec=True)
-
-        mocker.patch.object(DocumentPDS4Label, 'write_label', autospec=True)
-
-        document_label = DocumentPDS4Label(setup, collection, inventory)
-
-        # Only the last suffix is replaced; earlier dots in the name are preserved.
-        assert document_label.name == 'collection.document_inventory_v001.xml'
+        # Building the label must not write it; the pipeline does that.
+        write_label_mock.assert_not_called()
 
 
 class TestDocumentPDS4LabelIntegration:
     """Integration tests for DocumentPDS4Label and the inherited writer."""
 
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert DocumentPDS4Label._context_from_product is False
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert DocumentPDS4Label._trailing_blank_log is True
+
     @pytest.fixture()
     def env(self,
-            tmp_path: Path,
-            mocker) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]:
+            tmp_path: Path) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]:
         # Create the temporary PDS4 document-label environment used by
         # integration tests: real template, staging product, expected XML label
         # path and setup state.
@@ -158,7 +157,6 @@ class TestDocumentPDS4LabelIntegration:
             staging_directory=str(staging_dir),
             working_directory=str(work_dir),
             bundle_directory=str(bundle_dir),
-            diff=False,
             xml_model='https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch',
             schema_location='https://pds.nasa.gov/pds4/pds/v1 PDS4_PDS_1F00.xsd',
             information_model='.'.join(['1', '16', '0', '0']),
@@ -167,12 +165,10 @@ class TestDocumentPDS4LabelIntegration:
             end_of_line='LF',
             eol_pds4='\n',
             xml_tab=1,
-            args=SimpleNamespace(silent=True, verbose=False),
-            add_file=mocker.Mock())
+            args=SimpleNamespace(silent=True, verbose=False, diff=False))
 
-        # Collection name is used by DocumentPDS4Label before write_label runs.
         collection = SimpleNamespace(
-            name='collection_document_inventory_v001.csv',
+            name='document',
             bundle=SimpleNamespace(context_products=context_products))
 
         # The inherited writer creates the XML label next to inventory.path,
@@ -181,7 +177,10 @@ class TestDocumentPDS4LabelIntegration:
         inventory_path.write_text('<html>SPICE document</html>\n',
                                   encoding='utf-8')
 
-        # Inventory metadata rendered into the XML template.
+        # Inventory metadata rendered into the XML template. setup/collection
+        # are attached here because DocumentPDS4Label now reads them off the
+        # product (self.setup = product.setup, self.collection =
+        # product.collection) instead of receiving them as separate arguments.
         inventory = SimpleNamespace(
             lid='urn:nasa:pds:maven_spice:document:spiceds',
             vid='1.0',
@@ -192,12 +191,49 @@ class TestDocumentPDS4LabelIntegration:
             creation_date='2024-02-01',
             size='2048',
             checksum='d41d8cd98f00b204e9800998ecf8427e',
+            setup=setup,
             collection=collection,
             bundle=SimpleNamespace(context_products=context_products))
 
         # Expected XML label path produced from the staged document product path.
         return (setup, collection, inventory, template_path,
                 inventory_path.with_suffix('.xml'))
+
+    def test_name_is_derived_in_init(
+            self,
+            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+        """label.name holds the real destination path as soon as __init__
+        returns, before anything has been written."""
+        # Real setup, collection and inventory from the env fixture.
+        setup, collection, inventory, _, label_path = env
+
+        # Build the label.
+        label = DocumentPDS4Label(inventory, collection)
+
+        # The path is set, and no file exists yet because nothing has
+        # written the label.
+        assert label.name == str(label_path)
+        assert not label_path.exists()
+
+    # ------------------------------------------------------------------
+    # _context_from_product effect
+    # ------------------------------------------------------------------
+
+    def test_context_from_product_effect_on_context_fields(
+            self,
+            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path],
+            context_effect_helpers: SimpleNamespace) -> None:
+        """Inherited _context_from_product=False must source MISSIONS/
+        OBSERVERS/TARGETS from setup, not from the inventory product."""
+        setup, collection, inventory, _, _ = env
+
+        # inventory now differs from setup
+        context_effect_helpers.diverge(inventory)
+
+        label = DocumentPDS4Label(inventory, collection)
+
+        # setup must win
+        context_effect_helpers.assert_source(label, from_product=False)
 
     def test_label_file_is_created_from_template(
             self,
@@ -206,12 +242,13 @@ class TestDocumentPDS4LabelIntegration:
         # compare the generated label with the expected full content.
         setup, collection, inventory, template_path, label_path = env
 
-        label = DocumentPDS4Label(setup, collection, inventory)
+        label = DocumentPDS4Label(inventory, collection)
+        label.write_label()
 
         # DocumentPDS4Label must resolve the document-specific template.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from inventory.path.
         assert Path(label.name) == label_path
 
         # The real writer creates the XML label beside the document product.
@@ -233,21 +270,19 @@ class TestDocumentPDS4LabelIntegration:
             '  <stop_date_time>2026-05-04T00:00:00Z</stop_date_time>\n'
             '</document>\n')
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self,
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
-        # Verify that the real writer registers the generated document XML label using
-        # its staging-relative path.
+        """write_label returns the label path relative to staging."""
+
         setup, collection, inventory, _, label_path = env
 
-        DocumentPDS4Label(setup, collection, inventory)
+        written_path = DocumentPDS4Label(inventory, collection).write_label()
 
-        # Convert the generated XML label path to the path expected in the file
-        # list.
+        # The expected path is the generated label relative to staging.
         expected_label_path = str(label_path.relative_to(Path(setup.staging_directory)))
 
-        # The generated XML label must be registered exactly once.
-        setup.add_file.assert_called_once_with(expected_label_path)
+        assert written_path == expected_label_path
 
     # ------------------------------------------------------------------
     # _*_reference_type overrides
@@ -259,7 +294,7 @@ class TestDocumentPDS4LabelIntegration:
         # DocumentPDS4Label overrides the mission reference type only; the
         # target reference type keeps PDS4Label's default (see below).
         setup, collection, inventory, _, _ = env
-        label = DocumentPDS4Label(setup, collection, inventory)
+        label = DocumentPDS4Label(inventory, collection)
         assert label._mission_reference_type == 'document_to_investigation'
 
     def test_target_reference_type(
@@ -267,5 +302,5 @@ class TestDocumentPDS4LabelIntegration:
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # No override on DocumentPDS4Label: falls back to PDS4Label's default.
         setup, collection, inventory, _, _ = env
-        label = DocumentPDS4Label(setup, collection, inventory)
+        label = DocumentPDS4Label(inventory, collection)
         assert label._target_reference_type == 'data_to_target'

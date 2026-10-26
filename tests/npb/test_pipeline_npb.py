@@ -27,6 +27,7 @@ Phase → Test class mapping
  13  NPBError -> handle_npb_error routing TestNPBErrorHandling
 """
 from contextlib import ExitStack
+import logging
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -34,7 +35,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
-from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
+from pds.naif_pds4_bundler.utils import files
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 # Imported to create specified mocks that pass isinstance checks in Phase 12.
@@ -46,8 +48,15 @@ class _StubChecksum:
     # is patched to this class, the isinstance check in npb.py evaluates
     # against _StubChecksum directly, so any instance created via the patched
     # name passes automatically.
-    def __init__(self, _setup=None, _collection=None, **_kw):
+    def __init__(self, _setup=None, _run_state=None, _collection=None, **_kw):
         self.new_product = True
+
+        # This stub's own generate() below is a no-op, so it never needed a
+        # .name before. Now npb.py logs and reads release_checksum.name /
+        # checksum.name itself, right after calling generate() -- without this
+        # attribute, tests that swap in this stub would crash the pipeline with
+        # an AttributeError.
+        self.name = "checksum.tab"
 
     def set_coverage(self): pass  # no-op: test only observes new_product flag
     def generate(self, history=None): pass  # no-op: output generation not under test
@@ -62,6 +71,7 @@ _MODULE = 'pds.naif_pds4_bundler.pipeline.npb'
 _PATCH_TARGETS = [
     'Setup',
     'Log',
+    'RunState',
     'Bundle',
     'SpiceKernelsCollection',
     'MiscellaneousCollection',
@@ -70,11 +80,22 @@ _PATCH_TARGETS = [
     'MetaKernelProduct',
     'SpiceKernelProduct',
     'OrbnumFileProduct',
-    'InventoryProduct',
+    'InventoryPDS3Product',
+    'InventoryPDS4Product',
     'ChecksumProduct',
     'SpicedsProduct',
     'DocumentCollection',
     'ReadmeProduct',
+    'BundlePDS4Label',
+    'ChecksumPDS3Label',
+    'ChecksumPDS4Label',
+    'DocumentPDS4Label',
+    'InventoryPDS3Label',
+    'InventoryPDS4Label',
+    'MetaKernelPDS4Label',
+    'OrbnumFilePDS4Label',
+    'SpiceKernelPDS3Label',
+    'SpiceKernelPDS4Label',
     'clear_run',
     'finish_execution',
     'log_step',
@@ -108,10 +129,8 @@ def _args(**overrides) -> PipelineArgs:
 def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     """Set mock defaults that let a full PDS4 run complete without errors."""
     setup = m.Setup.return_value
-    setup.faucet = ''
     setup.pds_version = '4'
     setup.increment = False
-    setup.step = 1
     setup.mission_acronym = 'maven'
     setup.bundle_directory = '/fake/bundle'
 
@@ -192,8 +211,7 @@ class TestPhase1Initialization:
     # Phase 1 – Initialization
     # Setup is constructed from the raw PipelineArgs; it validates configuration,
     # locates the config file, and derives all path and metadata attributes used
-    # throughout the pipeline. Log is constructed next and attached to `setup` so
-    # that every subsequent phase can write to the same log stream. The pipeline
+    # throughout the pipeline. Log is constructed next and started. The pipeline
     # then calls setup.check_configuration() to assert the archive is self-onsistent,
     # and setup.set_release() to determine the current release number.
 
@@ -215,13 +233,6 @@ class TestPhase1Initialization:
         # Logging begins immediately after the Log object is created.
         run_pipeline(_args())
         mocks.Log.return_value.start.assert_called_once()
-
-    def test_log_is_assigned_to_setup(self, mocks):
-        # The log is back-referenced on setup so interrupted runs can still emit the file list.
-        run_pipeline(_args())
-        setup = mocks.Setup.return_value
-        log = mocks.Log.return_value
-        assert setup.log is log
 
     def test_check_configuration_called(self, mocks):
         # The configuration is validated before any work starts.
@@ -260,21 +271,19 @@ class TestPhase2ClearMode:
 
     def test_finish_execution_called_when_faucet_is_clear(self, mocks):
         # faucet='clear' stops the pipeline with a clean shutdown.
-        mocks.Setup.return_value.faucet = 'clear'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='clear'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_clear_faucet(self, mocks):
         # No further steps run once the clear faucet fires.
-        mocks.Setup.return_value.faucet = 'clear'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='clear'))
         mocks.ReleasePlan.assert_not_called()
 
     def test_clear_run_and_faucet_exit_are_independent(self, mocks):
         # args.clear triggers cleanup regardless of which faucet stops the pipeline later.
-        mocks.Setup.return_value.faucet = 'checks'
         args = _args(clear='/some/path.file_list', faucet='checks')
         run_pipeline(args)
         mocks.clear_run.assert_called_once()
@@ -299,7 +308,8 @@ class TestPhase3ReleasePlan:
     def test_release_plan_constructed_with_setup(self, mocks):
         # ReleasePlan is always created with the shared setup object.
         run_pipeline(_args())
-        mocks.ReleasePlan.assert_called_once_with(mocks.Setup.return_value)
+        mocks.ReleasePlan.assert_called_once_with(
+            mocks.Setup.return_value, mocks.RunState.return_value)
 
     def test_write_plan_called_when_no_kerlist_and_no_plan_file(self, mocks):
         # With no plan or kerlist input, a plan is generated from the kernels' directory.
@@ -333,16 +343,15 @@ class TestPhase3ReleasePlan:
 
     def test_finish_execution_called_when_faucet_is_plan(self, mocks):
         # faucet='plan' stops the pipeline with a clean shutdown after the plan step.
-        mocks.Setup.return_value.faucet = 'plan'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='plan'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_plan_faucet(self, mocks):
         # No further steps run once the plan faucet fires.
-        mocks.Setup.return_value.faucet = 'plan'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='plan'))
         mocks.KernelList.assert_not_called()
 
 
@@ -390,16 +399,15 @@ class TestPhase4KernelList:
 
     def test_finish_execution_called_when_faucet_is_list(self, mocks):
         # faucet='list' stops the pipeline with a clean shutdown after the list step.
-        mocks.Setup.return_value.faucet = 'list'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='list'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_list_faucet(self, mocks):
         # No further steps run once the list faucet fires.
-        mocks.Setup.return_value.faucet = 'list'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='list'))
         mocks.Bundle.assert_not_called()
 
 
@@ -423,16 +431,15 @@ class TestPhase5ProductChecks:
 
     def test_finish_execution_called_when_faucet_is_checks(self, mocks):
         # faucet='checks' stops the pipeline with a clean shutdown after product validation.
-        mocks.Setup.return_value.faucet = 'checks'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='checks'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_pipeline_stops_after_checks_faucet(self, mocks):
         # No further steps run once the checks faucet fires.
-        mocks.Setup.return_value.faucet = 'checks'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='checks'))
         mocks.Bundle.assert_not_called()
 
 
@@ -462,6 +469,19 @@ class TestPhase6StagingBundleAndCollections:
         # LSK, PCK, FK and SCLK kernels are loaded before any product is processed.
         run_pipeline(_args())
         mocks.Setup.return_value.load_kernels.assert_called_once()
+
+    def test_setup_frozen_right_after_loading_kernels(self, mocks):
+        # The Setup is frozen once the kernels are loaded, and not before,
+        # since load_kernels still writes to it.
+        run_pipeline(_args())
+
+        setup = mocks.Setup.return_value
+        setup.freeze.assert_called_once()
+
+        # Of everything called on setup, keep only these two, in call order.
+        calls = [call[0] for call in setup.mock_calls
+                 if call[0] in ('load_kernels', 'freeze')]
+        assert calls == ['load_kernels', 'freeze']
 
     def test_spice_kernels_collection_constructed(self, mocks):
         # SpiceKernelsCollection receives setup, bundle, and the kernel list.
@@ -494,6 +514,51 @@ class TestPhase6StagingBundleAndCollections:
         run_pipeline(_args())
         mocks.SpiceKernelProduct.assert_called_once()
 
+    def test_kernel_product_labeled_with_pds4_label(self, mocks):
+        # One kernel in the list, so exactly one product is dispatched and
+        # exactly one label call to check for.
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+        run_pipeline(_args())
+        kernel_product = mocks.SpiceKernelProduct.return_value
+
+        # Unlike InventoryPDS4Label, this label class is only ever used here, so
+        # assert_called_once_with is safe (no other site shares it).
+        mocks.SpiceKernelPDS4Label.assert_called_once_with(kernel_product)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert kernel_product.label is mocks.SpiceKernelPDS4Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.SpiceKernelPDS4Label.return_value.write_label.assert_called_once()
+
+    def test_kernel_product_labeled_with_pds3_label(self, mocks):
+        # Same setup as above, but switched to PDS3.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+
+        # Both calls append to one list so their relative order is checked,
+        # not just that each happened.
+        calls = []
+        mocks.SpiceKernelPDS3Label.return_value.write_label.side_effect = (
+            lambda: calls.append('write_label')
+        )
+        mocks.SpiceKernelProduct.return_value.insert_label.side_effect = (
+            lambda: calls.append('insert_label')
+        )
+
+        run_pipeline(_args())
+        kernel_product = mocks.SpiceKernelProduct.return_value
+
+        # PDS3 picks the PDS3 label class instead -- this is the branch that
+        # used to live inside SpiceKernelProduct.__init__.
+        mocks.SpiceKernelPDS3Label.assert_called_once_with(kernel_product)
+
+        assert kernel_product.label is mocks.SpiceKernelPDS3Label.return_value
+
+        # npb.py writes the label, then embeds it in the kernel. The order
+        # matters because insert_label() reads the file write_label() creates.
+        assert calls == ['write_label', 'insert_label']
+
     def test_orbnum_product_dispatched_for_nrb_kernel(self, mocks):
         # .nrb files are dispatched to OrbnumFileProduct and added to the miscellaneous collection.
         mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.nrb']
@@ -506,6 +571,33 @@ class TestPhase6StagingBundleAndCollections:
         mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
         run_pipeline(_args())
         mocks.OrbnumFileProduct.assert_called_once()
+
+    def test_orbnum_product_labeled_with_pds4_label(self, mocks):
+        # One kernel in the list, so exactly one product and one label call.
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
+        run_pipeline(_args())
+        orbnum_product = mocks.OrbnumFileProduct.return_value
+
+        # PDS4 only -- there's no PDS3 label for orbnum files at all, so this
+        # class is never shared with another call site.
+        mocks.OrbnumFilePDS4Label.assert_called_once_with(orbnum_product)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert orbnum_product.label is mocks.OrbnumFilePDS4Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.OrbnumFilePDS4Label.return_value.write_label.assert_called_once()
+
+    def test_orbnum_product_not_labeled_for_pds3(self, mocks):
+        # Product is still built for PDS3 (it archives to "extras", not
+        # "spice_kernels")...
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.orb']
+        run_pipeline(_args())
+
+        # ...but this mirrors the guard that used to live inside
+        # OrbnumFileProduct itself: no label at all when not PDS4.
+        mocks.OrbnumFilePDS4Label.assert_not_called()
 
     def test_tm_kernel_skipped_in_product_dispatch_loop(self, mocks):
         # .tm files are skipped; meta-kernels are handled in a later dedicated step.
@@ -538,6 +630,25 @@ class TestPhase6StagingBundleAndCollections:
         mocks.MetaKernelProduct.assert_called_once()
         mocks.SpiceKernelsCollection.return_value.add.assert_called()
 
+    def test_meta_kernel_labeled_with_pds4_label(self, mocks):
+        # One meta-kernel determined, so exactly one product and one label call.
+        mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
+            'maven_v01.tm': None
+        }
+        mocks.Setup.return_value.pds_version = '4'
+        run_pipeline(_args())
+        meta_kernel = mocks.MetaKernelProduct.return_value
+
+        # PDS4 only -- there's no PDS3 meta-kernel label, so this class is never
+        # shared with another call site.
+        mocks.MetaKernelPDS4Label.assert_called_once_with(meta_kernel)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert meta_kernel.label is mocks.MetaKernelPDS4Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.MetaKernelPDS4Label.return_value.write_label.assert_called_once()
+
     def test_meta_kernel_product_added_to_misc_for_pds3(self, mocks):
         # In PDS3 mode, a determined meta-kernel is added to the miscellaneous collection.
         mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
@@ -547,6 +658,17 @@ class TestPhase6StagingBundleAndCollections:
         run_pipeline(_args())
         mocks.MetaKernelProduct.assert_called_once()
         mocks.MiscellaneousCollection.return_value.add.assert_called()
+
+    def test_meta_kernel_not_labeled_for_pds3(self, mocks):
+        # Product is still built for PDS3 (dispatched to the miscellaneous
+        # collection instead), but mirrors the guard that used to live inside
+        # MetaKernelProduct itself: no label at all when not PDS4.
+        mocks.SpiceKernelsCollection.return_value.determine_meta_kernels.return_value = {
+            'maven_v01.tm': None
+        }
+        mocks.Setup.return_value.pds_version = '3'
+        run_pipeline(_args())
+        mocks.MetaKernelPDS4Label.assert_not_called()
 
     def test_no_meta_kernel_product_when_none_determined(self, mocks):
         # When determine_meta_kernels returns empty, no MetaKernelProduct is constructed.
@@ -569,10 +691,6 @@ class TestPhase7LabelsOnlyMode:
     # finish_execution() before returning — mirroring the normal tail of the
     # pipeline but without creating any new archive products.
 
-    @pytest.fixture(autouse=True)
-    def set_labels_faucet(self, mocks):
-        mocks.Setup.return_value.faucet = 'labels'
-
     def test_bundle_add_called_with_spice_kernels_collection(self, mocks):
         # The SPICE kernels collection is registered with the bundle in labels mode.
         run_pipeline(_args(faucet='labels'))
@@ -594,7 +712,8 @@ class TestPhase7LabelsOnlyMode:
         # The pipeline shuts down cleanly after the labels-mode copy.
         run_pipeline(_args(faucet='labels'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_document_collection_not_created_in_labels_mode(self, mocks):
@@ -617,11 +736,11 @@ class TestPhase8CollectionMetadata:
     # For PDS4, set_increment_times() is called on the SPICE kernels collection
     # to record the temporal coverage of the release. If the collection was
     # updated (spice_kernels_collection.updated is truthy), set_collection_vid()
-    # is called for PDS4 to bump the collection version identifier, and
-    # InventoryProduct is created for the collection regardless of PDS version.
+    # is called for PDS4 to bump the collection version identifier, and an
+    # inventory product is created for the collection regardless of PDS version.
     # validate() is called on the collection to check internal consistency.
     # For PDS3, set_increment_times() and set_collection_vid() are both skipped,
-    # but an InventoryProduct is still created when the collection is updated.
+    # but an inventory product is still created when the collection is updated.
 
     def test_set_increment_times_called_for_pds4(self, mocks):
         # Increment start/stop times are computed for PDS4 archives.
@@ -644,25 +763,36 @@ class TestPhase8CollectionMetadata:
         run_pipeline(_args())
         mocks.SpiceKernelsCollection.return_value.validate.assert_called_once()
 
-    def test_inventory_product_created_when_collection_updated(self, mocks):
-        # An InventoryProduct is generated for the SPICE kernels collection when it has new products.
+    @pytest.mark.parametrize("pds_version, inventory_class", [
+        pytest.param('4', 'InventoryPDS4Product', id='pds4'),
+        pytest.param('3', 'InventoryPDS3Product', id='pds3'),
+    ])
+    def test_inventory_product_created_when_collection_updated(
+            self, mocks, pds_version, inventory_class):
+        """When the SPICE kernels collection has new products, its inventory
+        is built with the class of the archive's PDS version.
+        """
+        mocks.Setup.return_value.pds_version = pds_version
         mocks.SpiceKernelsCollection.return_value.updated = True
         run_pipeline(_args())
-        # InventoryProduct should be called at least once (for the SKC)
-        mocks.InventoryProduct.assert_called()
-        first_call_collection = mocks.InventoryProduct.call_args_list[0][0][1]
+        inventory = getattr(mocks, inventory_class)
+        inventory.assert_called()
+        # The positional arguments are (setup, run_state, collection).
+        first_call_collection = inventory.call_args_list[0][0][2]
         assert first_call_collection is mocks.SpiceKernelsCollection.return_value
 
     def test_inventory_product_not_created_for_skc_when_not_updated(self, mocks):
-        # No InventoryProduct is generated for the SPICE kernels collection when nothing changed.
+        # No inventory is generated for the SPICE kernels collection when nothing changed.
         mocks.SpiceKernelsCollection.return_value.updated = False
         run_pipeline(_args())
-        # When SKC is not updated, no InventoryProduct for it specifically.
-        # All InventoryProduct calls should be for other collections.
+        # When SKC is not updated, no inventory for it specifically.
+        # All inventory calls should be for other collections.
         skc = mocks.SpiceKernelsCollection.return_value
+        # Either version's class could have been used, so check both.
         calls_for_skc = [
-            c for c in mocks.InventoryProduct.call_args_list
-            if c[0][1] is skc
+            c for c in (mocks.InventoryPDS3Product.call_args_list
+                        + mocks.InventoryPDS4Product.call_args_list)
+            if c[0][2] is skc
         ]
         assert calls_for_skc == []
 
@@ -675,11 +805,71 @@ class TestPhase8CollectionMetadata:
         skc = mocks.SpiceKernelsCollection.return_value
         skc.set_collection_vid.assert_not_called()
         calls_for_skc = [
-            c for c in mocks.InventoryProduct.call_args_list
-            if c[0][1] is skc
+            c for c in mocks.InventoryPDS3Product.call_args_list
+            if c[0][2] is skc
         ]
         assert len(calls_for_skc) == 1
+        # The PDS3 run must not build a PDS4 inventory.
+        mocks.InventoryPDS4Product.assert_not_called()
         skc.add.assert_called()
+
+    def test_skc_inventory_labeled_with_pds4_label(self, mocks):
+        # Force the SKC inventory branch to run at all.
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+        inventory = mocks.InventoryPDS4Product.return_value
+
+        # assert_any_call, not assert_called_once: the misc inventory (built
+        # later in the same run, always PDS4) calls this same label class too,
+        # so InventoryPDS4Label fires more than once.
+        mocks.InventoryPDS4Label.assert_any_call(
+            inventory, mocks.SpiceKernelsCollection.return_value)
+
+        # The label built above is what actually gets assigned back.
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
+
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
+
+    def test_skc_inventory_labeled_with_pds3_label(self, mocks):
+        # Same setup as above, but switched to PDS3.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+        inventory = mocks.InventoryPDS3Product.return_value
+
+        # PDS3 has no misc-inventory branch, so this is the only call --
+        # assert_called_once_with is safe here, unlike the PDS4 test above.
+        mocks.InventoryPDS3Label.assert_called_once_with(
+            inventory, mocks.SpiceKernelsCollection.return_value)
+
+        assert inventory.label is mocks.InventoryPDS3Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.InventoryPDS3Label.return_value.write_label.assert_called_once()
+
+    def test_pds3_label_written_before_dsindex_files_generated(
+            self, mocks: SimpleNamespace) -> None:
+        """The PDS3 index label is written to disk before the dsindex files
+        are generated, because generating them copies that label."""
+        # Make both calls append to one shared list, so their order is kept.
+        calls = []
+        mocks.InventoryPDS3Label.return_value.write_label.side_effect = (
+            lambda: calls.append('label written'))
+        dsindex = mocks.InventoryPDS3Product.return_value.generate_dsindex_files
+        dsindex.side_effect = lambda: calls.append('dsindex generated')
+
+        # Run the pipeline under PDS3 with the SPICE kernels collection
+        # updated, which is what builds the index inventory.
+        mocks.Setup.return_value.pds_version = '3'
+        mocks.SpiceKernelsCollection.return_value.updated = True
+        run_pipeline(_args())
+
+        # If the label were written later, the copy would fail because
+        # index.lbl would not exist yet.
+        assert calls == ['label written', 'dsindex generated']
 
 
 # ---------------------------------------------------------------------------
@@ -689,7 +879,7 @@ class TestPhase8CollectionMetadata:
 class TestPhase9PDS4DocumentMiscChecksum:
     # Phase 9 – PDS4 document collection, miscellaneous products, and checksum
     # DocumentCollection is constructed and its VID is set. SpicedsProduct is
-    # constructed; if it was generated, both the product and an InventoryProduct
+    # constructed; if it was generated, both the product and an inventory
     # are added to the document collection. All three collections (SPICE kernels,
     # miscellaneous, document) are registered with the bundle via bundle.add().
     # ChecksumProduct is then constructed for the miscellaneous collection, with
@@ -704,7 +894,8 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # DocumentCollection is constructed with the shared setup and bundle objects.
         run_pipeline(_args())
         mocks.DocumentCollection.assert_called_with(
-            mocks.Setup.return_value, mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Bundle.return_value
         )
 
     def test_document_collection_vid_set(self, mocks):
@@ -716,8 +907,35 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # SpicedsProduct is constructed with setup and the document collection.
         run_pipeline(_args())
         mocks.SpicedsProduct.assert_called_once_with(
-            mocks.Setup.return_value, mocks.DocumentCollection.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.DocumentCollection.return_value
         )
+
+    def test_spiceds_labeled_with_pds4_label_when_generated(self, mocks):
+        # Force the "spiceds changed" branch so labeling actually runs.
+        mocks.SpicedsProduct.return_value.generated = True
+        run_pipeline(_args())
+        spiceds = mocks.SpicedsProduct.return_value
+
+        # DocumentPDS4Label is only ever used for spiceds, so
+        # assert_called_once_with is safe (no other call site shares it).
+        mocks.DocumentPDS4Label.assert_called_once_with(
+            spiceds, mocks.DocumentCollection.return_value)
+
+        # The label built above is what ends up assigned back onto the product.
+        assert spiceds.label is mocks.DocumentPDS4Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.DocumentPDS4Label.return_value.write_label.assert_called_once()
+
+    def test_spiceds_not_labeled_when_not_generated(self, mocks):
+        # generated=False is the default mock value (an unchanged spiceds file
+        # needs no new release), so no override is needed here.
+        run_pipeline(_args())
+
+        # Mirrors the guard that used to live inside SpicedsProduct itself:
+        # nothing is labeled when the file hasn't changed.
+        mocks.DocumentPDS4Label.assert_not_called()
 
     def test_document_inventory_created_when_spiceds_generated(self, mocks):
         # When a SPICEDS document is generated, it and its inventory are added to the document collection.
@@ -728,10 +946,29 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # assert_any_call checks that spiceds was added at some point.
         doc_col.add.assert_any_call(mocks.SpicedsProduct.return_value)
         inventory_calls_for_doc = [
-            c for c in mocks.InventoryProduct.call_args_list
-            if c[0][1] is doc_col
+            c for c in mocks.InventoryPDS4Product.call_args_list
+            if c[0][2] is doc_col
         ]
         assert len(inventory_calls_for_doc) >= 1
+
+    def test_document_inventory_labeled_with_pds4_label(self, mocks):
+        # This inventory only gets built when spiceds was generated.
+        mocks.SpicedsProduct.return_value.generated = True
+        run_pipeline(_args())
+        inventory = mocks.InventoryPDS4Product.return_value
+
+        # PDS4 only -- there's no PDS3 branch for the document collection.
+        # assert_any_call: the misc inventory built later shares the same mock
+        # InventoryPDS4Product/InventoryPDS4Label return values.
+        mocks.InventoryPDS4Label.assert_any_call(
+            inventory, mocks.DocumentCollection.return_value)
+
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
+
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
 
     def test_document_inventory_not_created_when_spiceds_not_generated(self, mocks):
         # When SPICEDS is not generated, no inventory is created for the document collection.
@@ -739,8 +976,8 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         doc_col = mocks.DocumentCollection.return_value
         inventory_calls_for_doc = [
-            c for c in mocks.InventoryProduct.call_args_list
-            if c[0][1] is doc_col
+            c for c in mocks.InventoryPDS4Product.call_args_list
+            if c[0][2] is doc_col
         ]
         assert inventory_calls_for_doc == []
 
@@ -771,7 +1008,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         misc = mocks.MiscellaneousCollection.return_value
         checksum_calls_for_misc = [
             c for c in mocks.ChecksumProduct.call_args_list
-            if c[0][1] is misc
+            if c[0][2] is misc
         ]
         assert len(checksum_calls_for_misc) >= 1
 
@@ -785,17 +1022,81 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         mocks.ChecksumProduct.return_value.generate.assert_called()
 
+    def test_checksum_labeled_with_pds4_label(self, mocks):
+        # generate() no longer builds the label itself -- npb.py must build it
+        # right after generate() returns and assign it back onto the product,
+        # the same way it already does for every other product type.
+        run_pipeline(_args())
+        checksum = mocks.ChecksumProduct.return_value
+
+        # Default mocks run no backfill loop, so this is the only checksum built
+        # in this test -- assert_called_once_with is safe here.
+        mocks.ChecksumPDS4Label.assert_called_once_with(checksum)
+
+        assert checksum.label is mocks.ChecksumPDS4Label.return_value
+
+        # npb.py writes the label itself right after building it.
+        mocks.ChecksumPDS4Label.return_value.write_label.assert_called_once()
+
     def test_readme_product_created(self, mocks):
         # A ReadmeProduct is created with the shared setup and bundle.
         run_pipeline(_args())
         mocks.ReadmeProduct.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Bundle.return_value
         )
+
+    def test_bundle_label_constructed_after_readme_product(self, mocks):
+        # Label construction now happens here, not inside ReadmeProduct, so
+        # this test is what guards it: built from the readme product and
+        # assigned back as product.label, which other modules read later.
+        run_pipeline(_args())
+        readme_product = mocks.ReadmeProduct.return_value
+        mocks.BundlePDS4Label.assert_called_once_with(readme_product)
+        assert readme_product.label is mocks.BundlePDS4Label.return_value
+
+        # npb.py writes the label itself, right after building it.
+        mocks.BundlePDS4Label.return_value.write_label.assert_called_once()
+
+    def test_bundle_label_written_before_checksum_generated(
+            self, mocks: SimpleNamespace) -> None:
+        """The bundle label is written to disk before the checksum product
+        is generated, so the checksum can hash the label file."""
+
+        # Make both calls append to one shared list, so their order is kept.
+        calls = []
+        mocks.BundlePDS4Label.return_value.write_label.side_effect = (
+            lambda: calls.append('label written'))
+        mocks.ChecksumProduct.return_value.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('checksum generated'))
+
+        # Run the pipeline once with the default PDS4 mocks, which build
+        # no previous releases, so 'generate' is called a single time.
+        run_pipeline(_args())
+
+        # If the label were written later, the checksum would hash a file
+        # that does not exist yet.
+        assert calls == ['label written', 'checksum generated']
 
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
         run_pipeline(_args())
         mocks.MiscellaneousCollection.return_value.set_collection_vid.assert_called()
+
+    def test_miscellaneous_inventory_labeled_with_pds4_label(self, mocks):
+        # Default mocks: SKC not updated, spiceds not generated, no  backfill
+        # -- this is the only inventory built in this run, so it's the only
+        # InventoryPDS4Label call to check for.
+        run_pipeline(_args())
+        inventory = mocks.InventoryPDS4Product.return_value
+
+        mocks.InventoryPDS4Label.assert_called_once_with(
+            inventory, mocks.MiscellaneousCollection.return_value)
+
+        assert inventory.label is mocks.InventoryPDS4Label.return_value
+
+        # The label is also written, once.
+        mocks.InventoryPDS4Label.return_value.write_label.assert_called_once()
 
     def test_backfill_loop_runs_when_increment_and_no_checksum_dir(self, mocks):
         # When the checksum directory is absent, one ChecksumProduct is created per past release.
@@ -814,6 +1115,50 @@ class TestPhase9PDS4DocumentMiscChecksum:
             if c[1].get('add_previous_checksum') is False
         ]
         assert len(backfill_calls) == len(bundle.history)
+
+    def test_release_miscellaneous_inventory_labeled_during_backfill(self, mocks):
+        # Same trigger as the ChecksumProduct backfill test above: an increment
+        # with no existing checksum dir runs the backfill loop once per past
+        # release.
+        setup = mocks.Setup.return_value
+        setup.increment = True
+        mocks.isdir.return_value = False
+        bundle = mocks.Bundle.return_value
+        bundle.history = {'release_01': ('data', 'label'),
+                          'release_02': ('data2', 'label2')}
+        run_pipeline(_args())
+
+        # One InventoryPDS4Label call per historical release (backfill loop),
+        # plus one for the current release's own inventory.
+        assert mocks.InventoryPDS4Label.call_count == len(bundle.history) + 1
+
+        # Every label built in this run is also written, once each.
+        label_class = mocks.InventoryPDS4Label
+        assert (label_class.return_value.write_label.call_count
+                == label_class.call_count)
+
+    def test_release_checksum_labeled_during_backfill(self, mocks):
+        # Setting increment=True with no existing checksum directory forces the
+        # backfill loop to run once per historical release in bundle.history,
+        # rebuilding a ChecksumProduct -- and now labeling it too -- for each
+        # past release that predates this PDS4 archive.
+        setup = mocks.Setup.return_value
+        setup.increment = True
+        mocks.isdir.return_value = False
+        bundle = mocks.Bundle.return_value
+        bundle.history = {'release_01': ('data', 'label'),
+                          'release_02': ('data2', 'label2')}
+        run_pipeline(_args())
+
+        # One ChecksumPDS4Label call per historical release from the backfill
+        # loop, plus one more for the current release's own checksum, built
+        # later in the same run.
+        assert mocks.ChecksumPDS4Label.call_count == len(bundle.history) + 1
+
+        # Every label built, past releases and current one, is also written
+        # exactly once; the mock shares one return_value across all calls.
+        write_label = mocks.ChecksumPDS4Label.return_value.write_label
+        assert write_label.call_count == len(bundle.history) + 1
 
     def test_backfill_loop_skipped_when_checksum_dir_exists(self, mocks):
         # When the checksum directory already exists, the backfill loop does not run.
@@ -889,7 +1234,8 @@ class TestPhase10PDS3Path:
         # DocumentCollection is constructed with setup and bundle for PDS3.
         run_pipeline(_args())
         mocks.DocumentCollection.assert_called_with(
-            mocks.Setup.return_value, mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Bundle.return_value
         )
 
     def test_get_pds3_documents_called(self, mocks):
@@ -910,6 +1256,7 @@ class TestPhase10PDS3Path:
         run_pipeline(_args())
         mocks.ChecksumProduct.assert_called_once_with(
             mocks.Setup.return_value,
+            mocks.RunState.return_value,
             mocks.MiscellaneousCollection.return_value,
             add_previous_checksum=False,
         )
@@ -918,6 +1265,23 @@ class TestPhase10PDS3Path:
         # The checksum file is written for the current PDS3 release.
         run_pipeline(_args())
         mocks.ChecksumProduct.return_value.generate.assert_called_once()
+
+    def test_checksum_labeled_with_pds3_label(self, mocks):
+        # This test class runs under pds_version="3" (set by the set_pds3
+        # fixture above). npb.py's PDS3 branch must pick ChecksumPDS3Label
+        # instead of ChecksumPDS4Label -- this is the same version choice
+        # that used to be an if/else inside ChecksumProduct.generate().
+        run_pipeline(_args())
+        checksum = mocks.ChecksumProduct.return_value
+
+        mocks.ChecksumPDS3Label.assert_called_once_with(checksum)
+
+        mocks.ChecksumPDS4Label.assert_not_called()
+
+        assert checksum.label is mocks.ChecksumPDS3Label.return_value
+
+        # npb.py writes the label itself right after building it.
+        mocks.ChecksumPDS3Label.return_value.write_label.assert_called_once()
 
     def test_set_increment_times_not_called_for_pds3(self, mocks):
         # Increment times are not computed for PDS3 archives.
@@ -950,16 +1314,15 @@ class TestPhase11StagingRecapAndCopy:
 
     def test_finish_execution_called_when_faucet_is_staging(self, mocks):
         # faucet='staging' stops the pipeline with a clean shutdown after staging.
-        mocks.Setup.return_value.faucet = 'staging'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='staging'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_copy_to_bundle_not_called_when_faucet_is_staging(self, mocks):
         # The bundle copy is skipped when the pipeline exits at the staging faucet.
-        mocks.Setup.return_value.faucet = 'staging'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='staging'))
         mocks.Bundle.return_value.copy_to_bundle.assert_not_called()
 
     def test_copy_to_bundle_called_on_full_run(self, mocks):
@@ -969,16 +1332,15 @@ class TestPhase11StagingRecapAndCopy:
 
     def test_finish_execution_called_when_faucet_is_bundle(self, mocks):
         # faucet='bundle' stops the pipeline with a clean shutdown after the bundle copy.
-        mocks.Setup.return_value.faucet = 'bundle'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='bundle'))
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_bundle_validate_not_called_when_faucet_is_bundle(self, mocks):
         # Final validation is skipped when the pipeline exits at the bundle faucet.
-        mocks.Setup.return_value.faucet = 'bundle'
-        run_pipeline(_args())
+        run_pipeline(_args(faucet='bundle'))
         mocks.Bundle.return_value.validate.assert_not_called()
 
 
@@ -1044,19 +1406,55 @@ class TestPhase12FinalValidation:
         # finish_execution is the last call in a complete pipeline run.
         run_pipeline(_args())
         mocks.finish_execution.assert_called_once_with(
-            mocks.Setup.return_value, mocks.Log.return_value
+            mocks.Setup.return_value, mocks.RunState.return_value,
+            mocks.Log.return_value
         )
 
     def test_finish_execution_receives_log_instance(self, mocks):
         # The log instance (not the class) is passed to finish_execution.
         run_pipeline(_args())
-        _, log_arg = mocks.finish_execution.call_args[0]
+        _, _, log_arg = mocks.finish_execution.call_args[0]
         assert log_arg is mocks.Log.return_value
+
+    def test_pipeline_shares_one_run_state_with_every_step(self, mocks):
+        """A full run builds a single RunState and hands that same object to
+        every log_step call, so the step counter advances across the run."""
+
+        # Run a complete pipeline with every collaborator mocked.
+        run_pipeline(_args())
+
+        # Take the RunState received by each log_step call.
+        received = [call.args[1] for call in mocks.log_step.call_args_list]
+
+        # Only one RunState was built and all the steps used it.
+        mocks.RunState.assert_called_once_with()
+        assert received
+        assert all(state is mocks.RunState.return_value for state in received)
 
 
 # ---------------------------------------------------------------------------
 # Phase 13 - NPBError -> handle_npb_error routing
 # ---------------------------------------------------------------------------
+
+# Real utils.files failures, used as triggers by TestNPBErrorHandling. Each one
+# makes a genuine call fail, so the NPBError comes from the actual function.
+# They all take tmp_path so the test can call them the same way, even though
+# not every one needs it.
+def _invalid_eol(tmp_path):
+    files.add_carriage_return("line", "bad")
+
+
+def _bad_eol_in_config(tmp_path):
+    kernel = tmp_path / "kernel.tf"
+    kernel.write_text("text\n")
+    files.check_eol(kernel, "bad")
+
+
+def _meta_kernel_without_kernels(tmp_path):
+    mk = tmp_path / "empty.tm"
+    mk.write_text("KPL/MK\n\\begindata\nKERNELS_TO_LOAD = (\n)\n")
+    files.mk_to_list(str(mk))
+
 
 class TestNPBErrorHandling:
     # run_pipeline wraps its body in two broad try/except blocks: Block A
@@ -1065,13 +1463,22 @@ class TestNPBErrorHandling:
     # the *real* handle_npb_error (not mocked here). Block B's handler
     # performs cleanup -- writes the file list and checksum registry, removes
     # template files, clears the SPICE kernel pool -- and then always raises
-    # RuntimeError with the same message; Block A's handler skips cleanup
+    # NPBError with the same message; Block A's handler skips cleanup
     # entirely since no setup instance exists yet. Each parametrized case
     # below forces one Block-B call site to raise NPBError and asserts both
-    # that cleanup ran and that the RuntimeError carries the original
-    # message. Two call sites need their own dedicated test instead of a
-    # table row: ReleasePlan.read_plan() (only reached with a non-default
-    # `args.plan`) and Setup() construction (Block A's no-setup case).
+    # that cleanup ran and that the re-raised NPBError carries the original
+    # message. The table covers every product, collection, label, and
+    # setup.py call site in npb.py that can raise NPBError -- every class
+    # under classes/ migrated to `raise NPBError(...)` has at least one
+    # routing case here. Three call sites need their own dedicated test
+    # instead of a table row, because they're only reached with non-default
+    # args mutually exclusive with the args the table's cases share:
+    # ReleasePlan.read_plan() and KernelList.read_list() (both need a
+    # non-default `args.plan`/`args.kerlist`), and Setup() construction
+    # itself (Block A's no-setup case).
+    # test_error_from_files_function_is_handled_once goes the other way: it
+    # triggers real utils.files failures instead of invented ones, to check
+    # they take this same route and are logged only once.
 
     @staticmethod
     def _apply_overrides(mocks, overrides):
@@ -1112,12 +1519,22 @@ class TestNPBErrorHandling:
         ),
         pytest.param(
             {'SpiceKernelsCollection.return_value.updated': True},
-            'InventoryProduct', 'boom skc inventory', id='skc_inventory',
+            'InventoryPDS4Product', 'boom skc inventory', id='skc_inventory',
+        ),
+        # Same site as above, built under PDS3, where the pipeline picks the
+        # PDS3 class instead.
+        pytest.param(
+            {
+                'Setup.return_value.pds_version': '3',
+                'SpiceKernelsCollection.return_value.updated': True,
+            },
+            'InventoryPDS3Product', 'boom skc pds3 inventory',
+            id='skc_pds3_inventory',
         ),
         pytest.param({}, 'SpicedsProduct', 'boom spiceds', id='spiceds_product'),
         pytest.param(
             {'SpicedsProduct.return_value.generated': True},
-            'InventoryProduct', 'boom doc inventory', id='doc_inventory',
+            'InventoryPDS4Product', 'boom doc inventory', id='doc_inventory',
         ),
         pytest.param(
             {
@@ -1133,10 +1550,10 @@ class TestNPBErrorHandling:
                 'isdir.return_value': False,
                 'Bundle.return_value.history': {'release_01': ('data', 'label')},
             },
-            'InventoryProduct', 'boom release misc inventory', id='release_misc_inventory',
+            'InventoryPDS4Product', 'boom release misc inventory', id='release_misc_inventory',
         ),
         pytest.param({}, 'ChecksumProduct', 'boom checksum misc', id='misc_checksum'),
-        pytest.param({}, 'InventoryProduct', 'boom misc inventory', id='misc_inventory'),
+        pytest.param({}, 'InventoryPDS4Product', 'boom misc inventory', id='misc_inventory'),
         pytest.param({}, 'ReadmeProduct', 'boom readme', id='readme_product'),
         pytest.param(
             {'Setup.return_value.pds_version': '3'},
@@ -1177,18 +1594,123 @@ class TestNPBErrorHandling:
             {}, 'ReleasePlan.return_value.write_plan', 'boom write_plan',
             id='release_plan_write_plan',
         ),
+        # The sites below were migrated to `raise NPBError(...)` after this
+        # table was first written, and never got a row: label construction,
+        # KernelList, SpiceKernelsCollection
+        # (collection_kernels.py's own class), and Bundle. Bundle.validate()
+        # covers both of its private helpers, _check_times() and
+        # _validate_history() -- both are called from validate() with Bundle
+        # fully mocked here, so there is no way to tell them apart at this
+        # boundary; one row stands for both.
+        pytest.param(
+            {'ReleasePlan.return_value.kernel_list': ['maven_2024.bc']},
+            'SpiceKernelPDS4Label', 'boom spice kernel label', id='spice_kernel_label',
+        ),
+        pytest.param(
+            {
+                'Setup.return_value.pds_version': '3',
+                'ReleasePlan.return_value.kernel_list': ['maven_2024.bc'],
+            },
+            'SpiceKernelPDS3Label', 'boom spice kernel pds3 label', id='spice_kernel_pds3_label',
+        ),
+        # PDS4Label's __init__/get_missions/get_observers/get_targets carry
+        # the raise sites; every PDS4 label class inherits them, so each is
+        # an equally valid NPBError source. PDS3Label does not share them --
+        # it only overrides _eol() -- so InventoryPDS3Label and
+        # ChecksumPDS3Label can never actually raise NPBError and get no row
+        # here (SpiceKernelPDS3Label is the one exception, with its own
+        # separate raise site). Several PDS4 classes (InventoryPDS4Label,
+        # ChecksumPDS4Label) are built at more than one call site in npb.py;
+        # each row below is one representative construction, reached via the
+        # same overrides already used by the corresponding *product*-level
+        # row above, not full per-call-site parity.
+        # One orbnum kernel in the release, so its label build is the only one that happens.
+        pytest.param(
+            {'ReleasePlan.return_value.kernel_list': ['maven_2024.orb']},
+            'OrbnumFilePDS4Label', 'boom orbnum label', id='orbnum_label',
+        ),
+        # One meta-kernel is determined, so its label build is the only one that happens.
+        pytest.param(
+            {'SpiceKernelsCollection.return_value.determine_meta_kernels.return_value': {'maven_v01.tm': None}},
+            'MetaKernelPDS4Label', 'boom mk label', id='meta_kernel_label',
+        ),
+        # Default run: the SKC and document inventories are both skipped, so
+        # the current release's own miscellaneous inventory is the only one built.
+        pytest.param({}, 'InventoryPDS4Label', 'boom misc inventory label', id='misc_inventory_label'),
+        # Forces the SKC inventory to be built under PDS3: generate_dsindex_files()
+        # runs right after the PDS3 label is assigned, copying index.lbl --
+        # this is a separate call from the InventoryPDS3Product construction
+        # itself, and (unlike the label) it does have its own raise site.
+        pytest.param(
+            {
+                'Setup.return_value.pds_version': '3',
+                'SpiceKernelsCollection.return_value.updated': True,
+            },
+            'InventoryPDS3Product.return_value.generate_dsindex_files',
+            'boom generate_dsindex_files', id='skc_inventory_generate_dsindex_files',
+        ),
+        # Forces the "spiceds file changed" branch, so the document gets
+        # labeled instead of being skipped as unchanged.
+        pytest.param(
+            {'SpicedsProduct.return_value.generated': True},
+            'DocumentPDS4Label', 'boom doc label', id='doc_label',
+        ),
+        # Default run: the bundle's own label is always built, right after the readme.
+        pytest.param({}, 'BundlePDS4Label', 'boom bundle label', id='bundle_label'),
+        # Default run: no backfill for past releases, so the current
+        # release's own checksum is the only one labeled.
+        pytest.param({}, 'ChecksumPDS4Label', 'boom misc checksum label', id='misc_checksum_label'),
+        # No row for ChecksumPDS3Label: like InventoryPDS3Label above, it
+        # inherits from PDS3Label, which has no raise sites of its own, so
+        # it can never actually raise NPBError.
+        pytest.param({}, 'KernelList', 'boom kernel_list construction', id='kernel_list_construction'),
+        pytest.param(
+            {}, 'KernelList.return_value.write_list', 'boom write_list',
+            id='kernel_list_write_list',
+        ),
+        pytest.param(
+            {}, 'KernelList.return_value.check_products', 'boom check_products',
+            id='kernel_list_check_products',
+        ),
+        pytest.param(
+            {}, 'SpiceKernelsCollection.return_value.determine_meta_kernels',
+            'boom determine_meta_kernels', id='skc_determine_meta_kernels',
+        ),
+        pytest.param(
+            {}, 'SpiceKernelsCollection.return_value.validate', 'boom skc validate',
+            id='skc_validate',
+        ),
+        pytest.param({}, 'Bundle', 'boom bundle construction', id='bundle_construction'),
+        pytest.param(
+            {}, 'Bundle.return_value.validate', 'boom bundle validate',
+            id='bundle_validate',
+        ),
+        # Configuration validation runs right after the log is attached to
+        # set up, before anything else in the run -- this is distinct from
+        # Setup() construction itself (Block A, covered by its own dedicated
+        # test below).
+        pytest.param(
+            {}, 'Setup.return_value.check_configuration', 'boom check_configuration',
+            id='setup_check_configuration',
+        ),
+        # Kernel loading runs once, before any product in the release is built.
+        pytest.param(
+            {}, 'Setup.return_value.load_kernels', 'boom load_kernels',
+            id='setup_load_kernels',
+        ),
     ])
     def test_npb_error_is_routed_to_handle_npb_error(self, mocks, overrides, target_attr, message):
         self._apply_overrides(mocks, overrides)
         self._resolve(mocks, target_attr).side_effect = NPBError(message)
         args = _args()
 
-        with pytest.raises(RuntimeError, match=message):
+        with pytest.raises(NPBError, match=message):
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
-        setup.write_file_list.assert_called_once()
-        setup.write_checksum_registry.assert_called_once()
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
 
     def test_npb_error_from_release_plan_read_plan_is_routed_to_handle_npb_error(self, mocks):
         # read_plan() is only reached when args.plan is set to a .plan path
@@ -1198,25 +1720,131 @@ class TestNPBErrorHandling:
         mocks.ReleasePlan.return_value.read_plan.side_effect = NPBError('boom read_plan')
         args = _args(plan='mission_release_01.plan')
 
-        with pytest.raises(RuntimeError, match='boom read_plan'):
+        with pytest.raises(NPBError, match='boom read_plan'):
             run_pipeline(args)
 
         setup = mocks.Setup.return_value
-        setup.write_file_list.assert_called_once()
-        setup.write_checksum_registry.assert_called_once()
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
+
+    def test_npb_error_from_kernel_list_read_list_is_routed_to_handle_npb_error(self, mocks):
+        # read_list() is only reached when args.kerlist is set, which is
+        # mutually exclusive with write_list() (the case covered by the
+        # 'kernel_list_write_list' row above), so it needs the same
+        # dedicated-test treatment as ReleasePlan.read_plan() above.
+        mocks.KernelList.return_value.read_list.side_effect = NPBError('boom read_list')
+        args = _args(kerlist='mission_release_01.kernel_list')
+
+        with pytest.raises(NPBError, match='boom read_list'):
+            run_pipeline(args)
+
+        setup = mocks.Setup.return_value
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
+
+    # fragment is the part of each message that doesn't include the temp path,
+    # which changes on every run.
+    @pytest.mark.parametrize('trigger, fragment', [
+        pytest.param(_invalid_eol, 'Invalid EOL requested',
+                     id='add_carriage_return'),
+        pytest.param(_bad_eol_in_config, 'Incorrect EOL in configuration',
+                     id='check_eol'),
+        pytest.param(_meta_kernel_without_kernels, 'No kernels present',
+                     id='mk_to_list'),
+    ])
+    def test_error_from_files_function_is_handled_once(
+            self, mocks, tmp_path, caplog, trigger, fragment):
+        # A real utils.files failure raised inside the main try block must
+        # reach the real handle_npb_error along with the run's setup, and be
+        # logged exactly once. check_products() runs inside that block, so a
+        # failure there takes the same route as one inside the real classes.
+        mocks.KernelList.return_value.check_products.side_effect = (
+            lambda: trigger(tmp_path))
+
+        args = _args()
+        with caplog.at_level(logging.ERROR), \
+                pytest.raises(NPBError, match=fragment) as raised:
+            run_pipeline(args)
+
+        setup = mocks.Setup.return_value
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_called_once_with(setup)
+        run_state.write_checksum_registry.assert_called_once_with(setup)
+        errors = [r.getMessage() for r in caplog.records
+                  if r.levelno == logging.ERROR]
+        assert errors == [f"-- {raised.value}"]
 
     def test_npb_error_from_setup_construction_is_routed_without_setup(self, mocks):
         # Setup() itself failing is a special case (Block A): there is no
         # setup instance yet, so handle_npb_error is called with no `setup`
         # kwarg and no cleanup (write_file_list/write_checksum_registry) is
-        # attempted. Log must never be constructed either, since it depends
+        # attempted. No RunState exists either, since it is built right after
+        # the setup. Log must never be constructed either, since it depends
         # on a successfully-built setup.
         mocks.Setup.side_effect = NPBError('boom setup')
         args = _args()
 
-        with pytest.raises(RuntimeError, match='boom setup'):
+        with pytest.raises(NPBError, match='boom setup'):
             run_pipeline(args)
 
         mocks.Log.assert_not_called()
-        mocks.Setup.return_value.write_file_list.assert_not_called()
-        mocks.Setup.return_value.write_checksum_registry.assert_not_called()
+        mocks.RunState.assert_not_called()
+
+    def test_npb_internal_error_is_not_routed_to_handle_npb_error(self, mocks):
+        # NPBInternalError is a sibling of NPBError, not a subclass, so neither
+        # of run_pipeline's two `except NPBError` blocks (Block A around
+        # Setup(), Block B around everything else) can catch it. It must
+        # propagate straight out of run_pipeline uncaught, and none of Block B's
+        # cleanup (write_file_list/write_checksum_registry) should run -- unlike
+        # every NPBError-routed case above.
+        mocks.BundlePDS4Label.side_effect = NPBInternalError('bundle label is broken')
+        args = _args()
+
+        with pytest.raises(NPBInternalError, match='NPB bug: bundle label is broken'):
+            run_pipeline(args)
+
+        run_state = mocks.RunState.return_value
+        run_state.write_file_list.assert_not_called()
+        run_state.write_checksum_registry.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Label registration
+# ---------------------------------------------------------------------------
+
+class TestLabelRegistration:
+    """The pipeline, not the labels, adds each label to the run file list."""
+
+    @pytest.mark.parametrize('pds_version', ['3', '4'])
+    def test_every_label_written_is_registered_once_and_in_order(
+            self, mocks, pds_version: str) -> None:
+        """Each path write_label returns reaches the run state exactly once,
+        in the order the labels were written."""
+
+        mocks.Setup.return_value.pds_version = pds_version
+        mocks.ReleasePlan.return_value.kernel_list = ['maven_2024.bsp']
+
+        # Every label class hands out a unique path, in the order the labels
+        # are written, so a skipped, repeated or reordered registration shows.
+        written = []
+
+        def write_label() -> str:
+            written.append(f'label_{len(written)}')
+            return written[-1]
+
+        label_classes = [getattr(mocks, name) for name in _PATCH_TARGETS
+                         if name.endswith('Label')]
+        for label_class in label_classes:
+            label_class.return_value.write_label.side_effect = write_label
+
+        run_pipeline(_args())
+
+        registered = [
+            call.args[0] for call in
+            mocks.RunState.return_value.register_label_file.call_args_list]
+
+        # The run writes several labels, and all of them are registered.
+        assert len(written) > 1
+        assert registered == written

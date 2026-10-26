@@ -1,14 +1,18 @@
 """Implementation of the PDS4 SPICE Kernels Collection Class."""
+from __future__ import annotations
 import glob
 import logging
 import os
 
 import spiceypy
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from .collection import Collection
-from ...pipeline.runtime import handle_npb_error
+from ..exceptions import NPBError
+from ...utils import archive_subdirectory
 from ...utils import et_to_date
 from ...utils import extension_to_type
+from ...utils import FILE_READ_ERRORS
 
 
 class SpiceKernelsCollection(Collection):
@@ -17,6 +21,9 @@ class SpiceKernelsCollection(Collection):
     :param setup:   NPB execution setup object
     :param bundle:  Bundle object
     :param kernels: Kernel List object
+
+    The ``increment_start`` and ``increment_finish`` attributes only exist once
+    :meth:`set_increment_times` has run.
     """
 
     def __init__(self, setup, bundle, kernels) -> None:
@@ -55,11 +62,11 @@ class SpiceKernelsCollection(Collection):
                 for mk in mks:
                     if not os.path.exists(mk):
                         logging.info("")
-                        handle_npb_error(
+                        raise NPBError(
                             f"Meta-kernel provided via"
                             f" configuration"
-                            f" does not exist: {mk}"
-                        )
+                            f" does not exist: {mk}")
+
                     else:
                         meta_kernels[mk] = True
             else:
@@ -154,16 +161,17 @@ class SpiceKernelsCollection(Collection):
                 else:
                     existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
                 if os.path.exists(existing_path):
-                    handle_npb_error(f"MK already exists in the archive: {existing_path}")
+                    raise NPBError(f"MK already exists in the archive: {existing_path}")
 
         return meta_kernels
 
-    def set_increment_times(self):
+    def set_increment_times(self) -> None:
         """Determine the archive increment start and finish times.
 
         This is done based on the identification of the coverage of a given
         SPK or CK kernel. Alternatively it can be provided as a parameter of the
-        execution.
+        execution. The determined times are stored in ``increment_start`` and
+        ``increment_finish``.
         """
         increment_start = ""
         increment_finish = ""
@@ -189,7 +197,12 @@ class SpiceKernelsCollection(Collection):
             increment_start = min(increment_starts)
             increment_finish = max(increment_finishs)
 
-        except BaseException:
+        # min()/max() raise ValueError when no MK sets the increment coverage
+        # (both lists are empty), or TypeError if the collected start/stop times
+        # are of incompatible types (e.g. None or mixed str/datetime);
+        # prod.start_time/stop_time access raises AttributeError if a matched
+        # product lacks the coverage attributes.
+        except (ValueError, AttributeError, TypeError):
             #
             # If no MKs are provided in the increment. First check if an
             # increment stop time has been provided as an input
@@ -254,6 +267,8 @@ class SpiceKernelsCollection(Collection):
             )
             bundles.sort()
 
+            prev_increment_start = None
+            prev_increment_finish = None
             with open(bundles[-1], "r", encoding='utf-8') as b:
                 for line in b:
                     if "<start_date_time>" in line:
@@ -282,7 +297,12 @@ class SpiceKernelsCollection(Collection):
                 increment_finish = prev_increment_finish
                 logging.warning("-- Increment finish corrected form previous bundle.")
 
-        except BaseException:
+        # bundles[-1] raises IndexError with no matching glob; a matched label
+        # missing the start/stop tags leaves prev_increment_start or _finish as
+        # None, so comparing it below raises TypeError; open() raises OSError if
+        # the file can't be read, or UnicodeDecodeError if it isn't valid UTF-8
+        # (opened with encoding='utf-8').
+        except (IndexError, TypeError, *FILE_READ_ERRORS):
             logging.warning("-- Previous bundle not found.")
 
         #
@@ -296,7 +316,9 @@ class SpiceKernelsCollection(Collection):
                 spiceypy.utc2et(increment_finish[:-1]),
                 self.setup.date_format,
             )
-        except BaseException:
+
+        # spiceypy.utc2et() raises SpiceyPyError when no LSK is loaded.
+        except SpiceyPyError:
             logging.warning(
                 "-- A leapseconds kernel (LSK) has not been loaded. "
                 "Increment start/finish times will not be corrected."
@@ -306,8 +328,8 @@ class SpiceKernelsCollection(Collection):
         logging.info('   %s - %s', increment_start, increment_finish)
         logging.info('')
 
-        self.setup.increment_finish = increment_finish
-        self.setup.increment_start = increment_start
+        self.increment_finish = increment_finish
+        self.increment_start = increment_start
 
     def validate(self) -> None:
         """Validate the SPICE Kernels collection.
@@ -327,15 +349,27 @@ class SpiceKernelsCollection(Collection):
         #
         logging.info("-- Checking that all the kernels from list are present...")
 
-        if self.setup.pds_version == "3":
-            ker_dir = "/data/"
-            orbnum_dir = "/extras/orbnum/"
-            mk_dir = "/extras/mk/"
+        # Staging folder of each kind of product for the PDS version. Each one
+        # starts and ends with a separator, so it can sit between the staging
+        # directory and the product name. Orbnum files and meta-kernels are one
+        # level deeper, in "orbnum" and "mk"; for the kernels, the type folder
+        # is added in the checks below.
+        pds_version = self.setup.pds_version
+        ker_dir = os.sep + archive_subdirectory("kernel", pds_version) + os.sep
+        orbnum_dir = (
+            os.sep + archive_subdirectory("orbnum", pds_version)
+            + os.sep + "orbnum" + os.sep
+        )
+        mk_dir = (
+            os.sep + archive_subdirectory("mk", pds_version)
+            + os.sep + "mk" + os.sep
+        )
+
+        # PDS3 labels have the .lbl extension and PDS4 labels the .xml one.
+        if pds_version == "3":
             lbl_ext = ".lbl"
+
         else:
-            ker_dir = "/spice_kernels/"
-            orbnum_dir = "/miscellaneous/orbnum/"
-            mk_dir = "/spice_kernels/mk/"
             lbl_ext = ".xml"
 
         non_present_products = []
@@ -362,10 +396,7 @@ class SpiceKernelsCollection(Collection):
 
             # Report all missing products before terminating so the user can
             # address every gap in a single run.
-            handle_npb_error(
-                "Some products from the list are not present.",
-                setup=self.setup,
-            )
+            raise NPBError("Some products from the list are not present.")
 
         else:
             logging.info("   OK")
@@ -410,9 +441,7 @@ class SpiceKernelsCollection(Collection):
             # PDS3 labeling is not yet implemented; termination is deferred
             # until it is. For PDS4, all products must be labeled.
             if self.setup.pds_version == "4":
-                handle_npb_error(
-                    "Some products have not been labeled.", setup=self.setup
-                )
+                raise NPBError("Some products have not been labeled.")
 
         else:
             logging.info("   OK")

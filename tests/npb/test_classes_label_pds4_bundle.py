@@ -2,11 +2,10 @@
 
 Two test classes are provided:
 
-* TestBundlePDS4Label – unit tests that mock only the inherited
-  ``PDSLabel.write_label`` so the constructor and the BUNDLE_MEMBER_ENTRIES
-  building logic are exercised in isolation. ``PDSLabel.__init__`` is NOT
-  mocked: it runs for real, so the readme product must expose every attribute
-  the parent reads.
+* TestBundlePDS4Label – unit tests that build the label without writing it,
+  so the constructor and the BUNDLE_MEMBER_ENTRIES building logic are
+  exercised in isolation. ``PDSLabel.__init__`` is NOT mocked: it runs for
+  real, so the readme product must expose every attribute the parent reads.
 
 * TestBundlePDS4LabelIntegration – integration tests that exercise
   BundlePDS4Label together with the real ``PDSLabel.write_label`` logic,
@@ -17,10 +16,11 @@ Why BundlePDS4Label differs from the other PDS4 label classes:
 
 * ``product`` IS the readme; bundle identity comes from ``product.bundle``
   (``lid`` / ``vid`` / ``collections``), not from the product itself.
-* ``self.name`` is never set by the constructor; the inherited writer assigns
-  it from ``product.path`` verbatim because the path already ends in ``.xml``.
-* ``START_TIME`` / ``STOP_TIME`` come from ``setup.increment_start`` /
-  ``setup.increment_finish``, not from the product.
+* ``self.name`` is never set by the constructor itself; it relies entirely on
+  the inherited ``PDSLabel.__init__`` derivation, which passes ``product.path``
+  through verbatim because the path already ends in ``.xml``.
+* ``START_TIME`` / ``STOP_TIME`` come from the run state's
+  ``increment_start`` / ``increment_finish``, not from the product itself.
 * ``BUNDLE_MEMBER_ENTRIES`` is built by concatenating one
   ``<Bundle_Member_Entry>`` per collection. ``collection.name`` selects the
   reference-type suffix; ``collection.updated`` selects Primary/Secondary.
@@ -34,6 +34,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.label.pds4_bundle import BundlePDS4Label
 
 # Fully-qualified write_label target. Centralised so a relocation only needs
@@ -43,16 +44,18 @@ WRITE_LABEL_TARGET = (
 
 
 def _build_label(setup: MagicMock, readme: MagicMock) -> BundlePDS4Label:
-    """Construct a ``BundlePDS4Label`` with ``write_label`` patched to a no-op.
+    """Construct a ``BundlePDS4Label``.
 
-    ``PDSLabel.__init__`` is left intact so its real attribute wiring runs.
+    ``PDSLabel.__init__`` is left intact so its real attribute wiring runs;
+    that means readme.setup must be set to setup beforehand, since the label
+    now reads setup off the product instead of taking it as a separate arg.
 
     :param setup:  configured PDS4 Setup mock
     :param readme: readme product mock carrying the ``bundle`` aggregate
     :return: constructed label instance
     """
-    with patch(WRITE_LABEL_TARGET, autospec=True):
-        return BundlePDS4Label(setup, readme)
+    readme.setup = setup
+    return BundlePDS4Label(readme)
 
 
 # ---------------------------------------------------------------------------
@@ -73,8 +76,6 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     def _make_setup(end_of_line: str = 'LF', eol_pds4: str = '\n') -> SimpleNamespace:
         setup = base_helpers.make_setup(end_of_line=end_of_line,
                                         eol_pds4=eol_pds4)
-        setup.increment_start = '2024-02-01T00:00:00Z'
-        setup.increment_finish = '2024-02-28T23:59:59Z'
         setup.author_list = 'Doe, J.; Roe, R.'
         setup.doi = '10.17189/maven_spice'
         return setup
@@ -93,14 +94,19 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
                      collections: list[SimpleNamespace] | None = None,
                      bundle_lid: str = 'urn:nasa:pds:maven_spice',
                      bundle_vid: str = '1.0') -> MagicMock:
-        # readme.path ends in '.xml' so write_label uses it verbatim (the
-        # else-branch of PDSLabel.write_label that handles the bundle case).
+        # readme.path ends in '.xml' so PDSLabel derives self.name from it
+        # verbatim (the else-branch that handles the bundle case).
         staging_dir.mkdir(parents=True, exist_ok=True)
         readme = base_helpers.make_product(
             path=str(staging_dir / name),
             name=name,
             lid=bundle_lid,
             collection_name='miscellaneous')
+
+        # The increment window the label copies into START_TIME / STOP_TIME.
+        readme.bundle.spice_kernels_collection = SimpleNamespace(
+            increment_start='2024-02-01T00:00:00Z',
+            increment_finish='2024-02-28T23:59:59Z')
         readme.bundle.lid = bundle_lid
         readme.bundle.vid = bundle_vid
         readme.bundle.collections = (
@@ -146,7 +152,7 @@ class TestBundlePDS4Label:
 
         :param tmp_path: pytest temporary directory
         :param helpers:  specialised bundle factories
-        :return: constructed label with write_label patched out
+        :return: constructed label
         """
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
@@ -159,25 +165,23 @@ class TestBundlePDS4Label:
 
     def test_attribute_assignments(self, label: BundlePDS4Label) -> None:
         # Bundle identity comes from product.bundle, not from the product.
-        assert label.BUNDLE_LID == 'urn:nasa:pds:maven_spice'
-        assert label.BUNDLE_VID == '1.0'
+        assert label._label_fields["BUNDLE_LID"] == 'urn:nasa:pds:maven_spice'
+        assert label._label_fields["BUNDLE_VID"] == '1.0'
 
         # Scalar metadata copied verbatim from setup and readme.
-        assert label.AUTHOR_LIST == 'Doe, J.; Roe, R.'
-        assert label.DOI == '10.17189/maven_spice'
-        assert label.FILE_NAME == 'bundle_maven_spice_v001.xml'
+        assert label._label_fields["AUTHOR_LIST"] == 'Doe, J.; Roe, R.'
+        assert label._label_fields["DOI"] == '10.17189/maven_spice'
+        assert label._label_fields["FILE_NAME"] == 'bundle_maven_spice_v001.xml'
 
         # Time coverage comes from setup.increment_*, not from the product.
-        assert label.START_TIME == '2024-02-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-02-28T23:59:59Z'
+        assert label._label_fields["START_TIME"] == '2024-02-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-02-28T23:59:59Z'
 
         # The single default collection produces exactly one member entry.
-        assert label.BUNDLE_MEMBER_ENTRIES == SPICE_KERNELS_PRIMARY_ENTRY
-
-        # Per-collection scratch attrs reflect the last processed collection.
-        assert label.COLL_NAME == 'spice_kernel'
-        assert label.COLL_LIDVID == 'urn:nasa:pds:maven_spice:spice_kernels::1.0'
-        assert label.COLL_STATUS == 'Primary'
+        # COLL_NAME/COLL_LIDVID/COLL_STATUS are local loop scratch, not
+        # _label_fields entries -- their values are only observable through
+        # the rendered BUNDLE_MEMBER_ENTRIES above.
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == SPICE_KERNELS_PRIMARY_ENTRY
 
     def test_template_path_is_bundle_template(
             self, label: BundlePDS4Label) -> None:
@@ -186,28 +190,29 @@ class TestBundlePDS4Label:
         assert label._template == str(
             Path(label.setup.templates_directory) / 'template_bundle.xml')
 
-    def test_constructor_does_not_set_name_attribute(
+    def test_constructor_derives_name_from_readme_path(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Unlike other PDS4 labels, BundlePDS4Label never assigns self.name.
-        # PDSLabel.__init__ sets it to '' and write_label assigns the real path
-        # later. With write_label patched, it must remain ''.
-        label = _build_label(helpers.make_setup(),
-                             helpers.make_readme(tmp_path / 'staging'))
-        assert label.name == ''
+        # Unlike other PDS4 labels, BundlePDS4Label never assigns self.name
+        # itself; it relies entirely on PDSLabel.__init__'s derivation from
+        # readme.path.
+        readme = helpers.make_readme(tmp_path / 'staging')
+        label = _build_label(helpers.make_setup(), readme)
+        assert label.name == readme.path
 
-    def test_constructor_stores_references_and_calls_write_label_once(
+    def test_constructor_stores_references_and_does_not_write_label(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # setup and product (readme) must be stored by identity, and write_label
-        # must be called exactly once with the label instance as argument.
+        # setup and product (readme) must be stored by identity, and building
+        # the label must not write it.
         setup = helpers.make_setup()
         readme = helpers.make_readme(tmp_path / 'staging')
 
         with patch(WRITE_LABEL_TARGET, autospec=True) as mock_write:
-            label = BundlePDS4Label(setup, readme)
+            readme.setup = setup
+            label = BundlePDS4Label(readme)
 
         assert label.setup is setup
         assert label.product is readme
-        mock_write.assert_called_once_with(label)
+        mock_write.assert_not_called()
 
     # ------------------------------------------------------------------
     # _*_reference_type overrides
@@ -223,26 +228,26 @@ class TestBundlePDS4Label:
     # BUNDLE_MEMBER_ENTRIES – per-collection rendering
     # ------------------------------------------------------------------
 
-    @pytest.mark.parametrize('coll_name, updated, expected_coll_name, expected_status, expected_entry', [
-        ('spice_kernels', True, 'spice_kernel', 'Primary',
+    @pytest.mark.parametrize('coll_name, updated, expected_entry', [
+        ('spice_kernels', True,
          ' <Bundle_Member_Entry>\n'
          '  <lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
          '  <member_status>Primary</member_status>\n'
          '  <reference_type>bundle_has_spice_kernel_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
-        ('spice_kernels', False, 'spice_kernel', 'Secondary',
+        ('spice_kernels', False,
          ' <Bundle_Member_Entry>\n'
          '  <lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
          '  <member_status>Secondary</member_status>\n'
          '  <reference_type>bundle_has_spice_kernel_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
-        ('document', True, 'document', 'Primary',
+        ('document', True,
          ' <Bundle_Member_Entry>\n'
          '  <lidvid_reference>urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
          '  <member_status>Primary</member_status>\n'
          '  <reference_type>bundle_has_document_collection</reference_type>\n'
          ' </Bundle_Member_Entry>\n'),
-        ('document', False, 'document', 'Secondary',
+        ('document', False,
          ' <Bundle_Member_Entry>\n'
          '  <lidvid_reference>urn:nasa:pds:maven_spice:document::1.0</lidvid_reference>\n'
          '  <member_status>Secondary</member_status>\n'
@@ -250,8 +255,7 @@ class TestBundlePDS4Label:
          ' </Bundle_Member_Entry>\n')])
     def test_single_collection_entry_for_fixed_name_branches(
             self, tmp_path: Path, helpers: SimpleNamespace,
-            coll_name: str, updated: bool, expected_coll_name: str,
-            expected_status: str, expected_entry: str) -> None:
+            coll_name: str, updated: bool, expected_entry: str) -> None:
         # Covers the spice_kernels and document name branches and both values of
         # collection.updated. expected_entry is a handwritten literal, not a
         # formula that mirrors the source code.
@@ -265,38 +269,35 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.COLL_NAME == expected_coll_name
-        assert label.COLL_STATUS == expected_status
-        assert label.BUNDLE_MEMBER_ENTRIES == expected_entry
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected_entry
 
     @pytest.mark.parametrize(
-        'information_model_float, expected_coll_name, updated,'
-        ' expected_status, expected_entry', [
-            (1011001000.0, 'miscellaneous', True, 'Primary',
+        'information_model_float, updated, expected_entry', [
+            (1011001000.0, True,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
              '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
-            (1011001000.0, 'miscellaneous', False, 'Secondary',
+            (1011001000.0, False,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Secondary</member_status>\n'
              '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
-            (1016000000.0, 'miscellaneous', True, 'Primary',
+            (1016000000.0, True,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
              '  <reference_type>bundle_has_miscellaneous_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
-            (1011000999.0, 'member', True, 'Primary',
+            (1011000999.0, True,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Primary</member_status>\n'
              '  <reference_type>bundle_has_member_collection</reference_type>\n'
              ' </Bundle_Member_Entry>\n'),
-            (1010000000.0, 'member', False, 'Secondary',
+            (1010000000.0, False,
              ' <Bundle_Member_Entry>\n'
              '  <lidvid_reference>urn:nasa:pds:maven_spice:miscellaneous::1.0</lidvid_reference>\n'
              '  <member_status>Secondary</member_status>\n'
@@ -304,8 +305,8 @@ class TestBundlePDS4Label:
              ' </Bundle_Member_Entry>\n')])
     def test_miscellaneous_branch_depends_on_information_model_threshold(
             self, tmp_path: Path, helpers: SimpleNamespace,
-            information_model_float: float, expected_coll_name: str,
-            updated: bool, expected_status: str, expected_entry: str) -> None:
+            information_model_float: float, updated: bool,
+            expected_entry: str) -> None:
         # Covers the miscellaneous name branch. The threshold >= 1011001000.0
         # selects 'miscellaneous'; below it selects the legacy 'member'. Both
         # Primary and Secondary are parametrized to guarantee are both reached.
@@ -322,9 +323,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.COLL_NAME == expected_coll_name
-        assert label.COLL_STATUS == expected_status
-        assert label.BUNDLE_MEMBER_ENTRIES == expected_entry
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected_entry
 
     def test_multiple_collections_are_concatenated_in_order(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -346,7 +345,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.BUNDLE_MEMBER_ENTRIES == (
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == (
             ' <Bundle_Member_Entry>\n'
             '  <lidvid_reference>'
             'urn:nasa:pds:maven_spice:spice_kernels::1.0</lidvid_reference>\n'
@@ -371,16 +370,12 @@ class TestBundlePDS4Label:
 
     def test_empty_collections_list_leaves_member_entries_empty(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # An empty collections list must leave BUNDLE_MEMBER_ENTRIES as '' and
-        # must never create the per-collection scratch attributes.
+        # An empty collections list must leave BUNDLE_MEMBER_ENTRIES as ''.
         label = _build_label(helpers.make_setup(),
                              helpers.make_readme(tmp_path / 'staging',
                                                  collections=[]))
 
-        assert label.BUNDLE_MEMBER_ENTRIES == ''
-        assert not hasattr(label, 'COLL_NAME')
-        assert not hasattr(label, 'COLL_LIDVID')
-        assert not hasattr(label, 'COLL_STATUS')
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == ''
 
     @pytest.mark.parametrize('xml_tab, expected_entry', [
         (1, SPICE_KERNELS_PRIMARY_ENTRY),
@@ -405,7 +400,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.BUNDLE_MEMBER_ENTRIES == expected_entry
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected_entry
 
     @pytest.mark.parametrize('eol, eol_char, expected', [
         ('LF', '\n', SPICE_KERNELS_PRIMARY_ENTRY),
@@ -428,16 +423,17 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert label.BUNDLE_MEMBER_ENTRIES == expected
+        assert label._label_fields["BUNDLE_MEMBER_ENTRIES"] == expected
 
     # ------------------------------------------------------------------
     # Edge cases
     # ------------------------------------------------------------------
 
-    def test_unknown_collection_name_raises_value_error(
+    def test_unknown_collection_name_raises_npbinternalerror(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # An unrecognised collection.name fails fast with a descriptive
-        # ValueError instead of silently reading stale/missing scratch state.
+        # NPBInternalError instead of silently reading stale/missing scratch
+        # state.
         unknown = helpers.make_collection(
             name='unexpected_collection',
             lid='urn:nasa:pds:maven_spice:unexpected', updated=True)
@@ -448,14 +444,14 @@ class TestBundlePDS4Label:
         expected_message = (
             'NPB bug: the collection name unexpected_collection is not '
             'supported in PDS4 Bundle Label.')
-        with pytest.raises(ValueError, match=f'^{expected_message}$'):
+        with pytest.raises(NPBInternalError, match=f'^{expected_message}$'):
             _build_label(setup, readme)
 
-    def test_unknown_collection_name_after_known_collection_raises_value_error(
+    def test_unknown_collection_name_after_known_collection_raises_npbinternalerror(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # An unrecognised collection.name following a recognised one must
         # still raise immediately, rather than silently reusing the
-        # previous iteration's COLL_NAME/COLL_LIDVID/COLL_STATUS to emit a
+        # previous iteration's coll_name/coll_lidvid/coll_status to emit a
         # duplicate entry.
         known = helpers.make_collection(
             name='document',
@@ -470,7 +466,7 @@ class TestBundlePDS4Label:
         expected_message = (
             'NPB bug: the collection name unexpected_collection is not '
             'supported in PDS4 Bundle Label.')
-        with pytest.raises(ValueError, match=f'^{expected_message}$'):
+        with pytest.raises(NPBInternalError, match=f'^{expected_message}$'):
             _build_label(setup, readme)
 
     @pytest.mark.parametrize('updated_value, expected_status', [
@@ -495,15 +491,14 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label.COLL_STATUS == expected_status
+        assert (f'<member_status>{expected_status}</member_status>'
+                in label._label_fields["BUNDLE_MEMBER_ENTRIES"])
 
     @pytest.mark.parametrize('setup_attribute, value, label_attribute', [
         ('author_list', '', 'AUTHOR_LIST'),
         ('author_list', 'Solo, H.', 'AUTHOR_LIST'),
         ('doi', '', 'DOI'),
-        ('doi', '10.0/x', 'DOI'),
-        ('increment_start', 'not-a-valid-datetime', 'START_TIME'),
-        ('increment_finish', '', 'STOP_TIME')])
+        ('doi', '10.0/x', 'DOI')])
     def test_setup_values_are_copied_without_validation(
             self, tmp_path: Path, helpers: SimpleNamespace,
             setup_attribute: str, value: str, label_attribute: str) -> None:
@@ -515,7 +510,27 @@ class TestBundlePDS4Label:
 
         label = _build_label(setup, readme)
 
-        assert getattr(label, label_attribute) == value
+        assert label._label_fields[label_attribute] == value
+
+    @pytest.mark.parametrize('collection_attribute, value, label_attribute', [
+        ('increment_start', 'not-a-valid-datetime', 'START_TIME'),
+        ('increment_finish', '', 'STOP_TIME')])
+    def test_increment_times_are_copied_without_validation(
+            self, tmp_path: Path, helpers: SimpleNamespace,
+            collection_attribute: str, value: str,
+            label_attribute: str) -> None:
+        """The increment times of the SPICE Kernels collection are copied
+        verbatim into the label; validating them is the caller's job."""
+
+        # Replace one of the collection times with the value under test.
+        readme = helpers.make_readme(tmp_path / 'staging')
+        setattr(readme.bundle.spice_kernels_collection, collection_attribute,
+                value)
+
+        label = _build_label(helpers.make_setup(), readme)
+
+        # The value reaches the label field untouched, even if it is invalid.
+        assert label._label_fields[label_attribute] == value
 
     @pytest.mark.parametrize('bundle_lid, bundle_vid', [
         ('urn:nasa:pds:maven_spice', '1.0'),
@@ -532,8 +547,8 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label.BUNDLE_LID == bundle_lid
-        assert label.BUNDLE_VID == bundle_vid
+        assert label._label_fields["BUNDLE_LID"] == bundle_lid
+        assert label._label_fields["BUNDLE_VID"] == bundle_vid
 
     def test_file_name_is_readme_name_verbatim_without_truncation(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -544,7 +559,7 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label.FILE_NAME == 'bundle_maven_spice_v002.0.xml'
+        assert label._label_fields["FILE_NAME"] == 'bundle_maven_spice_v002.0.xml'
 
     def test_coll_lidvid_concatenates_lid_and_vid_verbatim(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -559,7 +574,9 @@ class TestBundlePDS4Label:
 
         label = _build_label(helpers.make_setup(), readme)
 
-        assert label.COLL_LIDVID == 'urn:nasa:pds:maven_spice:spice_kernels::3.14'
+        assert ('<lidvid_reference>urn:nasa:pds:maven_spice:spice_kernels::3.14'
+                '</lidvid_reference>'
+                in label._label_fields["BUNDLE_MEMBER_ENTRIES"])
 
 
 # ===========================================================================
@@ -590,6 +607,16 @@ TEMPLATE_CONTENT = (
 class TestBundlePDS4LabelIntegration:
     """Integration tests for BundlePDS4Label + PDSLabel.write_label."""
 
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert BundlePDS4Label._context_from_product is False
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert BundlePDS4Label._trailing_blank_log is True
+
     # ------------------------------------------------------------------
     # Fixture
     # ------------------------------------------------------------------
@@ -619,6 +646,26 @@ class TestBundlePDS4LabelIntegration:
         return setup, readme, template_path, Path(readme.path)
 
     # ------------------------------------------------------------------
+    # _context_from_product effect
+    # ------------------------------------------------------------------
+
+    def test_context_from_product_effect_on_context_fields(
+            self, env: tuple[MagicMock, MagicMock, Path, Path],
+            context_effect_helpers: SimpleNamespace) -> None:
+        """Inherited _context_from_product=False must source MISSIONS/
+        OBSERVERS/TARGETS from setup, not from the readme."""
+        setup, readme, _, _ = env
+
+        # readme now differs from setup
+        context_effect_helpers.diverge(readme)
+
+        readme.setup = setup
+        label = BundlePDS4Label(readme)
+
+        # setup must win
+        context_effect_helpers.assert_source(label, from_product=False)
+
+    # ------------------------------------------------------------------
     # File creation and content
     # ------------------------------------------------------------------
 
@@ -629,7 +676,10 @@ class TestBundlePDS4LabelIntegration:
         # Semantic field values are verified in test_label_file_is_valid_xml.
         setup, readme, template_path, label_path = env
 
-        label = BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        label = BundlePDS4Label(readme)
+        label.write_label()
 
         assert label._template == str(template_path)
         assert Path(label.name) == label_path
@@ -642,7 +692,9 @@ class TestBundlePDS4LabelIntegration:
         # substituted by the correct value from the label state.
         setup, readme, _, label_path = env
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme).write_label()
 
         expected = ('<?xml version="1.0" encoding="UTF-8"?>\n'
                     '<bundle>\n'
@@ -670,7 +722,9 @@ class TestBundlePDS4LabelIntegration:
         setup.end_of_line = 'LF'
         setup.eol_pds4 = '\n'
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme).write_label()
         raw = label_path.read_bytes()
 
         assert b'\r\n' not in raw
@@ -683,7 +737,9 @@ class TestBundlePDS4LabelIntegration:
         setup.end_of_line = 'CRLF'
         setup.eol_pds4 = '\r\n'
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme).write_label()
         raw = label_path.read_bytes()
 
         assert b'\r\n' in raw
@@ -712,7 +768,9 @@ class TestBundlePDS4LabelIntegration:
                 lid='urn:nasa:pds:maven_spice:document', updated=False)]
         readme = helpers.make_readme(staging_dir, collections=collections)
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        BundlePDS4Label(readme).write_label()
 
         entries = ElementTree.parse(
             Path(readme.path)).getroot().find('Bundle_Member_Entries')
@@ -726,58 +784,21 @@ class TestBundlePDS4LabelIntegration:
                 for e in entries.findall('Bundle_Member_Entry')] == [
                    'Primary', 'Secondary']
 
-    def test_stray_coll_placeholder_in_template_is_substituted_by_writer(
-            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # TODO: BUG, it substitutes every public string attribute of the label
-        #       whose name appears in a template line, including the scratch
-        #       attrs COLL_NAME, COLL_LIDVID, COLL_STATUS. These are
-        #       implementation details of BundlePDS4Label and not part of the
-        #       public template contract. A template containing $COLL_NAME would
-        #       silently receive the last collection's value.
-        templates_dir = tmp_path / 'templates'
-        staging_dir = tmp_path / 'staging'
-        templates_dir.mkdir()
-        staging_dir.mkdir()
-
-        (templates_dir / 'template_bundle.xml').write_text(
-            '<bundle>\n'
-            '  <leaked>$COLL_NAME</leaked>\n'
-            '</bundle>\n',
-            encoding='utf-8')
-
-        setup = helpers.make_setup()
-        setup.templates_directory = str(templates_dir)
-        setup.staging_directory = str(staging_dir)
-
-        collections = [
-            helpers.make_collection(
-                name='spice_kernels',
-                lid='urn:nasa:pds:maven_spice:spice_kernels', updated=True),
-            helpers.make_collection(
-                name='document',
-                lid='urn:nasa:pds:maven_spice:document', updated=True)]
-        readme = helpers.make_readme(staging_dir, collections=collections)
-
-        BundlePDS4Label(setup, readme)
-        written = Path(readme.path).read_text(encoding='utf-8')
-
-        # The leaked value is the last collection's COLL_NAME ('document').
-        assert '<leaked>document</leaked>' in written
-        assert '$COLL_NAME' not in written
-
     # ------------------------------------------------------------------
-    # setup.add_file side effect
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_staging_relative_label_path(
+    def test_write_label_returns_staging_relative_path(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # write_label must register the label using its path relative to the
-        # staging directory, not as an absolute path.
+        """write_label returns the label path relative to staging."""
+
         setup, readme, _, _ = env
+        readme.setup = setup
 
-        BundlePDS4Label(setup, readme)
+        written_path = BundlePDS4Label(readme).write_label()
 
-        setup.add_file.assert_called_once_with('bundle_maven_spice_v001.xml')
+        # The path is relative to staging, not absolute.
+        assert written_path == 'bundle_maven_spice_v001.xml'
 
     # ------------------------------------------------------------------
     # Error paths
@@ -785,35 +806,41 @@ class TestBundlePDS4LabelIntegration:
 
     def test_missing_template_raises_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # A missing template must raise FileNotFoundError. The output file is
-        # created empty before the template is opened, so it exists but is
-        # empty. add_file must not be called.
+        """A missing template makes write_label raise FileNotFoundError."""
+
         setup, readme, template_path, label_path = env
         template_path.unlink()
 
-        with pytest.raises(FileNotFoundError):
-            BundlePDS4Label(setup, readme)
+        readme.setup = setup
+        label = BundlePDS4Label(readme)
 
+        with pytest.raises(FileNotFoundError):
+            label.write_label()
+
+        # The output file is created empty before the template is opened, so
+        # it exists even though writing failed.
         assert label_path.exists()
         assert label_path.read_text(encoding='utf-8') == ''
-        setup.add_file.assert_not_called()
 
     def test_malformed_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # write_label does not validate XML; a malformed template is rendered
-        # and registered. The caller is responsible for template correctness.
+        """A malformed template is rendered and its path still returned."""
+
         setup, readme, template_path, label_path = env
         template_path.write_text('<bundle>\n'
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        BundlePDS4Label(setup, readme)
+        readme.setup = setup
+
+        written_path = BundlePDS4Label(readme).write_label()
 
         written = label_path.read_text(encoding='utf-8')
         assert '<file_name>bundle_maven_spice_v001.xml</file_name>' in written
         assert '$FILE_NAME' not in written
 
+        # The XML is not parsed by write_label, but the path is still returned.
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written)
 
-        setup.add_file.assert_called_once_with('bundle_maven_spice_v001.xml')
+        assert written_path == 'bundle_maven_spice_v001.xml'

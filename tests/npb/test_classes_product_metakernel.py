@@ -8,9 +8,11 @@ from pathlib import Path
 from unittest.mock import MagicMock, call, patch
 
 import pytest
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Module path used to target patches
@@ -71,7 +73,6 @@ def make_setup(
     setup.mission_finish = mission_finish
     setup.eol_mk = "\n"
     setup.increment = increment
-    setup.diff = False
     # Deep-copy the shared MK_SETUP so a test that mutates self.mk_setup (e.g.
     # write_product / get_description writing back "&value") cannot leak that
     # mutation into another test through the module-level dict.
@@ -82,6 +83,7 @@ def make_setup(
     setup.args.verbose = False
     setup.args.debug = True  # prevents interrupt_to_update stdin prompt
     setup.args.checksum = False
+    setup.args.diff = False
 
     # Provide re_config and kernel_list_config so get_description works for
     # the default MK name "insight_v<N>.tm" without needing an extra mock.
@@ -143,7 +145,6 @@ def base_init_patches():
         patch(f"{_MODULE}.MetaKernelProduct.compare"),
         patch(f"{_MODULE}.shutil.copy2"),
         patch(f"{_MODULE}.Product.__init__", return_value=None),
-        patch(f"{_MODULE}.MetaKernelPDS4Label", return_value=MagicMock()),
     ]
 
 
@@ -198,7 +199,7 @@ def build_product(
     with ExitStack() as stack:
         for p in base_init_patches():
             stack.enter_context(p)
-        product = MetaKernelProduct(setup, kernel_arg, collection, user_input=user_input)
+        product = MetaKernelProduct(setup, RunState(), kernel_arg, collection, user_input=user_input)
 
     return product, setup, collection
 
@@ -238,6 +239,7 @@ class TestMetaKernelProductInit:
 
         extra_setup_attrs: dict of {attr: value} applied with setattr after
                            make_setup (useful for re-adding deleted attrs).
+                           Dotted names such as "args.diff" are supported.
         extra_patches: list of additional context managers to enter.
         """
         staging, bundle, work, templates = self._setup_dirs(tmp_path)
@@ -250,13 +252,18 @@ class TestMetaKernelProductInit:
             mk_list=mk_list,
         )
         for attr, value in (extra_setup_attrs or {}).items():
-            setattr(setup, attr, value)
+            # A dotted name (e.g. "args.diff") reaches into a nested object.
+            *parents, attr_name = attr.split(".")
+            target = setup
+            for parent in parents:
+                target = getattr(target, parent)
+            setattr(target, attr_name, value)
         collection = make_collection()
         all_patches = base_init_patches() + (extra_patches or [])
         with ExitStack() as stack:
             for p in all_patches:
                 stack.enter_context(p)
-            product = MetaKernelProduct(setup, name, collection)
+            product = MetaKernelProduct(setup, RunState(), name, collection)
         return product, setup
 
     @pytest.mark.parametrize("pds_version, subdir, kernelpath", [
@@ -305,7 +312,8 @@ class TestMetaKernelProductInit:
                 stack.enter_context(p)
             # Shadow the default copy2 patch with a mock we can assert on.
             mock_copy = stack.enter_context(patch(f"{_MODULE}.shutil.copy2"))
-            MetaKernelProduct(setup, src, collection, user_input=True)
+            MetaKernelProduct(setup, RunState(),
+                              src, collection, user_input=True)
 
         mock_copy.assert_called_once()
 
@@ -322,7 +330,7 @@ class TestMetaKernelProductInit:
             mock_write = stack.enter_context(
                 patch(f"{_MODULE}.MetaKernelProduct.write_product")
             )
-            MetaKernelProduct(setup, "insight_v01.tm", collection, user_input=False)
+            MetaKernelProduct(setup, RunState(), "insight_v01.tm", collection, user_input=False)
 
         mock_write.assert_called_once()
 
@@ -345,10 +353,10 @@ class TestMetaKernelProductInit:
             patch(f"{_MODULE}.mk_to_list", return_value=[]),
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.MetaKernelPDS4Label", return_value=MagicMock()),
             patch(f"{_MODULE}.get_latest_kernel", return_value=[]),
         ):
-            product = MetaKernelProduct(setup, "insight_v01.tm", collection)
+            product = MetaKernelProduct(setup, RunState(),
+                                        "insight_v01.tm", collection)
 
         # The rendered file exists in the staging mk directory and starts with
         # the KPL/MK header from the template; write_product set its attributes.
@@ -370,23 +378,10 @@ class TestMetaKernelProductInit:
         compare_mock = MagicMock()
         self._make_product(
             tmp_path,
-            extra_setup_attrs={"diff": diff},
+            extra_setup_attrs={"args.diff": diff},
             extra_patches=[patch(f"{_MODULE}.MetaKernelProduct.compare", compare_mock)],
         )
         assert compare_mock.called == expect_compare
-
-    @pytest.mark.parametrize("pds_version, expect_label", [
-        ("4", True),
-        ("3", False)
-    ])
-    def test_pds4_label_created_only_for_pds4(self, tmp_path, pds_version, expect_label):
-        label_mock = MagicMock()
-        self._make_product(
-            tmp_path,
-            pds_version=pds_version,
-            extra_patches=[patch(f"{_MODULE}.MetaKernelPDS4Label", label_mock)],
-        )
-        assert label_mock.called == expect_label
 
     def test_no_matching_mk_config_raises(self, tmp_path):
         staging = str(tmp_path / "staging")
@@ -404,9 +399,101 @@ class TestMetaKernelProductInit:
 
         with (patch(f"{_MODULE}.safe_make_directory"),
               patch(f"{_MODULE}.current_date", return_value="2024-01-01")):
+            run_state = RunState()
             with pytest.raises(NPBError,
                                match="Meta-kernel insight_v01.tm has not been matched in configuration."):
-                MetaKernelProduct(setup, "insight_v01.tm", collection)
+                MetaKernelProduct(setup, run_state,
+                                  "insight_v01.tm", collection)
+
+    @pytest.mark.parametrize("mk_list", [
+        pytest.param(
+            [{
+                "@name": "insight_v$VERSION.tm",
+                # No "@length" key: match_patterns() indexes pattern["@length"]
+                # unconditionally, so this raises KeyError *inside*
+                # match_patterns() - before self.mk_setup is ever assigned,
+                # unlike a KeyError from values["VERSION"] (see note below).
+                "name": [{"pattern": {"#text": "VERSION"}}],
+                "grammar": {"pattern": []},
+                "metadata": {"description": ""},
+            }],
+            id="keyerror-pattern-missing-length-attribute",
+        ),
+        pytest.param(
+            [{
+                "@name": "insight_v01.tmX",
+                "name": [],
+                "grammar": {"pattern": []},
+                "metadata": {"description": ""},
+            }],
+            id="indexerror-literal-pattern-longer-than-name",
+        ),
+        pytest.param(
+            # "@name" pattern matches "insight_v01.tm" on its face, so
+            # match_patterns() gets far enough to reach int(pattern["@length"])
+            # and fail there with a non-numeric "@length" (int("bad") fails) -
+            # this isolates that ValueError from the plain-mismatch ValueError
+            # already covered by test_no_matching_mk_config_raises above.
+            [{
+                "@name": "insight_v$VERSION.tm",
+                "name": [{"pattern": {"#text": "VERSION", "@length": "bad"}}],
+                "grammar": {"pattern": []},
+                "metadata": {"description": ""},
+            }],
+            id="valueerror-non-numeric-length-attribute",
+        ),
+    ])
+    def test_pattern_match_failure_modes_skip_candidate(self, tmp_path, mk_list):
+        """Three more match_patterns() failure modes besides the plain-mismatch
+        ValueError (already covered by test_no_matching_mk_config_raises
+        above): a pattern dict missing its "@length" attribute
+        (match_patterns() raises KeyError before returning), a literal pattern
+        longer than the actual kernel name (match_patterns()'s char-by-char
+        walk runs past the end of the name and raises IndexError), and a
+        non-numeric "@length" attribute (raises ValueError). All three must be
+        skipped like a genuine mismatch - with no other candidate, that means
+        falling through to the normal "not matched" NPBError.
+
+        Note: a KeyError from values["VERSION"] instead (a pattern that matches
+        fully but captures no "VERSION" group) is NOT equivalent to these two:
+        self.mk_setup is assigned right before that line, so the candidate
+        counts as matched and __init__ falls through to set_product_vid()'s
+        own "no VID explicit" AttributeError fallback instead - already covered
+        by test_no_version_attribute_defaults_to_1_0_when_name_has_01."""
+        staging = str(tmp_path / "staging")
+        os.makedirs(staging, exist_ok=True)
+
+        setup = make_setup(staging_directory=staging, mk_list=mk_list)
+        collection = make_collection()
+
+        with (patch(f"{_MODULE}.safe_make_directory"),
+              patch(f"{_MODULE}.current_date", return_value="2024-01-01")):
+            run_state = RunState()
+            with pytest.raises(NPBError,
+                               match="Meta-kernel insight_v01.tm has not been matched in configuration."):
+                MetaKernelProduct(setup, run_state,
+                                  "insight_v01.tm", collection)
+
+    def test_metak_matching_propagates_unrelated_exception(self, tmp_path):
+        """A bug in match_patterns() that isn't one of the four expected
+        failure modes (here a stand-in AttributeError) must propagate and
+        crash construction, not be silently absorbed as "this candidate
+        didn't match" - proving the widened tuple is still a narrow catch,
+        not a route back to swallowing everything."""
+        staging = str(tmp_path / "staging")
+        os.makedirs(staging, exist_ok=True)
+
+        setup = make_setup(staging_directory=staging)
+        collection = make_collection()
+
+        with (patch(f"{_MODULE}.safe_make_directory"),
+              patch(f"{_MODULE}.current_date", return_value="2024-01-01"),
+              patch(f"{_MODULE}.match_patterns", side_effect=AttributeError("boom"))):
+
+            run_state = RunState()
+            with pytest.raises(AttributeError, match="boom"):
+                MetaKernelProduct(setup, run_state,
+                                  "insight_v01.tm", collection)
 
     def test_collection_metakernel_set_from_mk_to_list(self, tmp_path):
         kernel_list = ["naif0012.tls", "insight_v01.bsp"]
@@ -530,10 +617,9 @@ class TestMetaKernelProductInit:
             patch(f"{_MODULE}.MetaKernelProduct.write_product"),
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
             patch(f"{_MODULE}.Product.__init__", return_value=None),
-            patch(f"{_MODULE}.MetaKernelPDS4Label", return_value=MagicMock()),
             patch(f"{_MODULE}.MetaKernelProduct.check_version") as mock_check_version,
         ):
-            MetaKernelProduct(setup, "insight_v01.tm", collection)
+            MetaKernelProduct(setup, RunState(), "insight_v01.tm", collection)
 
         mock_check_version.assert_called_once()
 
@@ -553,6 +639,9 @@ class TestMetaKernelProductInit:
         with caplog.at_level(logging.INFO):
             self._make_product(tmp_path)
 
+        # The "Labeling meta-kernel..." message and its leading blank line moved
+        # to the pipeline along with label construction, so they're not logged
+        # by the product's own __init__ anymore.
         expected = [
             (logging.INFO, '-- Generate meta-kernel: insight_v01.tm'),
             (logging.WARNING, f'-- Meta-kernel already exists: {tmp_path / "staging/spice_kernels/mk/insight_v01.tm"}'),
@@ -560,9 +649,7 @@ class TestMetaKernelProductInit:
                               'staging are will be overwritten.'),
             (logging.WARNING, '-- Note that to provide a meta-kernel as an input, it must be provided '
                               'via configuration file.'),
-            (logging.INFO, ''),
-            (logging.INFO, ''),
-            (logging.INFO, '-- Labeling meta-kernel: insight_v01.tm...')]
+            (logging.INFO, '')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
         assert expected == results
@@ -630,6 +717,49 @@ class TestMetaKernelProductCheckVersion:
         expected = [
             (logging.WARNING, '-- Meta-kernel from previous increment is not available.'),
             (logging.WARNING, '   Version will be set to: 01.')]
+
+        results = [(r[1], r[2]) for r in caplog.record_tuples]
+        assert expected == results
+
+    def test_previous_mk_with_unparsable_version_logs_warning(self, tmp_path, caplog):
+        """Test that check_version falls back to its "not available" warning
+        when a previous MK is found by glob but its version substring doesn't
+        match find_latest_versioned_file's "_v<digits>" pattern -- the
+        `latest_version is None` (match found, no parseable version) case,
+        as opposed to the "no candidates at all" case covered by
+        test_no_previous_mk_logs_warning.
+        """
+        bundle = str(tmp_path / "bundle")
+        mk_dir = tmp_path / "bundle" / "insight_spice" / "spice_kernels" / "mk"
+        mk_dir.mkdir(parents=True)
+
+        # Writes a real file on disk so glob.glob() (called inside
+        # find_latest_versioned_file) actually matches it. "XX" is 2
+        # characters, the same width as the "02" version below, so the
+        # filename satisfies the glob pattern ("insight_v??.tm") -- it's only
+        # the "_v(\d+)$" version regex that fails to match "_vXX".
+        (mk_dir / "insight_vXX.tm").write_text("KPL/MK\n", encoding="utf-8")
+
+        setup = make_setup(bundle_directory=bundle, increment=True,
+                           mission_acronym="insight")
+        # _make_stub builds a MetaKernelProduct without calling __init__,
+        # setting just the attributes check_version reads: the product's own
+        # name/version, and mk_setup["@name"] (the naming pattern used to
+        # build the glob and to locate the version digits within it).
+        product = self._make_stub(setup, "insight_v02.tm", version="02")
+
+        # check_version() logs internally rather than returning a value, so
+        # caplog is how the test observes what branch actually ran.
+        with caplog.at_level(logging.INFO):
+            product.check_version()
+
+        # The fallback branch always logs these two warnings, regardless of
+        # whether it was reached because no file matched at all or because a
+        # file matched but its version didn't parse -- this is what confirms
+        # the unparsable-version case takes the same fallback path.
+        expected = [
+            (logging.WARNING, '-- Meta-kernel from previous increment is not available.'),
+            (logging.WARNING, '   Version will be set to: 02.')]
 
         results = [(r[1], r[2]) for r in caplog.record_tuples]
         assert expected == results
@@ -734,7 +864,7 @@ class TestMetaKernelProductSetProductVid:
 
     def test_no_version_attribute_defaults_to_1_0_when_name_has_01(self, caplog):
         product = self._make_stub(name="insight_v01.tm")
-        # No version attribute set → triggers BaseException handler.
+        # No version attribute set → triggers AttributeError handler.
         # Check the logging level and logging messages.
         with caplog.at_level(logging.INFO):
             product.set_product_vid()
@@ -945,6 +1075,28 @@ class TestMetaKernelProductGetDescription:
 
 class TestMetaKernelProductWriteProduct:
     """Tests for MetaKernelProduct.write_product."""
+
+    @staticmethod
+    def _bundle_path_in_calls(mock_glk, expected_path):
+        """Check if expected_path appears in any get_latest_kernel call.
+
+        Normalizes paths for cross-platform comparison (e.g., handles mixed
+        separators on Windows where source uses hardcoded / in f-strings).
+
+        Args:
+            mock_glk: The mocked get_latest_kernel function
+            expected_path: Path string to search for
+
+        Returns:
+            True if the normalized path was found in any call, False otherwise
+        """
+        normalized_expected = os.path.normpath(expected_path)
+        for call in mock_glk.call_args_list:
+            paths = call.args[1] if len(call.args) > 1 else call.kwargs.get("paths", [])
+            for p in paths:
+                if os.path.normpath(p) == normalized_expected:
+                    return True
+        return False
 
     @staticmethod
     def _make_stub(tmp_path, name="insight_v01.tm", grammar_patterns=None,
@@ -1168,19 +1320,41 @@ class TestMetaKernelProductWriteProduct:
 
         assert ("previous increment" in caplog.text) == expect_warning
 
+    @pytest.mark.parametrize("side_effect, expected_snippet", [
+        pytest.param(OSError("bad kernel path"), "bad kernel path",
+                    id="oserror-mk-unreadable"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            "invalid start byte",
+            id="unicodedecodeerror-mk-not-utf8"),
+    ])
     def test_get_latest_kernel_exception_logs_warning_and_continues(
-            self, tmp_path, caplog):
+            self, tmp_path, caplog, side_effect, expected_snippet):
+        """get_latest_kernel() raises OSError when a meta-kernel listed in mks
+        can no longer be opened, or UnicodeDecodeError when it isn't valid
+        UTF-8 (get_latest_kernel() reads mk files with encoding='utf-8') -
+        except (OSError, UnicodeDecodeError) logs and moves on either way."""
         product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
 
         with (
             caplog.at_level(logging.WARNING),
-            patch(f"{_MODULE}.get_latest_kernel",
-                  side_effect=ValueError("bad kernel path")),
+            patch(f"{_MODULE}.get_latest_kernel", side_effect=side_effect)
         ):
             product.write_product()  # must not raise
 
-        assert "bad kernel path" in caplog.text
+        assert expected_snippet in caplog.text
         assert product.product == product.path
+
+    def test_get_latest_kernel_propagates_unrelated_exception(self, tmp_path):
+        """A bug in get_latest_kernel() that isn't a missing-file case (here a
+        stand-in ValueError) must propagate, not be silently reported as an
+        "Exception" warning - proving except OSError no longer masks it."""
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
+
+        with patch(f"{_MODULE}.get_latest_kernel",
+                   side_effect=ValueError("boom")):
+            with pytest.raises(ValueError, match="boom"):
+                product.write_product()
 
     def test_scalar_latest_kernel_wrapped_in_list(self, tmp_path):
         # when get_latest_kernel returns a plain string (not a list)
@@ -1317,6 +1491,24 @@ class TestMetaKernelProductWriteProduct:
         captured = capsys.readouterr()
         assert "not available" in captured.out
 
+    def test_interrupt_to_update_vi_keyboard_interrupt_prompts_fallback(
+            self, tmp_path, capsys):
+        product = self._make_stub(tmp_path)
+        product.setup.args.debug = False
+        product.mk_setup["interrupt_to_update"] = "true"
+
+        input_returns = iter(["vi", ""])
+        with (
+            patch(f"{_MODULE}.get_latest_kernel", return_value=[]),
+            patch("builtins.input", side_effect=input_returns),
+            patch(f"{_MODULE}.subprocess.call",
+                  side_effect=KeyboardInterrupt),
+        ):
+            product.write_product()  # must not raise
+
+        captured = capsys.readouterr()
+        assert "not available" in captured.out
+
     @pytest.mark.parametrize("debug, itu_value", [
         (True, "true"),    # key present but debug=True bypasses the block
         (False, None),     # key absent
@@ -1368,6 +1560,164 @@ class TestMetaKernelProductWriteProduct:
             "      line two\n"
         )
 
+    def test_bundle_directory_searched_pds4_increment(self, tmp_path):
+        """Test PDS4 bundle directory added to paths when increment=True and dir exists."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+
+        # Create the PDS4 bundle structure: bundle_directory/mission_acronym_spice/spice_kernels
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels_path, exist_ok=True)
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = True
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        assert self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"Expected path {bundle_kernels_path} should be in get_latest_kernel calls"
+
+    def test_bundle_directory_not_searched_when_increment_false(self, tmp_path):
+        """Test bundle directory NOT searched when increment=False (first release)."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels_path, exist_ok=True)
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = False  # First release
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        # Verify get_latest_kernel was called (test would pass vacuously otherwise)
+        assert mock_glk.called, "get_latest_kernel should be called"
+
+        # Verify bundle path was NOT passed to get_latest_kernel
+        assert not self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"Path {bundle_kernels_path} should NOT be in calls for first release"
+
+    def test_bundle_not_searched_when_pds_version_not_4(self, tmp_path):
+        """Test that bundle is NOT searched when pds_version != '4'."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+
+        # Create a bundle structure that would be searched if PDS4
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+        os.makedirs(bundle_kernels_path, exist_ok=True)
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"], pds_version="3")
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = True
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()  # Should NOT search bundle for PDS3
+
+        # Verify get_latest_kernel was called (test would pass vacuously otherwise)
+        assert mock_glk.called, "get_latest_kernel should be called"
+
+        # Verify PDS4 bundle path was NOT passed to get_latest_kernel
+        assert not self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"PDS4 path {bundle_kernels_path} should NOT be in calls when pds_version='3'"
+
+    def test_bundle_directory_not_searched_when_subdir_missing_pds4(self, tmp_path):
+        """Test bundle subdirectory NOT added to paths when it doesn't exist (PDS4)."""
+        bundle_dir = str(tmp_path / "bundle")
+        os.makedirs(bundle_dir, exist_ok=True)
+        # Bundle directory exists but insight_spice/spice_kernels subdirectory does NOT exist
+        bundle_kernels_path = os.path.join(bundle_dir, "insight_spice", "spice_kernels")
+
+        product = self._make_stub(tmp_path, grammar_patterns=["naif0012.tls"])
+        product.setup.bundle_directory = bundle_dir
+        product.setup.increment = True  # Incremental release
+
+        with patch(f"{_MODULE}.get_latest_kernel", return_value=[]) as mock_glk:
+            product.write_product()
+
+        # Verify get_latest_kernel was called (test would pass vacuously otherwise)
+        assert mock_glk.called, "get_latest_kernel should be called"
+
+        # Verify bundle subdirectory path was NOT passed to get_latest_kernel
+        assert not self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
+            f"Non-existent path {bundle_kernels_path} should NOT be in calls"
+
+    def test_kernel_only_in_bundle_included_in_mk_pds4(self, tmp_path):
+        """Integration test: kernel only in bundle (not staging/previous MK) is found and included."""
+        staging = str(tmp_path / "staging")
+        bundle = str(tmp_path / "bundle")
+        working = str(tmp_path / "working")
+        templates = str(tmp_path / "templates")
+
+        # Create directories
+        os.makedirs(staging, exist_ok=True)
+        os.makedirs(working, exist_ok=True)
+        os.makedirs(templates, exist_ok=True)
+
+        # Create staging structure for the MK output
+        mk_staging_dir = os.path.join(staging, "spice_kernels", "mk")
+        os.makedirs(mk_staging_dir, exist_ok=True)
+
+        # Create bundle structure with a kernel that exists ONLY in bundle
+        bundle_lsk_dir = os.path.join(bundle, "insight_spice", "spice_kernels", "lsk")
+        os.makedirs(bundle_lsk_dir, exist_ok=True)
+        bundle_kernel_path = os.path.join(bundle_lsk_dir, "naif0012.tls")
+        Path(bundle_kernel_path).write_text("LSK kernel content\n", encoding="utf-8")
+
+        # Create minimal MK template
+        template_path = os.path.join(templates, "template_metakernel.tm")
+        Path(template_path).write_text(
+            "KPL/MK\n\\begindata\nPATH_VALUES = ( '$KERNELPATH' )\nPATH_SYMBOLS = ( 'KERNELS' )\n"
+            "$KERNELS_IN_METAKERNEL\n\\begintext\n",
+            encoding="utf-8"
+        )
+
+        # Create setup with increment=True to trigger bundle search
+        setup = make_setup(
+            pds_version="4",
+            staging_directory=staging,
+            bundle_directory=bundle,
+            working_directory=working,
+            templates_directory=templates,
+            increment=True,  # This triggers the bundle directory search
+            mk_list=[{
+                "@name": "insight_v$VERSION.tm",
+                "name": [{"pattern": {"#text": "VERSION", "@length": "2"}}],
+                "grammar": {
+                    "pattern": ["naif0012.tls"],  # Looking for this kernel
+                    "padding": "False"
+                },
+                "metadata": {
+                    "description": "Test MK for bundle kernel search",
+                    "data": "",
+                },
+            }]
+        )
+
+        collection = make_collection()
+        collection.product = []
+
+        # Create the meta-kernel product - this should find the kernel in bundle
+        with (
+            patch(f"{_MODULE}.safe_make_directory"),
+            patch(f"{_MODULE}.current_date", return_value="2024-01-01"),
+            patch(f"{_MODULE}.mk_to_list", return_value=[]),
+            patch(f"{_MODULE}.MetaKernelProduct.coverage"),
+            patch(f"{_MODULE}.Product.__init__", return_value=None),
+        ):
+            MetaKernelProduct(setup, RunState(), "insight_v01.tm", collection)
+
+        # Read the generated MK and verify the bundle kernel was included
+        mk_path = os.path.join(mk_staging_dir, "insight_v01.tm")
+        assert os.path.exists(mk_path), "Meta-kernel should be generated"
+
+        mk_content = Path(mk_path).read_text(encoding="utf-8")
+        assert "naif0012.tls" in mk_content, \
+            "Kernel from bundle directory should be included in generated meta-kernel"
+        assert "'$KERNELS/lsk/naif0012.tls'" in mk_content, \
+            "Kernel path should be correctly formatted in meta-kernel"
 
 # ===========================================================================
 # MetaKernelProduct.compare
@@ -1401,9 +1751,18 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == str(tmp_path / "insight_spice/spice_kernels/mk/insight_v01.tm")
         assert work_dir == product.setup.working_directory
-        assert diff == product.setup.diff
+        assert diff == product.setup.args.diff
 
-    def test_compare_falls_back_to_template_when_no_previous(self, tmp_path, caplog):
+    @pytest.mark.parametrize("glob_side_effect", [
+        pytest.param(None, id="no-previous-mk-found"),
+        pytest.param(OSError("glob failed"), id="glob-raises-oserror"),
+    ])
+    def test_compare_falls_back_to_template_when_no_previous(
+            self, tmp_path, caplog, glob_side_effect):
+        """No previous MK version matches (self-raised FileNotFoundError) and
+        glob.glob() itself failing (OSError) must both fall back to comparing
+        against the MK template - proving
+        except (FileNotFoundError, OSError) catches both."""
         mk_dir = tmp_path / "insight_spice" / "spice_kernels" / "mk"
         mk_dir.mkdir(parents=True)
         # No previous MK files.
@@ -1418,6 +1777,7 @@ class TestMetaKernelProductCompare:
         product.path = f"{tmp_path}/insight_spice/spice_kernels/mk/insight_v01.tm"
 
         with (patch(f"{_MODULE}.compare_files") as mock_cmp,
+              patch(f"{_MODULE}.glob.glob", side_effect=glob_side_effect, return_value=[]),
               caplog.at_level(logging.INFO)):
             product.compare()
 
@@ -1425,7 +1785,7 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == str(Path("/templates/template_metakernel.tm"))
         assert work_dir == setup.working_directory
-        assert diff == setup.diff
+        assert diff == setup.args.diff
 
         expected = [
             (logging.WARNING, '-- No other version of insight_v01.tm has been found.'),
@@ -1452,7 +1812,7 @@ class TestMetaKernelProductCompare:
         assert fromfile == product.path
         assert tofile == prev_mk
         assert work_dir == product.setup.working_directory
-        assert diff == product.setup.diff
+        assert diff == product.setup.args.diff
 
 
 # ===========================================================================
@@ -1521,7 +1881,7 @@ class TestMetaKernelProductValidate:
         with (
             caplog.at_level(logging.INFO),
             patch(f"{_MODULE}.spiceypy.kclear") as mock_kclear,
-            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=RuntimeError("fail")),
+            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=SpiceyPyError("fail")),
             patch(f"{_MODULE}.check_line_length", return_value=[]),
             patch("os.chdir"),
         ):
@@ -1536,6 +1896,26 @@ class TestMetaKernelProductValidate:
         # kclear must be called after the except block to guarantee cleanup
         # even when furnsh raises.
         assert mock_kclear.call_count == 2
+
+    def test_furnsh_unrelated_exception_propagates(self, tmp_path):
+        """A bug that isn't a SPICE failure (here a stand-in RuntimeError)
+        must propagate, not be silently reported as a FURNSH error - proving
+        except SpiceyPyError no longer masks it. The kernel pool and cwd
+        must still be restored (via finally) so the propagating exception
+        doesn't leak state into the next MK validated in the same run."""
+        product, _ = self._make_stub(tmp_path)
+        cwd = os.getcwd()
+
+        with (
+            patch(f"{_MODULE}.spiceypy.kclear") as mock_kclear,
+            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=RuntimeError("boom")),
+            patch("os.chdir") as mock_chdir,
+        ):
+            with pytest.raises(RuntimeError, match="boom"):
+                product.validate()
+
+        assert mock_kclear.call_count == 2
+        assert mock_chdir.call_args_list[-1] == call(cwd)
 
     def test_line_length_errors_logged_as_warnings(self, tmp_path, caplog):
         product, _ = self._make_stub(tmp_path)
@@ -1597,7 +1977,7 @@ class TestMetaKernelProductValidate:
 
         with (
             patch(f"{_MODULE}.spiceypy.kclear"),
-            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=RuntimeError("fail")),
+            patch(f"{_MODULE}.spiceypy.furnsh", side_effect=SpiceyPyError("fail")),
             patch(f"{_MODULE}.check_line_length", return_value=[]),
             patch("os.chdir") as mock_chdir,
         ):
@@ -1732,6 +2112,40 @@ class TestMetaKernelProductCoverage:
         assert product.stop_time == "2020-01-01T00:00:00.000Z"
         assert product.mk_sets_coverage
 
+    def test_spiceypy_failure_propagates_as_npberror(self, lsk):
+        """spiceypy.et2utc() raising is a SPICE failure distinct from the
+        min()/max() ValueError on empty lists (already covered by
+        test_yearly_mk_exception_coverage) - the @spice_exception_handler
+        decorator on coverage() converts it to NPBError instead of it being
+        caught locally and falling back to config times."""
+        setup = make_setup(
+            mission_start="2018-01-01T00:00:00Z",
+            mission_finish="2023-01-01T00:00:00Z",
+            increment_start="2019-01-01T00:00:00Z",
+            increment_finish="2019-12-31T00:00:00Z",
+            date_format="infomod2",
+        )
+        collection = self._make_collection_with_kernel(
+            "insight_cru_ops_v01.bsp",
+            "2019-01-01T00:00:00Z",
+            "2020-01-01T00:00:00Z",
+        )
+        product = self._make_stub(
+            setup,
+            collection=collection,
+            collection_metakernel=["insight_cru_ops_v01.bsp"],
+        )
+        product.mk_setup = {
+            "coverage_kernels": {
+                "pattern": [r"insight_cru_ops_v\d+\.bsp"]
+            }
+        }
+
+        with patch(f"{_MODULE}.spiceypy.et2utc",
+                   side_effect=SpiceyPyError("SPICE(BADTIMESTRING)")):
+            with pytest.raises(NPBError):
+                product.coverage()
+
     def test_coverage_kernel_not_in_collection_missing_file_logs_warning(
             self, lsk, tmp_path, caplog):
         # when the kernel file is absent, only a warning is
@@ -1850,6 +2264,39 @@ class TestMetaKernelProductCoverage:
         # et_to_date in the "infomod2" format.
         assert product.start_time == "2019-06-01T00:00:00.000Z"
         assert product.stop_time == "2019-12-01T00:00:00.000Z"
+
+    def test_coverage_spiceypy_failure_raises_npberror(self, lsk, tmp_path):
+        """A SpiceyPyError from spk_coverage is raised as NPBError."""
+        bundle_dir = tmp_path / "bundle"
+        spk_dir = bundle_dir / "insight_spice" / "spice_kernels" / "spk"
+        spk_dir.mkdir(parents=True)
+        spk_file = spk_dir / "insight_cru_ops_v01.bsp"
+        spk_file.write_bytes(b"\x00" * 16)
+
+        setup = make_setup(
+            bundle_directory=str(bundle_dir),
+            mission_start="2018-01-01T00:00:00Z",
+            mission_finish="2023-01-01T00:00:00Z",
+            mission_acronym="insight")
+
+        collection = MagicMock()
+        collection.product = []
+        product = self._make_stub(
+            setup,
+            collection=collection,
+            collection_metakernel=["insight_cru_ops_v01.bsp"])
+
+        product.mk_setup = {
+            "coverage_kernels": {
+                "pattern": [r"insight_cru_ops_v\d+\.bsp"]
+            }
+        }
+
+        with patch(f"{_MODULE}.spk_coverage",
+                   side_effect=SpiceyPyError('spiceypy error')):
+
+            with pytest.raises(NPBError):
+                product.coverage()
 
     def test_coverage_kernel_not_in_collection_non_spk_ck_raises(
             self, lsk, tmp_path):

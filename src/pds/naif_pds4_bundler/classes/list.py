@@ -5,22 +5,22 @@ import glob
 import json
 import logging
 import os
-import re
+from pathlib import Path
 import shutil
+import sys
+from typing import Optional
 
-from ..pipeline.runtime import handle_npb_error
-from ..utils import check_badchar
-from ..utils import check_binary_endianness
-from ..utils import check_consecutive
+import spiceypy
+from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
+
+from .exceptions import NPBError
 from ..utils import check_eol
-from ..utils import check_kernel_integrity
 from ..utils import check_line_length
 from ..utils import check_list_duplicates
-from ..utils import check_permissions
 from ..utils import compare_files
 from ..utils import extension_to_type
 from ..utils import extract_comment
-from ..utils import fill_template
+from ..utils import FILE_READ_ERRORS
 from ..utils import product_mapping
 from ..utils import spice_exception_handler
 
@@ -75,19 +75,7 @@ class KernelList:
         """Extract the Kernel List information from the configuration file."""
         json_config = self.setup.kernel_list_config
 
-        #
-        # Build a list of computed regular expressions from the JSON config
-        #
-        re_config = []
-        for pattern in json_config:
-            re_config.append(re.compile(pattern))
-
-        self.re_config = re_config
-        #
-        # Also store it in setup for later use in meta-kernel description
-        # generation.
-        #
-        self.setup.re_config = re_config
+        self.re_config = self.setup.re_config
         self.json_config = json_config
 
         json_formatted_str = json.dumps(self.json_config, indent=2)
@@ -107,8 +95,8 @@ class KernelList:
 
         list_dictionary = vars(self)
 
-        fill_template(
-            self, self.setup.working_directory + os.sep + list_name, list_dictionary
+        self._fill_template(
+            self.setup.working_directory + os.sep + list_name, list_dictionary
         )
 
         with open(self.setup.working_directory + os.sep + list_name, "a+", encoding='utf-8') as f:
@@ -126,19 +114,27 @@ class KernelList:
                         # Description is the only mandatory field.
                         #
                         description = self.json_config[pattern.pattern]["description"]
+
                         try:
                             options = self.json_config[pattern.pattern][
                                 "mklabel_options"
                             ]
-                        except BaseException:
+
+                        # "mklabel_options" is an optional config key.
+                        except KeyError:
                             options = ""
+
                         try:
                             patterns = self.json_config[pattern.pattern]["patterns"]
-                        except BaseException:
+
+                        # "patterns" is an optional config key.
+                        except KeyError:
                             patterns = False
+
                         try:
                             mapping = self.json_config[pattern.pattern]["mapping"]
-                        except BaseException:
+                        # "mapping" is an optional config key.
+                        except KeyError:
                             mapping = ""
 
                         #
@@ -196,7 +192,7 @@ class KernelList:
                                             if patterns[el]["@pattern"].isupper():
                                                 value = value.upper()
                                         else:
-                                            handle_npb_error(
+                                            raise NPBError(
                                                 f"Kernel pattern for {kernel} not adept to write description. Remember a "
                                                 "metacharacter cannot start or finish a kernel pattern."
                                             )
@@ -227,7 +223,7 @@ class KernelList:
                                                 break
 
                                         if not isinstance(value, str):
-                                            handle_npb_error(
+                                            raise NPBError(
                                                 f"Kernel pattern not found in comment area of {kernel}."
                                             )
 
@@ -252,13 +248,13 @@ class KernelList:
                                                 if val["@value"] in kernel:
                                                     value = val["#text"]
                                             except KeyError:
-                                                handle_npb_error(
+                                                raise NPBError(
                                                     f"Error generating kernel list with {kernel}. "
                                                     f"Consider reviewing your NPB setup."
                                                 )
 
                                         if isinstance(value, (list, dict)):
-                                            handle_npb_error(
+                                            raise NPBError(
                                                 f"-- Kernel {kernel} description could not be updated with "
                                                 f"pattern."
                                             )
@@ -383,7 +379,7 @@ class KernelList:
                 try:
                     release_list.append(int(token))
                 except ValueError:
-                    handle_npb_error(
+                    raise NPBError(
                         f"Non-numeric release token '{token}' in kernel list filename "
                         f"'{os.path.basename(kernel_list)}'."
                     )
@@ -392,10 +388,10 @@ class KernelList:
                         c.write(line)
 
         try:
-            if not check_consecutive(release_list):
+            if not self._check_consecutive(release_list):
                 logging.warning('-- Incomplete Kernel lists available: %s', release_list)
         except ValueError:
-            handle_npb_error('-- No release kernel lists available.')
+            raise NPBError('-- No release kernel lists available.')
 
         self.complete_list = complete_list
 
@@ -432,7 +428,7 @@ class KernelList:
         # Check that the list has no bad characters.
         # This does not raise an error message but does not stop NPB.
         #
-        errors = check_badchar(list_path)
+        errors = self._check_badchar(list_path)
         if errors:
 
             for err in errors:
@@ -496,13 +492,13 @@ class KernelList:
             #
             for ker in ker_in_list:
                 if ker not in self.kernel_list:
-                    handle_npb_error(f"   {ker} not in list.")
+                    raise NPBError(f"   {ker} not in list.")
 
             #
             # Check list for duplicate entries.
             #
             if check_list_duplicates(ker_in_list):
-                handle_npb_error("List contains duplicates.")
+                raise NPBError("List contains duplicates.")
 
             #
             # Check that all files listed are available in OPS area;
@@ -603,7 +599,7 @@ class KernelList:
 
                     else:
                         if option != "N/A":
-                            handle_npb_error(f"{option} not in configuration.")
+                            raise NPBError(f"{option} not in configuration.")
 
                 logging.info('')
 
@@ -636,28 +632,37 @@ class KernelList:
                             ker_in_list.append(line.split("/")[-1].strip())
 
             if check_list_duplicates(ker_in_list):
-                handle_npb_error("List contains duplicates.")
+                raise NPBError("List contains duplicates.")
             else:
                 logging.info("     List contains no duplicates.")
             logging.info("")
 
-        if self.setup.diff and self.setup.increment:
+        if self.setup.args.diff and self.setup.increment:
             #
             # Compare list with previous list
             #
             logging.info("-- Comparing current list with previous list:")
 
             logging.info("")
-            # TODO: BUG, 'fromfile' is initialised outside the 'try block', if
-            #       'kernel_list' is empty, it raises an 'IndexError' that is
-            #       not caught.
-            fromfile = kernel_lists[-1]
-            try:
-                tofile = kernel_lists[-2]
-                work_dir = self.setup.working_directory
-                compare_files(fromfile, tofile, work_dir, self.setup.diff)
-            except BaseException:
-                logging.error("-- Previous list not available.")
+
+            # An empty glob means the current list itself is missing; a single
+            # entry means there is just no previous list to compare it with.
+            if not kernel_lists:
+                logging.error("-- Current list not available.")
+
+            else:
+                fromfile = kernel_lists[-1]
+
+                try:
+                    tofile = kernel_lists[-2]
+                    work_dir = self.setup.working_directory
+                    compare_files(fromfile, tofile, work_dir,
+                                  self.setup.args.diff)
+
+                # kernel_lists[-2] raises IndexError; compare_files() raises
+                # OSError/UnicodeDecodeError on a bad file.
+                except (IndexError, *FILE_READ_ERRORS):
+                    logging.error("-- Previous list not available.")
 
     def validate_complete(self):
         """Validation of the complete Kernel List.
@@ -748,7 +753,7 @@ class KernelList:
             #
             logging.info("-- Checking for duplicates in kernel list:")
             if check_list_duplicates(ker_in_list):
-                handle_npb_error("List contains duplicates.")
+                raise NPBError("List contains duplicates.")
             else:
                 logging.info("     List contains no duplicates.")
             logging.info("")
@@ -792,7 +797,7 @@ class KernelList:
                         logging.info('     %s is present.', option)
 
                     else:
-                        handle_npb_error(f"{option} not in template.")
+                        raise NPBError(f"{option} not in template.")
 
                 logging.info('')
 
@@ -850,7 +855,11 @@ class KernelList:
                             if product == ker
                         ]
                         origin_paths.append(file[0])
-                    except BaseException:
+
+                    # file[0] raises IndexError when no file matched the product
+                    # name.
+                    except IndexError:
+
                         try:
                             file = [
                                 os.path.join(root, ker)
@@ -860,7 +869,14 @@ class KernelList:
                                 == ker
                             ]
                             origin_paths.append(file[0])
-                        except BaseException:
+
+                        # file[0] raises IndexError with no mapped-name match;
+                        # product_mapping() opens the kernel_list with
+                        # encoding='utf-8', so it can raise OSError if the
+                        # file doesn't exist yet or UnicodeDecodeError if
+                        # it's not valid UTF-8; ValueError if setup.release
+                        # isn't a valid integer.
+                        except (IndexError, ValueError, *FILE_READ_ERRORS):
                             pass
 
             if not origin_paths and ".tm" not in product.lower():
@@ -891,10 +907,8 @@ class KernelList:
             #
             origin_path = origin_paths[0]
 
-            # TODO: BUG; check_permissions is called twice on the same path. This first
-            #       call discards the return value entirely, making it redundant.
             # Check that file has read permissions.
-            check_permissions(origin_path)
+            self._check_permissions(origin_path)
 
             #
             # Check bad characters and EOL for text kernels and ORBNUM files.
@@ -917,7 +931,7 @@ class KernelList:
                     else:
                         product_errors[product].append(error)
 
-                error = check_badchar(origin_path)
+                error = self._check_badchar(origin_path)
                 if error:
                     product_warnings[product] += error
 
@@ -930,7 +944,7 @@ class KernelList:
             # Check Kernel architecture.
             #
             if ".nrb" not in product.lower() and ".orb" not in product.lower():
-                error = check_kernel_integrity(origin_path)
+                error = self._check_kernel_integrity(origin_path)
                 if error:
                     product_errors[product].append(error)
 
@@ -939,16 +953,11 @@ class KernelList:
                 # This step currently works only for PDS4 archives, and
                 # disregards the configuration file's binary_endianness input
                 # value.
-                error = check_binary_endianness(origin_path, endianness='little')
+                error = self._check_binary_endianness(
+                    origin_path, endianness='little'
+                )
                 if error:
                     product_errors[product].append(error)
-
-            #
-            # Check kernel permissions
-            #
-            error = check_permissions(origin_path)
-            if error:
-                product_warnings[product] += error
 
         #
         # With all checks performed now they need to be reported.
@@ -993,9 +1002,242 @@ class KernelList:
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print("-- Products listed above require work.")
             logging.error("")
-            handle_npb_error("Products listed above require work.", self.setup)
+            raise NPBError("Products listed above require work.")
         elif not warning_flag:
             logging.info("-- All products checks have succeeded.")
             logging.info("")
             if not self.setup.args.silent and not self.setup.args.verbose:
                 print("-- All products checks have succeeded.")
+
+    def _fill_template(
+        self, product_file: str, product_dictionary: dict
+    ) -> None:
+        """Fill a template with uppercase keywords preceded with ``$``.
+
+        :param product_file: Resulting file
+        :param product_dictionary: Dictionary of keys to replace
+        """
+        with (open(product_file, "w", encoding='utf-8') as f,
+              open(self.template, "r", encoding='utf-8') as t):
+            for line in t:
+                line = line.rstrip()
+                for key, value in product_dictionary.items():
+                    if isinstance(value, str) and key in line and "$" in line:
+                        line = line.replace("$" + key, value)
+                f.write(f"{line}\n")
+
+    @staticmethod
+    def _check_consecutive(lst: list[int]) -> bool:
+        """Check if a list has consecutive numbers.
+
+        Check if a list of names with enumeration include all the elements
+        in such a way that the enumeration contains all expected numbers.
+
+        :param lst: List of names that include an enumeration
+        :return: Check if the list has a complete enumeration
+        """
+        return sorted(lst) == list(range(1, max(lst) + 1))
+
+    @staticmethod
+    def _check_kernel_integrity(path: str) -> str:
+        """Check if the SPICE Kernel has the adequate architecture.
+
+        All SPICE kernels must have a NAIF file ID word as the first "word" on
+        the first line of the kernel. This "word" describes the architecture
+        of the kernel.
+
+        A binary kernel could have the following architectures:
+
+          * ``DAF``: The file is based on the DAF architecture.
+          * ``DAS``: The file is based on the DAS architecture.
+          * ``XFR``: The file is in a SPICE transfer file format.
+
+        For an archive only ``DAF`` is acceptable.
+
+        Text kernels must have ``KPL`` (Kernel Pool File) architecture.
+
+        **Note:** Text event kernels (``.ten``) are validated differently
+        because they use a different format than other text kernels and are not
+        loaded via standard SPICE routines.
+
+        NPB checks if binary kernels have a ``DAF`` architecture and text kernels
+        a ``KPL`` architecture.
+
+        :param path: SPICE Kernel or ORBNUM path
+        :return: Error message if error present
+        """
+        error = ""
+        name = path.split(os.sep)[-1].strip()
+        extension = path.split(".")[-1].strip().lower()
+
+        # Filter out Text EKs since they are not loaded into SPICE and
+        # validate them differently
+        if extension == "ten":
+            # Try to read the file as UTF-8
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    content = f.read(2000)
+            except UnicodeDecodeError:
+                return (f"Kernel {name} is not a valid text file "
+                        f"(encoding error).")
+
+            # Validate content after successful read
+            if '\\header' not in content or '\\text' not in content:
+                return (f"Kernel {name} does not contain required text event "
+                        f"kernel markers (\\header, \\text).")
+
+            return ""  # Valid .ten file
+
+        type_file = extension_to_type(name).upper()
+
+        #
+        # Determine if it is a binary or a text kernel.
+        #
+
+        file_format = "Binary" if extension[0] == "b" else "Character"
+
+        #
+        # All files that are to have labels generated must have a NAIF
+        # file ID word as the first "word" on the first line of the
+        # file. Check if it is the case.
+        #
+        (arch, f_type) = spiceypy.getfat(path)
+
+        if file_format == "Binary":
+
+            #
+            # A binary file could have the following architectures:
+            #
+            #   DAF - The file is based on the DAF architecture.
+            #   DAS - The file is based on the DAS architecture.
+            #   XFR - The file is in a SPICE transfer file format.
+            #
+            # But for an archive only DAF is acceptable.
+            #
+            if arch not in ('DAF', 'DAS'):
+                error = f"Kernel {name} architecture {arch} is invalid."
+            # else:
+            #     pass
+
+        else:  # file_format == "Character":
+
+            #
+            # Text kernels must have KPL architecture:
+            #
+            #    KPL -- Kernel Pool File (i.e., a text kernel)
+            #
+            if arch != "KPL":
+                error = f"Kernel {name} architecture {arch} is invalid."
+
+        if f_type != type_file:
+            error = (f"Kernel {name} type {type_file} is not the one "
+                     f"expected: {f_type}.")
+
+        return error
+
+    @staticmethod
+    def _check_binary_endianness(path: str, endianness: str) -> Optional[str]:
+        """Check if the SPICE Kernel has the adequate architecture.
+
+        PDS4 Bundles require LTL-IEEE binary kernels and PDS3 data sets require
+        BIG-IEEE binary kernels. This behavior can be changed via configuration.
+
+        This method ensures that the endianness of binary kernels is the
+        appropriate one according to the configuration.
+
+        :param path:       Binary SPICE kernel path
+        :param endianness: Required endianness of the binary SPICE kernel file.
+
+        :return: Error message, if error present. Otherwise, None.
+        """
+        # Check the file architecture of the SPICE kernel. If the kernel is not
+        # based on DAF or DAS architecture, report the error.
+        arch, _ = spiceypy.getfat(path)
+        if arch not in ['DAF', 'DAS']:
+            return 'The binary kernel does not have a DAF or DAS architecture.'
+
+        # At this point, we can check the endianness of the binary SPICE kernel.
+        # Since there is no SPICE API to perform this check, we will try to open
+        # the file for writing and immediately after, close it. SPICE will
+        # produce a SPICE(UNSUPPORTEDBFF) error if the endianness of the file
+        # does not correspond to the endianness of the platform in which NPB
+        # is executed.
+        try:
+            if arch == "DAF":
+                handle = spiceypy.dafopw(path)
+                spiceypy.dafcls(handle)
+            else:  # DAS architecture
+                handle = spiceypy.dasopw(path)
+                spiceypy.dascls(handle)
+
+            # Getting to this point means that the file and the platform in
+            # which NPB is executed have the same architecture.
+            equal_endianness = True
+
+        except SpiceUNSUPPORTEDBFF:
+            # There is no need to call the SPICE API to close the binary SPICE
+            # kernel, since the open process did not complete. The open call
+            # retuning with SPICE(UNSUPPORTEDBFF) indicates that the file and
+            # the platform in which NPB is executed have different architecture.
+            equal_endianness = False
+
+        # By comparing the result of comparing the platform byte order to the
+        # expected file endianness, and the result of the previous analysis,
+        # we can find out if the file has the expected endianness.
+        if (endianness == sys.byteorder) != equal_endianness:
+            return ("The kernel cannot be loaded because of its endianness. "
+                    "Use NAIF's utility BINGO to convert the file.")
+
+        return None
+
+    @staticmethod
+    def _check_badchar(file: str) -> list[str]:
+        """Check NON-ASCII characters for a file.
+
+        :param file: Path to file to check
+        :return: Resulting error messages
+        """
+        error = []
+        line_num = 1
+        with open(file, "r", encoding='utf-8') as f:
+            for line in f:
+                if not line.isascii():
+                    char_count = 0
+                    badchars = []
+                    for char in line:
+                        if not char.isascii():
+                            badchars.append(char_count)
+                        char_count += 1
+
+                    error.append(f"NON-ASCII character(s) in line {line_num}:")
+                    error.append(f"{line.rstrip()}")
+                    badchar_line = " " * len(line.rstrip())
+                    for badchar in badchars:
+                        badchar_line = (
+                            badchar_line[:badchar] + "^"
+                            + badchar_line[badchar + 1 :]
+                        )
+                    error.append(badchar_line)
+                line_num += 1
+
+        return error
+
+    @staticmethod
+    def _check_permissions(path: str) -> None:
+        """Check that the account running NPB can read a file.
+
+        :param path: Path to the file to check.
+        :raises NPBError: if the file is not readable.
+        """
+        # Open for reading instead of inspecting the permission bits, so the
+        # check works on Unix and Windows. Binary mode because the file may be
+        # either text or binary.
+        try:
+            with Path(path).open('rb') as f:
+                f.read(0)
+
+        except PermissionError:
+            raise NPBError(
+                f"File {path} is not readable by the account that runs NPB. "
+                f"Update permissions."
+            )

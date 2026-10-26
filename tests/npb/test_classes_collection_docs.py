@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.collection.collection_docs import DocumentCollection
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 # ---------------------------------------------------------------------------
@@ -39,24 +40,29 @@ class TestDocumentCollectionInit:
     ])
     def test_init_sets_type(self, pds_version, kind):
         """pds_version == '3' must set self.type = 'DOCUMENT'."""
-        obj = DocumentCollection(make_setup(pds_version=pds_version), MagicMock())
+        obj = DocumentCollection(make_setup(pds_version=pds_version), RunState(),
+                                MagicMock())
         assert obj.type == kind
         assert obj.name == kind
 
     @pytest.mark.parametrize("pds_version", ['3', '4'])
     def test_super_receives_setup_and_bundle(self, pds_version):
-        """setup and bundle must be forwarded to super().__init__ unchanged."""
+        """setup and bundle must be forwarded to super().__init__ unchanged,
+        and the run state must be kept for the products the collection builds."""
         setup  = make_setup(pds_version=pds_version)
+        run_state = RunState()
         bundle = MagicMock()
-        obj = DocumentCollection(setup, bundle)
+        obj = DocumentCollection(setup, run_state, bundle)
         assert obj.setup  is setup
+        assert obj.run_state is run_state
         assert obj.bundle is bundle
 
     def test_neither_pds3_nor_pds4_raises_attribute_error(self):
         """If pds_version is neither '3' nor '4', self.type is never assigned
         and the super().__init__ call raises AttributeError."""
         with pytest.raises(AttributeError):
-            DocumentCollection(make_setup(pds_version="99"), MagicMock())
+            DocumentCollection(make_setup(pds_version="99"), RunState(),
+                               MagicMock())
 
 
 # ---------------------------------------------------------------------------
@@ -78,7 +84,7 @@ class TestDocumentCollectionGetPds3Documents:
         """Return a DocumentCollection with collaborators patched."""
         return DocumentCollection(
             make_setup(pds_version=pds_version, staging_directory=staging_dir),
-            MagicMock())
+            RunState(), MagicMock())
 
     @staticmethod
     def _run(obj, glob_files, new_product=True):
@@ -123,7 +129,7 @@ class TestDocumentCollectionGetPds3Documents:
     def test_product_constructed_with_setup_and_file(self):
         obj = self._make_instance(staging_dir="/fake/staging")
         _, mock_cls = self._run(obj, [self.TXT_FILE], new_product=True)
-        mock_cls.assert_called_once_with(obj.setup, self.TXT_FILE)
+        mock_cls.assert_called_once_with(obj.setup, obj.run_state, self.TXT_FILE)
 
     # ---- multiple files: only qualifying new products are added ----
 
@@ -134,7 +140,7 @@ class TestDocumentCollectionGetPds3Documents:
 
         files = [self.TXT_FILE, self.CAT_FILE, self.README_FILE, self.OTHER_FILE]
 
-        def _product_factory(_, filepath):
+        def _product_factory(_setup, _run_state, filepath):
             m = MagicMock()
             m.new_product = filepath in (self.TXT_FILE, self.README_FILE)
             return m

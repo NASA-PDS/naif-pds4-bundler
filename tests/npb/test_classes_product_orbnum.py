@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import re
 from pathlib import Path
 from unittest.mock import patch, mock_open, MagicMock
 
@@ -9,6 +10,7 @@ import pytest
 from pds.naif_pds4_bundler.classes.product.product import Product
 from pds.naif_pds4_bundler.classes.product.product_orbnum import OrbnumFileProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 MOD = 'pds.naif_pds4_bundler.classes.product.product_orbnum'
 
@@ -96,24 +98,24 @@ class TestOrbnumFileProductInit:
     def test_init_no_matching_pattern(self, mock_setup, mock_collection, mock_kernels_collection):
         """Test initialization fails if filename does not match pattern."""
         mock_setup.orbnum[0]["pattern"] = r"nomatch\.txt"
+        run_state = RunState()
         with pytest.raises(NPBError, match="The orbnum file does not match any type "
                                            "described in the configuration."):
-            OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+            OrbnumFileProduct(mock_setup, run_state, "test_file.orb", mock_collection, mock_kernels_collection)
 
     @patch.object(Product, "register")
-    @patch(f"{MOD}.OrbnumFilePDS4Label")
     @patch(f"{MOD}.safe_make_directory")
     @patch(f"{MOD}.shutil.copy2")
     @patch(f"{MOD}.os.path.isfile", return_value=False)
     @patch(f"{MOD}.check_eol", return_value=True)
     def test_init_pds4_new_file(
         self,
-        mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir, _mock_label, _mock_register,
+        mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir, _mock_register,
         pds4_init_mocks,
         mock_setup, mock_collection, mock_kernels_collection,
     ):
         """Test full PDS4 initialization with a new file."""
-        obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+        obj = OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         assert obj.extension == "orb"
         assert obj.new_product is True
@@ -124,6 +126,33 @@ class TestOrbnumFileProductInit:
         assert obj.targets == ["Test Target"]
         mock_check_eol.assert_called_once()
         pds4_init_mocks["coverage"].assert_called_once()
+
+    @pytest.mark.parametrize("pds_version, directory", [
+        ("3", "extras"),
+        ("4", "miscellaneous"),
+    ])
+    @patch.object(Product, "register")
+    @patch(f"{MOD}.safe_make_directory")
+    @patch(f"{MOD}.shutil.copy2")
+    @patch(f"{MOD}.os.path.isfile", return_value=False)
+    @patch(f"{MOD}.check_eol", return_value=True)
+    def test_init_collection_path(
+            self, _mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir,
+            _mock_register, pds4_init_mocks, mock_setup, mock_collection,
+            mock_kernels_collection, pds_version, directory):
+        """Test that the orbnum file is staged under the folder of its PDS
+        version."""
+        # The PDS4 only steps of the constructor are patched by the fixture; in
+        # PDS3 they are skipped, so the same patches are harmless there.
+        mock_setup.pds_version = pds_version
+
+        # Build the product; the file copy and the directory creation are mocked.
+        obj = OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
+
+        # The collection is the version folder inside the staging directory, and
+        # the product path is its "orbnum" folder.
+        assert obj.collection_path == str(Path(mock_setup.staging_directory, directory))
+        assert obj.path == str(Path(mock_setup.staging_directory, directory, "orbnum", "test_file.orb"))
 
     @patch.object(Product, "register")
     @patch(f"{MOD}.safe_make_directory")
@@ -137,20 +166,19 @@ class TestOrbnumFileProductInit:
         del setup.orbnum[0]["observer"]
         del setup.orbnum[0]["target"]
 
-        obj = OrbnumFileProduct(setup, "test_file.orb", mock_collection, mock_kernels_collection)
+        obj = OrbnumFileProduct(setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         assert obj.new_product is False
         assert obj.path == str(Path(setup.staging_directory, 'extras/orbnum/test_file.orb'))
         assert not hasattr(obj, "lid")
 
     @patch.object(Product, "register")
-    @patch(f"{MOD}.OrbnumFilePDS4Label")
     @patch(f"{MOD}.safe_make_directory")
     @patch(f"{MOD}.os.path.isfile", return_value=True)
     @patch(f"{MOD}.check_eol", return_value=False)
     def test_init_pds4_existing_file_no_overrides(
         self,
-        _mock_check_eol, _mock_isfile, _mock_safe_mkdir, _mock_label, _mock_register,
+        _mock_check_eol, _mock_isfile, _mock_safe_mkdir, _mock_register,
         pds4_init_mocks,
         mock_setup, mock_collection, mock_kernels_collection,
     ):
@@ -159,7 +187,7 @@ class TestOrbnumFileProductInit:
         del mock_setup.orbnum[0]["observer"]
         del mock_setup.orbnum[0]["target"]
 
-        obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+        obj = OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         assert obj.new_product is False
         pds4_init_mocks["add_crs_to_file"].assert_not_called()
@@ -218,10 +246,9 @@ class TestOrbnumFileProductInit:
         for key in ("mission_name", "observer", "target"):
             mock_setup.orbnum[0].pop(key, None)
 
-        with patch(f"{MOD}.OrbnumFilePDS4Label") as mock_label, \
-                patch(f"{MOD}.get_latest_kernel", return_value=[]), \
+        with patch(f"{MOD}.get_latest_kernel", return_value=[]), \
                 patch.object(Product, "register"):
-            obj = OrbnumFileProduct(mock_setup, "test_file.orb", mock_collection, mock_kernels_collection)
+            obj = OrbnumFileProduct(mock_setup, RunState(), "test_file.orb", mock_collection, mock_kernels_collection)
 
         # Identity, LID and VID computed for real.
         assert obj.extension == "orb"
@@ -262,9 +289,6 @@ class TestOrbnumFileProductInit:
         assert obj.observers == ["obs1"]
         assert obj.targets == ["target1"]
 
-        # The label was constructed exactly once.
-        mock_label.assert_called_once()
-
 
 class TestOrbnumFileProductSetPreviousOrbnum:
     """Test determining previous version of an ORBNUM file."""
@@ -302,6 +326,20 @@ class TestOrbnumFileProductSetPreviousOrbnum:
 
         assert obj._previous_version == "1"
         assert obj._previous_orbnum == ""
+
+    @patch(f"{MOD}.get_latest_kernel", return_value=[])
+    def test_set_previous_orbnum_propagates_unrelated_exception(
+            self, _mock_get_latest):
+        """A bug that raises something other than AttributeError (here a
+        non-string _pattern, a stand-in for a real defect) must propagate, not
+        be silently treated as "no explicit version" - proving except
+        AttributeError no longer masks it."""
+        obj = object.__new__(OrbnumFileProduct)
+        obj.setup = MagicMock()
+        obj._pattern = None
+
+        with pytest.raises(TypeError):
+            obj.set_previous_orbnum()
 
 
 class TestOrbnumFileProductReadHeader:
@@ -389,16 +427,65 @@ class TestOrbnumFileProductUtcBlanksToDashes:
 
 
 class TestOrbnumFileProductReadRecords:
-    @patch("builtins.open", new_callable=mock_open, read_data="h1\nh2\n1 data\n2 data\n")
-    def test_read_records_clean(self, _mock_file):
+    @pytest.mark.parametrize("file_data", [
+        "h1\nh2\n1 data\n2 data\n",
+        "h1\n\n1 data\n2 data\n"],
+        ids=["plain-header", "blank-header-line"]
+    )
+    def test_read_records_clean(self, file_data):
+        """Count the records of a well-formed file, header blank lines included.
+
+        A file whose records all have the fixed length and consecutive orbit
+        numbers returns its record count and flags nothing for padding. A blank
+        line inside the header is not a record, so it must not raise.
+        """
+        # An ORBNUM file whose header takes the first two lines, built in
+        # memory. Each record, '1 data\n', is 7 bytes long, so that is the
+        # fixed record length.
         obj = object.__new__(OrbnumFileProduct)
         obj.path = "test.orb"
         obj._orbnum_type = {"header_start_line": "1"}
         obj.record_fixed_length = 7
 
-        records = obj.read_records()
+        # Read the records from the in-memory file.
+        with patch("builtins.open", mock_open(read_data=file_data)):
+            records = obj.read_records()
+
+        # Both records are counted and none has the wrong length.
         assert records == 2
         assert obj.blank_records == []
+
+    # 'record_number' counts the records after the header, not the file lines.
+    @pytest.mark.parametrize("file_data, record_number", [
+        ("h1\nh2\n1 data\n\n2 data\n", 2),
+        ("h1\nh2\n1 data\n   \n2 data\n", 2),
+        ("h1\nh2\n1 data\n2 data\n\n", 3),
+        ("h1\nh2\n\n1 data\n2 data\n", 1)],
+        ids=["empty-mid", "whitespace-only", "trailing-blank", "first-blank"]
+    )
+    def test_read_records_blank_line_raises_npb_error(
+            self, file_data, record_number):
+        """Raise an NPBError that names the record when a record is blank.
+
+        An empty line and a line with only spaces are both blank, wherever they
+        sit among the records (first, in the middle or last). The error must
+        point at the blank record instead of failing while parsing it.
+        """
+        # An ORBNUM file whose header takes the first two lines, built in
+        # memory. The valid records, '1 data\n', are 7 bytes long, so that is
+        # the fixed record length, and they trigger no length warning.
+        obj = object.__new__(OrbnumFileProduct)
+        obj.path = "test.orb"
+        obj._orbnum_type = {"header_start_line": "1"}
+        obj.record_fixed_length = 7
+
+        # Reading the records has to stop at the blank one.
+        with patch("builtins.open", mock_open(read_data=file_data)):
+            
+            # The error reports the position of the blank record.
+            with pytest.raises(
+                    NPBError, match=f"record number {record_number} is blank"):
+                obj.read_records()
 
     @patch(f"{MOD}.os.remove")
     def test_read_records_with_blanks_and_version_bump(self, mock_remove, mock_kernels_collection, caplog):
@@ -828,6 +915,44 @@ class TestOrbnumFileProductCoverage:
         assert obj.start_time == "2020-01-01T00:00:00Z"
         assert obj.stop_time == "2020-02-01T00:00:00Z"
 
+    @patch(f"{MOD}.spk_coverage")
+    @patch(f"{MOD}.os.path.isfile", return_value=True)
+    @patch(f"{MOD}.os.listdir", side_effect=TypeError("boom"))
+    def test_coverage_kernel_lookup_propagates_unrelated_exception(
+        self, _mock_listdir, _mock_isfile, _mock_spk_coverage):
+        """A bug in os.listdir() that isn't a missing-directory case (here a
+        stand-in TypeError) must propagate, not be silently treated as
+        "kernel not found" - proving except OSError no longer masks it."""
+        obj = object.__new__(OrbnumFileProduct)
+        obj.name = "test.orb"
+        obj._orbnum_type = {"coverage": {"kernel": {"#text": "/path/test.bsp", "@cutoff": "False"}}}
+        obj.setup = MagicMock(spice_name="test_spice", staging_directory="/staging", bundle_directory="/bundle")
+
+        with pytest.raises(TypeError, match="boom"):
+            obj.coverage()
+
+    @patch(f"{MOD}.os.listdir", return_value=["dummy.bsp"])
+    def test_coverage_kernel_lookup_invalid_pattern_raises(self, _mock_listdir):
+        """An invalid regex kernel pattern from the mission's orbnum
+        configuration is a configuration bug, not a "kernel not found"
+        condition, and must propagate rather than be masked as one -
+        matching utils.files.get_latest_kernel's same design intent for
+        pattern arguments (see test_get_latest_kernel_invalid_pattern_raises).
+        os.listdir() must return at least one entry so the pattern is
+        actually evaluated via re.fullmatch()."""
+        obj = object.__new__(OrbnumFileProduct)
+        obj.name = "test.orb"
+        obj._orbnum_type = {
+            "coverage": {"kernel": {
+                # Unbalanced parenthesis: re.fullmatch() raises re.error.
+                "#text": "/path/([a-z]+.bsp", "@cutoff": "False"}}}
+        obj.setup = MagicMock(spice_name="test_spice",
+                              staging_directory="/staging",
+                              bundle_directory="/bundle")
+
+        with pytest.raises(re.error):
+            obj.coverage()
+
     # --- Group 3: cutoff edge case ---
 
     @patch(f"{MOD}.spk_coverage")
@@ -966,3 +1091,30 @@ class TestOrbnumFileProductCoverage:
             obj.coverage()
 
         assert obj.stop_time == "2021-01-01T00:00:00Z"
+
+    @patch(f"{MOD}.parse_date")
+    def test_coverage_fallback_stop_time_propagates_unrelated_exception(
+            self, mock_parse_date):
+        """A bug in parse_date() that isn't the documented "unsupported
+        format" case (here a stand-in TypeError) must propagate, not be
+        silently treated as a parse failure - proving except ValueError no
+        longer masks it."""
+        obj = object.__new__(OrbnumFileProduct)
+        obj.name = "test.orb"
+        obj.path = "/path/test.orb"
+        obj._orbnum_type = {}
+        obj._sample_record = "1 2021-01-01T00:00:00Z data"
+        obj.utc_blanks_to_dashes = MagicMock(
+            return_value="123 2021-Jan-01-00:00:00 x 2021-Jan-02-00:00:00"
+        )
+        mock_parse_date.side_effect = [
+            datetime.datetime(2021, 1, 1),
+            TypeError("boom"),
+        ]
+
+        fallback_mock = _make_fallback_file_mock(
+            b"123 2021-Jan-01-00:00:00 x 2021-Jan-02-00:00:00\n"
+        )
+        with patch("builtins.open", return_value=fallback_mock):
+            with pytest.raises(TypeError, match="boom"):
+                obj.coverage()

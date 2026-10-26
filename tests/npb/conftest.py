@@ -36,12 +36,74 @@ CONTEXT_PRODUCTS = [
      'type': ['Planet'],
      'lidvid': 'urn:nasa:pds:context:target:planet.mars::1.0'}]
 
+# Context-product entries for a name that diverges from CONTEXT_PRODUCTS
+# above, used by _context_from_product effect tests (across every PDS4 leaf
+# label class's test file) to tell which source -- product or setup -- a
+# label actually used.
+DIVERGENT_CONTEXT_PRODUCTS = [
+    {'name': ['ProductMission'],
+     'type': ['Mission'],
+     'lidvid': 'urn:nasa:pds:context:investigation:mission.productmission::1.0'},
+    {'name': ['ProductObserver'],
+     'type': ['Spacecraft'],
+     'lidvid': ('urn:nasa:pds:context:instrument_host:'
+                'spacecraft.productobserver::1.0')},
+    {'name': ['ProductTarget'],
+     'type': ['Planet'],
+     'lidvid': 'urn:nasa:pds:context:target:planet.producttarget::1.0'}]
+
+
+@pytest.fixture
+def context_effect_helpers() -> SimpleNamespace:
+    """Shared helpers for the _context_from_product effect tests repeated
+    across every PDS4 leaf label class's test file.
+
+    :return: container exposing ``diverge`` and ``assert_source``
+    """
+
+    def _diverge(product_like) -> None:
+        """Give a product-like object (product/readme/inventory) names that
+        differ from setup's defaults ("MAVEN"/"MAVEN"/"Mars"), plus a
+        matching context-product entry for each.
+
+        :param product_like: object read/written by PDSLabel/PDS4Label as
+            "product" -- must expose ``.collection.bundle.context_products``
+        """
+        product_like.missions = ['ProductMission']
+        product_like.observers = ['ProductObserver']
+        product_like.targets = ['ProductTarget']
+        # Without a matching entry, get_missions/get_observers/get_targets
+        # raise NPBError before assert_source() gets to check anything.
+        product_like.collection.bundle.context_products += DIVERGENT_CONTEXT_PRODUCTS
+
+    def _assert_source(label, from_product: bool) -> None:
+        """Assert whether MISSIONS/OBSERVERS/TARGETS came from the product
+        or from setup.
+
+        :param label: constructed label to check ``_label_fields`` on
+        :param from_product: True if the product's names must win,
+            False if setup's must
+        """
+        product_names = {'MISSIONS': 'ProductMission',
+                         'OBSERVERS': 'ProductObserver',
+                         'TARGETS': 'ProductTarget'}
+        setup_names = {'MISSIONS': 'MAVEN', 'OBSERVERS': 'MAVEN', 'TARGETS': 'Mars'}
+        if from_product:
+            want, avoid = product_names, setup_names
+        else:
+            want, avoid = setup_names, product_names
+        for key in ('MISSIONS', 'OBSERVERS', 'TARGETS'):
+            assert want[key] in label._label_fields[key]
+            assert avoid[key] not in label._label_fields[key]
+
+    return SimpleNamespace(diverge=_diverge, assert_source=_assert_source)
+
 
 # ---------------------------------------------------------------------------
 # Generic Setup + base Product factories
 # ---------------------------------------------------------------------------
 
-@pytest.fixture()
+@pytest.fixture
 def base_helpers(tmp_path: Path) -> SimpleNamespace:
     """Provide the generic PDS4 mock factories shared by every label test.
 
@@ -85,7 +147,7 @@ def base_helpers(tmp_path: Path) -> SimpleNamespace:
         setup.bundle_directory = str(tmp_path / 'bundle')
 
         # Disable unrelated diff/compare behaviour during label generation.
-        setup.diff = False
+        setup.args.diff = False
 
         # PDS4 XML metadata that may be consumed by PDSLabel or rendering.
         setup.xml_model = 'https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1F00.sch'
@@ -108,10 +170,6 @@ def base_helpers(tmp_path: Path) -> SimpleNamespace:
         setup.args = MagicMock()
         setup.args.silent = True
         setup.args.verbose = False
-
-        # Mock side effect so tests can assert the generated label was
-        # registered.
-        setup.add_file = MagicMock()
 
         return setup
 
@@ -243,7 +301,7 @@ def label_test_helpers() -> SimpleNamespace:
         setup.staging_directory = "/staging"
         setup.working_directory = "/work"
         setup.bundle_directory = "/bundle"
-        setup.diff = False
+        setup.args.diff = False
         setup.args.silent = False
         setup.args.verbose = False
 
@@ -263,4 +321,65 @@ def label_test_helpers() -> SimpleNamespace:
         make_collection=_make_collection,
         make_product=_make_product,
         make_setup_pds4=_make_setup_pds4,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Inventory product mock factories
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def inventory_helpers() -> SimpleNamespace:
+    """Provide the mock factories shared by the inventory product tests.
+
+    Returns a container exposing three callables:
+
+    * ``make_setup(pds_version='4', increment=True, diff=True)`` builds a
+      minimal Setup mock.
+
+    * ``make_collection(name='spice_kernels')`` builds a minimal collection
+      mock.
+
+    * ``make_product(lid=..., vid=..., new_product=True)`` builds a product
+      mock with the attributes the inventory reads.
+
+    :return: container with the ``make_setup``, ``make_collection`` and
+             ``make_product`` factories
+    """
+
+    def _make_setup(pds_version="4", increment=True, diff=True):
+        setup = MagicMock()
+        setup.pds_version = pds_version
+        setup.increment = increment
+        setup.args.diff = diff
+        setup.staging_directory = "staging"
+        setup.bundle_directory = "/bundle"
+        setup.mission_acronym = "insight"
+        setup.logical_identifier = "urn:nasa:pds:insight_spice"
+        setup.eol_pds4 = "\n"
+        setup.eol_pds3 = "\r\n"
+        setup.working_directory = "/work"
+        setup.volume_id = "INSIGHT_0001"
+        setup.root_dir = "/root/"
+        setup.args.silent = False
+        setup.args.verbose = False
+        return setup
+
+    def _make_collection(name="spice_kernels"):
+        collection = MagicMock()
+        collection.name = name
+        return collection
+
+    def _make_product(lid="urn:nasa:pds:insight_spice:spice_kernels::1.0",
+                      vid="1.0", new_product=True):
+        product = MagicMock()
+        product.lid = lid
+        product.vid = vid
+        product.new_product = new_product
+        return product
+
+    return SimpleNamespace(
+        make_setup=_make_setup,
+        make_collection=_make_collection,
+        make_product=_make_product,
     )

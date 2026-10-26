@@ -9,15 +9,19 @@ import shutil
 import sys
 from os.path import dirname
 from pathlib import Path
+from typing import Callable
 from xml.etree import cElementTree as ET
 
 import requests
 import spiceypy
 import xmlschema
 
-from ..pipeline.runtime import handle_npb_error
+from .exceptions import NPBError
+from .exceptions import NPBInternalError
 from ..utils import etree_to_dict
+from ..utils import FILE_READ_ERRORS
 from ..utils import kernel_name
+from ..utils import normalize_to_list
 from ..utils import spice_exception_handler
 
 
@@ -29,17 +33,19 @@ class Setup:
     :type version: str
     """
 
+    # Class-level default, so the guard in __setattr__ also works while
+    # __init__ is still running and no instance attribute exists yet.
+    _frozen = False
+
     def __init__(self, args, version: str) -> None:
         """Constructor."""
         self.bundle_directory = ''
         self.current_release = 0
-        self.fks = None
         self.increment = True
         self.information_model_float = None
-        self.lsk = None
+        self.mission_acronym = ''
         self.release = None
         self.schema_location = ''
-        self.sclks = None
         self.staging_directory = ''
         self.template_files = []
         self.templates_directory = None
@@ -56,7 +62,12 @@ class Setup:
             )
             schema.validate(args.config)
 
-        except Exception as inst:
+        # xmlschema.XMLSchemaException is the base class for every error the
+        # library raises, including schema-validation and malformed-XML
+        # failures: schema.validate() wraps a malformed document's parse
+        # error as XMLResourceParseError, itself an XMLSchemaException
+        # subclass, rather than letting a bare SyntaxError escape.
+        except xmlschema.XMLSchemaException as inst:
             if not args.debug:
                 print(inst)
             raise
@@ -79,33 +90,19 @@ class Setup:
         self.__dict__.update(config["mission_parameters"])
         self.__dict__.update(config["directories"])
 
-        #
-        # Re-arrange secondary missions, spacecrafts, and targets parameters.
-        #
-
+        # Secondary missions/observers/targets are each nested one level under a
+        # container key (e.g. mission_name inside secondary_missions); unwrap
+        # that key before normalizing to a list.
         if hasattr(self, "secondary_missions"):
-            if not isinstance(self.secondary_missions["mission_name"], list):
-                self.secondary_missions = [self.secondary_missions["mission_name"]]
-            else:
-                self.secondary_missions = self.secondary_missions["mission_name"]
+            self.secondary_missions = normalize_to_list(self.secondary_missions["mission_name"])
 
         if hasattr(self, "secondary_observers"):
-            if not isinstance(self.secondary_observers["observer"], list):
-                self.secondary_observers = [self.secondary_observers["observer"]]
-            else:
-                self.secondary_observers = self.secondary_observers["observer"]
+            self.secondary_observers = normalize_to_list(self.secondary_observers["observer"])
 
         if hasattr(self, "secondary_targets"):
-            if not isinstance(self.secondary_targets["target"], list):
-                self.secondary_targets = [self.secondary_targets["target"]]
-            else:
-                self.secondary_targets = self.secondary_targets["target"]
+            self.secondary_targets = normalize_to_list(self.secondary_targets["target"])
 
-        #
-        # Kernel directory needs to be turned into a list.
-        #
-        if not isinstance(self.kernels_directory, list):
-            self.kernels_directory = [self.kernels_directory]
+        self.kernels_directory = normalize_to_list(self.kernels_directory)
 
         #
         # Generate empty orbnum directory if not present.
@@ -125,46 +122,25 @@ class Setup:
         self.kernel_list_config = kernel_list_config
         del self.kernel
 
-        #
-        # Meta-kernel configuration; if there is one meta-kernel
-        # mk is a dictionary, otherwise it is a list of dictionaries.
-        # It is processed in such a way that it is always a list of
-        # dictionaries. Same applies to meta-kernels from configuration
-        # as user input.
-        #
         self.__dict__.update(config["meta-kernel"])
 
         if hasattr(self, "mk"):
-            if isinstance(self.mk, dict):
-                self.mk = [self.mk]
+            self.mk = normalize_to_list(self.mk)
 
-        #
-        # Meta-kernel configuration; if there is one pattern for
-        # the meta-kernel name, convert it into a list of
-        # dictionaries.
-        #
+        # Each meta-kernel's name patterns need the same normalization, one
+        # level down.
         if hasattr(self, "mk"):
             for i, mk in enumerate(self.mk):
-                if isinstance(mk["name"], dict):
-                    self.mk[i]["name"] = [mk["name"]]
+                self.mk[i]["name"] = normalize_to_list(mk["name"])
 
-        #
-        # Meta-kernel configuration; if there is one coverage kernel, convert
-        # it into a list of coverage kernels.
-        #
         if hasattr(self, "coverage_kernels"):
-            if isinstance(self.coverage_kernels, dict):
-                self.coverage_kernels = [self.coverage_kernels]
+            self.coverage_kernels = normalize_to_list(self.coverage_kernels)
 
-        #
-        # ORBNUM configuration: if there is one orbnum file orbnum is a
-        # dictionary, otherwise it is a list of dictionaries. It is
-        # processed in such a way that it is always a list of dictionaries
-        #
+        # orbnum is only present if the configuration declares an
+        # orbit_number_file section.
         if "orbit_number_file" in config:
             self.__dict__.update(config["orbit_number_file"])
-            if isinstance(self.orbnum, dict):
-                self.orbnum = [self.orbnum]
+            self.orbnum = normalize_to_list(self.orbnum)
 
         #
         # Set run type for the NPB by-products file name. So far this only
@@ -183,14 +159,9 @@ class Setup:
         # configuration file.
         #
         self.root_dir = os.path.dirname(os.path.abspath(__file__))[:-7]
-        self.step = 1
         self.version = version
         self.args = args
-        self.faucet = args.faucet
-        self.diff = args.diff
         self.today = datetime.date.today().strftime("%Y%m%d")
-        self.file_list = []
-        self.checksum_registry = []
 
         #
         # If a release date is not specified it is set to today.
@@ -200,7 +171,7 @@ class Setup:
         else:
             pattern = re.compile(r"\d{4}-\d{2}-\d{2}")
             if not pattern.match(self.release_date):
-                handle_npb_error(
+                raise NPBError(
                     "release_date parameter does not match "
                     "the required format: YYYY-MM-DD."
                 )
@@ -231,7 +202,7 @@ class Setup:
             self.eol = "\n"
             self.eol_len = 1
         else:
-            handle_npb_error("End of Line provided via configuration is not CRLF nor LF.")
+            raise NPBError("End of Line provided via configuration is not CRLF nor LF.")
 
         self.end_of_line_pds4 = "CRLF"
         self.eol_pds4 = "\r\n"
@@ -264,14 +235,14 @@ class Setup:
             ):
                 self.kernel_endianness = "big"
             else:
-                handle_npb_error(
+                raise NPBError(
                     "binary_endianness configuration parameter value must be"
                     " 'big', 'BIG-IEEE', 'little' or 'LTL-IEEE'. Case is not"
                     " sensitive."
                 )
 
         if sys.byteorder != self.kernel_endianness:
-            handle_npb_error(
+            raise NPBError(
                 f"binary_endianness configuration parameter value must be "
                 f"the same as your system endianness: {sys.byteorder}."
             )
@@ -284,6 +255,35 @@ class Setup:
             self.producer_email = ""
             self.dataset_id = ""
             self.volume_id = ""
+
+    @property
+    def re_config(self) -> list[re.Pattern]:
+        """Compiled kernel list patterns (compiled on access)."""
+        return [re.compile(pattern) for pattern in self.kernel_list_config]
+
+    def freeze(self) -> None:
+        """Make the Setup read-only once the configuration is resolved.
+
+        Any attribute assignment or deletion after this call raises an
+        :class:`NPBInternalError`. Reading attributes is not affected.
+        """
+        # The flag is set with object.__setattr__ so the write goes straight
+        # to the attribute, without passing through the guard below.
+        object.__setattr__(self, "_frozen", True)
+
+    def __setattr__(self, name: str, value) -> None:
+        if self._frozen:
+            raise NPBInternalError(
+                f"Setup is frozen; '{name}' cannot be set after the "
+                f"configuration is resolved.")
+        super().__setattr__(name, value)
+
+    def __delattr__(self, name: str) -> None:
+        if self._frozen:
+            raise NPBInternalError(
+                f"Setup is frozen; '{name}' cannot be deleted after the "
+                f"configuration is resolved.")
+        super().__delattr__(name)
 
     def check_configuration(self):
         """Performs the following checks to the loaded configuration items:
@@ -392,24 +392,24 @@ class Setup:
         #
         if hasattr(self, "mission_start") and self.mission_start:
             if not pattern.match(self.mission_start):
-                handle_npb_error(
+                raise NPBError(
                     f"mission_start parameter does not match the "
                     f"required format: {time_format}."
                 )
         if hasattr(self, "mission_finish") and self.mission_finish:
             if not pattern.match(self.mission_finish):
-                handle_npb_error(
+                raise NPBError(
                     f"mission_finish does not match the required format: {time_format}."
                 )
         if hasattr(self, "increment_start") and self.increment_start:
             if not pattern.match(self.increment_start):
-                handle_npb_error(
+                raise NPBError(
                     f"increment_start parameter does not match the "
                     f"required format: {time_format}."
                 )
         if hasattr(self, "increment_finish") and self.increment_finish:
             if not pattern.match(self.increment_finish):
-                handle_npb_error(
+                raise NPBError(
                     f"increment_finish does not match the required "
                     f"format: {time_format}."
                 )
@@ -417,7 +417,7 @@ class Setup:
             if ((not self.increment_start) and (self.increment_finish)) or (
                 (self.increment_start) and (not self.increment_finish)
             ):
-                handle_npb_error(
+                raise NPBError(
                     "If provided via configuration, increment_start and "
                     "increment_finish parameters need to be provided "
                     "together."
@@ -437,7 +437,7 @@ class Setup:
             logging.error('  staging: %s', self.staging_directory)
             logging.error('  bundle:  %s', self.bundle_directory)
 
-            handle_npb_error("Update working, staging, or bundle directory.")
+            raise NPBError("Update working, staging, or bundle directory.")
 
         #
         # Sort out if directories are provided as relative paths and
@@ -458,7 +458,7 @@ class Setup:
         if os.path.isdir(cwd + os.sep + self.working_directory):
             self.working_directory = cwd + os.sep + self.working_directory
         if not os.path.isdir(self.working_directory):
-            handle_npb_error(f"Directory does not exist: {self.working_directory}.")
+            raise NPBError(f"Directory does not exist: {self.working_directory}.")
 
         if os.path.isdir(cwd + os.sep + self.staging_directory):
             self.staging_directory = (
@@ -476,14 +476,17 @@ class Setup:
             #
             try:
                 os.mkdir(cwd + os.sep + self.staging_directory)
-            except BaseException:
 
-                if self.faucet in ["plan", "list", "checks"]:
+            # os.mkdir() raises OSError on filesystem failures.
+            except OSError:
+
+                if self.args.faucet in ["plan", "list", "checks"]:
                     logging.warning('-- Staging directory cannot be created but'
-                                    ' is not used with %s faucet.', self.faucet)
+                                    ' is not used with %s faucet.',
+                                    self.args.faucet)
 
                 else:
-                    handle_npb_error(
+                    raise NPBError(
                         f"Staging directory cannot be created: {self.staging_directory}."
                     )
 
@@ -499,12 +502,12 @@ class Setup:
         #
         if not os.path.isdir(self.bundle_directory):
 
-            if self.faucet in ["plan", "list", "checks"]:
+            if self.args.faucet in ["plan", "list", "checks"]:
                 logging.warning("-- Bundle directory does not exist but is not"
-                                " used with %s faucet.", self.faucet)
+                                " used with %s faucet.", self.args.faucet)
 
             else:
-                handle_npb_error(
+                raise NPBError(
                     f"Bundle directory does not exist: {self.bundle_directory}."
                 )
 
@@ -515,7 +518,7 @@ class Setup:
             if os.path.isdir(cwd + os.sep + kd_name):
                 self.kernels_directory[i] = cwd + os.sep + kd_name
             if not os.path.isdir(self.kernels_directory[i]):
-                handle_npb_error(f"Directory does not exist: {kd_name}.")
+                raise NPBError(f"Directory does not exist: {kd_name}.")
 
         os.chdir(cwd)
 
@@ -552,7 +555,7 @@ class Setup:
                     xml_model_version = xml_model_version.split(".sch")[0]
 
                     if xml_model_version != short_version:
-                        handle_npb_error(
+                        raise NPBError(
                             f"PDS4 Information Model "
                             f"{short_version} "
                             f"is incoherent with the XML Model version: "
@@ -560,7 +563,7 @@ class Setup:
                         )
                 else:
                     self.xml_model = (
-                        f"https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
+                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
                     )
 
                     logging.info('-- Schema XML Model (xml_model) not provided '
@@ -577,7 +580,7 @@ class Setup:
                     schema_loc_version = schema_loc_version.split(".xsd")[0]
 
                     if schema_loc_version != short_version:
-                        handle_npb_error(
+                        raise NPBError(
                             f"PDS4 Information Model "
                             f"{short_version} "
                             f"is incoherent with the Schema location: "
@@ -585,8 +588,8 @@ class Setup:
                         )
                 else:
                     self.schema_location = (
-                        f"https://pds.nasa.gov/pds4/pds/v1 "
-                        f"https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
+                        f"http://pds.nasa.gov/pds4/pds/v1 "
+                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
                     )
 
                     logging.info('-- Schema Location (schema_location) not '
@@ -594,7 +597,7 @@ class Setup:
                     logging.info('   %s', self.schema_location)
 
             else:
-                handle_npb_error(
+                raise NPBError(
                     f"PDS4 Information Model {self.information_model}"
                     f" format from configuration is incorrect."
                 )
@@ -682,7 +685,7 @@ class Setup:
 
         elif self.pds_version == "4":
             if not os.path.isdir(self.templates_directory):
-                handle_npb_error("Path provided/derived for templates is not available.")
+                raise NPBError("Path provided/derived for templates is not available.")
             labels_check = [
                 os.path.basename(x)
                 for x in glob.glob(f"{self.root_dir}templates/1.5.0.0/*")
@@ -747,7 +750,10 @@ class Setup:
                         if xml_tag in line:
                             line = line.rstrip()
                             xml_tab = len(line) - len(xml_tag)
-            except:
+
+            # open() raises OSError when template_bundle.xml doesn't exist,
+            # or UnicodeDecodeError if it isn't valid UTF-8.
+            except FILE_READ_ERRORS:
                 logging.warning(
                     "-- XML Template not found to determine XML Tab. It has been set to 2."
                 )
@@ -784,7 +790,7 @@ class Setup:
                 for pattern in patterns:
                     name_pattern = pattern["#text"]
                     if name_pattern not in metak_name_check:
-                        handle_npb_error(
+                        raise NPBError(
                             f"The meta-kernel pattern "
                             f"{name_pattern} is not provided."
                         )
@@ -797,20 +803,15 @@ class Setup:
                 # the configuration file.
                 #
                 if "$" in metak_name_check:
-                    handle_npb_error(
+                    raise NPBError(
                         f"The MK patterns {metak['@name']} do not "
                         f"correspond to the present MKs."
                     )
         else:
             logging.warning("-- There is no meta-kernel configuration to check.")
 
-        #
-        # Check coverage kernels configuration (needed if there is only one
-        # entry).
-        #
         if hasattr(self, "coverage_kernels"):
-            if not isinstance(self.coverage_kernels, list):
-                self.coverage_kernels = [self.coverage_kernels]
+            self.coverage_kernels = normalize_to_list(self.coverage_kernels)
 
         #
         # If a readme file is present the readme section of the configuration
@@ -835,11 +836,11 @@ class Setup:
                             "configuration."
                         )
                     else:
-                        handle_npb_error(
+                        raise NPBError(
                             "Readme elements not present in configuration file."
                         )
             else:
-                handle_npb_error("Readme elements not present in configuration file.")
+                raise NPBError("Readme elements not present in configuration file.")
 
         #
         # Check if there is any uppercase character in the kernel list
@@ -902,7 +903,10 @@ class Setup:
 
                 increment = True
 
-            except:
+            # releases[-1] raises IndexError on an empty glob; int(...) raises
+            # ValueError on a bad version segment.
+            except (IndexError, ValueError):
+
                 if self.pds_version == "4":
                     logging.warning(
                         "-- Bundle label not found. Checking previous kernel list."
@@ -938,7 +942,10 @@ class Setup:
 
                     increment = True
 
-                except:
+                # releases[-1] raises IndexError with no matching kernel_list
+                # files; int(...) raises ValueError if the release number
+                # parsed from the filename isn't a valid integer.
+                except (IndexError, ValueError):
 
                     logging.warning("-- This is the first release.")
 
@@ -954,14 +961,81 @@ class Setup:
 
         self.increment = increment
 
-    @spice_exception_handler
-    def load_kernels(self):
-        """Loads the kernels required to run NPB.
+    @staticmethod
+    def _load_kernel_group(
+        kernel_type: str,
+        patterns: list[str],
+        directories: list[str],
+        not_found_level: Callable[[str], None],
+    ) -> list[str]:
+        """Search, load, and log one kernel type given its patterns.
 
-        Note that kernels that
-        are not required might be loaded as well, but given that the
-        required memory is not much, we stay on the safe side by loading
-        additional kernels.
+        For each pattern, an existing literal path is loaded directly; otherwise
+        the directories are searched, in order, for the latest file matching the
+        pattern, which is then loaded. This is the block shared by the LSK, PCK,
+        FK, and SCLK searches in ``load_kernels``. The found/not-found log
+        wording is built from ``kernel_type``; only the not-found severity is
+        left to the caller, since it differs per kernel type.
+
+        :param kernel_type: Kernel type label used in log messages, e.g. "LSK".
+        :param patterns: Kernel file names or search patterns.
+        :param directories: Directories to search, in priority order.
+        :param not_found_level: Logging function called when no kernel is found.
+
+        :return: Paths of the kernels loaded
+        """
+        loaded = []
+        for pattern in patterns:
+
+            # A pattern that is already an existing path is loaded directly.
+            if os.path.exists(pattern):
+                loaded.append(pattern)
+                spiceypy.furnsh(pattern)
+
+            else:
+                # Otherwise, search the directories, in order, for the latest
+                # file matching the pattern, and stop at the first directory
+                # with a match.
+                for path in directories:
+                    matches = [os.path.join(root, name)
+                               for root, dirs, files in os.walk(path)
+                               for name in files if re.fullmatch(pattern, name)
+                               ]
+
+                    if matches:
+                        matches.sort(key=kernel_name)
+                        spiceypy.furnsh(matches[-1])
+                        loaded.append(matches[-1])
+                        break
+
+        # Log once per kernel type. The "not found" severity is left to
+        # the caller, since it differs between LSK/SCLK (error), FK
+        # (warning), and PCK (info).
+        if not loaded:
+            not_found_level(f'-- {kernel_type} not found.')
+
+        else:
+            logging.info('-- %s loaded: %s', f'{kernel_type}(s)'.ljust(8), loaded)
+
+        return loaded
+
+    @spice_exception_handler
+    def load_kernels(self) -> None:
+        """Loads the kernels required to run NPB into the SPICE kernel pool.
+
+        The LSK, PCK, FK and SCLK patterns of the ``kernels_to_load``
+        configuration are resolved (in that order) against
+        ``kernels_directory`` and furnished. Kernels that are not strictly
+        required might be loaded as well; given that the memory needed is
+        small, we stay on the safe side by loading additional kernels.
+
+        Side effect: the archive kernels directory of the bundle
+        (``<mission>_spice/spice_kernels`` for PDS4, ``<volume_id>/data`` for
+        PDS3) is appended to ``self.kernels_directory``, so that kernels from
+        previous releases can be found.
+
+        :raises NPBError: If more than one LSK is found, or if SPICE fails to
+                          furnish a kernel.
         """
         #
         # To get the appropriate kernels, use the kernel list config.
@@ -972,9 +1046,9 @@ class Setup:
         pck_patterns = []
         lsk_patterns = []
 
-        #
-        # We inspect the kernels directory and the bundle directory.
-        #
+        # We inspect the kernels directory and the bundle directory. Note that
+        # `directories` is the same list object as `self.kernels_directory`, so
+        # the append below also mutates `self.kernels_directory` itself.
         directories = self.kernels_directory
         if self.pds_version == "4":
             directories.append(
@@ -984,198 +1058,39 @@ class Setup:
 
             directories.append(os.path.join(self.bundle_directory, self.volume_id, 'data'))
 
-        for kernel in self.kernels_to_load:
-            if "fk" in kernel:
-                fks = self.kernels_to_load[kernel]
-                if not isinstance(fks, list):
-                    fks = [fks]
-                for fk in fks:
-                    fk_patterns.append(fk)
-            elif "sclk" in kernel:
-                sclks = self.kernels_to_load[kernel]
-                if not isinstance(sclks, list):
-                    sclks = [sclks]
-                for sclk in sclks:
-                    sclk_patterns.append(sclk)
-            elif "pck" in kernel:
-                pcks = self.kernels_to_load[kernel]
-                if not isinstance(pcks, list):
-                    pcks = [pcks]
-                for pck in pcks:
-                    pck_patterns.append(pck)
-            elif "lsk" in kernel:
-                lsks = self.kernels_to_load[kernel]
-                if not isinstance(lsks, list):
-                    lsks = [lsks]
-                for lsk in lsks:
-                    lsk_patterns.append(lsk)
+        # configuration.xsd only allows these four keys, so a direct lookup is
+        # enough.
+        pattern_lists = {
+            "fk": fk_patterns,
+            "sclk": sclk_patterns,
+            "pck": pck_patterns,
+            "lsk": lsk_patterns,
+        }
 
-        #
-        # Search the latest version for each pattern of each kernel type.
-        #
-        lsks = []
-        for pattern in lsk_patterns:
-            if os.path.exists(pattern):
-                lsks.append(pattern)
-                spiceypy.furnsh(pattern)
-            else:
-                for path in directories:
-                    lsk_pattern = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(path)
-                        for name in files
-                        if re.fullmatch(pattern, name)
-                    ]
-                    if lsk_pattern:
-                        lsk_pattern.sort(key=kernel_name)
-                        spiceypy.furnsh(lsk_pattern[-1])
-                        lsks.append(lsk_pattern[-1])
-                        break
-        if not lsks:
-            logging.error('-- LSK not found.')
+        for kernel_type, patterns in pattern_lists.items():
+            if kernel_type in self.kernels_to_load:
+                # A value can be a single pattern or a list of them;
+                # normalize_to_list makes sure we always add a list.
+                patterns.extend(normalize_to_list(self.kernels_to_load[kernel_type]))
 
-        else:
-            logging.info('-- LSK     loaded: %s', lsks)
+        # For each kernel type, the shared helper below searches for the latest
+        # version matching each pattern, furnishes it, and logs what was
+        # (or wasn't) loaded.
+        lsks = self._load_kernel_group('LSK', lsk_patterns, directories, logging.error)
 
+        # This check is LSK-specific, so it stays here rather than in
+        # the shared helper, which the other three kernel types don't need.
         if len(lsks) > 1:
-            handle_npb_error("Only one LSK should be obtained.")
+            raise NPBError("Only one LSK should be obtained.")
 
-        pcks = []
-        for pattern in pck_patterns:
-            if os.path.exists(pattern):
-                pcks.append(pattern)
-                spiceypy.furnsh(pattern)
-            else:
-                for path in directories:
-                    pcks_pattern = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(path)
-                        for name in files
-                        if re.fullmatch(pattern, name)
-                    ]
-                    if pcks_pattern:
-                        pcks_pattern.sort(key=kernel_name)
-                        spiceypy.furnsh(pcks_pattern[-1])
-                        pcks.append(pcks_pattern[-1])
-                        break
-        if not pcks:
-            logging.info('-- PCK not found.')
-
-        else:
-            logging.info('-- PCK(s)   loaded: %s', pcks)
-
-        fks = []
-        for pattern in fk_patterns:
-            if os.path.exists(pattern):
-                fks.append(pattern)
-                spiceypy.furnsh(pattern)
-            else:
-                for path in directories:
-                    fks_pattern = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(path)
-                        for name in files
-                        if re.fullmatch(pattern, name)
-                    ]
-
-                    if fks_pattern:
-                        fks_pattern.sort(key=kernel_name)
-                        spiceypy.furnsh(fks_pattern[-1])
-                        fks.append(fks_pattern[-1])
-                        break
-        if not fks:
-            logging.warning('-- FK not found.')
-
-        else:
-            logging.info('-- FK(s)   loaded: %s', fks)
-
-        sclks = []
-        for pattern in sclk_patterns:
-            if os.path.exists(pattern):
-                sclks.append(pattern)
-                spiceypy.furnsh(pattern)
-            else:
-                for path in directories:
-                    sclks_pattern = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(path)
-                        for name in files
-                        if re.fullmatch(pattern, name)
-                    ]
-                    if sclks_pattern:
-                        sclks_pattern.sort(key=kernel_name)
-                        spiceypy.furnsh(sclks_pattern[-1])
-                        sclks.append(sclks_pattern[-1])
-                        break
-        if not sclks:
-            logging.error('-- SCLK not found.')
-
-        else:
-            logging.info('-- SCLK(s) loaded: %s', sclks)
+        self._load_kernel_group('PCK', pck_patterns, directories, logging.info)
+        self._load_kernel_group('FK', fk_patterns, directories, logging.warning)
+        self._load_kernel_group('SCLK', sclk_patterns, directories, logging.error)
 
         logging.info('')
 
-        # TODO: Probably not necessary.
-        self.fks = fks
-        self.sclks = sclks
-        # TODO: BUG, self.lsk is set from the configured LSK pattern, which may
-        #       not be a real file. It should store the resolved LSK path, or
-        #       None if none was found.
-        self.lsk = lsk
-
     def information_model_setup(self):
         """Setup and check PDS4 Information Model related things."""
-
-    def add_file(self, file):
-        """Add file fo Product List.
-
-        Adds a product to the run by-product Product List.
-
-        :param file: Product to be added
-        :type file: str
-        """
-        self.file_list.append(file)
-
-    def add_checksum(self, path, checksum):
-        """Add checksum to Checksum record.
-
-        Adds a MD5sum entry with the product it corresponds to for the run
-        by-product Checksum record file.
-
-        :param path: File path for checksum
-        :type path: str
-        :param checksum: Checksum value for checksum
-        :type checksum: str
-        """
-        self.checksum_registry.append(f"{path} {checksum}")
-
-    def write_file_list(self):
-        """Write the run by-product File List."""
-        if self.file_list:
-            with open(
-                self.working_directory
-                + os.sep
-                + f"{self.mission_acronym}_{self.run_type}_"
-                f"{int(self.release):02d}.file_list",
-                "w", encoding='utf-8'
-            ) as l:
-                for file in self.file_list:
-                    l.write(file + "\n")
-            logging.info("-- Run File List file written in working area.")
-
-    def write_checksum_registry(self):
-        """Write the run by-product Checksum Record."""
-        if self.checksum_registry:
-            with open(
-                self.working_directory
-                + os.sep
-                + f"{self.mission_acronym}_{self.run_type}_"
-                f"{int(self.release):02d}.checksum",
-                "w", encoding='utf-8'
-            ) as l:
-                for element in self.checksum_registry:
-                    l.write(element + "\n")
-            logging.info("-- Run Checksum Registry file written in working area.")
 
     def write_validate_config(self):
         """Write a PDS validate tool configuration file.
@@ -1209,7 +1124,9 @@ class Setup:
         try:
             r = requests.get(pds_schematron_location, allow_redirects=True)
 
-        except BaseException:
+        # requests.exceptions.RequestException is the base class for every error
+        # the library raises.
+        except requests.exceptions.RequestException:
 
             logging.warning(
                 '-- PDS Validate Tool configuration file not written.')
@@ -1226,7 +1143,9 @@ class Setup:
         try:
             r = requests.get(pds_schema_location, allow_redirects=True)
 
-        except BaseException:
+        # requests.exceptions.RequestException is the base class for every error
+        # the library raises.
+        except requests.exceptions.RequestException:
 
             logging.warning(
                 '-- PDS Validate Tool configuration file not written.')

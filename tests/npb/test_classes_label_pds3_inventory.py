@@ -2,8 +2,8 @@
 
 Two test classes are provided:
 
-* TestInventoryPDS3LabelUnit        – pure unit tests that mock every external
-  dependency (filesystem, PDSLabel.write_label, sibling modules).
+* TestInventoryPDS3LabelUnit        – pure unit tests that build the label
+  without writing it, mocking the filesystem and sibling modules.
 
 * TestInventoryPDS3LabelIntegration – integration tests that exercise
   InventoryPDS3Label together with the real PDSLabel.write_label() logic and
@@ -47,12 +47,10 @@ def _make_setup(tmp_path: Path) -> MagicMock:
     setup.staging_directory = str(tmp_path / "staging")
     setup.working_directory = str(tmp_path / "work")
     setup.eol_pds3 = "\r\n"
-    setup.diff = False
+    setup.args.diff = False
     setup.args.silent = True
     setup.args.verbose = False
 
-    # add_file must be callable without side effects.
-    setup.add_file = MagicMock()
     return setup
 
 
@@ -87,8 +85,8 @@ def _make_product(staging_dir: Path) -> MagicMock:
 class TestInventoryPDS3LabelUnit:
     """Unit tests for InventoryPDS3Label.
 
-    write_label and the filesystem are mocked out so tests stay fast,
-    isolated, and deterministic.
+    The label is built but never written, and the filesystem is mocked out,
+    so tests stay fast, isolated, and deterministic.
     """
 
     # ------------------------------------------------------------------
@@ -97,19 +95,15 @@ class TestInventoryPDS3LabelUnit:
 
     @pytest.fixture()
     def label(self, tmp_path):
-        """Return an InventoryPDS3Label instance with write_label stubbed."""
+        """Return an InventoryPDS3Label instance."""
         setup = _make_setup(tmp_path)
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
         collection = _make_collection()
         product = _make_product(staging)
 
-        with patch(
-            "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
-        ):
-            instance = InventoryPDS3Label(setup, collection, product)
-
-        return instance
+        product.setup = setup
+        return InventoryPDS3Label(product, collection)
 
     @pytest.fixture()
     def label_multi(self, tmp_path):
@@ -121,19 +115,15 @@ class TestInventoryPDS3LabelUnit:
         product = _make_product(staging)
         product.file_types = ["tf", "bc"]          # unsorted on purpose
 
-        with patch(
-            "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
-        ):
-            instance = InventoryPDS3Label(setup, collection, product)
-
-        return instance
+        product.setup = setup
+        return InventoryPDS3Label(product, collection)
 
     def test_template_keys_scalar_fields(self, label):
         """VOLUME_ID must be assigned from setup.volume_id (not uppercased)."""
-        assert label.VOLUME_ID == "vg_0001"
-        assert label.ROW_BYTES == "232"
-        assert label.ROWS == "100"
-        assert label.INDEXED_FILE_NAME == "*.bc"
+        assert label._label_fields["VOLUME_ID"] == "vg_0001"
+        assert label._label_fields["ROW_BYTES"] == "232"
+        assert label._label_fields["ROWS"] == "100"
+        assert label._label_fields["INDEXED_FILE_NAME"] == "*.bc"
 
     @pytest.mark.parametrize("i,expected_bytes,expected_start", [
         (idx, COLUMN_BYTES[idx], COLUMN_START_BYTES[idx])
@@ -142,21 +132,21 @@ class TestInventoryPDS3LabelUnit:
     def test_template_keys_dynamic_attributes(self, label, i, expected_bytes, expected_start):
         # BYTES_NN must be set as a string for every column (1-based).
         attr = f"BYTES_{i + 1:02d}"
-        assert hasattr(label, attr), f"Missing attribute {attr}"
-        assert getattr(label, attr) == str(expected_bytes)
+        assert attr in label._label_fields, f"Missing field {attr}"
+        assert label._label_fields[attr] == str(expected_bytes)
 
         # START_BYTE_NN must be set as a string for every column (1-based).
         attr = f"START_BYTE_{i + 1:02d}"
-        assert hasattr(label, attr), f"Missing attribute {attr}"
-        assert getattr(label, attr) == str(expected_start)
+        assert attr in label._label_fields, f"Missing field {attr}"
+        assert label._label_fields[attr] == str(expected_start)
 
     def test_no_extra_column_attributes(self, label):
         """No column attribute for index 11 or beyond must be set."""
-        assert not hasattr(label, f"BYTES_{NUM_COLUMNS + 1:02d}")
-        assert not hasattr(label, f"START_BYTE_{NUM_COLUMNS + 1:02d}")
+        assert f"BYTES_{NUM_COLUMNS + 1:02d}" not in label._label_fields
+        assert f"START_BYTE_{NUM_COLUMNS + 1:02d}" not in label._label_fields
 
     def test_indexed_file_name_multiple_types(self, label_multi):
-        assert label_multi.INDEXED_FILE_NAME == ('{\r\n'
+        assert label_multi._label_fields["INDEXED_FILE_NAME"] == ('{\r\n'
                                                  '                               "*.bc",\r\n'
                                                  '                               "*.tf"\r\n'
                                                  '                             }\n')
@@ -167,15 +157,15 @@ class TestInventoryPDS3LabelUnit:
         assert isinstance(label, PDSLabel)
 
     # ------------------------------------------------------------------
-    # 8. write_label called once
+    # 8. write_label not called by the constructor
     # ------------------------------------------------------------------
 
     @pytest.mark.parametrize("collection_type, expected_path", [
         ('spice_kernels', 'templates/pds3/template_collection_spice_kernels.lbl'),
         ('miscellaneous', 'templates/pds3/template_collection_miscellaneous.lbl')
     ])
-    def test_write_label_called_once_during_init(self, tmp_path, collection_type, expected_path):
-        """Constructor must call write_label exactly once."""
+    def test_write_label_not_called_during_init(self, tmp_path, collection_type, expected_path):
+        """Constructor must not write the label; the pipeline does."""
         setup = _make_setup(tmp_path)
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
@@ -185,9 +175,10 @@ class TestInventoryPDS3LabelUnit:
         with patch(
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ) as mock_write:
-            label = InventoryPDS3Label(setup, collection, product)
+            product.setup = setup
+            label = InventoryPDS3Label(product, collection)
 
-        mock_write.assert_called_once()
+        mock_write.assert_not_called()
 
         # Template path must embed root_dir and collection.type.
         assert label._template == f"{tmp_path}/{expected_path}"
@@ -202,12 +193,10 @@ class TestInventoryPDS3LabelUnit:
         product = _make_product(staging)
         product.rows = 0
 
-        with patch(
-            "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
-        ):
-            instance = InventoryPDS3Label(setup, _make_collection(), product)
+        product.setup = setup
+        instance = InventoryPDS3Label(product, _make_collection())
 
-        assert instance.ROWS == "0"
+        assert instance._label_fields["ROWS"] == "0"
 
     def test_single_column_only(self, tmp_path):
         """Constructor must work when the product exposes only one column."""
@@ -218,14 +207,12 @@ class TestInventoryPDS3LabelUnit:
         product.column_bytes = [50]
         product.column_start_bytes = [1]
 
-        with patch(
-            "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
-        ):
-            instance = InventoryPDS3Label(setup, _make_collection(), product)
+        product.setup = setup
+        instance = InventoryPDS3Label(product, _make_collection())
 
-        assert getattr(instance, 'BYTES_01') == '50'
-        assert getattr(instance, 'START_BYTE_01') == '1'
-        assert not hasattr(instance, 'BYTES_02')
+        assert instance._label_fields['BYTES_01'] == '50'
+        assert instance._label_fields['START_BYTE_01'] == '1'
+        assert 'BYTES_02' not in instance._label_fields
 
 
 # ===========================================================================
@@ -347,10 +334,20 @@ TEMPLATE_CONTENT = textwrap.dedent("""\
 class TestInventoryPDS3LabelIntegration:
     """Integration tests for InventoryPDS3Label + PDSLabel + template.
 
-    These tests instantiate the real class without patching write_label, so
+    These tests build the real class and call write_label() themselves, so
     the actual label file is written to a temp directory. Only
     add_carriage_return is patched to avoid cross-platform EOL noise.
     """
+
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert InventoryPDS3Label._context_from_product is False
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert InventoryPDS3Label._trailing_blank_log is True
 
     # ------------------------------------------------------------------
     # Fixtures
@@ -394,7 +391,9 @@ class TestInventoryPDS3LabelIntegration:
         product = env["product"]
         collection = env["collection"]
 
-        InventoryPDS3Label(setup, collection, product)
+        product.setup = setup
+
+        InventoryPDS3Label(product, collection).write_label()
 
         assert env["label_path"].exists()
 
@@ -513,15 +512,17 @@ class TestInventoryPDS3LabelIntegration:
         assert written_label == expected_label
 
     # ------------------------------------------------------------------
-    # 9. setup.add_file is called with the relative label path
+    # 9. write_label returns the relative label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(self, env):
-        """setup.add_file() must be invoked with the relative label path."""
+    def test_write_label_returns_label_path(self, env):
+        """write_label returns the label path relative to staging."""
+
         setup = env["setup"]
         product = env["product"]
         collection = env["collection"]
+        product.setup = setup
 
-        InventoryPDS3Label(setup, collection, product)
+        written_path = InventoryPDS3Label(product, collection).write_label()
 
-        setup.add_file.assert_called_once_with("INDEX.lbl")
+        assert written_path == "INDEX.lbl"

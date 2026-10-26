@@ -14,7 +14,12 @@ from pds.naif_pds4_bundler.classes.label.label import PDSLabel
 # Patch targets — resolved to where the names are looked up inside label.py
 _PATCH_ADD_CR = "pds.naif_pds4_bundler.classes.label.label.add_carriage_return"
 _PATCH_COMPARE = "pds.naif_pds4_bundler.classes.label.label.compare_files"
-_PATCH_GLOB = "pds.naif_pds4_bundler.classes.label.label.glob.glob"
+# Path.glob/Path.exists are patched on the class itself (not label.py's
+# namespace) since `Path` is a class object, not a rebindable function
+# reference -- patching it here affects every Path instance, including
+# the ones _find_prior_version_label/_pick_val_label construct internally.
+_PATCH_PATH_GLOB = "pathlib.Path.glob"
+_PATCH_PATH_EXISTS = "pathlib.Path.exists"
 
 
 # ---------------------------------------------------------------------------
@@ -63,45 +68,71 @@ class TestPDSLabelInit:
     test_classes_label_pds4.py::TestPDS4LabelInit.
     """
 
+    @pytest.fixture(autouse=True)
+    def _label_extension(self, monkeypatch):
+        # PDSLabel is instantiated bare here (no PDS3Label/PDS4Label), but
+        # __init__ now needs _label_extension to derive self.name.
+        monkeypatch.setattr(PDSLabel, "_label_extension", ".xml", raising=False)
+
     def test_uses_setup_creation_date_time(self, setup_pds4, product):
         """setup has creation_date_time"""
         setup_pds4.creation_date_time = "2023-06-15T12:00:00"
-        label = PDSLabel(setup_pds4, product)
-        assert label.PRODUCT_CREATION_TIME == "2023-06-15T12:00:00"
-        assert label.PRODUCT_CREATION_DATE == "2023-06-15"
-        assert label.PRODUCT_CREATION_YEAR == "2023"
+        product.setup = setup_pds4
+        label = PDSLabel(product)
+
+        # These are template-substitution fields, not plain attributes.
+        assert label._label_fields["PRODUCT_CREATION_TIME"] == "2023-06-15T12:00:00"
+        assert label._label_fields["PRODUCT_CREATION_DATE"] == "2023-06-15"
+        assert label._label_fields["PRODUCT_CREATION_YEAR"] == "2023"
 
     def test_uses_product_creation_date(self, setup_pds4, product):
         """setup does NOT have creation_date_time → use product's dates"""
-        label = PDSLabel(setup_pds4, product)
-        assert label.PRODUCT_CREATION_TIME == "2024-01-01T00:00:00"
-        assert label.PRODUCT_CREATION_DATE == "2024-01-01"
-        assert label.PRODUCT_CREATION_YEAR == "2024"
+        product.setup = setup_pds4
+        label = PDSLabel(product)
+        assert label._label_fields["PRODUCT_CREATION_TIME"] == "2024-01-01T00:00:00"
+        assert label._label_fields["PRODUCT_CREATION_DATE"] == "2024-01-01"
+        assert label._label_fields["PRODUCT_CREATION_YEAR"] == "2024"
 
     def test_non_kernel_class_builds_from_setup(self, setup_pds4, product):
         """class is NOT one of the excluded kernel classes then
         build missions/observers/targets from setup"""
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert "TestMission" in label.missions
         assert "TestObserver" in label.observers
         assert "TestTarget" in label.targets
 
-    @pytest.mark.parametrize("class_name", [
-        "SpiceKernelPDS4Label",
-        "InSightLabel",
-        "MavenLabel"
-    ])
-    def test_kernel_class_uses_product_missions(self, setup_pds4, product, class_name):
-        # Dynamically create the class with the parametrized name
-        cls = cast(Type[PDSLabel], type(class_name, (PDSLabel,), {}))
+    @pytest.mark.parametrize(
+        ["context_from_product", "expect_product_source"],
+        [(True, True), (False, False)],
+        ids=["context_from_product-True-uses-product", "context_from_product-False-uses-setup"],
+    )
+    def test_context_from_product_selects_source(
+        self, setup_pds4, product, context_from_product, expect_product_source
+    ):
+        """_context_from_product must select which side missions/observers/
+        targets come from -- proven by making product and setup values
+        differ, so a regression that reads the wrong source fails visibly."""
+        product.setup = setup_pds4
+        product.missions = ["ProductMission"]
+        product.observers = ["ProductObserver"]
+        product.targets = ["ProductTarget"]
 
-        # Instantiate and initialize
+        cls = cast(
+            Type[PDSLabel],
+            type("Label", (PDSLabel,), {"_context_from_product": context_from_product}),
+        )
         label = object.__new__(cls)
-        PDSLabel.__init__(label, setup_pds4, product)
+        PDSLabel.__init__(label, product)
 
-        assert label.missions == product.missions
-        assert label.observers == product.observers
-        assert label.targets == product.targets
+        if expect_product_source:
+            assert label.missions == product.missions
+            assert label.observers == product.observers
+            assert label.targets == product.targets
+        else:
+            assert label.missions == [setup_pds4.mission_name]
+            assert label.observers == [setup_pds4.observer]
+            assert label.targets == [setup_pds4.target]
 
     # NOTE: PDS4_MISSION_NAME/PDS4_OBSERVER_NAME (and the non-list-wrapping
     #       bug affecting them) are PDS4-only; see
@@ -111,54 +142,64 @@ class TestPDSLabelInit:
 
     def test_pds4_secondary_targets_non_list_wrapped(self, setup_pds4, product):
         setup_pds4.secondary_targets = 'SingleTarget'
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.targets == ['TestTarget', 'SingleTarget']
 
     def test_pds3_secondary_missions_non_list_wrapped(self, setup_pds3, product):
         setup_pds3.secondary_missions = "SingleMission"
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.missions == ['TestMission', 'SingleMission']
         assert not hasattr(label, 'PDS4_MISSION_NAME')
 
     def test_pds3_secondary_observers_non_list_wrapped(self, setup_pds3, product):
         setup_pds3.secondary_observers = 'SingleObserver'
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.observers == ['TestObserver', 'SingleObserver']
         assert not hasattr(label, 'PDS4_OBSERVER_NAME')
 
     def test_pds3_secondary_targets_non_list_wrapped(self, setup_pds3, product):
         setup_pds3.secondary_targets = 'SingleTarget'
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.targets == ['TestTarget', 'SingleTarget']
 
     def test_pds4_secondary_missions_list(self, setup_pds4, product):
         setup_pds4.secondary_missions = ["MissionB", "MissionC"]
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.missions == ['TestMission', "MissionB", "MissionC"]
 
     def test_pds4_secondary_observers_list(self, setup_pds4, product):
         setup_pds4.secondary_observers = ["ObsB", "ObsC"]
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.observers == ['TestObserver', "ObsB", "ObsC"]
 
     def test_pds4_secondary_targets_list(self, setup_pds4, product):
         setup_pds4.secondary_targets = ["TargetB", "TargetC"]
-        label = PDSLabel(setup_pds4, product)
+        product.setup = setup_pds4
+        label = PDSLabel(product)
         assert label.targets == ['TestTarget', "TargetB", "TargetC"]
 
     def test_pds3_secondary_missions_list(self, setup_pds3, product):
         setup_pds3.secondary_missions = ["MissionB", "MissionC"]
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.missions == ['TestMission', "MissionB", "MissionC"]
 
     def test_pds3_secondary_observers_list(self, setup_pds3, product):
         setup_pds3.secondary_observers = ["ObsB", "ObsC"]
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.observers == ['TestObserver', "ObsB", "ObsC"]
 
     def test_pds3_secondary_targets_list(self, setup_pds3, product):
         setup_pds3.secondary_targets = ["TargetB", "TargetC"]
-        label = PDSLabel(setup_pds3, product)
+        product.setup = setup_pds3
+        label = PDSLabel(product)
         assert label.targets == ['TestTarget', "TargetB", "TargetC"]
 
 
@@ -167,11 +208,12 @@ class TestPDSLabelInit:
 # ===========================================================================
 
 class TestPDSLabelWriteLabel:
-    """Covers PDSLabel.write_label – all branches."""
+    """Covers PDSLabel.write_label and PDSLabel._derive_name – all branches."""
 
     @pytest.fixture
     def label_for(self, label_test_helpers):
-        """Factory fixture: builds a bare label ready for write_label.
+        """Factory fixture: builds a bare label ready for write_label or
+        _derive_name.
 
         Built directly off PDSLabel, with _label_extension/_eol assigned as
         plain instance attributes — decoupled from PDS3Label/PDS4Label. The
@@ -189,7 +231,7 @@ class TestPDSLabelWriteLabel:
         ):
             setup = (label_test_helpers.make_setup_pds4() if pds_version == "4"
                     else _make_setup_pds3(label_test_helpers))
-            setup.diff = diff
+            setup.args.diff = diff
             setup.pds_version = pds_version
 
             product = label_test_helpers.make_product()
@@ -204,17 +246,20 @@ class TestPDSLabelWriteLabel:
                 product.path = "/staging/test_kernel.bc"
                 product.extension = "bc"
 
-            # cls_name only matters for write_label's unrelated "suppress
-            # trailing log line for SpiceKernelPDS3Label" check.
-            cls_name = "SpiceKernelPDS3Label" if is_pds3_kernel else "PDSLabel"
-            cls = cast(Type[PDSLabel], type(cls_name, (PDSLabel,), {}))
+            # is_pds3_kernel only matters for write_label's unrelated
+            # "suppress trailing log line" check, via the real
+            # _trailing_blank_log attribute (not a class-name match).
+            namespace = {"_trailing_blank_log": False} if is_pds3_kernel else {}
+            cls = cast(Type[PDSLabel], type("Label", (PDSLabel,), namespace))
             label = object.__new__(cls)
+            # __init__ never runs, so write_label() needs this set by hand.
+            label._label_fields = {}
             label.setup = setup
             label.product = product
-            label.name = ""
             label._template = "/tmpl/template.xml"
             label._label_extension = ".xml" if pds_version == "4" else ".lbl"
             label._eol = "\r\n"
+            label.name = label._derive_name()
 
             if is_checksum:
                 label.__class__ = type("ChecksumLabelClass", (PDSLabel,), {})
@@ -230,41 +275,101 @@ class TestPDSLabelWriteLabel:
     @staticmethod
     def _run_write(label, mocker, template_content="Line with $name\n"):
         mocker.patch("builtins.open", mock_open(read_data=template_content))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("rel/path"))
-        mock_add = mocker.patch.object(label.setup, "add_file")
-        label.write_label()
-        return mock_add
+        return label.write_label()
 
     def test_pds4_writes_xml_label(self, label_for, mocker):
+        """A PDS4 label is written as XML and write_label returns its path."""
+
         label = label_for(pds_version="4")
-        mock_add = self._run_write(label, mocker)
+
+        # relative_to is mocked, so the returned path is the mocked one.
+        written_path = self._run_write(label, mocker)
+
         assert label.name.endswith(".xml")
-        mock_add.assert_called_once()
+        assert written_path == str(Path("rel/path"))
 
-    def test_pds3_writes_lbl_label(self, label_for, mocker):
+    def test_derive_name_pds4_uses_xml_extension(self, label_for):
+        """A PDS4 label swaps the product's own extension for '.xml' when
+        working out its destination filename."""
+        # A PDS4 label built from a plain product path (no existing '.xml'
+        # extension, no 'inventory' in the name).
+        label = label_for(pds_version="4")
+
+        # Work out the destination filename.
+        derived_name = label._derive_name()
+
+        # The extension was swapped to '.xml'.
+        assert derived_name.endswith(".xml")
+
+    def test_derive_name_pds3_uses_lbl_extension(self, label_for):
+        """A PDS3 label swaps the product's own extension for '.lbl' when
+        working out its destination filename."""
+        # Same as the PDS4 case above, but for PDS3.
         label = label_for(pds_version="3")
-        self._run_write(label, mocker)
-        assert label.name.endswith(".lbl")
 
-    def test_label_ext_already_in_path_uses_path_directly(self, label_for, mocker):
+        # Work out the destination filename.
+        derived_name = label._derive_name()
+
+        # The extension was swapped to '.lbl'.
+        assert derived_name.endswith(".lbl")
+
+    def test_derive_name_label_ext_already_in_path_uses_path_directly(self, label_for):
+        """When the product's path already ends in the label's own
+        extension (the bundle label's case), it is used as-is instead of
+        trying to swap an extension that isn't there."""
+        # A product path that already ends in '.xml', the way the bundle
+        # label's readme product does.
         label = label_for(pds_version="4", label_name_has_ext=True)
-        self._run_write(label, mocker)
-        assert "bundle" in label.name
 
-    def test_inventory_in_name_strips_inventory_prefix(self, label_for, mocker):
+        # Work out the destination filename.
+        derived_name = label._derive_name()
+
+        # The original path came through untouched.
+        assert "bundle" in derived_name
+
+    def test_derive_name_strips_inventory_prefix(self, label_for):
+        """A path that contains 'inventory' has the 'inventory_' token
+        removed, since the label file is named after the collection, not
+        the inventory product it describes."""
+        # A product path containing 'inventory_'.
         label = label_for(has_inventory=True)
-        self._run_write(label, mocker)
-        assert "inventory_" not in label.name
+
+        # Work out the destination filename.
+        derived_name = label._derive_name()
+
+        # The 'inventory_' token is gone.
+        assert "inventory_" not in derived_name
+
+    def test_write_label_uses_self_name_verbatim(self, label_for, mocker):
+        """write_label() must open self.name as given, not recompute it --
+        proven by giving it a name that deliberately differs from what
+        _derive_name() would produce."""
+        # Build a label, then overwrite its name with a value _derive_name()
+        # would never produce for this product.
+        label = label_for(pds_version="4")
+        label.name = "/staging/custom_name.xml"
+        mock_open_fn = mocker.patch("builtins.open",
+                                    mock_open(read_data="Line with $name\n"))
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
+        mocker.patch.object(Path, "relative_to", return_value=Path("rel/path"))
+
+        # Write the label.
+        label.write_label()
+
+        # The file was opened at the custom path, proving write_label()
+        # trusted self.name instead of recomputing it.
+        mock_open_fn.assert_any_call(
+            "/staging/custom_name.xml", "w+", encoding='utf-8', newline='')
 
     def test_checksum_lbl_pads_line_to_record_bytes(self, label_for, mocker):
         """checksum.lbl lines must be padded to record_bytes - 2."""
         label = label_for(pds_version="3", is_checksum=True)
         label.name = f"/staging{os.sep}checksum.lbl"
         mocker.patch("builtins.open", mock_open(read_data="short\n"))
-        mock_cr = mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mock_cr = mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("c"))
-        mocker.patch.object(label.setup, "add_file")
         label.write_label()
         mock_cr.assert_called()
 
@@ -272,32 +377,38 @@ class TestPDSLabelWriteLabel:
         label = label_for(diff=True)
         mock_cmp = mocker.patch.object(label, "compare")
         mocker.patch("builtins.open", mock_open(read_data=""))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
-        mocker.patch.object(label.setup, "add_file")
         label.write_label()
         mock_cmp.assert_called_once()
 
-    def test_spice_kernel_pds3_label_no_trailing_log_info(self, label_for, mocker):
-        """SpiceKernelPDS3Label must NOT emit a trailing logging.info('') call."""
-        label = label_for(is_pds3_kernel=True)
+    @pytest.mark.parametrize(
+        ["is_pds3_kernel", "expected_empty_calls"],
+        [(True, 0), (False, 1)],
+        ids=["trailing_blank_log-False-suppresses",
+             "trailing_blank_log-True-default-emits"],
+    )
+    def test_trailing_blank_log_gates_log_info(
+        self, label_for, mocker, is_pds3_kernel, expected_empty_calls
+    ):
+        """_trailing_blank_log (False for SpiceKernelPDS3Label, True by
+        default elsewhere) must gate the trailing logging.info('') call."""
+        label = label_for(is_pds3_kernel=is_pds3_kernel)
         mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.info")
         mocker.patch("builtins.open", mock_open(read_data=""))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
-        mocker.patch.object(label.setup, "add_file")
         label.write_label()
         empty_calls = [c for c in mock_log.call_args_list if c == call("")]
-        assert len(empty_calls) == 0
+        assert len(empty_calls) == expected_empty_calls
 
     def test_silent_mode_suppresses_print(self, label_for, mocker):
         label = label_for()
         label.setup.args.silent = True
         mock_print = mocker.patch("builtins.print")
         mocker.patch("builtins.open", mock_open(read_data=""))
-        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol, setup: line + "\n")
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("r"))
-        mocker.patch.object(label.setup, "add_file")
         label.write_label()
         mock_print.assert_not_called()
 
@@ -315,7 +426,7 @@ class TestPDSLabelCompare:
 
         def _build(collection_name="spice_kernels", label_name_part="kernel"):
             setup = label_test_helpers.make_setup_pds4()
-            setup.diff = "html"
+            setup.args.diff = "html"
             product = label_test_helpers.make_product()
             product.collection.name = collection_name
             product.name = "kernel.bc"
@@ -354,102 +465,97 @@ class TestPDSLabelCompare:
         label = label_for()
         hit = "/bundle/spice_kernels/ck/kernel.xml"
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         label.compare()
         mock_cmp.assert_called_once()
 
     # ------------------------------------------------------------------
-    # Level 1 no match → fall to level 2: collection label
+    # Level 1 no match → level 2 succeeds. _pick_val_label issues at most
+    # one Path.glob call now (the exact-name glob became a .exists()
+    # check), so each level-2/level-3 success case needs at most one
+    # Path.glob mock plus (except for "bundle", which never checks
+    # existence) one Path.exists mock.
     # ------------------------------------------------------------------
-    def test_level2_collection_label(self, label_for, mocker):
-        mocker.patch(_PATCH_COMPARE)
-        label = label_for(label_name_part="collection")
-        label.name = f"/staging/spice_kernels{os.sep}collection_label.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],  # level-1: first (and only) call → miss, exits loop
-            ["/bundle/.../inventory_coll.bc"],  # level-2: val_products glob
-            ["/bundle/.../coll.xml"],  # level-2: collection xml glob
-        ])
-        label.compare()  # key assertion: no uncaught exception
-
-    # ------------------------------------------------------------------
-    # Level 1 no match → fall to level 2: bundle label
-    # ------------------------------------------------------------------
-    def test_level2_bundle_label(self, label_for, mocker):
-        mocker.patch(_PATCH_COMPARE)
-        label = label_for(label_name_part="bundle")
-        label.name = str(Path("/staging/bundle_label.xml"))
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],  # level-1: miss
-            ["/bundle/kernel.bc"],  # level-2: val_products glob
-            ["/bundle/bundle_v1.xml"],  # level-2: bundle xml glob
-        ])
-        label.compare()
-
-    # ------------------------------------------------------------------
-    # Level 1 no match → fall to level 2: generic kernel label
-    # ------------------------------------------------------------------
-    def test_level2_generic_label(self, label_for, mocker):
+    @pytest.mark.parametrize(
+        ["collection_name", "label_name_part", "name_override", "glob_return", "needs_exists"],
+        [
+            (
+                "spice_kernels", "collection", f"/staging/spice_kernels{os.sep}collection_label.xml",
+                [Path("/bundle/spice_kernels/ck/inventory_coll.bc")], True,
+            ),
+            (
+                "spice_kernels", "bundle", str(Path("/staging/bundle_label.xml")),
+                [Path("/bundle/bundle_v1.xml")], False,
+            ),
+            ("spice_kernels", "kernel", None, [Path("/bundle/kern.bc")], True),
+            (
+                "miscellaneous", "orbnum", f"/staging/miscellaneous/orb{os.sep}orbnum.xml",
+                [Path("/bundle/misc/orb/old.bc")], True,
+            ),
+        ],
+        ids=["collection-label", "bundle-label", "generic-label", "miscellaneous-appends-subdir"],
+    )
+    def test_level2_succeeds(
+        self, label_for, mocker, collection_name, label_name_part, name_override, glob_return, needs_exists
+    ):
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],  # level-1: miss
-            ["/bundle/kern.bc"],  # level-2: val_products glob
-            ["/bundle/kern.xml"],  # level-2: label xml glob
-        ])
-        label_for().compare()
+        label = label_for(collection_name=collection_name, label_name_part=label_name_part)
+        if name_override:
+            label.name = name_override
+        # level-1 miss, then level-2's _pick_val_label pattern glob
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=[[], glob_return])
+        if needs_exists:
+            mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
+        label.compare()
         mock_cmp.assert_called_once()
 
     # ------------------------------------------------------------------
-    # Level 1 & 2 both fail → level 3 (InSight test data)
+    # Level 1 & 2 both fail → level 3 (InSight test data) succeeds.
     # ------------------------------------------------------------------
-    def test_level3_fallback_insight_data(self, label_for, mocker):
-        mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],  # level-1: miss
-            [],  # level-2: val_products empty → IndexError
-            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.bc"],  # level-3: val_products
-            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.xml"],  # level-3: xml glob
-        ])
-        label_for().compare()
+    @pytest.mark.parametrize(
+        ["collection_name", "label_name_part", "name_override", "glob_return", "needs_exists"],
+        [
+            (
+                "spice_kernels", "kernel", None,
+                [Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.bc")], True,
+            ),
+            (
+                "spice_kernels", "kernel", f"/staging/spice_kernels{os.sep}collection_label.xml",
+                [Path("/insight/ck/inv_coll.bc")], True,
+            ),
+            (
+                "spice_kernels", "kernel", str(Path("/staging/bundle_label.xml")),
+                [Path("/insight/bundle_v1.xml")], False,
+            ),
+            (
+                "miscellaneous", "orbnum", f"/staging/miscellaneous/orb{os.sep}orbnum.xml",
+                [Path("/root/data/insight_spice/miscellaneous/orb/insight.bc")], True,
+            ),
+        ],
+        ids=["fallback-insight-data", "collection-label", "bundle-label", "miscellaneous-appends-subdir"],
+    )
+    def test_level3_succeeds(
+        self, label_for, mocker, collection_name, label_name_part, name_override, glob_return, needs_exists
+    ):
+        mock_cmp = mocker.patch(_PATCH_COMPARE)
+        label = label_for(collection_name=collection_name, label_name_part=label_name_part)
+        if name_override:
+            label.name = name_override
+        # level-1 miss, level-2's _pick_val_label pattern glob empty, level-3 hit
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=[[], [], glob_return])
+        if needs_exists:
+            mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
+        label.compare()
+        mock_cmp.assert_called_once()
 
     # ------------------------------------------------------------------
     # All three levels fail → nothing compared, no exception raised
     # ------------------------------------------------------------------
     def test_all_levels_fail_no_exception(self, label_for, mocker):
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, return_value=[])
+        mocker.patch(_PATCH_PATH_GLOB, return_value=[])
         label_for().compare()
         mock_cmp.assert_not_called()
-
-    # ------------------------------------------------------------------
-    # Level 3: "collection" substring in the label's basename
-    # ------------------------------------------------------------------
-    def test_level3_collection_label(self, label_for, mocker):
-        mocker.patch(_PATCH_COMPARE)
-        label = label_for()
-        label.name = f"/staging/spice_kernels{os.sep}collection_label.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],  # level-1: miss
-            [],  # level-2: val_products empty
-            ["/insight/ck/inv_coll.bc"],  # level-3: val_products
-            ["/insight/ck/coll.xml"],  # level-3: xml glob
-        ])
-        label.compare()
-
-    # ------------------------------------------------------------------
-    # Level 3: "bundle" substring in the label's basename
-    # ------------------------------------------------------------------
-    def test_level3_bundle_label(self, label_for, mocker):
-        mocker.patch(_PATCH_COMPARE)
-        label = label_for()
-        label.name = str(Path("/staging/bundle_label.xml"))
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],  # level-1: miss
-            [],  # level-2: val_products empty
-            ["/insight/ck/kern.bc"],  # level-3: val_products
-            ["/insight/bundle_v1.xml"],  # level-3: bundle xml glob
-        ])
-        label.compare()
 
     # ------------------------------------------------------------------
     # Level 1: miscellaneous collection adds product-type sub-directory
@@ -459,7 +565,7 @@ class TestPDSLabelCompare:
         label = label_for(collection_name="miscellaneous", label_name_part="orbnum")
         label.name = f"/staging/miscellaneous/orb{os.sep}orbnum.xml"
         hit = "/bundle/misc/orb/old_orbnum.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         label.compare()
 
     # ------------------------------------------------------------------
@@ -471,7 +577,7 @@ class TestPDSLabelCompare:
         label = label_for(collection_name="document")
         label.name = f"/staging/document{os.sep}spiceds.xml"
         hit = "/bundle/document/spiceds_v1.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         label.compare()
 
     # ------------------------------------------------------------------
@@ -485,78 +591,39 @@ class TestPDSLabelCompare:
         )
         label.name = f"/staging/spice_kernels{os.sep}collection_inventory.xml"
         hit = "/bundle/ck/old_collection_inventory.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._level1_hit(hit))
         label.compare()
 
     # ------------------------------------------------------------------
-    # Line 537: level-2 elif branch — miscellaneous collection appends
-    # the product-type subdirectory to val_label_path.
+    # Level 2 finds a product candidate but no label file exists for it
+    # on disk (candidate.exists() is False) → falls through to level 3,
+    # which succeeds.
     # ------------------------------------------------------------------
-    def test_level2_miscellaneous_collection_appends_subdir(self, label_for, mocker):
-        mocker.patch(_PATCH_COMPARE)
-        label = label_for(collection_name="miscellaneous", label_name_part="orbnum")
-        label.name = f"/staging/miscellaneous/orb{os.sep}orbnum.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],                             # level-1: miss, exits loop immediately
-            ["/bundle/misc/orb/old.bc"],    # level-2: val_products glob (sub-dir appended)
-            ["/bundle/misc/orb/old.xml"],   # level-2: label xml glob
-        ])
-        label.compare()  # reaches compare_files via level-2; no exception raised
-
-    # ------------------------------------------------------------------
-    # Line 559: level-2 raises because val_label is falsy.
-    # glob.glob for the XML label returns [""] — an empty string is a
-    # valid list element but a falsy value, so `if not val_label` fires,
-    # the exception propagates to the level-2 except, and level-3 runs.
-    # ------------------------------------------------------------------
-    def test_level2_falsy_val_label_falls_through_to_level3(self, label_for, mocker):
+    def test_level2_missing_candidate_falls_through_to_level3(self, label_for, mocker):
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],                                                            # level-1: miss
-            ["/bundle/spice_kernels/ck/kern.bc"],                         # level-2: val_products
-            [""],                                                          # level-2: XML glob → falsy → line 559 raise
-            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.bc"],  # level-3: val_products
-            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.xml"], # level-3: xml glob
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=[
+            [],  # level-1: miss
+            [Path("/bundle/spice_kernels/ck/kern.bc")],  # level-2: val_products found...
+            [Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.bc")],  # level-3: val_products
         ])
+        mocker.patch(_PATCH_PATH_EXISTS, side_effect=[False, True])  # ...but candidate missing; level-3 has one
         label_for().compare()
-        # Execution reached level-3 and found a valid label → compare_files called
         mock_cmp.assert_called_once()
 
     # ------------------------------------------------------------------
-    # Line 587: level-3 elif branch — miscellaneous collection appends
-    # the product-type subdirectory to val_label_path in level-3.
-    # Both level-1 and level-2 must fail first.
+    # Level 3 finds a product candidate but no label file exists for it
+    # either → the raise is caught by level-3's own except, and
+    # compare_files is never called.
     # ------------------------------------------------------------------
-    def test_level3_miscellaneous_collection_appends_subdir(self, label_for, mocker):
+    def test_level3_missing_candidate_suppressed_by_except(self, label_for, mocker):
         mock_cmp = mocker.patch(_PATCH_COMPARE)
-        label = label_for(collection_name="miscellaneous", label_name_part="orbnum")
-        label.name = f"/staging/miscellaneous/orb{os.sep}orbnum.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],                                               # level-1: miss
-            [],                                               # level-2: val_products empty → IndexError → level-3
-            ["/root/data/insight_spice/miscellaneous/orb/insight.bc"],  # level-3: val_products (sub-dir appended)
-            ["/root/data/insight_spice/miscellaneous/orb/insight.xml"], # level-3: xml glob
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=[
+            [],  # level-1: miss
+            [],  # level-2: val_products empty -> raises, falls to level-3
+            [Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.bc")],  # level-3: val_products
         ])
-        label.compare()
-        mock_cmp.assert_called_once()
-
-    # ------------------------------------------------------------------
-    # Line 611: level-3 raises because val_label is falsy.
-    # The XML glob returns [""] — falsy — so `if not val_label` fires,
-    # the raise is caught by the level-3 except BaseException on line 615,
-    # and compare_files is never called.
-    # ------------------------------------------------------------------
-    def test_level3_falsy_val_label_suppressed_by_except(self, label_for, mocker):
-        mock_cmp = mocker.patch(_PATCH_COMPARE)
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            [],                                                           # level-1: miss
-            [],                                                           # level-2: val_products empty → IndexError
-            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.bc"], # level-3: val_products
-            [""],                                                         # level-3: XML glob → falsy → line 611 raise
-        ])
+        mocker.patch(_PATCH_PATH_EXISTS, return_value=False)  # level-3 candidate also missing
         label_for().compare()
-        # The raise on line 611 is caught on line 615; val_label stays falsy
-        # so compare_files must not have been called.
         mock_cmp.assert_not_called()
 
 
@@ -583,7 +650,7 @@ class TestPDSLabelCompareHelpers:
 
         def _build(collection_name="spice_kernels", label_name_part="kernel", subdir="ck"):
             setup = label_test_helpers.make_setup_pds4()
-            setup.diff = "html"
+            setup.args.diff = "html"
             product = label_test_helpers.make_product()
             product.collection.name = collection_name
             product.name = "kernel.bc"
@@ -595,6 +662,27 @@ class TestPDSLabelCompareHelpers:
             return label
 
         return _build
+
+    @staticmethod
+    def _glob_matching_prefix(hit):
+        """Return a side_effect callable that mimics real Path.glob semantics
+        for the prefix-shrinking loop in _find_prior_version_label: `hit` is
+        returned only while its filename still starts with the requested
+        prefix (extracted from the f"{prefix}*.xml" pattern), and an empty
+        list otherwise. Unlike a fixed return_value/side_effect that ignores
+        the pattern argument, this ties the mock's answer to what a real
+        directory listing would actually contain for `hit`'s filename --
+        the match set can only shrink as the prefix grows, never flip from
+        empty back to non-empty, matching the invariant the loop itself
+        relies on (see the comment above the loop in label.py).
+        """
+        hit_name = Path(hit).name
+
+        def _side_effect(pattern):
+            prefix = pattern[: -len("*.xml")]
+            return [hit] if hit_name.startswith(prefix) else []
+
+        return _side_effect
 
     @staticmethod
     def _level1_hit(hit):
@@ -620,22 +708,22 @@ class TestPDSLabelCompareHelpers:
             (
                 "spice_kernels",
                 None,
-                str(Path("/bundle/test_spice", "spice_kernels", "ck")) + os.sep,
+                Path("/bundle/test_spice", "spice_kernels", "ck"),
             ),
             (
                 "miscellaneous",
                 str(Path("/staging/miscellaneous/orb/orbnum.xml")),
-                str(Path("/bundle/test_spice", "miscellaneous", "orb")) + os.sep,
+                Path("/bundle/test_spice", "miscellaneous", "orb"),
             ),
             (
                 "document",
                 None,
-                str(Path("/bundle/test_spice", "document")) + os.sep,
+                Path("/bundle/test_spice", "document"),
             ),
             (
                 "spice_kernels",
                 str(Path("/staging/spice_kernels/collection.xml")),
-                str(Path("/bundle/test_spice", "spice_kernels")) + os.sep,
+                Path("/bundle/test_spice", "spice_kernels"),
             ),
         ],
         ids=[
@@ -649,7 +737,7 @@ class TestPDSLabelCompareHelpers:
         label = label_for_helper(collection_name=collection_name)
         if name_override:
             label.name = name_override
-        result = label._val_label_directory("/bundle/test_spice/")
+        result = label._val_label_directory(Path("/bundle/test_spice"))
         assert result == expected
 
     # -- _pick_val_label: branch selection, unified substring-of-basename
@@ -660,147 +748,196 @@ class TestPDSLabelCompareHelpers:
     #    component, so the match must be substring-based to work at all. --
 
     @pytest.mark.parametrize(
-        "name, val_products, val_label_path, glob_return, expected, expected_glob_call",
+        ["name", "val_label_path", "glob_pattern", "glob_return", "expected"],
         [
-            pytest.param(
+            (
                 f"/staging/spice_kernels{os.sep}collection_spice_kernels_v001.xml",
-                ["/insight/ck/inventory_old.bc"],
-                "/insight/ck/",
-                ["/insight/ck/old_collection.xml"],
-                "/insight/ck/old_collection.xml",
-                str(Path("/insight/ck/old.xml")),
-                id="collection-branch-realistic-name",
+                Path("/insight/ck/"),
+                "*.bc",
+                [Path("/insight/ck/inventory_old.bc")],
+                Path("/insight/ck/old.xml"),
             ),
-            pytest.param(
+            (
                 f"/staging{os.sep}bundle_insight_spice_v009.xml",
-                [],
-                "/insight/",
-                ["/insight/bundle_v1.xml"],
-                "/insight/bundle_v1.xml",
-                "/insight/bundle_*.xml",
-                id="bundle-branch-realistic-name",
+                Path("/insight/"),
+                "bundle_*.xml",
+                [Path("/insight/bundle_v1.xml")],
+                Path("/insight/bundle_v1.xml"),
             ),
-            pytest.param(
+            (
                 f"/staging/ck{os.sep}kernel.xml",
-                ["/bundle/ck/kernel.v01.bc"],
-                "/bundle/ck/",
-                ["/bundle/ck/kernel.v01.xml"],
-                "/bundle/ck/kernel.v01.xml",
-                str(Path("/bundle/ck/kernel.v01.xml")),
+                Path("/bundle/ck/"),
+                "*.bc",
+                [Path("/bundle/ck/kernel.v01.bc")],
+                Path("/bundle/ck/kernel.v01.xml"),
                 # Also a regression case for the .split(".")[0] truncation
                 # bug: the stem must keep everything but the final
                 # extension, not just the text before the first dot.
-                id="else-branch-multidot-stem",
             ),
-            pytest.param(
+            (
                 # A directory literally named "collection" must NOT trigger
                 # the collection branch -- only the basename is checked, not
                 # the full path. The basename here ("label.xml") has no
                 # "collection" substring, so this falls through to else.
                 f"/staging{os.sep}collection{os.sep}label.xml",
-                ["/insight/ck/kernel.bc"],
-                "/insight/ck/",
-                ["/insight/ck/kernel.xml"],
-                "/insight/ck/kernel.xml",
-                str(Path("/insight/ck/kernel.xml")),
-                id="collection-directory-without-basename-match-falls-to-else",
+                Path("/insight/ck/"),
+                "*.bc",
+                [Path("/insight/ck/kernel.bc")],
+                Path("/insight/ck/kernel.xml"),
             ),
-            pytest.param(
+            (
                 # Known, accepted trade-off of substring matching: "bundle"
                 # is a substring of "unbundled_data.xml" (from "unbundled"),
                 # so this still triggers the bundle branch even though the
                 # file is not actually a bundle label. This is the price of
                 # a rule that must also match real names like
-                # "bundle_insight_spice_v009.xml".
+                # "bundle_insight_spice_v009.xml". The bundle branch is
+                # checked first and returns immediately, so it never checks
+                # candidate.exists() either -- max(matches) is the answer.
                 f"/staging/spice_kernels{os.sep}unbundled_data.xml",
-                [],
-                "/insight/ck/",
-                ["/insight/ck/bundle_v2.xml"],
-                "/insight/ck/bundle_v2.xml",
-                "/insight/ck/bundle_*.xml",
-                id="bundle-substring-collision-is-accepted-trade-off",
+                Path("/insight/ck/"),
+                "bundle_*.xml",
+                [Path("/insight/ck/bundle_v2.xml")],
+                Path("/insight/ck/bundle_v2.xml"),
             ),
+        ],
+        ids=[
+            "collection-branch-realistic-name",
+            "bundle-branch-realistic-name",
+            "else-branch-multidot-stem",
+            "collection-directory-without-basename-match-falls-to-else",
+            "bundle-substring-collision-is-accepted-trade-off",
         ],
     )
     def test_pick_val_label_branch_selection(
-        self,
-        label_for_helper,
-        mocker,
-        name,
-        val_products,
-        val_label_path,
-        glob_return,
-        expected,
-        expected_glob_call,
+        self, label_for_helper, mocker, name, val_label_path, glob_pattern, glob_return, expected
     ):
         label = label_for_helper()
         label.name = name
-        mock_glob = mocker.patch(_PATCH_GLOB, return_value=glob_return)
-        result = label._pick_val_label(val_products, val_label_path)
+        mocker.patch.object(label, "_val_label_directory", return_value=val_label_path)
+        mock_glob = mocker.patch(_PATCH_PATH_GLOB, return_value=glob_return)
+        mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
+        result = label._pick_val_label(Path("/unused"))
         assert result == expected
-        mock_glob.assert_called_once_with(expected_glob_call)
+        mock_glob.assert_called_once_with(glob_pattern)
 
     # -- _pick_val_label: failure paths ---------------------------------
+    # The three no-match sites: bundle's own glob comes up empty, the shared
+    # path's val_products glob comes up empty (can't call max()), or the
+    # shared path derives a candidate that doesn't exist on disk.
 
-    def test_pick_val_label_raises_when_result_falsy(self, label_for_helper, mocker):
+    @pytest.mark.parametrize(
+        ["name", "val_label_path", "glob_return", "exists_return"],
+        [
+            (f"/staging{os.sep}bundle_insight_spice_v009.xml", Path("/insight/"), [], False),
+            (f"/staging/ck{os.sep}kernel.xml", Path("/bundle/ck/"), [], False),
+            (
+                f"/staging/ck{os.sep}kernel.xml",
+                Path("/bundle/ck/"),
+                [Path("/bundle/ck/kernel.v01.bc")],
+                False,
+            ),
+        ],
+        ids=[
+            "bundle-branch-glob-empty",
+            "shared-branch-val-products-empty",
+            "shared-branch-candidate-missing",
+        ],
+    )
+    def test_pick_val_label_returns_none_when_no_match(
+        self, label_for_helper, mocker, name, val_label_path, glob_return, exists_return
+    ):
         label = label_for_helper()
-        label.name = f"/staging/ck{os.sep}kernel.xml"
-        mocker.patch(_PATCH_GLOB, return_value=[""])
-        with pytest.raises(Exception, match="No label for comparison found."):
-            label._pick_val_label(["/bundle/ck/kernel.bc"], "/bundle/ck/")
-
-    def test_pick_val_label_raises_valueerror_on_empty_products(self, label_for_helper):
-        label = label_for_helper()
-        label.name = f"/staging/ck{os.sep}kernel.xml"
-        with pytest.raises(ValueError):
-            label._pick_val_label([], "/bundle/ck/")
+        label.name = name
+        mocker.patch.object(label, "_val_label_directory", return_value=val_label_path)
+        mocker.patch(_PATCH_PATH_GLOB, return_value=glob_return)
+        mocker.patch(_PATCH_PATH_EXISTS, return_value=exists_return)
+        assert label._pick_val_label(Path("/unused")) is None
 
     # -- _find_prior_version_label ---------------------------------------
 
     def test_find_prior_version_label_returns_hit(self, label_for_helper, mocker):
+        """"kernel_old.xml" shares the "kernel" prefix (i=1..6) with the
+        label being generated ("kernel.xml") but diverges at i=7 ("kernel."
+        vs "kernel_"), so the loop matches for a while, then the first miss
+        at i=7 triggers `break` -- exercising the loop's early-exit branch.
+        """
         label = label_for_helper()
         hit = "/bundle/spice_kernels/ck/kernel_old.xml"
-        mocker.patch(_PATCH_GLOB, side_effect=self._level1_hit(hit))
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._glob_matching_prefix(hit))
         assert label._find_prior_version_label() == hit
 
     def test_find_prior_version_label_returns_none_on_no_match(self, label_for_helper, mocker):
         label = label_for_helper()
-        mocker.patch(_PATCH_GLOB, return_value=[])
+        mocker.patch(_PATCH_PATH_GLOB, return_value=[])
         assert label._find_prior_version_label() is None
+
+    def test_find_prior_version_label_matches_every_prefix(self, label_for_helper, mocker):
+        """"kernel.x001.xml" shares every prefix of "kernel.xml" tested by
+        the loop (i=1..8, up to and including "kernel.x"), so the loop never
+        misses and exhausts the `for` naturally instead of exiting early via
+        `break` -- the loop's other branch, not reached by
+        test_find_prior_version_label_returns_hit's diverging hit.
+        """
+        label = label_for_helper()
+        hit = "/bundle/spice_kernels/ck/kernel.x001.xml"
+        mocker.patch(_PATCH_PATH_GLOB, side_effect=self._glob_matching_prefix(hit))
+        assert label._find_prior_version_label() == hit
 
     # -- _find_similar_type_label -----------------------------------------
 
     def test_find_similar_type_label_returns_hit(self, label_for_helper, mocker):
         label = label_for_helper()
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            ["/bundle/spice_kernels/ck/kern.bc"],
-            ["/bundle/spice_kernels/ck/kern.xml"],
-        ])
-        assert label._find_similar_type_label() == "/bundle/spice_kernels/ck/kern.xml"
+        mocker.patch(_PATCH_PATH_GLOB, return_value=[Path("/bundle/spice_kernels/ck/kern.bc")])
+        mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
+        assert label._find_similar_type_label() == Path("/bundle/spice_kernels/ck/kern.xml")
 
     def test_find_similar_type_label_returns_none_when_val_products_empty(self, label_for_helper, mocker):
         label = label_for_helper()
-        mocker.patch(_PATCH_GLOB, return_value=[])
+        mocker.patch(_PATCH_PATH_GLOB, return_value=[])
         assert label._find_similar_type_label() is None
 
     # -- _find_insight_fallback_label -------------------------------------
 
     def test_find_insight_fallback_label_returns_hit_and_logs(self, label_for_helper, mocker):
         label = label_for_helper()
-        mocker.patch(_PATCH_GLOB, side_effect=[
-            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.bc"],
-            ["/root/data/insight_spice/spice_kernels/ck/insight_ck.xml"],
-        ])
+        mocker.patch(
+            _PATCH_PATH_GLOB,
+            return_value=[Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.bc")],
+        )
+        mocker.patch(_PATCH_PATH_EXISTS, return_value=True)
         mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.warning")
         result = label._find_insight_fallback_label()
-        assert result == "/root/data/insight_spice/spice_kernels/ck/insight_ck.xml"
+        assert result == Path("/root/data/insight_spice/spice_kernels/ck/insight_ck.xml")
         # The "Comparing with..." message must only fire on success, and
         # must be the ONLY warning logged (no leftover "not found" message).
         mock_log.assert_called_once_with("-- Comparing with InSight test label.")
 
     def test_find_insight_fallback_label_returns_none_when_val_products_empty(self, label_for_helper, mocker):
         label = label_for_helper()
-        mocker.patch(_PATCH_GLOB, return_value=[])
+        mocker.patch(_PATCH_PATH_GLOB, return_value=[])
         mock_log = mocker.patch("pds.naif_pds4_bundler.classes.label.label.logging.warning")
         assert label._find_insight_fallback_label() is None
         mock_log.assert_called_once_with("-- No label for comparison found.")
+
+
+# ===========================================================================
+# PDSLabel context/logging attribute defaults
+# ===========================================================================
+# Each leaf class's own override of these attributes is pinned in that
+# class's own test file instead of here.
+
+class TestPDSLabelContextAttributeDefaults:
+    """Pin the base PDSLabel defaults for _context_from_product/
+    _trailing_blank_log."""
+
+    @pytest.mark.parametrize(
+        ["attr", "expected"],
+        [
+            ("_context_from_product", False),
+            ("_trailing_blank_log", True),
+        ],
+        ids=["context-default-False", "trailing-log-default-True"],
+    )
+    def test_default_attribute(self, attr, expected):
+        assert getattr(PDSLabel, attr) is expected

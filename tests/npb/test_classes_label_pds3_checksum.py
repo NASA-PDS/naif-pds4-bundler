@@ -10,6 +10,7 @@ Two test classes are provided:
   and the real template file, writing an actual label to a temp directory
   and asserting on its contents.
 """
+import logging
 from pathlib import Path
 import textwrap
 from unittest.mock import MagicMock, patch
@@ -17,6 +18,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.label.pds3_checksum import ChecksumPDS3Label
+
 
 # ---------------------------------------------------------------------------
 # Helpers – factories for the two collaborator mocks (setup & product)
@@ -35,13 +37,11 @@ def _make_setup(tmp_path: Path, *, pds_version: str = "3") -> MagicMock:
     setup.templates_directory = str(tmp_path / "templates")
     setup.staging_directory = str(tmp_path / "staging")
     setup.working_directory = str(tmp_path / "work")
-    setup.diff = False
+    setup.args.diff = False
     setup.eol_pds3 = "\r\n"
     # args namespace expected by write_label
     setup.args.silent = True
     setup.args.verbose = False
-    # add_file must be callable without side-effects
-    setup.add_file = MagicMock()
     return setup
 
 
@@ -79,29 +79,30 @@ class TestChecksumPDS3Label:
 
     @pytest.fixture()
     def label(self, tmp_path):
-        """Return a ChecksumPDS3Label with write_label mocked out."""
+        """Return a ChecksumPDS3Label."""
         setup = _make_setup(tmp_path)
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
         product = _make_product(staging)
 
-        # Patch write_label so the constructor does not touch the filesystem.
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            instance = ChecksumPDS3Label(setup, product)
-
-        return instance
+        product.setup = setup
+        return ChecksumPDS3Label(product)
 
     # ------------------------------------------------------------------
     # Regular Tests
     # ------------------------------------------------------------------
-    def test_attribute_assignments(self, label):
-        assert label.VOLUME_ID == "VG_0001"
-        assert label.PRODUCT_CREATION_TIME == "2024-01-15T12:00:00"
-        assert label.RECORD_BYTES == "80"
-        assert label.FILE_RECORDS == "42"
-        assert label.BYTES == "46"
-        assert label.name == "checksum.lbl"
+    def test_attribute_assignments(self, tmp_path, label):
+        """Every field the constructor populates on _label_fields, plus the
+        derived destination filename, matches the mock product/setup."""
+        # Preparation and execution both happen in the `label` fixture above.
+        assert label._label_fields["VOLUME_ID"] == "VG_0001"
+        assert label._label_fields["PRODUCT_CREATION_TIME"] == "2024-01-15T12:00:00"
+        assert label._label_fields["RECORD_BYTES"] == "80"
+        assert label._label_fields["FILE_RECORDS"] == "42"
+        assert label._label_fields["BYTES"] == "46"
+
+        # Verification: the destination path swaps '.tab' for '.lbl'.
+        assert label.name == str(tmp_path / "staging" / "checksum.lbl")
 
     def test_template_path_uses_setup_directory(self, tmp_path, label):
         """Template path must be constructed from setup.templates_directory."""
@@ -117,15 +118,13 @@ class TestChecksumPDS3Label:
         staging.mkdir(parents=True, exist_ok=True)
         product = _make_product(staging)
 
-        # Patch write_label so the constructor does not touch the filesystem.
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            label = ChecksumPDS3Label(setup, product)
+        product.setup = setup
+        label = ChecksumPDS3Label(product)
         assert label.setup == setup
         assert label.product == product
 
-    def test_write_label_called_once_during_init(self, tmp_path):
-        """Constructor must call write_label exactly once."""
+    def test_write_label_not_called_during_init(self, tmp_path):
+        """Constructor must not write the label; the pipeline does."""
         setup = _make_setup(tmp_path)
         staging = tmp_path / "staging"
         staging.mkdir(parents=True, exist_ok=True)
@@ -133,9 +132,10 @@ class TestChecksumPDS3Label:
 
         with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
                    autospec=True) as mock_write:
-            ChecksumPDS3Label(setup, product)
+            product.setup = setup
+            ChecksumPDS3Label(product)
 
-        mock_write.assert_called_once()
+        mock_write.assert_not_called()
 
     def test_is_instance_of_pds_label(self, label):
         """ChecksumPDS3Label must be a subclass of PDSLabel."""
@@ -154,11 +154,10 @@ class TestChecksumPDS3Label:
         staging.mkdir(parents=True, exist_ok=True)
         product = _make_product(staging)
 
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            instance = ChecksumPDS3Label(setup, product)
+        product.setup = setup
+        instance = ChecksumPDS3Label(product)
 
-        assert instance.VOLUME_ID == "VG_0001"
+        assert instance._label_fields["VOLUME_ID"] == "VG_0001"
 
     def test_zero_file_records(self, tmp_path):
         """RECORD_BYTES must tolerate a product with zero file records."""
@@ -168,11 +167,10 @@ class TestChecksumPDS3Label:
         product = _make_product(staging)
         product.file_records = 0
 
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            instance = ChecksumPDS3Label(setup, product)
+        product.setup = setup
+        instance = ChecksumPDS3Label(product)
 
-        assert instance.FILE_RECORDS == "0"
+        assert instance._label_fields["FILE_RECORDS"] == "0"
 
     def test_creation_time_override_from_setup(self, tmp_path):
         """When setup.creation_date_time exists, PRODUCT_CREATION_TIME must
@@ -183,14 +181,13 @@ class TestChecksumPDS3Label:
         staging.mkdir(parents=True, exist_ok=True)
         product = _make_product(staging)
 
-        with patch("pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label",
-                   autospec=True):
-            instance = ChecksumPDS3Label(setup, product)
+        product.setup = setup
+        instance = ChecksumPDS3Label(product)
 
         # PDSLabel.__init__ sets PRODUCT_CREATION_TIME from setup when the
         # attribute exists; ChecksumPDS3Label then *overwrites* it with the
         # product value. Assert the child-class assignment wins.
-        assert instance.PRODUCT_CREATION_TIME == product.creation_time
+        assert instance._label_fields["PRODUCT_CREATION_TIME"] == product.creation_time
 
 
 # ===========================================================================
@@ -251,9 +248,19 @@ class TestChecksumPDS3LabelIntegration:
     These tests instantiate the real class (without patching write_label)
     and assert on the content of the label file written to a temp directory.
 
-    External I/O that is *unrelated* to label writing (logging, add_file,
-    compare) is still mocked to keep the tests self-contained.
+    External I/O that is *unrelated* to label writing (logging, compare) is
+    still mocked to keep the tests self-contained.
     """
+
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert ChecksumPDS3Label._context_from_product is False
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert ChecksumPDS3Label._trailing_blank_log is True
 
     # ------------------------------------------------------------------
     # Fixtures
@@ -296,7 +303,9 @@ class TestChecksumPDS3LabelIntegration:
         setup = env["setup"]
         product = env["product"]
 
-        ChecksumPDS3Label(setup, product)
+        product.setup = setup
+
+        ChecksumPDS3Label(product).write_label()
 
         assert env["label_path"].exists()
 
@@ -351,15 +360,34 @@ class TestChecksumPDS3LabelIntegration:
 
         assert written_label == expected_label
 
-    # ------------------------------------------------------------------
-    # 7. setup.add_file is called with the relative label path
-    # ------------------------------------------------------------------
-
-    def test_add_file_called_with_label_path(self, env):
-        """setup.add_file() must be invoked with the relative label path."""
+    def test_write_label_emits_trailing_blank_log(self, env, caplog):
+        """Contrast case for SpiceKernelPDS3Label's suppression test: this
+        class does not override _trailing_blank_log, so the real, inherited
+        write_label() must still emit its trailing blank log line."""
         setup = env["setup"]
         product = env["product"]
 
-        ChecksumPDS3Label(setup, product)
+        product.setup = setup
 
-        setup.add_file.assert_called_once_with("checksum.lbl")
+        # Construction logs nothing, so any blank line captured here comes
+        # from write_label() itself.
+        with caplog.at_level(logging.INFO):
+            ChecksumPDS3Label(product).write_label()
+
+        # The gated call is logging.info(""); caplog records it as "".
+        assert caplog.messages.count("") == 1
+
+    # ------------------------------------------------------------------
+    # 7. write_label returns the relative label path
+    # ------------------------------------------------------------------
+
+    def test_write_label_returns_label_path(self, env):
+        """write_label returns the label path relative to staging."""
+
+        setup = env["setup"]
+        product = env["product"]
+        product.setup = setup
+
+        written_path = ChecksumPDS3Label(product).write_label()
+
+        assert written_path == "checksum.lbl"

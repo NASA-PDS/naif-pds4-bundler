@@ -10,25 +10,27 @@ from .product import Product
 from ..exceptions import NPBError
 from ...utils.time import parse_date
 from ...utils import add_crs_to_file
+from ...utils import archive_subdirectory
 from ...utils import check_eol
 from ...utils import get_latest_kernel
 from ...utils import safe_make_directory
 from ...utils import spk_coverage
 from ...utils import utf8len
-from ..label import OrbnumFilePDS4Label
 
 
 class OrbnumFileProduct(Product):
     """Class that represents an OrbNum file.
 
     :param setup:                    NPB execution setup object
+    :param run_state:                State of the current pipeline execution
     :param name:                     OrbNum file path
     :param collection:               Miscellaneous Collection that contains the
                                      OrbNum file product
     :param spice_kernels_collection: SPICE Kernel Collection
     """
 
-    def __init__(self, setup, name: str, collection, spice_kernels_collection) -> None:
+    def __init__(self, setup, run_state, name: str, collection,
+                 spice_kernels_collection) -> None:
         """Constructor."""
         self.collection = collection
         self.kernels_collection = spice_kernels_collection
@@ -37,13 +39,13 @@ class OrbnumFileProduct(Product):
         self.extension = name.split(".")[-1].strip()
         self.path = setup.orbnum_directory
 
-        if setup.pds_version == "3":
-            self.collection_path = setup.staging_directory + os.sep + "extras"
-            product_path = self.collection_path + os.sep + "orbnum" + os.sep
-
-        else:  # elif setup.pds_version == "4":
-            self.collection_path = setup.staging_directory + os.sep + "miscellaneous"
-            product_path = self.collection_path + os.sep + "orbnum" + os.sep
+        # The orbnum files are staged under "extras" (PDS3) or "miscellaneous"
+        # (PDS4), in an "orbnum" directory.
+        self.collection_path = (
+            setup.staging_directory + os.sep
+            + archive_subdirectory("orbnum", setup.pds_version)
+        )
+        product_path = self.collection_path + os.sep + "orbnum" + os.sep
 
         #
         # Map the orbnum file with its configuration.
@@ -91,7 +93,7 @@ class OrbnumFileProduct(Product):
             if check_eol(product_path + os.sep + self.name, self.setup.eol):
                 logging.info("-- Adding CRLF to ORBNUM file.")
                 add_crs_to_file(
-                    product_path + os.sep + self.name, self.setup.eol, self.setup
+                    product_path + os.sep + self.name, self.setup.eol
                 )
 
         #
@@ -139,15 +141,7 @@ class OrbnumFileProduct(Product):
             if "target" in self._orbnum_type:
                 self.targets = [self._orbnum_type["target"]]
 
-        super().__init__()
-
-        #
-        # The kernel is labeled.
-        #
-        if self.setup.pds_version == "4":
-            logging.info('-- Labeling %s...', self.name)
-
-            self.label = OrbnumFilePDS4Label(setup, self)
+        super().__init__(run_state)
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""
@@ -212,7 +206,10 @@ class OrbnumFileProduct(Product):
                 version_pattern = r"_[vV]\[0\-9\]*[\.]"
                 version_match = re.search(version_pattern, self._pattern)
                 pattern = ".".join(self._pattern.split(version_match.group(0)))
-            except BaseException:
+
+            # re.search() returns None with no explicit version token, and
+            # .group(0) on None raises AttributeError.
+            except AttributeError:
                 #
                 # The pattern already does not have an explicit version
                 # number.
@@ -347,13 +344,17 @@ class OrbnumFileProduct(Product):
         return sample_record
 
     def read_records(self) -> int:
-        """Read and interpret the records of an OrbNum file.
+        """Read and check the records of an OrbNum file.
 
-        Read an OrbNum file and set the number of records attribute,
-        the length of the records attribute, determine which lines have blank
-        records and, perform simple checks of the records.
+        Go through the records that follow the header and warn about any
+        whose orbit number does not follow the previous one. Records whose
+        length differs from the fixed record length are collected in the
+        ``blank_records`` list. If there are any, the file is rewritten
+        with those records padded with blank spaces, under a new version
+        number, and the original file is removed.
 
-        :return: number of records of OrbNum file
+        :return: number of records of the OrbNum file
+        :raises NPBError: if a record line is blank.
         """
         blank_records = []
 
@@ -362,9 +363,20 @@ class OrbnumFileProduct(Product):
             records = 0
             lines = 0
             header_start = int(self._orbnum_type["header_start_line"])
+
             for line in o:
                 lines += 1
+
                 if lines > header_start + 1:
+
+                    # A blank line has no orbit number to parse, so it must be
+                    # rejected before the parsing below.
+                    if not line.strip():
+                        raise NPBError(
+                            f"Orbnum record number {lines - header_start - 1} "
+                            f"is blank."
+                        )
+
                     orbit_number = int(line.split()[0])
                     records_length = utf8len(line)
 
@@ -377,16 +389,9 @@ class OrbnumFileProduct(Product):
                             '-- Orbit number %d record is followed by %d.',
                             previous_orbit_number, orbit_number)
 
-                    # TODO: Fix. This check should be performed before the line
-                    #       orbit_number = int(line.split()[0]). If the line is is blank
-                    #       that statement will raise an IndexError.
-                    if not line.strip():
-                        raise NPBError(
-                            f"Orbnum record number {line} is blank."
-                        )
-                    elif (
-                            line.strip() and records_length != self.record_fixed_length
-                    ):
+                    # Records of the wrong length are padded later; they are
+                    # tracked here by their orbit number.
+                    if records_length != self.record_fixed_length:
                         logging.warning(
                             '-- Orbit number %d record has an incorrect '
                             'length, the record will be expanded to cover '
@@ -394,10 +399,7 @@ class OrbnumFileProduct(Product):
 
                         blank_records.append(str(orbit_number))
 
-                    # TODO: Fix. This line will always be True, otherwise the code
-                    #       would have raised an IndexError or executed `NPBError`.
-                    if line.strip():
-                        records += 1
+                    records += 1
 
                     previous_orbit_number = orbit_number
 
@@ -1029,6 +1031,21 @@ class OrbnumFileProduct(Product):
 
         return description
 
+    @staticmethod
+    def _matching_kernels(directory: str, pattern: str) -> List[str]:
+        """List entries of directory matching pattern, or [] if it doesn't exist.
+
+        :param directory: directory to search
+        :param pattern: filename pattern to match
+        :return: matching file names, or an empty list if directory doesn't exist
+        """
+        try:
+            return [x for x in os.listdir(directory) if re.fullmatch(pattern, x)]
+
+        # os.listdir() raises OSError when directory doesn't exist.
+        except OSError:
+            return []
+
     def coverage(self) -> None:
         """Determine the coverage of the OrbNum file.
 
@@ -1102,33 +1119,21 @@ class OrbnumFileProduct(Product):
                 # useful to determine the coverage of multiple orbnum files
                 # provided in the plan.
                 #
-                cov_patn = coverage_kernel.split(os.sep)[-1]
+                cov_patn = os.path.basename(coverage_kernel)
 
                 #
                 # Start checking the path provided in the configuration file.
                 #
-                cov_path = os.sep.join(coverage_kernel.split(os.sep)[:-1])
+                cov_path = os.path.dirname(coverage_kernel)
 
-                try:
-                    cov_kers = [
-                        x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
-                    ]
-
-                except BaseException:
-                    cov_kers = []
+                cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                 #
                 # Check if the SPK kernel is present in the increment.
                 #
                 if not cov_kers:
                     cov_path = f"{self.setup.staging_directory}/spice_kernels/spk"
-
-                    try:
-                        cov_kers = [
-                            x for x in os.listdir(cov_path) if re.fullmatch(cov_patn, x)
-                        ]
-                    except BaseException:
-                        cov_kers = []
+                    cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                     #
                     # Check if the SPK kernel is present in the bundle
@@ -1136,14 +1141,7 @@ class OrbnumFileProduct(Product):
                     #
                     if not cov_kers:
                         cov_path = f"{self.setup.bundle_directory}/spice_kernels/spk"
-                        try:
-                            cov_kers = [
-                                x
-                                for x in os.listdir(cov_path)
-                                if re.fullmatch(cov_patn, x)
-                            ]
-                        except BaseException:
-                            cov_kers = []
+                        cov_kers = self._matching_kernels(cov_path, cov_patn)
 
                 if cov_kers:
                     coverage_found = True
@@ -1267,7 +1265,10 @@ class OrbnumFileProduct(Product):
             try:
                 stop = parse_date(stop_time)
                 stop_time = stop.strftime("%Y-%m-%dT%H:%M:%SZ")
-            except BaseException:
+
+            # parse_date() raises ValueError when stop_time matches neither of
+            # its supported formats.
+            except ValueError:
                 #
                 # Exception to cope with orbnum files without all the ground
                 # set of parameters.

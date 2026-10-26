@@ -2,9 +2,9 @@
 
 Two test classes are provided:
 
-* TestInventoryPDS4Label – unit tests that mock the inherited label writing
-  so the constructor can be exercised in isolation. ``PDSLabel.__init__`` is
-  NOT mocked: it runs for real (as in the sibling label test modules), so the
+* TestInventoryPDS4Label – unit tests that build the label without writing it,
+  so the constructor can be exercised in isolation. ``PDSLabel.__init__`` is NOT
+  mocked: it runs for real (as in the sibling label test modules), so the
   inventory product must expose every attribute the parent reads, and the
   physical inventory file pointed to by ``inventory.path`` must exist on disk
   because the constructor counts its lines for ``N_RECORDS``.
@@ -22,10 +22,12 @@ InventoryPDS4Label is peculiar compared with the other PDS4 labels:
   ``collection.name``:
     - 'miscellaneous'  -> the min start / max stop of the checksum products
                           found in ``collection.product``.
-    - anything else    -> setup.increment_start / setup.increment_finish.
+    - 'spice_kernels'  -> the collection's increment_start / increment_finish.
+    - anything else    -> no START_TIME / STOP_TIME (the template has none).
 * N_RECORDS is the number of physical lines of the inventory file.
-* The XML label name is ``collection.name`` truncated at the FIRST dot
-  (the same truncation bug shared by every other PDS4 label).
+* The XML label name is derived from ``inventory.path`` (the inherited
+  PDSLabel derivation, shared with every other PDS4 label), not from
+  ``collection.name``.
 """
 from pathlib import Path
 import xml.etree.ElementTree as ElementTree
@@ -34,6 +36,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 from pds.naif_pds4_bundler.classes.label.pds4_inventory import InventoryPDS4Label
 
 
@@ -45,10 +48,9 @@ from pds.naif_pds4_bundler.classes.label.pds4_inventory import InventoryPDS4Labe
 def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     """Specialize the generic factories for collection-inventory labels.
 
-    Reuses ``base_helpers.make_setup`` (adding the increment_* attributes the
-    label needs in the non-miscellaneous branch) and ``base_helpers.make_product``
-    (used both for the inventory product and for the checksum products held by
-    the collection), and adds a ``make_collection`` factory.
+    Reuses ``base_helpers.make_setup`` and ``base_helpers.make_product`` (used
+    both for the inventory product and for the checksum products held by the
+    collection), and adds a ``make_collection`` factory.
 
     :param base_helpers: generic Setup/base-product factories from conftest
     :return: container with make_setup, make_inventory, make_checksum_product
@@ -56,13 +58,8 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     """
 
     def _make_setup(end_of_line: str = 'LF', eol_pds4: str = '\n') -> MagicMock:
-        # Reuse the generic setup and add the increment window consumed by the
-        # non-miscellaneous branch of the constructor.
-        setup = base_helpers.make_setup(end_of_line=end_of_line,
-                                        eol_pds4=eol_pds4)
-        setup.increment_start = '2024-02-01T00:00:00Z'
-        setup.increment_finish = '2024-02-28T23:59:59Z'
-        return setup
+        return base_helpers.make_setup(end_of_line=end_of_line,
+                                       eol_pds4=eol_pds4)
 
     def _make_inventory(staging_dir: Path,
                         name: str = 'collection_spice_kernels_inventory_v001.csv',
@@ -77,11 +74,12 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
                     for i in range(n_records)),
             encoding='utf-8')
 
-        return base_helpers.make_product(
+        inventory = base_helpers.make_product(
             path=str(inventory_path),
             name=name,
             lid='urn:nasa:pds:maven_spice:spice_kernels',
             collection_name='spice_kernels')
+        return inventory
 
     def _make_checksum_product(name: str, start_time: str,
                                stop_time: str) -> MagicMock:
@@ -96,10 +94,12 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
     def _make_collection(name: str = 'spice_kernels',
                          coll_type: str = 'spice_kernels',
                          products: list[MagicMock] | None = None) -> MagicMock:
-        # 'type' drives the template path; 'name' drives both the time-source
-        # branch and the XML label name; 'product' is only iterated in the
-        # miscellaneous branch.
+        # 'type' drives the template path; 'name' drives the time-source
+        # branch; 'product' is only iterated in the miscellaneous branch. The
+        # increment window is only read in the spice_kernels branch.
         collection = MagicMock()
+        collection.increment_start = '2024-02-01T00:00:00Z'
+        collection.increment_finish = '2024-02-28T23:59:59Z'
         collection.name = name
         collection.type = coll_type
         collection.lid = 'urn:nasa:pds:maven_spice:spice_kernels'
@@ -127,12 +127,11 @@ class TestInventoryPDS4Label:
     @pytest.fixture()
     def label(self, tmp_path: Path,
               helpers: SimpleNamespace) -> InventoryPDS4Label:
-        """Build an InventoryPDS4Label (spice_kernels branch) while mocking the
-        inherited file writing.
+        """Build an InventoryPDS4Label (spice_kernels branch).
 
         :param tmp_path: pytest temporary directory
         :param helpers:  specialized inventory factories
-        :return: constructed label with write_label patched out
+        :return: constructed label
         """
         setup = helpers.make_setup()
 
@@ -140,38 +139,35 @@ class TestInventoryPDS4Label:
         inventory = helpers.make_inventory(staging, n_records=3)
         collection = helpers.make_collection()
 
-        # Avoid real template reading and file writing in unit tests. Note that
         # PDSLabel.__init__ is intentionally NOT mocked.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            instance = InventoryPDS4Label(setup, collection, inventory)
-
-        return instance
+        inventory.setup = setup
+        return InventoryPDS4Label(inventory, collection)
 
     # ------------------------------------------------------------------
     # Regular tests – attribute assignments (spice_kernels / else branch)
     # ------------------------------------------------------------------
 
-    def test_attribute_assignments(self, label: InventoryPDS4Label) -> None:
+    def test_attribute_assignments(self, tmp_path: Path, label: InventoryPDS4Label) -> None:
         # Validate the PDS4 inventory label attributes populated during
         # construction for the non-miscellaneous (else) branch.
 
         # FILE_NAME is copied verbatim from inventory.name.
-        assert label.FILE_NAME == 'collection_spice_kernels_inventory_v001.csv'
+        assert label._label_fields["FILE_NAME"] == 'collection_spice_kernels_inventory_v001.csv'
 
         # The collection identifiers are copied from collection.lid/vid.
-        assert label.COLLECTION_LID == 'urn:nasa:pds:maven_spice:spice_kernels'
-        assert label.COLLECTION_VID == '1.0'
+        assert label._label_fields["COLLECTION_LID"] == 'urn:nasa:pds:maven_spice:spice_kernels'
+        assert label._label_fields["COLLECTION_VID"] == '1.0'
 
-        # In the else branch the coverage comes from setup.increment_*.
-        assert label.START_TIME == '2024-02-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-02-28T23:59:59Z'
+        # In the spice_kernels branch the coverage comes from the collection.
+        assert label._label_fields["START_TIME"] == '2024-02-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-02-28T23:59:59Z'
 
         # N_RECORDS is the line count of the physical inventory file, as a str.
-        assert label.N_RECORDS == '3'
+        assert label._label_fields["N_RECORDS"] == '3'
 
-        # The XML label name is derived from collection.name (no dot here).
-        assert label.name == 'spice_kernels.xml'
+        # The XML label name is derived from inventory.path, swapping the
+        # extension and stripping the 'inventory_' token.
+        assert label.name == str(tmp_path / 'staging' / 'collection_spice_kernels_v001.xml')
 
     def test_template_path_is_derived_from_collection_type(
             self, label: InventoryPDS4Label) -> None:
@@ -183,25 +179,28 @@ class TestInventoryPDS4Label:
 
         assert label._template == expected_template
 
-    def test_constructor_stores_references_and_writes_label_once(
+    def test_constructor_stores_references_and_does_not_write_label(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Validate constructor wiring and its single write_label side effect.
+        # Validate constructor wiring and that building the label has no
+        # write_label side effect.
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         inventory = helpers.make_inventory(staging)
         collection = helpers.make_collection()
 
+        # Patch write_label to detect any write triggered by the constructor.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
-            label = InventoryPDS4Label(setup, collection, inventory)
+            inventory.setup = setup
+            label = InventoryPDS4Label(inventory, collection)
 
         # setup, product (the inventory) and collection are stored as-is.
         assert label.setup is setup
         assert label.product is inventory
         assert label.collection is collection
 
-        # write_label() is called exactly once with the label instance.
-        mock_write.assert_called_once_with(label)
+        # Constructing the label must not write it; the pipeline does that.
+        mock_write.assert_not_called()
 
     # ------------------------------------------------------------------
     # _*_reference_type – the two fixed-string overrides
@@ -235,9 +234,8 @@ class TestInventoryPDS4Label:
         collection = helpers.make_collection(name='spice_kernels',
                                              coll_type=coll_type)
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
 
         assert label._template == str(
             Path(setup.templates_directory)
@@ -259,11 +257,10 @@ class TestInventoryPDS4Label:
         inventory = helpers.make_inventory(staging, n_records=n_records)
         collection = helpers.make_collection()
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
 
-        assert label.N_RECORDS == expected
+        assert label._label_fields["N_RECORDS"] == expected
 
     def test_constructor_raises_when_inventory_file_missing(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -277,10 +274,11 @@ class TestInventoryPDS4Label:
         # Point the inventory at a non-existent path AFTER creation.
         inventory.path = str(staging / 'does_not_exist.csv')
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            with pytest.raises(FileNotFoundError):
-                InventoryPDS4Label(setup, collection, inventory)
+        # Wiring happens before the assertion block so pytest.raises only
+        # wraps the call actually expected to raise.
+        inventory.setup = setup
+        with pytest.raises(FileNotFoundError):
+            InventoryPDS4Label(inventory, collection)
 
     # ------------------------------------------------------------------
     # Miscellaneous branch – coverage from the checksum products
@@ -310,12 +308,11 @@ class TestInventoryPDS4Label:
                                              coll_type='miscellaneous',
                                              products=checksums)
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
 
-        assert label.START_TIME == expected_start
-        assert label.STOP_TIME == expected_stop
+        assert label._label_fields["START_TIME"] == expected_start
+        assert label._label_fields["STOP_TIME"] == expected_stop
 
     def test_miscellaneous_branch_ignores_non_checksum_products(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -336,20 +333,18 @@ class TestInventoryPDS4Label:
             name='miscellaneous', coll_type='miscellaneous',
             products=[non_checksum, checksum])
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
 
-        assert label.START_TIME == '2024-01-05T00:00:00'
-        assert label.STOP_TIME == '2024-01-25T00:00:00'
+        assert label._label_fields["START_TIME"] == '2024-01-05T00:00:00'
+        assert label._label_fields["STOP_TIME"] == '2024-01-25T00:00:00'
 
     def test_miscellaneous_branch_does_not_use_increment_times(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Guard the branch contract: in the miscellaneous branch the increment
-        # window is irrelevant even if present on setup.
+        """The miscellaneous label takes its times from the checksum product,
+        never from the increment window of the collection."""
+
         setup = helpers.make_setup()
-        setup.increment_start = 'SHOULD_NOT_BE_USED_START'
-        setup.increment_finish = 'SHOULD_NOT_BE_USED_STOP'
         staging = tmp_path / 'staging'
         inventory = helpers.make_inventory(
             staging, name='collection_miscellaneous_inventory_v001.csv')
@@ -360,18 +355,40 @@ class TestInventoryPDS4Label:
             name='miscellaneous', coll_type='miscellaneous',
             products=[checksum])
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = InventoryPDS4Label(setup, collection, inventory)
+        # Marker values that would show up if the window were read.
+        collection.increment_start = 'SHOULD_NOT_BE_USED_START'
+        collection.increment_finish = 'SHOULD_NOT_BE_USED_STOP'
 
-        assert label.START_TIME == '2024-01-01T00:00:00'
-        assert label.STOP_TIME == '2024-01-31T00:00:00'
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
 
-    def test_miscellaneous_branch_without_checksums_raises_value_error(
+        # The checksum coverage wins.
+        assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00'
+        assert label._label_fields["STOP_TIME"] == '2024-01-31T00:00:00'
+
+    def test_document_collection_has_no_start_and_stop_time(
+            self, tmp_path: Path, helpers: SimpleNamespace) -> None:
+        """The document label gets no START_TIME and STOP_TIME: its template
+        has no such fields, so the increment window is not read at all."""
+
+        setup = helpers.make_setup()
+        inventory = helpers.make_inventory(
+            tmp_path / 'staging', name='collection_document_inventory_v001.csv')
+        collection = helpers.make_collection(
+            name='document', coll_type='document')
+
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
+
+        # Neither field is set, instead of holding an empty or stale value.
+        assert "START_TIME" not in label._label_fields
+        assert "STOP_TIME" not in label._label_fields
+
+    def test_miscellaneous_branch_without_checksums_raises_npbinternalerror(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # For the 'miscellaneous' collection, when no product name contains
-        # 'checksum', there is no time source: the constructor now raises a
-        # descriptive ValueError instead of IndexError.
+        # 'checksum', there is no time source: the constructor raises a
+        # descriptive NPBInternalError instead of IndexError.
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         inventory = helpers.make_inventory(
@@ -391,16 +408,17 @@ class TestInventoryPDS4Label:
             f'STOP_TIME cannot be determined for the PDS4 Collection '
             f'Inventory label.')
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            with pytest.raises(ValueError, match=f'^{expected_message}$'):
-                InventoryPDS4Label(setup, collection, inventory)
+        # Wiring happens before the assertion block so pytest.raises only
+        # wraps the call actually expected to raise.
+        inventory.setup = setup
+        with pytest.raises(NPBInternalError, match=f'^{expected_message}$'):
+            InventoryPDS4Label(inventory, collection)
 
-    def test_miscellaneous_branch_with_empty_product_list_raises_value_error(
+    def test_miscellaneous_branch_with_empty_product_list_raises_npbinternalerror(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # Same root cause as above but with an entirely empty
         # collection.product list: the empty start_times still triggers the
-        # descriptive ValueError.
+        # descriptive NPBInternalError.
         setup = helpers.make_setup()
         staging = tmp_path / 'staging'
         inventory = helpers.make_inventory(
@@ -415,36 +433,11 @@ class TestInventoryPDS4Label:
             f'STOP_TIME cannot be determined for the PDS4 Collection '
             f'Inventory label.')
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            with pytest.raises(ValueError, match=f'^{expected_message}$'):
-                InventoryPDS4Label(setup, collection, inventory)
-
-    # ------------------------------------------------------------------
-    # XML label name derivation
-    # ------------------------------------------------------------------
-
-    @pytest.mark.parametrize('collection_name, expected_label_name', [
-        ('spice_kernels', 'spice_kernels.xml'),
-        ('document', 'document.xml'),
-        ('collection.document_inventory_v001.csv', 'collection.document_inventory_v001.xml')])
-    def test_label_name_is_derived_from_stem(
-            self, tmp_path: Path, helpers: SimpleNamespace,
-            collection_name: str, expected_label_name: str) -> None:
-        # Document how collection names are converted into XML label names.
-        # Note: the name is kept in the else branch (any non-miscellaneous
-        # value), so coverage comes from setup.increment_*.
-        setup = helpers.make_setup()
-        staging = tmp_path / 'staging'
-        inventory = helpers.make_inventory(staging)
-        collection = helpers.make_collection(name=collection_name,
-                                             coll_type='spice_kernels')
-
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = InventoryPDS4Label(setup, collection, inventory)
-
-        assert label.name == expected_label_name
+        # Wiring happens before the assertion block so pytest.raises only
+        # wraps the call actually expected to raise.
+        inventory.setup = setup
+        with pytest.raises(NPBInternalError, match=f'^{expected_message}$'):
+            InventoryPDS4Label(inventory, collection)
 
 
 # ===========================================================================
@@ -465,6 +458,16 @@ TEMPLATE_CONTENT = (
 
 class TestInventoryPDS4LabelIntegration:
     """Integration tests for InventoryPDS4Label + PDSLabel + template."""
+
+    def test_context_from_product_attribute_is_false(self):
+        """Pins _context_from_product to PDSLabel's inherited default: this
+        class does not override it, so it must stay False."""
+        assert InventoryPDS4Label._context_from_product is False
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert InventoryPDS4Label._trailing_blank_log is True
 
     # ------------------------------------------------------------------
     # Fixtures
@@ -510,6 +513,26 @@ class TestInventoryPDS4LabelIntegration:
         return setup, collection, inventory, template_path, expected_label_path
 
     # ------------------------------------------------------------------
+    # _context_from_product effect
+    # ------------------------------------------------------------------
+
+    def test_context_from_product_effect_on_context_fields(
+            self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path],
+            context_effect_helpers: SimpleNamespace) -> None:
+        """Inherited _context_from_product=False must source MISSIONS/
+        OBSERVERS/TARGETS from setup, not from the inventory product."""
+        setup, collection, inventory, _, _ = env
+
+        # inventory now differs from setup
+        context_effect_helpers.diverge(inventory)
+
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
+
+        # setup must win
+        context_effect_helpers.assert_source(label, from_product=False)
+
+    # ------------------------------------------------------------------
     # File creation and content
     # ------------------------------------------------------------------
 
@@ -522,12 +545,15 @@ class TestInventoryPDS4LabelIntegration:
         setup.end_of_line = 'LF'
         setup.eol_pds4 = '\n'
 
-        label = InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+
+        label = InventoryPDS4Label(inventory, collection)
+        label.write_label()
 
         # The class resolved the template from collection.type.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from inventory.path.
         assert Path(label.name) == label_path
 
         # The final XML file has been created in staging.
@@ -555,7 +581,9 @@ class TestInventoryPDS4LabelIntegration:
         # substituted by the label state.
         setup, collection, inventory, _, label_path = env
 
-        InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+
+        InventoryPDS4Label(inventory, collection).write_label()
 
         tree = ElementTree.parse(label_path)
         root = tree.getroot()
@@ -581,7 +609,9 @@ class TestInventoryPDS4LabelIntegration:
         setup.end_of_line = end_of_line
         setup.eol_pds4 = eol_pds4
 
-        InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+
+        InventoryPDS4Label(inventory, collection).write_label()
 
         raw = label_path.read_bytes()
 
@@ -592,20 +622,22 @@ class TestInventoryPDS4LabelIntegration:
             assert b'\n' in raw
 
     # ------------------------------------------------------------------
-    # setup.add_file side-effect
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # The generated XML label must be registered relative to staging.
-        setup, collection, inventory, _, label_path = env
+        """write_label returns the label path relative to staging."""
 
-        InventoryPDS4Label(setup, collection, inventory)
+        setup, collection, inventory, _, label_path = env
+        inventory.setup = setup
+
+        written_path = InventoryPDS4Label(inventory, collection).write_label()
 
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert written_path == expected_relative
 
     # ------------------------------------------------------------------
     # Error and invalid-input integration behaviour
@@ -614,13 +646,18 @@ class TestInventoryPDS4LabelIntegration:
     def test_missing_template_propagates_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # Missing inventory templates must fail without registering the label.
-        setup, collection, inventory, template_path, label_path = env
+        """A missing template makes write_label raise FileNotFoundError."""
 
+        setup, collection, inventory, template_path, label_path = env
         template_path.unlink()
 
+        inventory.setup = setup
+        label = InventoryPDS4Label(inventory, collection)
+
+        # Wiring happens before the assertion block so pytest.raises only
+        # wraps the call actually expected to raise.
         with pytest.raises(FileNotFoundError):
-            InventoryPDS4Label(setup, collection, inventory)
+            label.write_label()
 
         # The writer opens the output file before the template, so the empty
         # output label is created even though writing fails.
@@ -628,20 +665,20 @@ class TestInventoryPDS4LabelIntegration:
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
             assert f.read() == ''
 
-        # add_file() was not called.
-        setup.add_file.assert_not_called()
-
     def test_invalid_xml_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, MagicMock, Path, Path]
             ) -> None:
-        # Rendered XML labels are written and registered without XML validation.
+        """A malformed template is rendered and its path still returned."""
+
         setup, collection, inventory, template_path, label_path = env
 
         template_path.write_text('<collection>\n'
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+
+        written_path = InventoryPDS4Label(inventory, collection).write_label()
 
         assert label_path.exists()
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
@@ -656,10 +693,10 @@ class TestInventoryPDS4LabelIntegration:
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written_label)
 
-        # The label is still registered relative to the staging directory.
+        # The path is still returned relative to the staging directory.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert written_path == expected_relative
 
     def test_miscellaneous_collection_renders_checksum_coverage(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -697,7 +734,10 @@ class TestInventoryPDS4LabelIntegration:
                                              coll_type='miscellaneous',
                                              products=checksums)
 
-        label = InventoryPDS4Label(setup, collection, inventory)
+        inventory.setup = setup
+
+        label = InventoryPDS4Label(inventory, collection)
+        label.write_label()
 
         # The writer-generated file is derived from inventory.path, stripping
         # the 'inventory_' token: '...miscellaneous_inventory_v001.csv' ->

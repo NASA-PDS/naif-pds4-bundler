@@ -9,15 +9,18 @@ from collections import OrderedDict
 from pathlib import Path
 
 import spiceypy
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from .product import Product
 from ..exceptions import NPBError
+from ...utils import archive_subdirectory
 from ...utils import check_line_length
 from ...utils import ck_coverage
 from ...utils import compare_files
 from ...utils import current_date
 from ...utils import et_to_date
 from ...utils import extension_to_type
+from ...utils import FILE_READ_ERRORS
 from ...utils import get_latest_kernel
 from ...utils import match_patterns
 from ...utils import mk_to_list
@@ -25,13 +28,13 @@ from ...utils import safe_make_directory
 from ...utils import spice_exception_handler
 from ...utils import spk_coverage
 from ...utils import type_to_extension
-from ..label import MetaKernelPDS4Label
 
 
 class MetaKernelProduct(Product):
     """Class that represents a Metakernel file.
 
     :param setup:                    NPB execution setup object
+    :param run_state:                State of the current pipeline execution
     :param kernel:                   Metakernel path
     :param spice_kernels_collection: SPICE Kernel Collection
     :param user_input:               Indicates whether if the metakernel is
@@ -41,6 +44,7 @@ class MetaKernelProduct(Product):
     def __init__(
         self,
         setup,
+        run_state,
         kernel: str,
         spice_kernels_collection,
         user_input: bool = False,
@@ -96,7 +100,10 @@ class MetaKernelProduct(Product):
                 if "YEAR" in values:
                     self.year = values["YEAR"]
                     self.YEAR = values["YEAR"]
-            except BaseException:
+
+            # match_patterns() raises IndexError/ValueError on a bad pattern;
+            # values["VERSION"] raises KeyError.
+            except (IndexError, KeyError, ValueError):
                 pass
 
         if not hasattr(self, "mk_setup"):
@@ -104,17 +111,20 @@ class MetaKernelProduct(Product):
                 f"Meta-kernel {self.name} has not been matched in configuration."
             )
 
-        if setup.pds_version == "3":
-            self.collection_path = setup.staging_directory + os.sep + "extras" + os.sep
-            product_path = self.collection_path + self.type + os.sep
+        # The meta-kernel is staged under "extras" (PDS3) or "spice_kernels"
+        # (PDS4); the trailing separator is kept because the path is extended
+        # below.
+        self.collection_path = (
+            setup.staging_directory + os.sep
+            + archive_subdirectory("mk", setup.pds_version) + os.sep
+        )
+        product_path = self.collection_path + self.type + os.sep
 
+        # KERNELPATH fills PATH_VALUES in the meta-kernel template, so it is
+        # the path the kernels are found from, not a staging folder.
+        if setup.pds_version == "3":
             self.KERNELPATH = "./data"
         else:  # elif setup.pds_version == "4":
-            self.collection_path = (
-                setup.staging_directory + os.sep + "spice_kernels" + os.sep
-            )
-            product_path = self.collection_path + self.type + os.sep
-
             self.KERNELPATH = ".."
 
         self.AUTHOR = self.setup.producer_name
@@ -203,7 +213,7 @@ class MetaKernelProduct(Product):
         #
         # Compare the meta-kernels.
         #
-        if self.setup.diff:
+        if self.setup.args.diff:
             self.compare()
         logging.info("")
 
@@ -213,7 +223,7 @@ class MetaKernelProduct(Product):
         # Following the product generation we read the kernels again to
         # include all the kernels present.
         #
-        self.collection_metakernel = mk_to_list(self.path, self.setup)
+        self.collection_metakernel = mk_to_list(self.path)
 
         if self.setup.pds_version == "4":
             #
@@ -231,14 +241,7 @@ class MetaKernelProduct(Product):
             self.targets = targets
             self.observers = observers
 
-        super().__init__()
-
-        if self.setup.pds_version == "4":
-
-            logging.info('')
-            logging.info('-- Labeling meta-kernel: %s...', self.name)
-
-            self.label = MetaKernelPDS4Label(setup, self)
+        super().__init__(run_state)
 
     def check_version(self) -> None:
         """Check if the provided Meta-kernel version is correct."""
@@ -266,16 +269,29 @@ class MetaKernelProduct(Product):
 
         versions.sort()
         try:
+            # Position of the version digits within the filename: the "?"
+            # wildcards mark where they sit, since VERSION was substituted with
+            # "?" * len(...) above.
             version_index = pattern.find("?")
 
+            # Take the highest-sorted (i.e. latest) matched filename, drop its
+            # directory path, and slice out just the version digits at that same
+            # position/width. Width is always VERSION's length -- YEAR is never
+            # substituted with "?", so it can't be the key `?` marks.
             version = versions[-1].split(os.sep)[-1]
-            version = version[version_index : version_index + len(self.values[key])]
+            version = version[
+                version_index : version_index + len(self.values["VERSION"])
+            ]
+
+            # Parse the previous increment's version and bump it by one: this is
+            # what *this* product's version is expected to be.
             version = int(version) + 1
 
             if version == int(self.version):
                 logging.info(
                     '-- Version from kernel list and from previous increment '
                     'agree: %d.', version)
+
             else:
                 logging.warning(
                     '-- The meta-kernel version is not as expected from previous '
@@ -286,7 +302,10 @@ class MetaKernelProduct(Product):
                 logging.warning(
                     '   It is recommended to stop the execution and fix the issue.')
 
-        except BaseException:
+        except (IndexError, ValueError):
+            # IndexError: no previous MK matched (versions is empty).
+            # ValueError: the version substring sliced out of the matched
+            # filename, or self.version itself, isn't a valid integer.
             logging.warning('-- Meta-kernel from previous increment is not available.')
             logging.warning('   Version will be set to: %s.', self.version)
 
@@ -310,7 +329,11 @@ class MetaKernelProduct(Product):
         """
         try:
             product_vid = str(self.version).lstrip("0") + ".0"
-        except BaseException:
+
+        # self.version is only set when __init__'s match succeeded; otherwise
+        # it's never assigned -> AttributeError.
+        except AttributeError:
+
             logging.warning(
                 '-- %s No VID explicit in kernel name: set to 1.0', self.name)
             logging.warning(
@@ -342,18 +365,13 @@ class MetaKernelProduct(Product):
             if pattern.match(kernel):
 
                 description = self.json_config[pattern.pattern]["description"]
+
                 try:
                     patterns = self.json_config[pattern.pattern]["patterns"]
-                except BaseException:
+
+                # "patterns" is an optional config key.
+                except KeyError:
                     patterns = False
-                # try:
-                #     options = self.json_config[pattern.pattern]["mklabel_options"]
-                # except BaseException:
-                #     options = ""
-                # try:
-                #     mapping = self.json_config[pattern.pattern]["mapping"]
-                # except BaseException:
-                #     mapping = ""
 
                 #
                 # ``options'' and ``descriptions'' require substituting
@@ -553,7 +571,20 @@ class MetaKernelProduct(Product):
                             paths.append(
                                 self.setup.staging_directory + "/spice_kernels"
                             )
-                        # paths.append(self.setup.kernels_directory)
+
+                        #
+                        # Search the bundle directory for kernels from
+                        # previous releases that were not included in the
+                        # previous MK.
+                        #
+                        if self.setup.increment and os.path.isdir(self.setup.bundle_directory):
+                            if self.setup.pds_version == "4":
+                                bundle_kernels_path = (
+                                    f"{self.setup.bundle_directory}/"
+                                    f"{self.setup.mission_acronym}_spice/spice_kernels"
+                                )
+                                if os.path.isdir(bundle_kernels_path):
+                                    paths.append(bundle_kernels_path)
 
                         #
                         # Try to look for meta-kernels from previous
@@ -566,7 +597,10 @@ class MetaKernelProduct(Product):
                                 f"_spice/spice_kernels/mk/"
                                 f'{self.name.split("_v")[0]}*.tm'
                             )
-                        except BaseException:
+
+                        # glob.glob() raises OSError on filesystem failure.
+                        except OSError:
+
                             if self.setup.increment:
                                 logging.warning(
                                     "-- No meta-kernels from "
@@ -582,7 +616,11 @@ class MetaKernelProduct(Product):
                             excluded_kernels=excluded_kernels,
                             mks=mks,
                         )
-                    except Exception as e:
+
+                    # get_latest_kernel() raises OSError when a mk it was given
+                    # can no longer be opened, or UnicodeDecodeError if it
+                    # isn't valid UTF-8 (read with encoding='utf-8').
+                    except FILE_READ_ERRORS as e:
                         logging.warning('-- Exception: %s', e)
 
                         latest_kernel = []
@@ -760,6 +798,13 @@ class MetaKernelProduct(Product):
                                 logging.warning(
                                     "-- Meta-kernel edited with Vi by the user."
                                 )
+
+                            # Deliberately kept as BaseException: this wraps an
+                            # interactive editor subprocess the user may
+                            # legitimately Ctrl-C out of, and narrowing to
+                            # Exception would let KeyboardInterrupt propagate
+                            # and abort the whole pipeline instead of just
+                            # cancelling the edit.
                             except BaseException:
                                 print("Vi text editor is not available.")
                                 input(">> Press Enter to continue... ")
@@ -791,9 +836,11 @@ class MetaKernelProduct(Product):
                     break
 
             if not val_mk:
-                raise Exception("No label for comparison found.")
+                raise FileNotFoundError("No label for comparison found.")
 
-        except BaseException:
+        # Self-raises FileNotFoundError with no previous MK version - a
+        # subclass of OSError, which also covers a real glob.glob() failure.
+        except OSError:
             #
             # If previous increment does not work, compare with the MK
             # template.
@@ -810,7 +857,7 @@ class MetaKernelProduct(Product):
         logging.info('-- Comparing %s...',
                      self.name.split(f"{self.setup.mission_acronym}_spice/")[-1])
 
-        compare_files(fromfile, tofile, work_dir, self.setup.diff)
+        compare_files(fromfile, tofile, work_dir, self.setup.args.diff)
 
     def validate(self) -> None:
         """Perform a basic validation of the Meta-kernel.
@@ -839,8 +886,8 @@ class MetaKernelProduct(Product):
             spiceypy.furnsh(path)
 
             #
-            # In KTOTAL, all meta-kernels are counted in the total; therefore
-            # we need to subtract 1 kernel.
+            # In KTOTAL, all meta-kernels are counted in the total; therefore we
+            # need to subtract 1 kernel.
             #
             ker_num_fr = spiceypy.ktotal("ALL") - 1
             ker_num_mk = len(self.collection_metakernel)
@@ -849,16 +896,20 @@ class MetaKernelProduct(Product):
             logging.info('-- Kernels present in %s: %d', self.name, ker_num_mk)
 
             if ker_num_fr != ker_num_mk:
-                spiceypy.kclear()
                 logging.error(
                     "-- Number of kernels loaded is not equal to kernels "
                     "present in meta-kernel.",
                 )
 
-        except BaseException:
+        # spiceypy.furnsh()/ktotal() raise SpiceyPyError on SPICE failures.
+        except SpiceyPyError:
             logging.error("-- The MK could not be loaded with the SPICE API FURNSH.")
 
-        spiceypy.kclear()
+        finally:
+            # cwd is restored before kclear, so a failure clearing the kernel
+            # pool doesn't leave the process sitting in the MK's directory.
+            os.chdir(cwd)
+            spiceypy.kclear()
 
         line_length_errors = check_line_length(path)
         if line_length_errors:
@@ -867,8 +918,6 @@ class MetaKernelProduct(Product):
             )
             for line in line_length_errors:
                 logging.warning('   %s', line)
-
-        os.chdir(cwd)
 
     @spice_exception_handler
     def coverage(self) -> None:
@@ -1014,10 +1063,15 @@ class MetaKernelProduct(Product):
             stop_time = spiceypy.et2utc(max(finish_times), "ISOC", 3, 80) + "Z"
             logging.info('-- Meta-kernel coverage: %s - %s', start_time, stop_time)
 
-        except BaseException:
+        # min()/max() raise ValueError on empty lists.
+        except ValueError:
             #
             # The alternative is to set the increment times to the increment
             # or mission times provided via configuration.
+            #
+            # setup.increment_* holds only what was configured. The computed
+            # increment times are derived from this coverage afterwards and
+            # live in run_state.
             #
             if hasattr(self, "year"):
 

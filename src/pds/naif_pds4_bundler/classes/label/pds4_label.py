@@ -21,74 +21,105 @@ class PDS4Label(PDSLabel):
     _mission_reference_type = "data_to_investigation"
     _target_reference_type = "data_to_target"
 
-    def __init__(self, setup, product) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
-        super().__init__(setup, product)
 
+        # PDSLabel.__init__ sets self.setup from product.setup, so from here
+        # on we read setup off self, not off a separate parameter.
+        super().__init__(product)
+
+        # Context products normally hang off the product's collection; a few
+        # product types (e.g. the bundle readme) attach the bundle directly
+        # instead, so fall back to that when there is no collection.
         try:
             self._context_products = product.collection.bundle.context_products
-        except BaseException:
+
+        # Products with no real collection (e.g. the bundle readme) have a
+        # placeholder .collection with no .bundle attribute to chain off;
+        # a broken .collection/.bundle chain can also raise TypeError.
+        except (AttributeError, TypeError):
             self._context_products = product.bundle.context_products
 
-        self.XML_MODEL = setup.xml_model
-        self.SCHEMA_LOCATION = setup.schema_location
-        self.INFORMATION_MODEL_VERSION = setup.information_model
+        # Fixed PDS4 header fields that come straight from setup.
+        self._label_fields["XML_MODEL"] = self.setup.xml_model
+        self._label_fields["SCHEMA_LOCATION"] = self.setup.schema_location
+        self._label_fields["INFORMATION_MODEL_VERSION"] = self.setup.information_model
 
         #
         # Needs to be built for several Missions.
         #
-        if hasattr(setup, "secondary_missions"):
-            if len(setup.secondary_missions) == 1:
+        # Render the mission name as a single value, or as a comma-separated
+        # "and"-joined list when secondary missions are configured.
+        if hasattr(self.setup, "secondary_missions"):
+            if len(self.setup.secondary_missions) == 1:
                 missions_text = (
-                    f"{setup.mission_name} and {setup.secondary_missions[0]}"
-                )
+                    f"{self.setup.mission_name} and "
+                    f"{self.setup.secondary_missions[0]}")
+
             else:
-                missions_text = f"{setup.mission_name}, "
-                for i, sm_name in enumerate(setup.secondary_missions):
-                    if i == len(setup.secondary_missions) - 1:
+                missions_text = f"{self.setup.mission_name}, "
+
+                for i, sm_name in enumerate(self.setup.secondary_missions):
+                    if i == len(self.setup.secondary_missions) - 1:
                         missions_text += f"and {sm_name}"
+
                     else:
                         missions_text += f"{sm_name}, "
 
-            self.PDS4_MISSION_NAME = f"{missions_text}"
+            self._label_fields["PDS4_MISSION_NAME"] = f"{missions_text}"
+
         else:
-            self.PDS4_MISSION_NAME = f"{setup.mission_name}"
+            self._label_fields["PDS4_MISSION_NAME"] = f"{self.setup.mission_name}"
 
         #
         # Needs to be built for several observers.
         #
-        if hasattr(setup, "secondary_observers"):
-            if len(setup.secondary_observers) == 1:
+        # Same "and"-joined rendering as missions above, but for observers.
+        if hasattr(self.setup, "secondary_observers"):
+
+            if len(self.setup.secondary_observers) == 1:
                 observers_text = (
-                    f"{setup.observer} and {setup.secondary_observers[0]}"
-                )
+                    f"{self.setup.observer} and "
+                    f"{self.setup.secondary_observers[0]}")
+
             else:
-                observers_text = f"{setup.observer}, "
-                for i, so_name in enumerate(setup.secondary_observers):
-                    if i == len(setup.secondary_observers) - 1:
+                observers_text = f"{self.setup.observer}, "
+
+                for i, so_name in enumerate(self.setup.secondary_observers):
+                    if i == len(self.setup.secondary_observers) - 1:
                         observers_text += f"and {so_name}"
+
                     else:
                         observers_text += f"{so_name}, "
 
-            self.PDS4_OBSERVER_NAME = f"{observers_text} spacecraft and their"
-        else:
-            self.PDS4_OBSERVER_NAME = f"{setup.observer} spacecraft and its"
+            self._label_fields["PDS4_OBSERVER_NAME"] = f"{observers_text} spacecraft and their"
 
-        self.END_OF_LINE_PDS4 = "Carriage-Return Line-Feed"
-        if setup.end_of_line == "CRLF":
-            self.END_OF_LINE = "Carriage-Return Line-Feed"
-        elif setup.end_of_line == "LF":
-            self.END_OF_LINE = "Line-Feed"
+        else:
+            self._label_fields["PDS4_OBSERVER_NAME"] = f"{self.setup.observer} spacecraft and its"
+
+        # PDS4 labels always render CRLF in the model name, regardless of which
+        # line ending the file itself actually uses.
+        self._label_fields["END_OF_LINE_PDS4"] = "Carriage-Return Line-Feed"
+        if self.setup.end_of_line == "CRLF":
+            self._label_fields["END_OF_LINE"] = "Carriage-Return Line-Feed"
+
+        elif self.setup.end_of_line == "LF":
+            self._label_fields["END_OF_LINE"] = "Line-Feed"
+
         else:
             raise NPBError(
-                "End of Line provided via configuration is not CRLF nor LF."
-            )
+                "End of Line provided via configuration is not CRLF nor LF.")
 
-        self.BUNDLE_DESCRIPTION_LID = f"{setup.logical_identifier}:document:spiceds"
+        # Every bundle description links to the spiceds document -- it's the
+        # one document guaranteed to exist for any mission, regardless of
+        # which product this label actually belongs to.
+        self._label_fields["BUNDLE_DESCRIPTION_LID"] = f"{self.setup.logical_identifier}:document:spiceds"
 
-        self.MISSIONS = self.get_missions()
-        self.OBSERVERS = self.get_observers()
-        self.TARGETS = self.get_targets()
+        # Each is a block of rendered XML (not a plain name or list) built
+        # from the context products matching self.missions/observers/targets.
+        self._label_fields["MISSIONS"] = self.get_missions()
+        self._label_fields["OBSERVERS"] = self.get_observers()
+        self._label_fields["TARGETS"] = self.get_targets()
 
     @property
     def _eol(self) -> str:
@@ -251,15 +282,18 @@ class PDS4Label(PDSLabel):
                 target_lid, target_type = self._match_context_entry(
                     target_name, case_insensitive=True
                 )
-                # TODO: BUG, unlike get_missions/get_observers above, no
-                #       NPBError is raised here when target_lid is
-                #       None (no context product matched). lid/type instead
-                #       fall through as the literal string "None" into the
-                #       rendered label. Pre-existing behaviour, preserved by
-                #       this refactor and pinned by
-                #       test_no_match_renders_none_without_raising.
-                if target_type is not None:
-                    target_type = target_type.capitalize()
+
+                # Handle the case where no target LID was found: without this
+                # check, the label would be built with "None" as the value,
+                # instead of stopping with a clear error.
+                if not target_lid:
+                    raise NPBError(
+                        f"LID has not been obtained for target {tar}."
+                    )
+
+                # If we got here we already have a real match, so there's always
+                # a type to capitalize.
+                target_type = target_type.capitalize()
 
                 tar_list_for_label += self._render_context_entry(
                     "Target_Identification", 2,

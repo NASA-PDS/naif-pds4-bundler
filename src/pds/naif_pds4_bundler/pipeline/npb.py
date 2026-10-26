@@ -1,5 +1,6 @@
 """Implementation of the NAIF PDS4 Bundler pipeline.
 """
+import logging
 from os.path import isdir
 from pathlib import Path
 
@@ -10,15 +11,27 @@ from ..classes.collection import DocumentCollection
 from ..classes.collection import MiscellaneousCollection
 from ..classes.collection import SpiceKernelsCollection
 from ..classes.exceptions import NPBError
+from ..classes.label import BundlePDS4Label
+from ..classes.label import ChecksumPDS3Label
+from ..classes.label import ChecksumPDS4Label
+from ..classes.label import DocumentPDS4Label
+from ..classes.label import InventoryPDS3Label
+from ..classes.label import InventoryPDS4Label
+from ..classes.label import MetaKernelPDS4Label
+from ..classes.label import OrbnumFilePDS4Label
+from ..classes.label import SpiceKernelPDS3Label
+from ..classes.label import SpiceKernelPDS4Label
 from ..classes.list import KernelList
 from ..classes.log import Log
 from ..classes.plan import ReleasePlan
 from ..classes.product import ChecksumProduct, ReadmeProduct
-from ..classes.product import InventoryProduct
+from ..classes.product import InventoryPDS3Product
+from ..classes.product import InventoryPDS4Product
 from ..classes.product import MetaKernelProduct
 from ..classes.product import OrbnumFileProduct
 from ..classes.product import SpicedsProduct
 from ..classes.product import SpiceKernelProduct
+from ..classes.run_state import RunState
 from ..classes.setup import Setup
 from ..utils.types.datatypes import PipelineArgs
 
@@ -83,6 +96,8 @@ def run_pipeline(args: PipelineArgs) -> None:
     except NPBError as exc:
         handle_npb_error(str(exc))
 
+    run_state = RunState()
+
     #
     # * Start the Log object
     #    * The log will always be displayed on screen unless the silent
@@ -98,13 +113,6 @@ def run_pipeline(args: PipelineArgs) -> None:
         log.start()
 
         #
-        # Add the log to the setup object with the sole purpose for the log
-        # to be accessible via setup to be able to write the product list file
-        # for an interrupted run.
-        #
-        setup.log = log
-
-        #
         # With the log started we check the current configuration
         #
         setup.check_configuration()
@@ -112,7 +120,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         # * Check the existence of a previous archive version.
         #
-        log_step(setup, title='Setup the archive generation')
+        log_step(setup, run_state, title='Setup the archive generation')
         setup.set_release()
 
         #
@@ -127,15 +135,15 @@ def run_pipeline(args: PipelineArgs) -> None:
         #    * The pipeline can be stopped after cleaning up the previous run
         #      by setting ``-f, --faucet`` to ``clear``.
         #
-        if setup.faucet == "clear":
-            finish_execution(setup, log)
+        if args.faucet == "clear":
+            finish_execution(setup, run_state, log)
             return
 
         #
         # * Generate the Release Plan object.
         # TODO: Should this one be renamed to 'Release Plan generation'?
-        log_step(setup, title='Kernel List generation')
-        release_plan = ReleasePlan(setup)
+        log_step(setup, run_state, title='Kernel List generation')
+        release_plan = ReleasePlan(setup, run_state)
 
         #
         #    * If a plan file is provided it is processed otherwise a plan is
@@ -158,8 +166,8 @@ def run_pipeline(args: PipelineArgs) -> None:
         #    * The pipeline can be stopped after generating or reading the release
         #      plan by setting ``-f, --faucet`` to ``plan``.
         #
-        if setup.faucet == "plan":
-            finish_execution(setup, log)
+        if args.faucet == "plan":
+            finish_execution(setup, run_state, log)
             return
 
         #
@@ -171,7 +179,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         # TODO: Remove this commented out code or uncomment it. The decision will
         #       depend on whether we want to have a "step" for the generation of
         #       the release plan or not.
-        # log_step(setup, title='Kernel List generation')
+        # log_step(setup, run_state, title='Kernel List generation')
         k_list = KernelList(setup)
         k_list.kernel_list = release_plan.kernel_list
 
@@ -184,40 +192,42 @@ def run_pipeline(args: PipelineArgs) -> None:
         #    * The pipeline can be stopped after generating or reading the kernel
         #      list plan by setting ``-f, --faucet`` to ``list``.
         #
-        if setup.faucet == "list":
-            finish_execution(setup, log)
+        if args.faucet == "list":
+            finish_execution(setup, run_state, log)
             return
 
         #
         #    * Check the products present in the list (SPICE kernels and OrbNum
         #      files)
-        log_step(setup, title='Check kernel list products')
+        log_step(setup, run_state, title='Check kernel list products')
         k_list.check_products()
 
         #
         #    * The pipeline can be stopped after checking the kernel
         #      list by setting ``-f, --faucet`` to ``checks``.
         #
-        if setup.faucet == "checks":
-            finish_execution(setup, log)
+        if args.faucet == "checks":
+            finish_execution(setup, run_state, log)
             return
 
         #
         # * Generate the PDS4 Bundle structure.
         #
-        log_step(setup, title='Bundle/data set structure generation at staging area')
+        log_step(setup, run_state, title='Bundle/data set structure generation at staging area')
         bundle = Bundle(setup)
 
         #
         # * Load LSK, FK and SCLK kernels for time conversions and coverage
         #   computations.
         #
-        log_step(setup, title='Load LSK, PCK, FK and SCLK kernels')
+        log_step(setup, run_state, title='Load LSK, PCK, FK and SCLK kernels')
         setup.load_kernels()
+        setup.freeze()
 
         #
         # * Initialize the SPICE Kernels Collection.
-        log_step(setup, title='SPICE kernel collection/data processing')
+        log_step(setup, run_state,
+                 title='SPICE kernel collection/data processing')
         spice_kernels_collection = SpiceKernelsCollection(setup, bundle, k_list)
 
         #
@@ -240,28 +250,65 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # because it might require to update the kernel list if the
                 # orbnum file name is updated.
                 #
-                miscellaneous_collection.add(
-                    OrbnumFileProduct(
-                        setup, kernel, miscellaneous_collection, spice_kernels_collection
-                    )
-                )
+                orbnum_product = OrbnumFileProduct(
+                    setup, run_state, kernel, miscellaneous_collection,
+                    spice_kernels_collection)
+
+                # Labeling used to happen inside OrbnumFileProduct itself, PDS4
+                # only -- there's no PDS3 label for orbnum files.
+                if setup.pds_version == "4":
+                    logging.info('-- Labeling %s...', orbnum_product.name)
+                    orbnum_product.label = OrbnumFilePDS4Label(orbnum_product)
+                    run_state.register_label_file(
+                        orbnum_product.label.write_label())
+
+                miscellaneous_collection.add(orbnum_product)
+
             elif ".tm" not in kernel.lower():
-                spice_kernels_collection.add(
-                    SpiceKernelProduct(setup, kernel, spice_kernels_collection)
-                )
+                kernel_product = SpiceKernelProduct(setup, run_state, kernel,
+                                                    spice_kernels_collection)
+
+                # Labeling used to happen inside SpiceKernelProduct itself; it's
+                # picked here now, same PDS3/PDS4 choice as before.
+                logging.info('-- Labeling %s...', kernel_product.name)
+
+                if setup.pds_version == "4":
+                    kernel_product.label = SpiceKernelPDS4Label(kernel_product)
+                    run_state.register_label_file(
+                        kernel_product.label.write_label())
+
+                else:
+                    kernel_product.label = SpiceKernelPDS3Label(kernel_product)
+                    run_state.register_label_file(
+                        kernel_product.label.write_label())
+                    kernel_product.insert_label()
+
+                spice_kernels_collection.add(kernel_product)
 
         #
         # * Generate the Meta-kernel(s).
         #
-        log_step(setup, title='Generation of meta-kernel(s)')
+        log_step(setup, run_state, title='Generation of meta-kernel(s)')
         meta_kernels = spice_kernels_collection.determine_meta_kernels()
         if meta_kernels:
             for mk in sorted(meta_kernels):
                 meta_kernel = MetaKernelProduct(
-                    setup, mk, spice_kernels_collection, user_input=meta_kernels[mk]
+                    setup, run_state, mk, spice_kernels_collection,
+                    user_input=meta_kernels[mk]
                 )
+
                 if setup.pds_version == "4":
+
+                    # Labeling used to happen inside MetaKernelProduct itself,
+                    # PDS4 only -- there's no PDS3 meta-kernel label.
+                    logging.info('')
+                    logging.info('-- Labeling meta-kernel: %s...', meta_kernel.name)
+                    meta_kernel.label = MetaKernelPDS4Label(meta_kernel)
+                    run_state.register_label_file(
+                        meta_kernel.label.write_label())
+
                     spice_kernels_collection.add(meta_kernel)
+
                 else:
                     miscellaneous_collection.add(meta_kernel)
 
@@ -278,23 +325,23 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
             # * List the files present in the staging area.
             #
-            log_step(setup, title='Recap files in staging area')
+            log_step(setup, run_state, title='Recap files in staging area')
             bundle.files_in_staging()
 
             #
             # * Copy files to the bundle area.
             #
-            log_step(setup, title='Copy files to the bundle area')
+            log_step(setup, run_state, title='Copy files to the bundle area')
             bundle.copy_to_bundle()
 
-            finish_execution(setup, log)
+            finish_execution(setup, run_state, log)
             return
 
         #
         # * Determine the SPICE kernels Collection increment times and VID.
         #
         if setup.pds_version == "4":
-            log_step(setup, title='Determine archive increment start and finish times')
+            log_step(setup, run_state, title='Determine archive increment start and finish times')
             spice_kernels_collection.set_increment_times()
             spice_kernels_collection.set_collection_vid()
 
@@ -305,7 +352,8 @@ def run_pipeline(args: PipelineArgs) -> None:
         #      from at object initialization.
         #    * Check if there is an XML label for each file under spice_kernels.
         #
-        log_step(setup, title='Validate SPICE kernel collection generation')
+        log_step(setup, run_state,
+                 title='Validate SPICE kernel collection generation')
         spice_kernels_collection.validate()
 
         #
@@ -316,36 +364,73 @@ def run_pipeline(args: PipelineArgs) -> None:
             if setup.pds_version == "4":
                 spice_kernels_collection.set_collection_vid()
 
-            log_step(setup, title=f'Generation of {spice_kernels_collection.name} collection')
-            spice_kernels_collection_inventory = InventoryProduct(
-                setup, spice_kernels_collection
-            )
+            log_step(setup, run_state, title=f'Generation of {spice_kernels_collection.name} collection')
+
+            # Only inventory built for both PDS versions, so the product and
+            # label classes are both picked here.
+            if setup.pds_version == "4":
+                spice_kernels_collection_inventory = InventoryPDS4Product(
+                    setup, run_state, spice_kernels_collection
+                )
+                spice_kernels_collection_inventory.label = InventoryPDS4Label(
+                    spice_kernels_collection_inventory, spice_kernels_collection)
+                run_state.register_label_file(
+                    spice_kernels_collection_inventory.label.write_label())
+
+            else:
+                spice_kernels_collection_inventory = InventoryPDS3Product(
+                    setup, run_state, spice_kernels_collection
+                )
+                spice_kernels_collection_inventory.label = InventoryPDS3Label(
+                    spice_kernels_collection_inventory, spice_kernels_collection)
+                run_state.register_label_file(
+                    spice_kernels_collection_inventory.label.write_label())
+
+                # Must come after the label is written above, not before: this
+                # copies index.lbl, which that write produces.
+                spice_kernels_collection_inventory.generate_dsindex_files()
+
             spice_kernels_collection.add(spice_kernels_collection_inventory)
 
         if setup.pds_version == "4":
             #
             # * Generate the Document Collection.
             #
-            document_collection = DocumentCollection(setup, bundle)
+            document_collection = DocumentCollection(setup, run_state, bundle)
             document_collection.set_collection_vid()
 
             #
             # * Generate of SPICEDS document.
             #
-            log_step(setup, title='Processing spiceds file')
-            spiceds = SpicedsProduct(setup, document_collection)
+            log_step(setup, run_state, title='Processing spiceds file')
+            spiceds = SpicedsProduct(setup, run_state, document_collection)
 
             #
             # * If the SPICEDS document is generated, generate the
             #   Documents Collection Inventory.
             #
             if spiceds.generated:
+                # Labeling used to happen inside SpicedsProduct itself, under
+                # the same generated check -- a spiceds file that hasn't changed
+                # since the last release isn't relabeled.
+                spiceds.label = DocumentPDS4Label(spiceds, document_collection)
+                run_state.register_label_file(spiceds.label.write_label())
+
                 document_collection.add(spiceds)
 
                 document_collection.set_collection_vid()
 
-                log_step(setup, title=f'Generation of {document_collection.name} collection')
-                document_collection_inventory = InventoryProduct(setup, document_collection)
+                log_step(setup, run_state, title=f'Generation of {document_collection.name} collection')
+                document_collection_inventory = InventoryPDS4Product(
+                    setup, run_state, document_collection
+                )
+
+                # This branch only runs for PDS4, so there's no PDS3 label to pick.
+                document_collection_inventory.label = InventoryPDS4Label(
+                    document_collection_inventory, document_collection)
+                run_state.register_label_file(
+                    document_collection_inventory.label.write_label())
+
                 document_collection.add(document_collection_inventory)
 
             #
@@ -366,7 +451,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
 
             # Report the Collection generation step.
-            log_step(setup, title=f'Generation of {miscellaneous_collection.kind} collection')
+            log_step(setup, run_state, title=f'Generation of {miscellaneous_collection.kind} collection')
 
             if setup.increment:
                 checksum_dir = (
@@ -375,11 +460,21 @@ def run_pipeline(args: PipelineArgs) -> None:
                 )
                 if not isdir(checksum_dir):
                     for release in bundle.history.items():
-                        log_step(setup, title='Generate checksum file')
+                        log_step(setup, run_state,
+                                 title='Generate checksum file')
                         release_checksum = ChecksumProduct(
-                            setup, miscellaneous_collection, add_previous_checksum=False
+                            setup, run_state, miscellaneous_collection,
+                            add_previous_checksum=False
                         )
                         release_checksum.generate(history=release)
+
+                        # Labeling used to happen inside ChecksumProduct.generate()
+                        # itself. This whole branch only runs for PDS4, so
+                        # there's no PDS3 label to pick here.
+                        logging.info('-- Labeling %s...', release_checksum.name)
+                        release_checksum.label = ChecksumPDS4Label(release_checksum)
+                        run_state.register_label_file(
+                            release_checksum.label.write_label())
 
                         #
                         # Initialize a miscellaneous collection for this previous
@@ -403,10 +498,18 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                         # The release_miscellaneous_collection name is "miscellaneous"
                         # (PDS4 branch), therefore, we do not log the step, as we do
-                        # every other time we generate an InventoryProduct.
-                        release_miscellaneous_collection_inventory = InventoryProduct(
-                            setup, release_miscellaneous_collection
+                        # every other time we generate an inventory product.
+                        release_miscellaneous_collection_inventory = InventoryPDS4Product(
+                            setup, run_state, release_miscellaneous_collection
                         )
+
+                        # This runs once per past release, always PDS4-only,
+                        # same as the site above.
+                        release_miscellaneous_collection_inventory.label = InventoryPDS4Label(
+                            release_miscellaneous_collection_inventory,
+                            release_miscellaneous_collection)
+                        run_state.register_label_file(
+                            release_miscellaneous_collection_inventory.label.write_label())
 
                         release_miscellaneous_collection.add(
                             release_miscellaneous_collection_inventory
@@ -437,8 +540,9 @@ def run_pipeline(args: PipelineArgs) -> None:
             #    * The miscellaneous collection is the one to be guaranteed to be
             #      updated.
             #
-            log_step(setup, title='Generate checksum file')
-            checksum = ChecksumProduct(setup, miscellaneous_collection)
+            log_step(setup, run_state, title='Generate checksum file')
+            checksum = ChecksumProduct(
+                setup, run_state, miscellaneous_collection)
 
             #
             # Before adding the checksum to the current collection
@@ -455,17 +559,28 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             # The miscellaneous_collection name is "miscellaneous" (PDS4 branch),
             # therefore, we do not log the step, as we do every other time we
-            # generate an InventoryProduct.
-            miscellaneous_collection_inventory = InventoryProduct(
-                setup, miscellaneous_collection
+            # generate an inventory product.
+            miscellaneous_collection_inventory = InventoryPDS4Product(
+                setup, run_state, miscellaneous_collection
             )
+
+            # The current release's own miscellaneous inventory, PDS4-only.
+            miscellaneous_collection_inventory.label = InventoryPDS4Label(
+                miscellaneous_collection_inventory, miscellaneous_collection)
+            run_state.register_label_file(
+                miscellaneous_collection_inventory.label.write_label())
+
             miscellaneous_collection.add(miscellaneous_collection_inventory)
 
             #
             # * Generate the Bundle label and if necessary the readme file.
             #
-            log_step(setup, title='Generation of bundle products')
-            bundle.readme = ReadmeProduct(setup, bundle)
+            log_step(setup, run_state, title='Generation of bundle products')
+            bundle.readme = ReadmeProduct(setup, run_state, bundle)
+
+            logging.info("-- Generating bundle label...")
+            bundle.readme.label = BundlePDS4Label(bundle.readme)
+            run_state.register_label_file(bundle.readme.label.write_label())
 
             #
             # * Generate the Checksum product a posteriori in such a way
@@ -474,30 +589,47 @@ def run_pipeline(args: PipelineArgs) -> None:
             #   Miscellaneous Collection Inventory.
             #
             checksum.generate()
+
+            # Labeling used to happen inside ChecksumProduct.generate() itself.
+            # This branch only runs for PDS4, so there's no PDS3 label to pick
+            # here.
+            logging.info('-- Labeling %s...', checksum.name)
+            checksum.label = ChecksumPDS4Label(checksum)
+            run_state.register_label_file(checksum.label.write_label())
+
             miscellaneous_collection.add(checksum)
 
         else:  # if setup.pds_version == "3":
 
-            document_collection = DocumentCollection(setup, bundle)
+            document_collection = DocumentCollection(setup, run_state, bundle)
 
-            log_step(setup, title='Generation of PDS3 products')
+            log_step(setup, run_state, title='Generation of PDS3 products')
             document_collection.get_pds3_documents()
 
             bundle.add(spice_kernels_collection)
             bundle.add(document_collection)
             bundle.add(miscellaneous_collection)
 
-            log_step(setup, title='Generate checksum file')
+            log_step(setup, run_state, title='Generate checksum file')
             checksum = ChecksumProduct(
-                setup, miscellaneous_collection, add_previous_checksum=False
+                setup, run_state, miscellaneous_collection,
+                add_previous_checksum=False
             )
             checksum.generate()
+
+            # Labeling used to happen inside ChecksumProduct.generate() itself.
+            # This branch only runs for PDS3, so there's no PDS4 label to pick
+            # here.
+            logging.info('-- Labeling %s...', checksum.name)
+            checksum.label = ChecksumPDS3Label(checksum)
+            run_state.register_label_file(checksum.label.write_label())
+
             miscellaneous_collection.add(checksum)
 
         #
         # * List the files present in the staging area.
         #
-        log_step(setup, title='Recap files in staging area')
+        log_step(setup, run_state, title='Recap files in staging area')
         bundle.files_in_staging()
 
         #
@@ -505,8 +637,8 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   moving them to the ``bundle_directory`` by setting ``-f, --faucet``
         #   to ``staging``.
         #
-        if setup.faucet == "staging":
-            finish_execution(setup, log)
+        if args.faucet == "staging":
+            finish_execution(setup, run_state, log)
             return
 
         #
@@ -514,14 +646,14 @@ def run_pipeline(args: PipelineArgs) -> None:
         # kernel list.
         #
         # OnlyFor PDS3
-        # log_step(setup, title='Generation of complete kernel list')
+        # log_step(setup, run_state, title='Generation of complete kernel list')
         # list.write_complete_list()
         # spice_kernels_collection_inventory.write_index()
 
         #
         # * Copy files to the bundle area.
         #
-        log_step(setup, title='Copy files to the bundle area')
+        log_step(setup, run_state, title='Copy files to the bundle area')
         bundle.copy_to_bundle()
 
         #
@@ -529,8 +661,8 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   ``bundle_directory`` by setting ``-f, --faucet``. Ch
         #   to ``bundle``.
         #
-        if setup.faucet == "bundle":
-            finish_execution(setup, log)
+        if args.faucet == "bundle":
+            finish_execution(setup, run_state, log)
             return
 
         #
@@ -538,7 +670,8 @@ def run_pipeline(args: PipelineArgs) -> None:
         #   Bundle history and checking the bundle times.
         #
         if setup.pds_version == "4":
-            log_step(setup, title='Validate bundle history with checksum files')
+            log_step(setup, run_state,
+                     title='Validate bundle history with checksum files')
             bundle.validate()
 
         #
@@ -547,9 +680,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         #
         for kernel in spice_kernels_collection.product:
             if isinstance(kernel, MetaKernelProduct):
-                log_step(setup, title=f'Meta-kernel {kernel.name} validation')
+                log_step(setup, run_state,
+                         title=f'Meta-kernel {kernel.name} validation')
                 kernel.validate()
 
-        finish_execution(setup, log)
+        finish_execution(setup, run_state, log)
     except NPBError as exc:
-        handle_npb_error(str(exc), setup=setup)
+        handle_npb_error(str(exc), setup=setup, run_state=run_state)

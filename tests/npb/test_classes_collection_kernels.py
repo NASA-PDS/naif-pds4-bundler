@@ -9,27 +9,31 @@ resolves normally.
 Collaborators patched at their locations inside the module under test:
   - naif_pds4_bundler.classes.collection_kernels.os.path.exists
   - naif_pds4_bundler.classes.collection_kernels.glob.glob
-  - naif_pds4_bundler.classes.collection_kernels.handle_npb_error
   - naif_pds4_bundler.classes.collection_kernels.et_to_date
   - naif_pds4_bundler.classes.collection_kernels.spiceypy
   - naif_pds4_bundler.classes.collection.Collection.set_collection_lid
 """
 import logging
+import os
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
+from spiceypy.utils.exceptions import SpiceyPyError
+
 from pds.naif_pds4_bundler.classes.collection.collection_kernels import SpiceKernelsCollection
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 
 # ---------------------------------------------------------------------------
 # Patch targets
 # ---------------------------------------------------------------------------
 
-_SET_LID      = "pds.naif_pds4_bundler.classes.collection.collection.Collection.set_collection_lid"
-_EXISTS       = "pds.naif_pds4_bundler.classes.collection.collection_kernels.os.path.exists"
-_GLOB         = "pds.naif_pds4_bundler.classes.collection.collection_kernels.glob.glob"
-_OPEN         = "builtins.open"
+_SET_LID = "pds.naif_pds4_bundler.classes.collection.collection.Collection.set_collection_lid"
+_EXISTS = "pds.naif_pds4_bundler.classes.collection.collection_kernels.os.path.exists"
+_GLOB = "pds.naif_pds4_bundler.classes.collection.collection_kernels.glob.glob"
+_OPEN = "builtins.open"
+_UTC2ET = "pds.naif_pds4_bundler.classes.collection.collection_kernels.spiceypy.utc2et"
 
 
 # ---------------------------------------------------------------------------
@@ -117,7 +121,7 @@ class TestSpiceKernelsCollectionInit:
 
     @pytest.mark.parametrize('pds_version', ['3', '4'])
     def test_super_init_called_with_correct_c_type(self, pds_version):
-        setup= self.make_setup(pds_version=pds_version)
+        setup = self.make_setup(pds_version=pds_version)
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         assert obj.name == "spice_kernels"
@@ -169,10 +173,6 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
             staging_directory="/fake/staging",
             mission_start="2000-01-01T00:00:00.000Z",
             mission_finish="2040-01-01T00:00:00.000Z",
-            # Required by handle_npb_error
-            write_file_list = lambda: None,
-            write_checksum_registry = lambda: None,
-            template_files = []
         )
 
     @pytest.mark.parametrize('pds_version, files, exists', [
@@ -184,12 +184,12 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
         ('3', ["../metakernel.tm", "../data/mk.tm"], [True, False])
     ])
     def test_mk_inputs_file_not_exists_calls_handle_error(self, pds_version, files, exists, caplog):
-        """mk provided via config but file missing → handle_npb_error called."""
+        """mk provided via config but file missing → NPBError raised."""
         setup = self.make_setup(pds_version=pds_version, files=files)
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         with patch(_EXISTS, side_effect=exists):
-            with pytest.raises(RuntimeError, match='Meta-kernel provided via configuration does not exist: ../data/mk.tm'):
+            with pytest.raises(NPBError, match='Meta-kernel provided via configuration does not exist: ../data/mk.tm'):
                 obj.determine_meta_kernels()
 
     def test_mk_inputs_no_file_key_logs_warning(self, caplog):
@@ -416,7 +416,7 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
     def test_kernel_list_tm_found_in_directory(self, pds_version, kernels_dir, exists):
         """.tm kernel found in kernels_directory → added with value True."""
         setup = self.make_setup(pds_version=pds_version)
-        setup.kernels_directory=kernels_dir
+        setup.kernels_directory = kernels_dir
         kernels = make_kernels(["test_v001.tm"])
         with patch(_SET_LID):
             obj = SpiceKernelsCollection(setup, make_bundle(), kernels)
@@ -425,7 +425,7 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
             result = obj.determine_meta_kernels()
         assert result == {'/kernels_dir/mk/test_v001.tm': True}
 
-    @pytest.mark.parametrize('pds_version, message',[
+    @pytest.mark.parametrize('pds_version, message', [
         ('3', 'MK already exists in the archive: /fake/bundle/test/extras/mk/mk.tm'),
         ('4', 'MK already exists in the archive: /fake/bundle/test_spice/spice_kernels/mk/mk.tm')
     ])
@@ -437,7 +437,7 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
         # First True is to check that the file exists in the "sources"?,
         # the second is to check that the file does not exist in the bundle.
         with patch(_EXISTS, side_effect=[True, True]):
-            with pytest.raises(RuntimeError, match=message):
+            with pytest.raises(NPBError, match=message):
                 obj.determine_meta_kernels()
 
 
@@ -456,10 +456,10 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
             'args': MagicMock(faucet="plan"),
             'mission_start': "2000-001T00:00:00.000Z",
             'mission_finish': "2040-001T00:00:00.000Z",
-            'mission_acronym':"test",
-            'bundle_directory':"/fake/bundle",
-            'staging_directory':"/fake/staging",
-            'date_format':"maklabel"}
+            'mission_acronym': "test",
+            'bundle_directory': "/fake/bundle",
+            'staging_directory': "/fake/staging",
+            'date_format': "maklabel"}
         attrs.update(extra)
         return _Setup(**attrs)
 
@@ -468,7 +468,7 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         prod = MagicMock()
         prod.mk_sets_coverage = True
         prod.start_time = "2010-001T00:00:00.000Z"
-        prod.stop_time  = "2020-001T00:00:00.000Z"
+        prod.stop_time = "2020-001T00:00:00.000Z"
 
         setup = self._plain_setup()
         with patch(_SET_LID):
@@ -478,14 +478,20 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_GLOB, return_value=[]):
             obj.set_increment_times()
 
-        assert setup.increment_start  == "2010-01-01T00:00:00Z"
-        assert setup.increment_finish == "2020-01-01T00:00:00Z"
+        assert obj.increment_start == "2010-01-01T00:00:00Z"
+        assert obj.increment_finish == "2020-01-01T00:00:00Z"
 
-    def test_product_without_mk_sets_coverage_attr_ignored(self, lsk):
-        """Products lacking mk_sets_coverage attribute are skipped."""
-        prod = MagicMock(spec=[])  # no attributes → hasattr returns False
+    @pytest.mark.parametrize("make_prod", [
+        pytest.param(lambda: MagicMock(spec=[]), id="attribute-missing"),
+        pytest.param(lambda: MagicMock(mk_sets_coverage=False), id="attribute-false"),
+    ])
+    def test_mk_sets_coverage_missing_or_false_ignored(self, lsk, make_prod):
+        """Products with no mk_sets_coverage attribute (hasattr fails) or with
+        it explicitly set to False (the boolean check fails) are both skipped
+        for coverage - with no qualifying products, min([]) raises and the
+        except block falls through to mission start/finish defaults."""
+        prod = make_prod
 
-        # With no qualifying products, min([]) raises → except block fires.
         setup2 = _Setup(
             pds_version="4",
             args=MagicMock(faucet="plan"),
@@ -503,33 +509,8 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_GLOB, return_value=[]):
             obj2.set_increment_times()
 
-        # Falls through to mission start/finish defaults
-        assert setup2.increment_start  == "2000-01-01T00:00:00.000Z"
-        assert setup2.increment_finish == "2040-01-01T00:00:00.000Z"
-
-    def test_mk_sets_coverage_false_ignored(self, lsk):
-        """Products with mk_sets_coverage=False are not used for coverage."""
-        prod = MagicMock()
-        prod.mk_sets_coverage = False
-        setup2 = _Setup(
-            pds_version="4",
-            args=MagicMock(faucet="plan"),
-            mission_start="2000-001T00:00:00.000Z",
-            mission_finish="2040-001T00:00:00.000Z",
-            mission_acronym="test",
-            bundle_directory="/fake/bundle",
-            staging_directory="/fake/staging",
-            date_format="infomod2",
-        )
-        with patch(_SET_LID):
-            obj = SpiceKernelsCollection(setup2, make_bundle(), make_kernels())
-        obj.product = [prod]
-
-        with patch(_GLOB, return_value=[]):
-            obj.set_increment_times()
-
-        assert setup2.increment_start  == "2000-01-01T00:00:00.000Z"
-        assert setup2.increment_finish == "2040-01-01T00:00:00.000Z"
+        assert obj2.increment_start == "2000-01-01T00:00:00.000Z"
+        assert obj2.increment_finish == "2040-01-01T00:00:00.000Z"
 
     def test_no_mk_uses_increment_start_from_setup(self):
         """increment_start on setup → used when no MK coverage."""
@@ -541,7 +522,7 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_GLOB, return_value=[]):
             obj.set_increment_times()
 
-        assert setup.increment_start == "2005-01-01T00:00:00.000Z"
+        assert obj.increment_start == "2005-01-01T00:00:00.000Z"
 
     def test_no_mk_uses_increment_finish_from_setup(self):
         """increment_finish on setup → used when no MK coverage."""
@@ -553,7 +534,7 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with patch(_GLOB, return_value=[]):
             obj.set_increment_times()
 
-        assert setup.increment_finish == "2025-01-01T00:00:00.000Z"
+        assert obj.increment_finish == "2025-01-01T00:00:00.000Z"
 
     def test_no_mk_no_increment_start_falls_back_to_mission_start(self, lsk, caplog):
         """No MK and no increment_start → mission_start used with warning."""
@@ -565,7 +546,7 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with caplog.at_level(logging.WARNING), patch(_GLOB, return_value=[]):
             obj.set_increment_times()
 
-        assert setup.increment_start == '2000-01-01T00:00:00Z'
+        assert obj.increment_start == '2000-01-01T00:00:00Z'
         assert "Mission start time will be used" in caplog.text
 
     def test_no_mk_no_increment_finish_falls_back_to_mission_finish(self, caplog):
@@ -578,8 +559,60 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         with caplog.at_level(logging.WARNING), patch(_GLOB, return_value=[]):
             obj.set_increment_times()
 
-        assert setup.increment_finish == "2040-001T00:00:00.000Z"
+        assert obj.increment_finish == "2040-001T00:00:00.000Z"
         assert "Mission stop time will be used" in caplog.text
+
+    def test_min_max_type_error_falls_back_to_mission_times(self, lsk):
+        """An unorderable start_time (e.g. None from a product whose start_time
+        was never set) raises TypeError from min(), which is now handled the
+        same as the empty-list ValueError case - falling back to mission
+        start/finish."""
+        prod1 = MagicMock()
+        prod1.mk_sets_coverage = True
+        prod1.start_time = "2010-001T00:00:00.000Z"
+        prod1.stop_time = "2020-001T00:00:00.000Z"
+
+        prod2 = MagicMock()
+        prod2.mk_sets_coverage = True
+
+        # str/None can't be compared, so min() raises TypeError.
+        prod2.start_time = None
+        prod2.stop_time = "2021-001T00:00:00.000Z"
+
+        setup = self._plain_setup()
+
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+
+        obj.product = [prod1, prod2]
+
+        with patch(_GLOB, return_value=[]):
+            obj.set_increment_times()
+
+        # lsk loaded, so increment_start/finish are reformatted via et_to_date
+        # (see test_no_mk_no_increment_start_falls_back_to_mission_start).
+        assert obj.increment_start == '2000-01-01T00:00:00Z'
+        assert obj.increment_finish == '2040-01-01T00:00:00Z'
+
+    def test_missing_start_stop_time_falls_back_to_mission_times(self, lsk):
+        """A product with mk_sets_coverage=True but no start_time/stop_time
+        attributes (e.g. a real defect) raises AttributeError when appended,
+        which must be handled the same as the empty-list ValueError case -
+        falling back to mission start/finish - rather than crashing
+        set_increment_times() with increment_start/finish left unset."""
+        prod = MagicMock(spec=["mk_sets_coverage"])
+        prod.mk_sets_coverage = True
+
+        setup = self._plain_setup()
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+        obj.product = [prod]
+
+        with patch(_GLOB, return_value=[]):
+            obj.set_increment_times()
+
+        assert obj.increment_start == "2000-01-01T00:00:00Z"
+        assert obj.increment_finish == "2040-01-01T00:00:00Z"
 
     # ------------------------------------------------------------------ #
     # previous bundle try block                                            #
@@ -602,7 +635,7 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         prod = MagicMock()
         prod.mk_sets_coverage = True
         prod.start_time = "2010-001T00:00:00.000Z"
-        prod.stop_time  = "2020-001T00:00:00.000Z"
+        prod.stop_time = "2020-001T00:00:00.000Z"
         obj.product = [prod]
 
         with caplog.at_level(logging.INFO), \
@@ -629,7 +662,7 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         prod = MagicMock()
         prod.mk_sets_coverage = True
         prod.start_time = "2005-001T00:00:00.000Z"
-        prod.stop_time  = "2020-001T00:00:00.000Z"
+        prod.stop_time = "2020-001T00:00:00.000Z"
         obj.product = [prod]
 
         with caplog.at_level(logging.WARNING), \
@@ -656,7 +689,7 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         prod = MagicMock()
         prod.mk_sets_coverage = True
         prod.start_time = "2010-001T00:00:00.000Z"
-        prod.stop_time  = "2015-001T00:00:00.000Z"
+        prod.stop_time = "2015-001T00:00:00.000Z"
         obj.product = [prod]
 
         with caplog.at_level(logging.WARNING), \
@@ -679,12 +712,57 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
 
         assert "Previous bundle not found" in caplog.text
 
+    @pytest.mark.parametrize("open_side_effect", [
+        pytest.param(OSError("permission denied"), id="oserror-file-unreadable"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="unicodedecodeerror-non-utf8-label"),
+    ])
+    def test_prev_bundle_unreadable_logs_warning(
+            self, lsk, caplog, open_side_effect):
+        """A previous bundle label that glob matches but can't be opened
+        (OSError) or isn't valid UTF-8 (UnicodeDecodeError, since it's opened
+        with encoding='utf-8') must fall back to the same "not found" warning
+        as a missing file, not crash - proving
+        except (IndexError, OSError, UnicodeDecodeError) catches both."""
+        import logging
+        setup = self._plain_setup()
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+        obj.product = []
+
+        with caplog.at_level(logging.WARNING), \
+             patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
+             patch(_OPEN, side_effect=open_side_effect):
+            obj.set_increment_times()
+
+        assert "Previous bundle not found" in caplog.text
+
+    def test_prev_bundle_missing_tags_logs_warning(self, lsk, caplog):
+        """A previous bundle label that glob matches and opens successfully
+        but doesn't contain the expected <start_date_time>/<stop_date_time>
+        tags (e.g. a stray/older-schema file) must fall back to the same
+        "not found" warning as a missing file, not crash with NameError."""
+        import logging
+        setup = self._plain_setup()
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+        obj.product = []
+
+        with caplog.at_level(logging.WARNING), \
+             patch(_GLOB, return_value=["/fake/bundle_v001.xml"]), \
+             patch(_OPEN, mock_open(read_data="<not_a_tag>foo</not_a_tag>\n")):
+            obj.set_increment_times()
+
+        assert "Previous bundle not found" in caplog.text
+
     # ------------------------------------------------------------------ #
     # spiceypy / et_to_date try block                                     #
     # ------------------------------------------------------------------ #
 
     def test_spiceypy_failure_logs_lsk_warning(self, caplog):
-        """spiceypy.utc2et raises → LSK warning logged, times unchanged."""
+        """spiceypy.utc2et raises SpiceyPyError (no LSK loaded) → LSK warning
+        logged, increment times left unchanged."""
         import logging
         setup = self._plain_setup(
             increment_start="2010-001T00:00:00.000Z",
@@ -694,13 +772,14 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
             obj = SpiceKernelsCollection(setup, make_bundle(), make_kernels())
         obj.product = []
 
-        mock_spice = MagicMock()
-        mock_spice.utc2et.side_effect = Exception("No LSK loaded")
-
-        with caplog.at_level(logging.WARNING), patch(_GLOB, return_value=[]):
+        with (caplog.at_level(logging.WARNING),
+              patch(_GLOB, return_value=[]),
+              patch(_UTC2ET, side_effect=SpiceyPyError("SPICE(NOLEAPSECONDS)"))):
             obj.set_increment_times()
 
         assert "leapseconds kernel" in caplog.text
+        assert obj.increment_start == "2010-001T00:00:00.000Z"
+        assert obj.increment_finish == "2020-001T00:00:00.000Z"
 
 
 # ===========================================================================
@@ -719,10 +798,6 @@ class TestSpiceKernelsCollectionValidate:
             bundle_directory="/fake/bundle",
             mission_start="2000-01-01T00:00:00.000Z",
             mission_finish="2040-01-01T00:00:00.000Z",
-            # Required by handle_npb_error
-            write_file_list=lambda: None,
-            write_checksum_registry=lambda: None,
-            template_files=[]
         )
         kernels = make_kernels(kernel_list or [])
         with patch(_SET_LID):
@@ -761,7 +836,7 @@ class TestSpiceKernelsCollectionValidate:
         """validate() returns None early when self.product is empty."""
         obj = self._make_obj(pds_version=pds_version, kernel_list=[kernel], products=[])
         with caplog.at_level(logging.INFO), patch(_EXISTS, side_effect=exists):
-                obj.validate()
+            obj.validate()
 
         # Check the logging level and logging messages.
         expected = [
@@ -775,6 +850,35 @@ class TestSpiceKernelsCollectionValidate:
 
         assert messages == expected
 
+    @pytest.mark.parametrize("pds_version, expected_parts", [
+        ("3", [
+            ("data", "ck", "missing.bc"),
+            ("extras", "orbnum", "missing.bc"),
+            ("extras", "mk", "missing.bc"),
+        ]),
+        ("4", [
+            ("spice_kernels", "ck", "missing.bc"),
+            ("miscellaneous", "orbnum", "missing.bc"),
+            ("spice_kernels", "mk", "missing.bc"),
+        ]),
+    ])
+    def test_checks_the_staging_folder_of_each_kind(self, pds_version, expected_parts):
+        """validate() looks for a listed product in the kernel, orbnum and
+        meta-kernel folders of its PDS version."""
+        # A listed kernel that is not staged in any folder.
+        obj = self._make_obj(pds_version=pds_version, kernel_list=["missing.bc"])
+
+        # Nothing exists, so the three staging locations are all tried and
+        # validate() then raises.
+        with patch(_EXISTS, return_value=False) as mock_exists, pytest.raises(NPBError):
+            obj.validate()
+
+        # Each location is the folder of its kind for the PDS version, joined to
+        # the staging directory with the separator of the operating system.
+        expected_paths = [
+            os.path.join(obj.setup.staging_directory, *parts) for parts in expected_parts
+        ]
+        assert [call.args[0] for call in mock_exists.call_args_list] == expected_paths
 
     @pytest.mark.parametrize("pds_version, kernels, exists", [
         # 3 path checks per kernel, all False -> missing
@@ -787,27 +891,26 @@ class TestSpiceKernelsCollectionValidate:
         ('4', ["kernel.bc", "missing.bc"], [True, False, False, False])
     ])
     def test_non_present_product_calls_handle_error(self, pds_version, kernels, exists, caplog):
-        """Product not found in any staging location -> handle_npb_error called."""
+        """Product not found in any staging location -> NPBError raised."""
         obj = self._make_obj(pds_version=pds_version, kernel_list=kernels)
         with caplog.at_level(logging.INFO), patch(_EXISTS, side_effect=exists):
-            with pytest.raises(RuntimeError, match='Some products from the list are not present.'):
+            with pytest.raises(NPBError, match='Some products from the list are not present.'):
                 obj.validate()
 
         expected = [
             (logging.INFO, '-- Checking that all the kernels from list are present...'),
             (logging.ERROR, '-- The following products from the list are not present:'),
-            (logging.ERROR, '   missing.bc'),
-            (logging.ERROR, '-- Some products from the list are not present.')]
+            (logging.ERROR, '   missing.bc')]
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
 
         assert messages == expected
 
     def test_multiple_non_present_products_all_reported_before_error(self, caplog):
-        """All missing products are logged before handle_npb_error is called."""
+        """All missing products are logged before NPBError is raised."""
         obj = self._make_obj(pds_version='4', kernel_list=["missing1.bc", "missing2.bsp"])
         with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=False):
-            with pytest.raises(RuntimeError, match='Some products from the list are not present.'):
+            with pytest.raises(NPBError, match='Some products from the list are not present.'):
                 obj.validate()
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -816,9 +919,7 @@ class TestSpiceKernelsCollectionValidate:
             (logging.INFO,  '-- Checking that all the kernels from list are present...'),
             (logging.ERROR, '-- The following products from the list are not present:'),
             (logging.ERROR, '   missing1.bc'),
-            (logging.ERROR, '   missing2.bsp'),
-            (logging.ERROR, '-- Some products from the list are not present.')]
-
+            (logging.ERROR, '   missing2.bsp')]
 
     @pytest.mark.parametrize("products, exists", [
         # Product missing.
@@ -884,7 +985,7 @@ class TestSpiceKernelsCollectionValidate:
         ([('kernel.bc', 'ck'), ('missing.bc', 'ck')], [True, True, False]),
     ])
     def test_unlabeled_pds4_product_calls_handle_error(self, products, exists, caplog):
-        """Unlabeled PDS4 products trigger handle_npb_error after all are reported."""
+        """Unlabeled PDS4 products trigger NPBError after all are reported."""
         prods = []
         for n, t in products:
             p = MagicMock()
@@ -893,7 +994,7 @@ class TestSpiceKernelsCollectionValidate:
             prods.append(p)
         obj = self._make_obj(pds_version='4', products=prods)
         with caplog.at_level(logging.INFO), patch(_EXISTS, side_effect=exists):
-            with pytest.raises(RuntimeError, match='Some products have not been labeled.'):
+            with pytest.raises(NPBError, match='Some products have not been labeled.'):
                 obj.validate()
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -903,11 +1004,10 @@ class TestSpiceKernelsCollectionValidate:
             (logging.INFO,  ''),
             (logging.INFO,  '-- Checking that all the kernels have been labeled...'),
             (logging.ERROR, '-- The following products have not been labeled:'),
-            (logging.ERROR, '   missing.bc'),
-            (logging.ERROR, '-- Some products have not been labeled.')]
+            (logging.ERROR, '   missing.bc')]
 
     def test_multiple_unlabeled_pds4_products_all_reported_before_error(self, caplog):
-        """All unlabeled PDS4 products are logged before handle_npb_error is called."""
+        """All unlabeled PDS4 products are logged before NPBError is raised."""
         prods = []
         for n, t in [('missing1.bc', 'ck'), ('missing2.bsp', 'spk')]:
             p = MagicMock()
@@ -916,7 +1016,7 @@ class TestSpiceKernelsCollectionValidate:
             prods.append(p)
         obj = self._make_obj(pds_version='4', products=prods)
         with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=False):
-            with pytest.raises(RuntimeError, match='Some products have not been labeled.'):
+            with pytest.raises(NPBError, match='Some products have not been labeled.'):
                 obj.validate()
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
@@ -927,8 +1027,7 @@ class TestSpiceKernelsCollectionValidate:
             (logging.INFO,  '-- Checking that all the kernels have been labeled...'),
             (logging.ERROR, '-- The following products have not been labeled:'),
             (logging.ERROR, '   missing1.bc'),
-            (logging.ERROR, '   missing2.bsp'),
-            (logging.ERROR, '-- Some products have not been labeled.')]
+            (logging.ERROR, '   missing2.bsp')]
 
     @pytest.mark.skip('There is a bug in the code that will cause this test to'
                       'break with FileNotFoundError.')
@@ -1051,7 +1150,6 @@ class TestSpiceKernelsCollectionValidate:
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
-
 
     @pytest.mark.parametrize('products, expected', [
         ([('kernel.bc', 'ck', 'kernel.lbl')],

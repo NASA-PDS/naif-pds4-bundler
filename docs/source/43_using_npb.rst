@@ -860,7 +860,7 @@ SPICE Kernel Collection Validation
 Inventory Product Validation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: pds.naif_pds4_bundler.classes.product.InventoryProduct.validate_pds4
+.. automodule:: pds.naif_pds4_bundler.classes.product.InventoryPDS4Product.validate
 
 
 Checksum Validation
@@ -874,7 +874,7 @@ Product Comparison
 
 .. automodule:: pds.naif_pds4_bundler.classes.label.PDSLabel.compare
 .. automodule:: pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare
-.. automodule:: pds.naif_pds4_bundler.classes.product.InventoryProduct.compare
+.. automodule:: pds.naif_pds4_bundler.classes.product.InventoryPDS4Product.compare
 .. automodule:: pds.naif_pds4_bundler.classes.product.SpicedsProduct.compare
 .. automodule:: pds.naif_pds4_bundler.classes.product.ChecksumProduct.compare
 

@@ -2,6 +2,7 @@
 """
 import logging
 import os
+import re
 from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
@@ -9,6 +10,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_checksum import ChecksumProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -19,7 +21,6 @@ def _make_setup(pds_version="4", increment=True, diff=False):
     setup = MagicMock()
     setup.pds_version = pds_version
     setup.increment = increment
-    setup.diff = diff
     setup.staging_directory = "/staging"
     setup.bundle_directory = "/bundle"
     setup.mission_acronym = "em16"
@@ -31,6 +32,7 @@ def _make_setup(pds_version="4", increment=True, diff=False):
     setup.working_directory = "/working"
     setup.args = MagicMock()
     setup.args.debug = False
+    setup.args.diff = diff
     return setup
 
 
@@ -40,6 +42,23 @@ def _make_collection(name="miscellaneous"):
     return collection
 
 
+# The expected "previous checksum file" candidate. Built by joining path
+# segments (never embedding "/" inside a string literal) so it's correct on both
+# POSIX and Windows. Kept as a Path -- comparisons against obj.path_current
+# (also a Path) use Path.__eq__, which compares parsed path parts rather than
+# separator-sensitive strings. str(PREV_CHECKSUM_PATH) is used only where an
+# actual string is required: standing in for a Path.glob() match (a plain str
+# works too, since find_latest_versioned_file wraps every match in Path()), or
+# building a regex.
+PREV_CHECKSUM_PATH = Path("bundle", "em16_spice", "miscellaneous",
+                          "checksum", "checksum_v001.tab")
+
+# NPBError embeds str(self.path_current) (a Path) in its message, so this is
+# escaped once here for reuse in pytest.raises(match=...) regexes below --
+# on Windows str(PREV_CHECKSUM_PATH) contains backslashes, which would
+# otherwise be read as regex escape sequences instead of literal separators.
+PREV_CHECKSUM_PATH_ESCAPED = re.escape(str(PREV_CHECKSUM_PATH))
+
 # ---------------------------------------------------------------------------
 # Patch targets (relative to the module under test)
 # ---------------------------------------------------------------------------
@@ -47,14 +66,14 @@ MOD = "pds.naif_pds4_bundler.classes.product.product_checksum"
 
 PATCHES = dict(
     safe_make_directory=f"{MOD}.safe_make_directory",
-    glob_glob=f"{MOD}.glob.glob",
+    # find_latest_versioned_file globs candidates itself via Path.glob, so
+    # that's what's patched here instead of anything in this module.
+    glob_glob="pathlib.Path.glob",
     md5=f"{MOD}.md5",
     checksum_from_registry=f"{MOD}.checksum_from_registry",
     checksum_from_label=f"{MOD}.checksum_from_label",
     compare_files=f"{MOD}.compare_files",
     Product_init=f"{MOD}.Product.__init__",
-    ChecksumPDS4Label=f"{MOD}.ChecksumPDS4Label",
-    ChecksumPDS3Label=f"{MOD}.ChecksumPDS3Label",
     os_walk=f"{MOD}.os.walk",
     os_remove=f"{MOD}.os.remove",
     os_path_isfile=f"{MOD}.os.path.isfile",
@@ -95,9 +114,14 @@ def _build_pds4(
          patch(PATCHES["os_walk"], return_value=[]) as m_walk, \
          patch("builtins.open", mock_open(read_data="")) as m_open:
 
+        # find_latest_versioned_file globs two patterns (bundle + staging
+        # dir) and pools the results, so this mock is hit twice per call;
+        # returning the same glob_files both times is harmless here since
+        # duplicates don't change which entry sorts last.
         m_glob.return_value = glob_files
 
-        obj = ChecksumProduct(setup, collection, add_previous_checksum)
+        obj = ChecksumProduct(setup, RunState(),
+                              collection, add_previous_checksum)
         mocks.update(dict(
             mkdir=m_mkdir, glob=m_glob, md5=m_md5,
             walk=m_walk, open=m_open,
@@ -118,7 +142,8 @@ def _build_pds3(add_previous_checksum=False):
          patch(PATCHES["os_walk"], return_value=[]), \
          patch("builtins.open", mock_open(read_data="")):
 
-        obj = ChecksumProduct(setup, collection, add_previous_checksum)
+        obj = ChecksumProduct(setup, RunState(),
+                              collection, add_previous_checksum)
 
     return obj
 
@@ -155,11 +180,15 @@ class TestChecksumProductInit:
         assert obj.version == 1
 
     def test_init_pds4_increment_with_previous_file_increments_version(self):
-        prev = "/bundle/em16_spice/miscellaneous/checksum/checksum_v001.tab"
+        prev = str(PREV_CHECKSUM_PATH)
         obj, _ = _build_pds4(increment=True, glob_files=[prev])
         assert obj.version == 2
         assert obj.name == "checksum_v002.tab"
-        assert obj.path_current == prev
+
+        # path_current is a Path when a previous file was found. Compare as
+        # Path == Path (parsed parts), not string equality, so this doesn't
+        # depend on separator style.
+        assert obj.path_current == PREV_CHECKSUM_PATH
         assert obj.vid == "2.0"
 
     def test_init_pds4_creates_checksum_directory(self):
@@ -173,7 +202,7 @@ class TestChecksumProductInit:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data="")):
 
-            ChecksumProduct(setup, collection)
+            ChecksumProduct(setup, RunState(), collection)
 
         m_mkdir.assert_called_once_with(str(Path("/staging/miscellaneous/checksum/")))
 
@@ -188,7 +217,7 @@ class TestChecksumProductInit:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data="")):
 
-            ChecksumProduct(setup, collection)
+            ChecksumProduct(setup, RunState(), collection)
 
         m_mkdir.assert_called_once_with(str(Path("/staging/index")))
 
@@ -202,15 +231,23 @@ class TestChecksumProductInit:
         assert not hasattr(obj, "lid")
 
     def test_init_pds4_multiple_glob_files_picks_latest(self):
+        # "checksum_v9.tab" sorts *after* "checksum_v10.tab" and
+        # "checksum_v2.tab" lexically (since "9" > "1" and "9" > "2" at
+        # that character position), even though 9 is numerically the
+        # smallest. This pins find_latest_versioned_file's numeric (not
+        # lexical) comparison, per commit 9275b96.
         files = [
-            "/bundle/em16_spice/miscellaneous/checksum/checksum_v001.tab",
-            "/bundle/em16_spice/miscellaneous/checksum/checksum_v003.tab",
-            "/bundle/em16_spice/miscellaneous/checksum/checksum_v002.tab",
+            str(PREV_CHECKSUM_PATH.parent / "checksum_v2.tab"),
+            str(PREV_CHECKSUM_PATH.parent / "checksum_v10.tab"),
+            str(PREV_CHECKSUM_PATH.parent / "checksum_v9.tab"),
         ]
-        # glob.glob returns unsorted; ChecksumProduct sorts internally.
+
+        # Path.glob returns unsorted; find_latest_versioned_file picks by
+        # numeric version, not list order or lexical string order.
         obj, _ = _build_pds4(increment=True, glob_files=files)
-        # Latest sorted is v003 → new version is 4
-        assert obj.version == 4
+        assert obj.version == 11
+        assert obj.name == "checksum_v011.tab"
+        assert obj.path_current == PREV_CHECKSUM_PATH.parent / "checksum_v10.tab"
 
 
 # ===========================================================================
@@ -224,7 +261,7 @@ class TestReadCurrentProduct:
 
         setup = _make_setup(pds_version="4", increment=True)
         collection = _make_collection()
-        prev = "/bundle/em16_spice/miscellaneous/checksum/checksum_v001.tab"
+        prev = str(PREV_CHECKSUM_PATH)
         prev_content = ("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa some/file.tab\n"
                         "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb other/file.xml\n")
 
@@ -234,23 +271,24 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, collection, add_previous_checksum=False)
+            obj = ChecksumProduct(setup, RunState(),
+                                  collection, add_previous_checksum=False)
 
         assert obj.md5_dict == {'some/file.tab': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                                 'other/file.xml': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'}
 
     @pytest.mark.parametrize('bad_content, error', [
         ("this_line_has_no_space_split\n",
-         'Checksum file /bundle/em16_spice/miscellaneous/checksum/checksum_v001.tab is corrupted.'),
+         f'Checksum file {PREV_CHECKSUM_PATH_ESCAPED} is corrupted.'),
         ("0123456789  some/file.tab\n",
-         'Checksum file /bundle/em16_spice/miscellaneous/checksum/checksum_v001.tab '
+         f'Checksum file {PREV_CHECKSUM_PATH_ESCAPED} '
          'corrupted entry: 0123456789  some/file.tab\n.')
     ])
     def test_corrupted_line_raises_npberror(self, bad_content, error) -> None:
 
         setup = _make_setup(pds_version="4", increment=True)
         collection = _make_collection()
-        prev = "/bundle/em16_spice/miscellaneous/checksum/checksum_v001.tab"
+        prev = str(PREV_CHECKSUM_PATH)
 
         with patch(PATCHES["safe_make_directory"]), \
              patch(PATCHES["glob_glob"], return_value=[prev]), \
@@ -258,14 +296,16 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=bad_content)):
 
+            run_state = RunState()
             with pytest.raises(NPBError, match=error):
-                ChecksumProduct(setup, collection, add_previous_checksum=False)
+                ChecksumProduct(setup, run_state,
+                                collection, add_previous_checksum=False)
 
     def test_add_previous_checksum_true_adds_file_and_label_pds4(self):
 
         setup = _make_setup(pds_version="4", increment=True)
         collection = _make_collection()
-        prev = "/bundle/em16_spice/miscellaneous/checksum/checksum_v001.tab"
+        prev = str(PREV_CHECKSUM_PATH)
         prev_content = "a" * 32 + "  some/file.tab\n"
 
         with patch(PATCHES["safe_make_directory"]), \
@@ -274,7 +314,8 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, collection, add_previous_checksum=True)
+            obj = ChecksumProduct(setup, RunState(),
+                                  collection, add_previous_checksum=True)
 
         # Both the .tab and the .xml of the previous checksum should be present
         assert obj.md5_dict == {
@@ -300,7 +341,8 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, collection, add_previous_checksum=True)
+            obj = ChecksumProduct(setup, RunState(),
+                                  collection, add_previous_checksum=True)
 
         assert obj.md5_dict == {
             'some/file.tab': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -332,40 +374,27 @@ class TestSetCoverage:
 class TestGenerate:
     """Tests for generate."""
 
-    def test_generate_pds4_creates_pds4_label(self):
-
+    def test_generate_writes_product_and_calls_parent_init(self):
+        # generate() used to also pick a label class and set self.label; that
+        # moved to npb.py, so this test checks what's left: writing the file
+        # and filling in the attributes Product.__init__ sets.
         obj, _ = _build_pds4(increment=False)
-        obj.new_product = False  # reset
-        fake_label = MagicMock()
+        obj.new_product = False  # reset, so we can check generate() flips it back to True
+        obj.label = None  # pre-set, so the assertion below proves generate() left it alone
 
         with patch.object(obj, "write_product") as m_wp, \
-             patch(PATCHES["Product_init"]) as m_parent, \
-             patch(PATCHES["ChecksumPDS4Label"], return_value=fake_label) as m_lbl4, \
-             patch(PATCHES["ChecksumPDS3Label"]) as m_lbl3:
+             patch(PATCHES["Product_init"]) as m_parent:
 
             obj.generate(history=['some_file'])
 
-        m_lbl4.assert_called_once_with(obj.setup, obj)
-        m_lbl3.assert_not_called()
         m_wp.assert_called_once_with(history=['some_file'])
         m_parent.assert_called_once()
 
-        # Generate sets new product and assigns the new label.
         assert obj.new_product is True
-        assert obj.label is fake_label
 
-    def test_generate_pds3_creates_pds3_label(self):
-        obj = _build_pds3()
-
-        with patch.object(obj, "write_product"), \
-             patch(PATCHES["Product_init"]), \
-             patch(PATCHES["ChecksumPDS4Label"]) as m_lbl4, \
-             patch(PATCHES["ChecksumPDS3Label"]) as m_lbl3:
-
-            obj.generate(history=None)
-
-        m_lbl3.assert_called_once_with(obj.setup, obj)
-        m_lbl4.assert_not_called()
+        # The regression guard for this whole refactor: if labeling ever creeps
+        # back into generate(), this is the assertion that catches it.
+        assert obj.label is None
 
 # ===========================================================================
 # ChecksumProduct.write_product
@@ -405,7 +434,7 @@ class TestChecksumProductWriteProduct:
 
     def test_write_product_no_history_writes_file(self):
         obj = self._obj_with_products()
-        obj.setup.diff = False  # This is the default
+        obj.setup.args.diff = False  # This is the default
 
         m = mock_open()
         with patch(PATCHES["md5"], return_value="c" * 32), \
@@ -442,7 +471,7 @@ class TestChecksumProductWriteProduct:
 
     def test_write_product_diff_true_calls_compare(self):
         obj = self._obj_with_products()
-        obj.setup.diff = True
+        obj.setup.args.diff = True
 
         with patch(PATCHES["md5"], return_value="c" * 32), \
              patch(PATCHES["os_walk"], return_value=[]), \
@@ -819,14 +848,27 @@ class TestCompare:
             obj.path_current,
             obj.path,
             obj.setup.working_directory,
-            obj.setup.diff,
+            obj.setup.args.diff,
         )
 
-    def test_compare_logs_warning_on_exception(self, caplog):
+    # Both errors must hit the same fallback: a missing previous file
+    # (FileNotFoundError, an OSError subclass - compare_files() opens it with
+    # open()) and a previous file that exists but isn't valid UTF-8
+    # (UnicodeDecodeError - compare_files() opens with encoding='utf-8').
+    # Only the side_effect differs, so one parametrized test covers both.
+    @pytest.mark.parametrize("side_effect", [
+        pytest.param(FileNotFoundError("boom"), id="missing-file"),
+        pytest.param(
+            UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte"),
+            id="non-utf8-file"),
+    ])
+    def test_compare_logs_warning_on_previous_file_error(self, caplog, side_effect):
+        """compare() falls back to the same warning for either error - proving
+        except (OSError, UnicodeDecodeError) catches both real conditions."""
         obj, _ = _build_pds4(increment=False)
         obj.path_current = "/prev/checksum_v001.tab"
 
-        with patch(PATCHES["compare_files"], side_effect=Exception("boom")), \
+        with patch(PATCHES["compare_files"], side_effect=side_effect), \
              caplog.at_level(logging.INFO):
             obj.compare()
 
@@ -839,3 +881,65 @@ class TestCompare:
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
+
+    def test_compare_propagates_unexpected_exception(self, caplog):
+        """A bug inside compare_files() that isn't a missing-file case (here a
+        generic Exception, standing in for e.g. a TypeError from a real defect)
+        must propagate, not be misreported as "previous checksum does not
+        exist" - proving except OSError no longer masks it."""
+        obj, _ = _build_pds4(increment=False)
+        obj.path_current = "/prev/checksum_v001.tab"
+
+        with patch(PATCHES["compare_files"], side_effect=Exception("boom")), \
+             caplog.at_level(logging.INFO):
+            with pytest.raises(Exception, match="boom"):
+                obj.compare()
+
+# ===========================================================================
+# TestChecksumProductComputeChecksum
+# ChecksumProduct overrides Product._compute_checksum() so the checksum is
+# always recomputed with md5(), never reused from the registry or the label.
+# ===========================================================================
+
+def _make_bare_checksum_product(path, checksum_arg):
+    """Build a ChecksumProduct without running __init__ (no filesystem)."""
+    product = ChecksumProduct.__new__(ChecksumProduct)
+    product.path = str(path)
+    product.new_product = False
+    product.setup = MagicMock()
+    product.setup.args.checksum = checksum_arg
+    return product
+
+
+class TestChecksumProductComputeChecksum:
+
+    def test_compute_checksum_ignores_registry_and_label(self, tmp_path):
+        """Even with checksum reuse on, only md5() is consulted."""
+        product = _make_bare_checksum_product(tmp_path / "x.checksum", True)
+
+        with patch(PATCHES["md5"], return_value="fresh-md5") as m_md5, \
+             patch(PATCHES["checksum_from_registry"]) as m_reg, \
+             patch(PATCHES["checksum_from_label"]) as m_lbl:
+
+            checksum = product._compute_checksum()
+
+        assert checksum == "fresh-md5"
+        m_reg.assert_not_called()
+        m_lbl.assert_not_called()
+        m_md5.assert_called_once_with(product.path)
+
+    def test_register_dispatches_to_override(self, tmp_path):
+        """register() stores the md5 checksum and skips the registry."""
+        path = tmp_path / "maven_spice" / "release.checksum"
+        path.parent.mkdir(parents=True)
+        path.write_text("checksum-registry", encoding="utf-8")
+        product = _make_bare_checksum_product(path, True)
+
+        with patch(PATCHES["md5"], return_value="fresh-md5"), \
+             patch("pds.naif_pds4_bundler.classes.product.product."
+                   "checksum_from_registry") as m_reg:
+
+            product.register()
+
+        assert product.checksum == "fresh-md5"
+        m_reg.assert_not_called()

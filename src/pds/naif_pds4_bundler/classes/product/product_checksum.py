@@ -1,5 +1,4 @@
 """Implementation of the Checksum product class."""
-import glob
 import logging
 import os
 from collections import defaultdict
@@ -8,12 +7,12 @@ from typing import Optional
 
 from .product import Product
 from ..exceptions import NPBError
-from ..label import ChecksumPDS3Label
-from ..label import ChecksumPDS4Label
 from ...utils import add_carriage_return
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
 from ...utils import compare_files
+from ...utils import FILE_READ_ERRORS
+from ...utils import find_latest_versioned_file
 from ...utils import md5
 from ...utils import safe_make_directory
 
@@ -22,12 +21,14 @@ class ChecksumProduct(Product):
     """Class to generate a Checksum Product.
 
     :param setup:                 NPB execution setup object
+    :param run_state:             State of the current pipeline execution
     :param collection:            Miscellaneous Collection
     :param add_previous_checksum: True if there is a previous checksum file to
                                   be added, False otherwise
     """
 
-    def __init__(self, setup, collection, add_previous_checksum: bool = True) -> None:
+    def __init__(self, setup, run_state, collection,
+                 add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
         # The initialization of the checksum class is lighter than the
@@ -39,6 +40,7 @@ class ChecksumProduct(Product):
         #
         self.bytes = 0
         self.setup = setup
+        self.run_state = run_state
         self.collection = collection
         self.collection_path = (
             self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
@@ -73,6 +75,10 @@ class ChecksumProduct(Product):
             self.set_product_lid()
             self.set_product_vid()
 
+    def _compute_checksum(self) -> str:
+        """Always recompute via md5(); never reuse the registry or label."""
+        return str(md5(self.path))
+
     def set_coverage(self) -> None:
         """Determine the coverage of the Checksum file."""
         #
@@ -82,7 +88,7 @@ class ChecksumProduct(Product):
         self.write_product(history=None, set_coverage=True)
 
     def generate(self, history: Optional[list] = None) -> None:
-        """Write and label the Checksum file.
+        """Write the Checksum file.
 
         :param history: If not None, the checksum will be generated with the archive
                         history.
@@ -97,17 +103,7 @@ class ChecksumProduct(Product):
         # attributes.
         #
         self.new_product = True
-        Product.__init__(self)
-
-        #
-        # The checksum is labeled.
-        #
-        logging.info('-- Labeling %s...', self.name)
-
-        if self.setup.pds_version == "4":
-            self.label = ChecksumPDS4Label(self.setup, self)
-        else:
-            self.label = ChecksumPDS3Label(self.setup, self)
+        Product.__init__(self, self.run_state)
 
     def read_current_product(self, add_previous_checksum: bool = True) -> None:
         """Reads the current checksum file.
@@ -124,39 +120,40 @@ class ChecksumProduct(Product):
         #
         if self.setup.pds_version == "4":
             if self.setup.increment:
-                checksum_files = glob.glob(
-                    self.setup.bundle_directory
-                    + f"/{self.setup.mission_acronym}_spice/"
-                    + self.collection.name
-                    + os.sep
-                    + "/checksum/checksum_v*.tab"
+                # Search both the bundle directory (previous increments) and
+                # the staging directory (current, in-progress increment) for
+                # the latest checksum file already written.
+                checksum_dirs = [
+                    Path(self.setup.bundle_directory)
+                    / f"{self.setup.mission_acronym}_spice"
+                    / self.collection.name / "checksum",
+
+                    Path(self.setup.staging_directory)
+                    / self.collection.name / "checksum",
+                ]
+                latest_file, latest_version = find_latest_versioned_file(
+                    checksum_dirs, "checksum_v*.tab"
                 )
 
-                checksum_files += glob.glob(
-                    self.setup.staging_directory
-                    + os.sep
-                    + self.collection.name
-                    + "/checksum/checksum_v*.tab"
-                )
-                checksum_files.sort()
-                try:
-                    latest_file = checksum_files[-1]
+                # latest_version is None either when no file matched, or when
+                # a file matched but its name didn't parse as expected.
+                if latest_version is not None:
 
                     #
                     # Store the previous version to use it to validate the
                     # generated one.
                     #
                     self.path_current = latest_file
-                    self.name_current = Path(latest_file).name
-
-                    latest_version = latest_file.split("_v")[-1].split(".")[0]
-                    self.version = int(latest_version) + 1
+                    self.name_current = latest_file.name
+                    self.version = latest_version + 1
 
                     logging.info('-- Previous checksum file is: %s', latest_file)
                     logging.info('-- Generate version %d.', self.version)
                     logging.info('')
 
-                except BaseException:
+                else:
+                    # No usable previous checksum file: start over at v1
+                    # rather than guessing a version from a partial match.
                     self.version = 1
                     self.path_current = ""
 
@@ -203,7 +200,10 @@ class ChecksumProduct(Product):
                     #
                     try:
                         (md5_file, filename) = line.split()
-                    except BaseException:
+
+                    # Unpacking fails with ValueError unless the line has
+                    # exactly two whitespace-separated fields.
+                    except ValueError:
                         raise NPBError(
                             f"Checksum file {self.path_current} is corrupted."
                         )
@@ -225,7 +225,11 @@ class ChecksumProduct(Product):
 
                 if self.setup.pds_version == "4":
                     checksum_dir = f"{self.collection.name}/checksum/"
-                    label_current = self.path_current.replace(".tab", ".xml")
+                    # self.path_current is a Path here (only ever a truthy
+                    # plain string in the PDS3 branch below), so .replace()
+                    # would try (and fail) to rename a file on disk --
+                    # with_suffix() is the string-substitution equivalent.
+                    label_current = self.path_current.with_suffix(".xml")
                 else:
                     checksum_dir = "index/"
                     label_current = self.path_current.replace(".tab", ".lbl")
@@ -545,10 +549,10 @@ class ChecksumProduct(Product):
             #
             with open(self.path, "w", encoding='utf-8') as c:
                 for entry in md5_list:
-                    entry = add_carriage_return(entry, self.setup.eol, self.setup)
+                    entry = add_carriage_return(entry, self.setup.eol)
                     c.write(entry)
 
-            if self.setup.diff:
+            if self.setup.args.diff:
                 logging.info("-- Comparing checksum with previous version...")
                 self.compare()
 
@@ -563,9 +567,12 @@ class ChecksumProduct(Product):
                 self.path_current,
                 self.path,
                 self.setup.working_directory,
-                self.setup.diff,
+                self.setup.args.diff,
             )
-        except BaseException:
+
+        # compare_files() raises OSError/UnicodeDecodeError if either checksum
+        # file can't be opened or read.
+        except FILE_READ_ERRORS:
             logging.warning("-- Checksum from previous increment does not exist.")
 
         logging.info("")

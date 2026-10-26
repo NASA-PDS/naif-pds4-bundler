@@ -2,8 +2,8 @@
 
 Two test classes are provided:
 
-* TestSpiceKernelPDS4Label – unit tests that mock the inherited label
-  writing so the constructor can be exercised in isolation.
+* TestSpiceKernelPDS4Label – unit tests that build the label without
+  writing it, so the constructor can be exercised in isolation.
 
 * TestSpiceKernelPDS4LabelIntegration – integration tests that exercise
   SpiceKernelPDS4Label together with the real PDSLabel.write_label()
@@ -85,12 +85,11 @@ class TestSpiceKernelPDS4Label:
     @pytest.fixture()
     def label(self, tmp_path: Path,
               helpers: SimpleNamespace) -> SpiceKernelPDS4Label:
-        """Build a SpiceKernelPDS4Label instance while mocking inherited file
-        writing.
+        """Build a SpiceKernelPDS4Label instance.
 
         :param tmp_path: pytest temporary directory
         :param helpers:  specialized SPICE kernel factories
-        :return: constructed label with write_label patched out
+        :return: constructed label
         """
         # Create a controlled Setup mock with the PDS4 attributes needed by the
         # label.
@@ -104,14 +103,10 @@ class TestSpiceKernelPDS4Label:
         # SpiceKernelPDS4Label.
         product = helpers.make_product(staging)
 
-        # Avoid real template reading and file writing in unit tests.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            # Instantiate the real class so its constructor assignments are
-            # executed.
-            instance = SpiceKernelPDS4Label(setup, product)
-
-        return instance
+        # Instantiate the real class so its constructor assignments are
+        # executed.
+        product.setup = setup
+        return SpiceKernelPDS4Label(product)
 
     # ------------------------------------------------------------------
     # Regular tests
@@ -123,27 +118,27 @@ class TestSpiceKernelPDS4Label:
         # construction.
 
         # Check that FILE_NAME has been copied from product.name.
-        assert label.FILE_NAME == 'maven_orbit_v01.bsp'
+        assert label._label_fields["FILE_NAME"] == 'maven_orbit_v01.bsp'
 
         # Check that the PDS4 logical identifier and the product version have
         # been copied correctly from product.lid and product.vid.
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:spice_kernels:spk_maven_orbit_v01.bsp')
-        assert label.PRODUCT_VID == '1.0'
+        assert label._label_fields["PRODUCT_VID"] == '1.0'
 
         # Check that the file format is copied verbatim from product.file_format.
-        assert label.FILE_FORMAT == 'Binary'
+        assert label._label_fields["FILE_FORMAT"] == 'Binary'
 
         # Check that the time coverage is copied from product.start_time and
         # product.stop_time, respectively.
-        assert label.START_TIME == '2024-01-01T00:00:00Z'
-        assert label.STOP_TIME == '2024-01-31T23:59:59Z'
+        assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00Z'
+        assert label._label_fields["STOP_TIME"] == '2024-01-31T23:59:59Z'
 
         # Check that KERNEL_TYPE_ID is the upper-cased product.type.
-        assert label.KERNEL_TYPE_ID == 'SPK'
+        assert label._label_fields["KERNEL_TYPE_ID"] == 'SPK'
 
         # Check that the kernel description is copied from product.description.
-        assert label.SPICE_KERNEL_DESCRIPTION == 'Orbit reconstruction kernel'
+        assert label._label_fields["SPICE_KERNEL_DESCRIPTION"] == 'Orbit reconstruction kernel'
 
     def test_template_path_is_spice_kernel_template(
             self, label: SpiceKernelPDS4Label) -> None:
@@ -155,9 +150,10 @@ class TestSpiceKernelPDS4Label:
 
         assert label._template == expected_template
 
-    def test_constructor_stores_references_and_writes_label_once(
+    def test_constructor_stores_references_and_does_not_write_label(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
-        # Validate constructor wiring and its single write_label side effect.
+        # Validate constructor wiring and that building the label has no
+        # write_label side effect.
 
         # Build the collaborators required by the label constructor.
         setup = helpers.make_setup()
@@ -168,10 +164,11 @@ class TestSpiceKernelPDS4Label:
 
         product = helpers.make_product(staging)
 
-        # Avoid real file writing while checking the constructor side effect.
+        # Patch write_label to detect any write triggered by the constructor.
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
-            label = SpiceKernelPDS4Label(setup, product)
+            product.setup = setup
+            label = SpiceKernelPDS4Label(product)
 
         # Verify that label.setup is exactly the same setup object that was
         # passed to the constructor, and the same applies to label.product with
@@ -179,9 +176,8 @@ class TestSpiceKernelPDS4Label:
         assert label.setup is setup
         assert label.product is product
 
-        # Check that write_label() was called once and that it was called with
-        # the label instance.
-        mock_write.assert_called_once_with(label)
+        # Constructing the label must not write it; the pipeline does that.
+        mock_write.assert_not_called()
 
     @pytest.mark.parametrize('product_type, expected_kernel_type_id', [
         ('spk', 'SPK'),
@@ -207,13 +203,11 @@ class TestSpiceKernelPDS4Label:
             staging, name=f'maven_kernel_v01.{product_type}',
             kernel_type=product_type)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = SpiceKernelPDS4Label(setup, product)
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
 
         # The kernel type identifier must be the upper-cased product type.
-        assert label.KERNEL_TYPE_ID == expected_kernel_type_id
+        assert label._label_fields["KERNEL_TYPE_ID"] == expected_kernel_type_id
 
     @pytest.mark.parametrize(
         'product_attribute, value, label_attribute', [
@@ -245,14 +239,12 @@ class TestSpiceKernelPDS4Label:
         # Dynamically override the product attribute under test.
         setattr(product, product_attribute, value)
 
-        # Patch PDSLabel.write_label() to prevent actual file writing.
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = SpiceKernelPDS4Label(setup, product)
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
 
         # Check that the expected label attribute contains exactly the value
         # assigned to the product.
-        assert getattr(label, label_attribute) == value
+        assert label._label_fields[label_attribute] == value
 
     def test_child_overrides_parent_field_assignments(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -270,13 +262,12 @@ class TestSpiceKernelPDS4Label:
         product.lid = 'urn:nasa:pds:maven_spice:spice_kernels:ck_distinct'
         product.vid = '9.9'
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            label = SpiceKernelPDS4Label(setup, product)
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
 
-        assert label.PRODUCT_LID == (
+        assert label._label_fields["PRODUCT_LID"] == (
             'urn:nasa:pds:maven_spice:spice_kernels:ck_distinct')
-        assert label.PRODUCT_VID == '9.9'
+        assert label._label_fields["PRODUCT_VID"] == '9.9'
 
     def test_constructor_raises_when_product_type_is_not_a_string(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -292,10 +283,9 @@ class TestSpiceKernelPDS4Label:
         # Replace the kernel type with a non-string value (no .upper()).
         product.type = 12345
 
-        with patch('pds.naif_pds4_bundler.classes.label.label.'
-                   'PDSLabel.write_label', autospec=True):
-            with pytest.raises(AttributeError):
-                SpiceKernelPDS4Label(setup, product)
+        with pytest.raises(AttributeError):
+            product.setup = setup
+            SpiceKernelPDS4Label(product)
 
 
 # ===========================================================================
@@ -319,6 +309,16 @@ TEMPLATE_CONTENT = textwrap.dedent("""\
 
 class TestSpiceKernelPDS4LabelIntegration:
     """Integration tests for SpiceKernelPDS4Label + PDSLabel + template."""
+
+    def test_context_from_product_attribute_is_true(self):
+        """Guards against a silent regression if this class is renamed
+        without carrying the attribute over."""
+        assert SpiceKernelPDS4Label._context_from_product is True
+
+    def test_trailing_blank_log_attribute_is_true(self):
+        """Pins _trailing_blank_log to PDSLabel's inherited default: this
+        class does not override it, so it must stay True."""
+        assert SpiceKernelPDS4Label._trailing_blank_log is True
 
     # ------------------------------------------------------------------
     # Fixtures
@@ -362,6 +362,26 @@ class TestSpiceKernelPDS4LabelIntegration:
         return setup, product, template_path, expected_label_path
 
     # ------------------------------------------------------------------
+    # _context_from_product effect
+    # ------------------------------------------------------------------
+
+    def test_context_from_product_effect_on_context_fields(
+            self, env: tuple[MagicMock, MagicMock, Path, Path],
+            context_effect_helpers: SimpleNamespace) -> None:
+        """_context_from_product=True must source MISSIONS/OBSERVERS/TARGETS
+        from the product, not from setup."""
+        setup, product, _, _ = env
+        
+        # product now differs from setup
+        context_effect_helpers.diverge(product)
+
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
+
+        # product must win
+        context_effect_helpers.assert_source(label, from_product=True)
+
+    # ------------------------------------------------------------------
     # File creation and content
     # ------------------------------------------------------------------
 
@@ -376,14 +396,16 @@ class TestSpiceKernelPDS4LabelIntegration:
         setup.end_of_line = 'LF'
         setup.eol_pds4 = '\n'
 
-        # Instantiate the real label so the template is read and the XML is
-        # written.
-        label = SpiceKernelPDS4Label(setup, product)
+        # Instantiate the real label and write it so the template is read and
+        # the XML is written.
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
+        label.write_label()
 
         # Check that the class resolved the configured SPICE kernel template.
         assert label._template == str(template_path)
 
-        # The real writer mutates label.name to the generated XML file path.
+        # PDSLabel.__init__ derived label.name from product.path.
         assert Path(label.name) == label_path
 
         # Check that the final XML file has been created in staging.
@@ -415,7 +437,9 @@ class TestSpiceKernelPDS4LabelIntegration:
         # substituted by the label state.
         setup, product, _, label_path = env
 
-        SpiceKernelPDS4Label(setup, product)
+        product.setup = setup
+
+        SpiceKernelPDS4Label(product).write_label()
 
         # Parse the rendered label; a malformed result would raise ParseError.
         tree = ElementTree.parse(label_path)
@@ -441,7 +465,9 @@ class TestSpiceKernelPDS4LabelIntegration:
         setup.end_of_line = end_of_line
         setup.eol_pds4 = eol_pds4
 
-        SpiceKernelPDS4Label(setup, product)
+        product.setup = setup
+
+        SpiceKernelPDS4Label(product).write_label()
 
         # Read the raw bytes to inspect the actual line terminators.
         raw = label_path.read_bytes()
@@ -455,25 +481,23 @@ class TestSpiceKernelPDS4LabelIntegration:
             assert b'\n' in raw
 
     # ------------------------------------------------------------------
-    # setup.add_file side-effect
+    # returned label path
     # ------------------------------------------------------------------
 
-    def test_add_file_called_with_label_path(
+    def test_write_label_returns_label_path(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Register the generated XML label using its staging-relative path.
+        """write_label returns the label path relative to staging."""
 
-        # Only setup and product are needed to trigger the real label
-        # generation.
+        # Only setup and product are needed to run the real label generation.
         setup, product, _, label_path = env
+        product.setup = setup
 
-        # Generate the label using the real writer.
-        SpiceKernelPDS4Label(setup, product)
+        written_path = SpiceKernelPDS4Label(product).write_label()
 
-        # The generated label must be registered relative to staging, not
-        # absolute.
+        # The path is relative to staging, not absolute.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert written_path == expected_relative
 
     # ------------------------------------------------------------------
     # Error and invalid-input integration behaviour
@@ -481,7 +505,7 @@ class TestSpiceKernelPDS4LabelIntegration:
 
     def test_missing_template_propagates_file_not_found_error(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Missing SPICE kernel templates must fail without registering the label.
+        """A missing template makes write_label raise FileNotFoundError."""
 
         # Retrieve the integration objects and paths prepared by the fixture.
         setup, product, template_path, label_path = env
@@ -489,9 +513,12 @@ class TestSpiceKernelPDS4LabelIntegration:
         # Physically delete the XML template created by the fixture.
         template_path.unlink()
 
+        product.setup = setup
+        label = SpiceKernelPDS4Label(product)
+
         # Capture the exception.
         with pytest.raises(FileNotFoundError):
-            SpiceKernelPDS4Label(setup, product)
+            label.write_label()
 
         # The writer opens the output file before the template, so the empty
         # output label is created even though writing fails.
@@ -501,12 +528,9 @@ class TestSpiceKernelPDS4LabelIntegration:
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
             assert f.read() == ''
 
-        # Check that setup.add_file() was not called.
-        setup.add_file.assert_not_called()
-
     def test_invalid_xml_template_is_written_without_xml_validation(
             self, env: tuple[MagicMock, MagicMock, Path, Path]) -> None:
-        # Rendered XML labels are written and registered without XML validation.
+        """A malformed template is rendered and its path still returned."""
 
         # Retrieve the integration objects and paths prepared by the fixture.
         setup, product, template_path, label_path = env
@@ -517,7 +541,9 @@ class TestSpiceKernelPDS4LabelIntegration:
                                  '  <file_name>$FILE_NAME</file_name>\n',
                                  encoding='utf-8')
 
-        SpiceKernelPDS4Label(setup, product)
+        product.setup = setup
+
+        written_path = SpiceKernelPDS4Label(product).write_label()
 
         # The writer still creates the output label.
         assert label_path.exists()
@@ -534,8 +560,8 @@ class TestSpiceKernelPDS4LabelIntegration:
         with pytest.raises(ElementTree.ParseError):
             ElementTree.fromstring(written_label)
 
-        # Because this layer does not validate XML, the label is still
-        # registered relative to the staging directory.
+        # Because this layer does not validate XML, the path is still
+        # returned relative to the staging directory.
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
-        setup.add_file.assert_called_once_with(expected_relative)
+        assert written_path == expected_relative

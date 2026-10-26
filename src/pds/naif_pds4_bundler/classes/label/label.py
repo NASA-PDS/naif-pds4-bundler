@@ -1,6 +1,4 @@
 """PDS Label Class and Child Classes Implementation."""
-
-import glob
 import logging
 import os
 from pathlib import Path
@@ -12,7 +10,9 @@ from ...utils import add_carriage_return, compare_files
 class PDSLabel:
     """Class to generate a PDS Label.
 
-    :param setup:   NPB execution Setup object
+    Building a label only collects its fields and derives its path; the
+    label file is not created until :meth:`write_label` is called.
+
     :param product: Product to be labeled
     """
 
@@ -20,36 +20,60 @@ class PDSLabel:
     _eol: str
     _template: str
 
-    def __init__(self, setup, product) -> None:
+    # Whether missions/observers/targets come from the product itself instead
+    # of from setup.
+    _context_from_product: bool = False
+
+    # Whether write_label() emits a trailing blank logging.info("") line.
+    _trailing_blank_log: bool = True
+
+    def __init__(self, product) -> None:
         """Constructor."""
-        self.name = ''
+
+        # Fields available for $KEY template substitution in write_label().
+        # Populated explicitly here and by subclass constructors -- unlike
+        # vars(self), this excludes internal object references (self.product,
+        # self.setup, etc.) that templates never reference.
+        self._label_fields = {}
+
+        # Keep a reference to the product this label describes.
         self.product = product
-        self.setup = setup
+
+        # The destination path is fully derivable from the product, so it is
+        # set here at construction. It is only the intended path: the file does
+        # not exist until write_label() is called.
+        self.name = self._derive_name()
+
+        # Read setup off the product instead of taking it as a separate
+        # argument -- every product already carries its own setup.
+        self.setup = product.setup
 
         #
         # Fields from setup
         #
-        self.root_dir = setup.root_dir
-        self.mission_acronym = setup.mission_acronym
+        self.root_dir = self.setup.root_dir
+        self.mission_acronym = self.setup.mission_acronym
 
+        # Template-substitution values, keyed by the $KEY name templates use.
         if hasattr(self.setup, "creation_date_time"):
             creation_dt = self.setup.creation_date_time
-            self.PRODUCT_CREATION_TIME = creation_dt
-            self.PRODUCT_CREATION_DATE = creation_dt.split("T")[0]
-            self.PRODUCT_CREATION_YEAR = creation_dt.split("-")[0]
+            self._label_fields["PRODUCT_CREATION_TIME"] = creation_dt
+            self._label_fields["PRODUCT_CREATION_DATE"] = creation_dt.split("T")[0]
+            self._label_fields["PRODUCT_CREATION_YEAR"] = creation_dt.split("-")[0]
         else:
-            self.PRODUCT_CREATION_TIME = product.creation_time
-            self.PRODUCT_CREATION_DATE = product.creation_date
-            self.PRODUCT_CREATION_YEAR = product.creation_date.split("-")[0]
+            self._label_fields["PRODUCT_CREATION_TIME"] = product.creation_time
+            self._label_fields["PRODUCT_CREATION_DATE"] = product.creation_date
+            self._label_fields["PRODUCT_CREATION_YEAR"] = product.creation_date.split("-")[0]
 
-        self.FILE_SIZE = product.size
-        self.FILE_CHECKSUM = product.checksum
+        self._label_fields["FILE_SIZE"] = product.size
+        self._label_fields["FILE_CHECKSUM"] = product.checksum
 
         #
-        # For labels that need to include all missions, observers and targets
-        # of the setup.
+        # If False, missions, observers and targets are built below from
+        # setup (plus any secondary ones); if True (the else branch), they
+        # are copied directly from the product instead.
         #
-        if type(self).__name__ not in ('SpiceKernelPDS4Label', 'MetaKernelPDS4Label', 'OrbnumFilePDS4Label'):
+        if not self._context_from_product:
             #
             # Obtain all Missions
             #
@@ -96,10 +120,15 @@ class PDSLabel:
             self.observers = product.observers
             self.targets = product.targets
 
-    def write_label(self):
-        """Write the Label."""
-        label_dictionary = vars(self)
+    def _derive_name(self) -> str:
+        """Derive the destination path for this label's file.
 
+        Extension is swapped from the product's own extension to this
+        label's (.lbl/.xml); a product path that already carries the label
+        extension (the bundle label) passes through unchanged.
+
+        :return: Destination path for the label file.
+        """
         if self._label_extension not in self.product.path:
             label_name = (
                 self.product.path.split(f".{self.product.extension}")[0]
@@ -115,13 +144,21 @@ class PDSLabel:
         if "inventory" in label_name:
             label_name = label_name.replace("inventory_", "")
 
+        return label_name
+
+    def write_label(self) -> str:
+        """Write the Label.
+
+        :return: Path of the label relative to the staging directory.
+        """
         # Using newline guarantees that what we write into the file is what
         # we intend to write, independently of the platform.
-        with open(label_name, "w+", encoding='utf-8', newline='') as f:
+        with open(self.name, "w+", encoding='utf-8', newline='') as f:
             with open(self._template, "r", encoding='utf-8') as t:
                 for line in t:
                     line = line.rstrip()
-                    for key, value in label_dictionary.items():
+                    # Only fields explicitly opted in by constructors, not all self.
+                    for key, value in self._label_fields.items():
                         if isinstance(value, str) and key in line and "$" in line:
                             line = line.replace("$" + key, value)
 
@@ -130,15 +167,13 @@ class PDSLabel:
                     # the one generated by mkpdssum.pl must have the same
                     # line length as the checksum file.
                     #
-                    if label_name.split(os.sep)[-1] == "checksum.lbl":
+                    if self.name.split(os.sep)[-1] == "checksum.lbl":
                         line += " " * (self.product.record_bytes - len(line) - 2)
-                    line = add_carriage_return(line, self._eol, self.setup)
+                    line = add_carriage_return(line, self._eol)
 
                     f.write(line)
 
-        self.name = label_name
-
-        created_file = Path(label_name).relative_to(self.setup.staging_directory)
+        created_file = Path(self.name).relative_to(self.setup.staging_directory)
 
         logging.info('-- Created %s', created_file)
 
@@ -146,18 +181,17 @@ class PDSLabel:
             print(f'   * Created {created_file}.')
 
         #
-        # Add label to the list of generated files.
-        #
-        self.setup.add_file(str(created_file))
-
-        #
         # Wrap lines for PDS3 labels.
         #
-        if self.setup.diff:
+        if self.setup.args.diff:
             self.compare()
 
-        if self.__class__.__name__ != "SpiceKernelPDS3Label":
+        # If True, emits a blank log line after this label's own messages,
+        # separating them from whatever is logged next.
+        if self._trailing_blank_log:
             logging.info("")
+
+        return str(created_file)
 
     def compare(self) -> None:
         """Compare the label with another label.
@@ -173,17 +207,19 @@ class PDSLabel:
         """
         logging.info("-- Comparing label...")
 
-        val_label = (
-            self._find_prior_version_label()
-            or self._find_similar_type_label()
-            or self._find_insight_fallback_label()
-        )
+        # Try each fallback level in turn and keep the first match found:
+        # an older version of this label, then a label of the same type, then
+        # the InSight stock example.
+        val_label = (self._find_prior_version_label() or
+                     self._find_similar_type_label() or
+                     self._find_insight_fallback_label())
 
         if val_label:
             logging.info("")
-            compare_files(val_label, self.name, self.setup.working_directory, self.setup.diff)
+            compare_files(str(val_label), self.name, self.setup.working_directory,
+                          self.setup.args.diff)
 
-    def _find_prior_version_label(self) -> Optional[str]:
+    def _find_prior_version_label(self) -> Optional[Path]:
         """Look for a different version of the same file (fallback level 1).
 
         Keeps trying to match the label name, advancing one character each
@@ -193,52 +229,52 @@ class PDSLabel:
         :return: Path to the matching label, or ``None`` if none is found.
         """
         val_label = None
-        match_flag = True
         val_label_path = self._val_label_directory(
-            str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
+            Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice"
         )
 
         val_label_name = Path(self.name).name
-        i = 1
 
-        while match_flag and i < len(val_label_name) - 1:
-            val_labels = glob.glob(
-                f"{val_label_path}{val_label_name[0:i]}*.xml"
-            )
-            if val_labels:
-                val_label = max(val_labels)
-                match_flag = True
-            else:
-                match_flag = False
-            i += 1
+        # A file matching a longer prefix always matches every shorter prefix
+        # too, so match existence only shrinks as `i` grows: the first miss
+        # proves no longer prefix can match either, and it's safe to stop there.
+        #
+        # The loop never tests the last two characters of val_label_name
+        # (range stops at len - 2), and the trailing "*" in the glob pattern
+        # matches any remaining suffix of any length -- real version-suffixed
+        # filenames (e.g. "..._v001.xml" vs "..._v014.xml") only differ near
+        # the end, so a match this close to the full name is expected to be the
+        # immediately preceding version in practice, even though nothing here
+        # enforces it.
+        for i in range(1, len(val_label_name) - 1):
+            val_labels = list(val_label_path.glob(f"{val_label_name[0:i]}*.xml"))
+            if not val_labels:
+                break
+            val_label = max(val_labels)
 
         if not val_label:
             logging.warning("-- No other version of the product label has been found.")
 
         return val_label
 
-    def _find_similar_type_label(self) -> Optional[str]:
+    def _find_similar_type_label(self) -> Optional[Path]:
         """Look for the label of a product of the same type (fallback level 2).
 
         Used when a prior version of the same file cannot be found.
 
         :return: Path to the matching label, or ``None`` if none is found.
         """
-        try:
-            val_label_path = self._val_label_directory(
-                str(Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice")
-            )
+        base_dir = Path(self.setup.bundle_directory) / f"{self.setup.mission_acronym}_spice"
+        val_label = self._pick_val_label(base_dir)
 
-            product_extension = self.product.name.split(".")[-1]
-            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-
-            return self._pick_val_label(val_products, val_label_path)
-
-        except Exception:
+        if not val_label:
+            # No match at this level -- expected, not an error; the next
+            # fallback level takes over.
             logging.warning("-- No similar label has been found.")
-            return None
 
-    def _find_insight_fallback_label(self) -> Optional[str]:
+        return val_label
+
+    def _find_insight_fallback_label(self) -> Optional[Path]:
         """Fall back to an InSight test label (fallback level 3).
 
         Used when no kernel of the same type can be found -- for example,
@@ -247,26 +283,19 @@ class PDSLabel:
 
         :return: Path to the matching label, or ``None`` if none is found.
         """
-        try:
-            val_label_path = self._val_label_directory(
-                str(Path(self.setup.root_dir) / "data" / "insight_spice")
-            )
+        base_dir = Path(self.setup.root_dir) / "data" / "insight_spice"
+        val_label = self._pick_val_label(base_dir)
 
-            #
-            # Simply pick the last one
-            #
-            product_extension = self.product.name.split(".")[-1]
-            val_products = glob.glob(f"{val_label_path}*.{product_extension}")
-
-            val_label = self._pick_val_label(val_products, val_label_path)
+        if val_label:
             logging.warning("-- Comparing with InSight test label.")
-            return val_label
-
-        except Exception:
+        else:
+            # This is the last fallback level, so reaching here means no
+            # label was found anywhere to compare against.
             logging.warning("-- No label for comparison found.")
-            return None
 
-    def _val_label_directory(self, base_dir: str) -> str:
+        return val_label
+
+    def _val_label_directory(self, base_dir: Path) -> Path:
         """Build the candidate-label directory for the product's collection.
 
         Appends the kernel-type/product-type subdirectory when the
@@ -275,47 +304,67 @@ class PDSLabel:
         :param base_dir: Root directory to build the candidate path under.
         :return: The candidate-label directory path.
         """
-        val_label_path = Path(base_dir) / self.product.collection.name
+        val_label_path = base_dir / self.product.collection.name
 
-        if self.product.collection.name in ("spice_kernels", "miscellaneous") and (
-            "collection" not in self.name
-        ):
+        # spice_kernels and miscellaneous store their labels one level deeper,
+        # in a subdirectory per kernel/product type (e.g. "ck", "orb"). A
+        # collection label sits in the collection directory itself, not in one
+        # of those subdirectories, so it's excluded from getting that extra
+        # subdirectory appended.
+        if (self.product.collection.name in ("spice_kernels", "miscellaneous")
+                and ("collection" not in self.name)):
+
             val_label_path = val_label_path / Path(self.name).parent.name
 
-        return f"{val_label_path}{os.sep}"
+        return val_label_path
 
-    def _pick_val_label(self, val_products: list[str], val_label_path: str) -> str:
-        """Select a validation label from val_products/val_label_path.
+    def _pick_val_label(self, base_dir: Path) -> Optional[Path]:
+        """Select a validation label from a candidate directory.
 
         "collection"/"bundle" are matched as a substring of the label's
         basename (``Path(self.name).name``), not as a standalone path
         component. Real product names embed them as a prefix -- e.g.
         "collection_spice_kernels_v001.xml", "bundle_insight_spice_v009.xml"
         -- never as a bare directory/path segment, so an exact-component
-        check would never match real files. The similar-type and
-        InSight-fallback lookups used to apply different rules here
-        (substring vs. exact-component); both now use the substring rule
-        that actually matches production naming.
+        check would never match real files.
 
-        :param val_products: Candidate product paths, in any order; the
-            lexicographically greatest (newest) entry is used to derive
-            the label name.
-        :param val_label_path: Directory the label is expected to live in.
-        :return: Path to the selected validation label.
-        :raises Exception: If no label for comparison can be found.
+        :param base_dir: Root directory to search under.
+        :return: Path to the selected validation label, or ``None`` if none
+            is found.
         """
+        val_label_path = self._val_label_directory(base_dir)
         basename = Path(self.name).name
 
-        if "collection" in basename:
-            stem = Path(max(val_products).replace("inventory_", "")).with_suffix(".xml")
-            val_label = glob.glob(str(stem))[0]
-        elif "bundle" in basename:
-            val_label = max(glob.glob(f"{val_label_path}bundle_*.xml"))
+        # Bundle labels are matched directly by their own glob pattern;
+        # everything else is derived from the newest matching product file.
+        if "bundle" in basename:
+            pattern = "bundle_*.xml"
         else:
-            stem = Path(max(val_products)).with_suffix(".xml")
-            val_label = glob.glob(str(stem))[0]
+            pattern = f"*{Path(self.product.name).suffix}"
 
-        if not val_label:
-            raise Exception("No label for comparison found.")
+        matches = list(val_label_path.glob(pattern))
+        if not matches:
 
-        return val_label
+            # Nothing in this directory to compare against.
+            return None
+
+        # File names carry a version number, so the alphabetically greatest
+        # path is also the newest version.
+        matched = max(matches)
+
+        if "bundle" in basename:
+            return matched
+
+        if "collection" in basename:
+            # Collection products are named "inventory_*"; the label itself
+            # drops that prefix, so it must be stripped to derive its name.
+            matched = matched.with_name(matched.name.replace("inventory_", ""))
+
+        candidate = matched.with_suffix(".xml")
+
+        # The stem match doesn't guarantee a label was actually generated for
+        # that product (e.g. it may have been skipped or failed).
+        if not candidate.exists():
+            return None
+
+        return candidate
