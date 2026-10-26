@@ -23,13 +23,12 @@ class SpiceKernelProduct(Product):
     """Class that defines a SPICE Kernel file archive product.
 
     :param setup:      NPB run Setup object
-    :param run_state:  State of the current pipeline execution
     :param name:       SPICE Kernel filename
     :param collection: SPICE Kernel collection that will be a container of
                        the SPICE Kernel Product object
     """
 
-    def __init__(self, setup, run_state, name: str, collection) -> None:
+    def __init__(self, setup, name: str, collection) -> None:
         """Constructor."""
         self.collection = collection
         self.setup = setup
@@ -149,7 +148,8 @@ class SpiceKernelProduct(Product):
         self.coverage()
         self.description = self.read_description()
 
-        Product.__init__(self, run_state)
+        Product.__init__(self)
+        self.derive_file_attributes()
 
         #
         # Extract the required information from the kernel list read from

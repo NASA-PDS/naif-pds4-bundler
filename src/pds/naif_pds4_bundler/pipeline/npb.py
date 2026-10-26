@@ -251,8 +251,9 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # orbnum file name is updated.
                 #
                 orbnum_product = OrbnumFileProduct(
-                    setup, run_state, kernel, miscellaneous_collection,
+                    setup, kernel, miscellaneous_collection,
                     spice_kernels_collection)
+                run_state.register_product(orbnum_product)
 
                 # Labeling used to happen inside OrbnumFileProduct itself, PDS4
                 # only -- there's no PDS3 label for orbnum files.
@@ -265,8 +266,9 @@ def run_pipeline(args: PipelineArgs) -> None:
                 miscellaneous_collection.add(orbnum_product)
 
             elif ".tm" not in kernel.lower():
-                kernel_product = SpiceKernelProduct(setup, run_state, kernel,
+                kernel_product = SpiceKernelProduct(setup, kernel,
                                                     spice_kernels_collection)
+                run_state.register_product(kernel_product)
 
                 # Labeling used to happen inside SpiceKernelProduct itself; it's
                 # picked here now, same PDS3/PDS4 choice as before.
