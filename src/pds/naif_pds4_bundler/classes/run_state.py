@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 
 # Setup is only needed for the type hints, so it is not imported at runtime.
 if TYPE_CHECKING:
+    from .product import Product
     from .setup import Setup
 
 
@@ -54,6 +55,20 @@ class RunState:
         :param checksum: MD5 checksum of the file.
         """
         self.checksum_registry.append(f"{path} {checksum}")
+
+    def register_product(self, product: Product) -> None:
+        """Add a new product to the File List and the Checksum Registry.
+
+        Products that are not new are skipped.
+
+        :param product: Product whose file has been written and whose
+            checksum is already resolved.
+        """
+        if not product.new_product:
+            return
+
+        self.add_file(str(product.archive_path))
+        self.add_checksum(product.path, product.checksum)
 
     def write_file_list(self, setup: Setup) -> None:
         """Write the run by-product File List in the working directory.

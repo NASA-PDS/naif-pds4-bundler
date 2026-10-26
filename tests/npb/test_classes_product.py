@@ -249,6 +249,37 @@ class StubFailingHookProduct(Product):
         raise ValueError('boom')
 
 
+class TestProductArchivePath:
+
+    @pytest.mark.parametrize('product_class, pds_version, parts, expected', [
+        (Product, '4',
+         ('bundle', 'maven_spice', 'spice_kernels', 'spk', 'k.bsp'),
+         Path('spice_kernels', 'spk', 'k.bsp')),
+        (Product, '3',
+         ('bundle', 'MAVEN_1001', 'data', 'spk', 'k.bsp'),
+         Path('data', 'spk', 'k.bsp')),
+        (StubHookProduct, '4',
+         ('bundle', 'custom_root', 'data', 'k.bsp'),
+         Path('data', 'k.bsp')),
+    ])
+    def test_archive_path_is_relative_to_the_archive_directory(
+            self, tmp_path, product_class, pds_version, parts,
+            expected) -> None:
+        """The path starts below '<mission>_spice' (PDS4), the volume id
+        (PDS3) or the directory named by an implemented _archive_root_dir."""
+
+        # Skip __init__; only path and setup matter here.
+        product = product_class.__new__(product_class)
+        product.path = str(tmp_path.joinpath(*parts))
+        product.setup = make_product_setup(tmp_path, pds_version=pds_version)
+
+        # Read the property.
+        archive_path = product.archive_path
+
+        # Everything up to and including the archive directory is dropped.
+        assert archive_path == expected
+
+
 class TestProductRegister:
 
     @pytest.mark.parametrize('pds_version', ['3', '4'])

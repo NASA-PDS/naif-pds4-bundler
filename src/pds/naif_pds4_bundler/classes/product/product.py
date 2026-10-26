@@ -68,27 +68,29 @@ class Product:
         self.checksum = checksum
 
         if self.new_product:
-
-            # TODO(product-split): remove once all products migrate off Product
-            #  directly
-            try:
-                archive_dir = self._archive_root_dir
-
-            # The base-class property raises this until a version base class
-            # implements it.
-            except NotImplementedError:
-                if self.setup.pds_version == "4":
-                    archive_dir = f"{self.setup.mission_acronym}_spice"
-                    
-                else:
-                    archive_dir = self.setup.volume_id
-
-            path = Path(self.path)
-            archive_dir_index = path.parts.index(archive_dir)
-            archive_path = Path(*path.parts[archive_dir_index + 1:])
-
-            self.run_state.add_file(str(archive_path))
+            self.run_state.add_file(str(self.archive_path))
             self.run_state.add_checksum(self.path, checksum)
+
+    @property
+    def archive_path(self) -> Path:
+        """Path of the product relative to the archive root directory."""
+        # TODO(product-split): remove once all products migrate off Product
+        #  directly
+        try:
+            archive_dir = self._archive_root_dir
+
+        # The base-class property raises this until a version base class
+        # implements it.
+        except NotImplementedError:
+            if self.setup.pds_version == "4":
+                archive_dir = f"{self.setup.mission_acronym}_spice"
+
+            else:
+                archive_dir = self.setup.volume_id
+
+        path = Path(self.path)
+        archive_dir_index = path.parts.index(archive_dir)
+        return Path(*path.parts[archive_dir_index + 1:])
 
     def _compute_checksum(self) -> str:
         """Resolve the product checksum.
