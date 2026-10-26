@@ -470,10 +470,11 @@ def run_pipeline(args: PipelineArgs) -> None:
                         log_step(setup, run_state,
                                  title='Generate checksum file')
                         release_checksum = ChecksumProduct(
-                            setup, run_state, miscellaneous_collection,
+                            setup, miscellaneous_collection,
                             add_previous_checksum=False
                         )
                         release_checksum.generate(history=release)
+                        run_state.register_product(release_checksum)
 
                         # Labeling used to happen inside ChecksumProduct.generate()
                         # itself. This whole branch only runs for PDS4, so
@@ -549,8 +550,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #      updated.
             #
             log_step(setup, run_state, title='Generate checksum file')
-            checksum = ChecksumProduct(
-                setup, run_state, miscellaneous_collection)
+            checksum = ChecksumProduct(setup, miscellaneous_collection)
 
             #
             # Before adding the checksum to the current collection
@@ -599,6 +599,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #   Miscellaneous Collection Inventory.
             #
             checksum.generate()
+            run_state.register_product(checksum)
 
             # Labeling used to happen inside ChecksumProduct.generate() itself.
             # This branch only runs for PDS4, so there's no PDS3 label to pick
@@ -623,10 +624,11 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             log_step(setup, run_state, title='Generate checksum file')
             checksum = ChecksumProduct(
-                setup, run_state, miscellaneous_collection,
+                setup, miscellaneous_collection,
                 add_previous_checksum=False
             )
             checksum.generate()
+            run_state.register_product(checksum)
 
             # Labeling used to happen inside ChecksumProduct.generate() itself.
             # This branch only runs for PDS3, so there's no PDS4 label to pick

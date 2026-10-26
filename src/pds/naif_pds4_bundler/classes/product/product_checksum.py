@@ -21,13 +21,12 @@ class ChecksumProduct(Product):
     """Class to generate a Checksum Product.
 
     :param setup:                 NPB execution setup object
-    :param run_state:             State of the current pipeline execution
     :param collection:            Miscellaneous Collection
     :param add_previous_checksum: True if there is a previous checksum file to
                                   be added, False otherwise
     """
 
-    def __init__(self, setup, run_state, collection,
+    def __init__(self, setup, collection,
                  add_previous_checksum: bool = True) -> None:
         """Constructor."""
         #
@@ -40,7 +39,6 @@ class ChecksumProduct(Product):
         #
         self.bytes = 0
         self.setup = setup
-        self.run_state = run_state
         self.collection = collection
         self.collection_path = (
             self.setup.staging_directory + os.sep + "miscellaneous" + os.sep
@@ -103,7 +101,8 @@ class ChecksumProduct(Product):
         # attributes.
         #
         self.new_product = True
-        Product.__init__(self, self.run_state)
+        self._set_common_attributes()
+        self.derive_file_attributes()
 
     def read_current_product(self, add_previous_checksum: bool = True) -> None:
         """Reads the current checksum file.

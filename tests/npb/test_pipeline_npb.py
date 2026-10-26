@@ -1016,7 +1016,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         misc = mocks.MiscellaneousCollection.return_value
         checksum_calls_for_misc = [
             c for c in mocks.ChecksumProduct.call_args_list
-            if c[0][2] is misc
+            if c[0][1] is misc
         ]
         assert len(checksum_calls_for_misc) >= 1
 
@@ -1084,6 +1084,45 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # If the label were written later, the checksum would hash a file
         # that does not exist yet.
         assert calls == ['label written', 'checksum generated']
+
+    def test_checksum_registered_between_generate_and_label(self, mocks):
+        # The checksum is registered right after its file is written and
+        # before it is labeled.
+        calls = []
+        checksum = mocks.ChecksumProduct.return_value
+        checksum.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('generated'))
+        mocks.RunState.return_value.register_product.side_effect = (
+            lambda product: calls.append('registered')
+            if product is checksum else None)
+        mocks.ChecksumPDS4Label.side_effect = (
+            lambda product: calls.append('labeled') or MagicMock())
+
+        run_pipeline(_args())
+
+        assert calls == ['generated', 'registered', 'labeled']
+
+    def test_backfilled_checksums_registered_between_generate_and_label(
+            self, mocks):
+        # Each past release checksum goes through the same three steps, one
+        # release after the other, and the current checksum follows.
+        mocks.Setup.return_value.increment = True
+        mocks.isdir.return_value = False
+        mocks.Bundle.return_value.history = {
+            'release_01': ('data', 'label'), 'release_02': ('data2', 'label2')}
+        calls = []
+        checksum = mocks.ChecksumProduct.return_value
+        checksum.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('generated'))
+        mocks.RunState.return_value.register_product.side_effect = (
+            lambda product: calls.append('registered')
+            if product is checksum else None)
+        mocks.ChecksumPDS4Label.side_effect = (
+            lambda product: calls.append('labeled') or MagicMock())
+
+        run_pipeline(_args())
+
+        assert calls == ['generated', 'registered', 'labeled'] * 3
 
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
@@ -1274,7 +1313,6 @@ class TestPhase10PDS3Path:
         run_pipeline(_args())
         mocks.ChecksumProduct.assert_called_once_with(
             mocks.Setup.return_value,
-            mocks.RunState.return_value,
             mocks.MiscellaneousCollection.return_value,
             add_previous_checksum=False,
         )
@@ -1283,6 +1321,23 @@ class TestPhase10PDS3Path:
         # The checksum file is written for the current PDS3 release.
         run_pipeline(_args())
         mocks.ChecksumProduct.return_value.generate.assert_called_once()
+
+    def test_pds3_checksum_registered_between_generate_and_label(self, mocks):
+        # The PDS3 checksum is registered right after its file is written and
+        # before it is labeled.
+        calls = []
+        checksum = mocks.ChecksumProduct.return_value
+        checksum.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('generated'))
+        mocks.RunState.return_value.register_product.side_effect = (
+            lambda product: calls.append('registered')
+            if product is checksum else None)
+        mocks.ChecksumPDS3Label.side_effect = (
+            lambda product: calls.append('labeled') or MagicMock())
+
+        run_pipeline(_args())
+
+        assert calls == ['generated', 'registered', 'labeled']
 
     def test_checksum_labeled_with_pds3_label(self, mocks):
         # This test class runs under pds_version="3" (set by the set_pds3

@@ -151,6 +151,38 @@ class TestProductInit:
         register_mock.assert_called_once_with(product)
 
 
+class TestProductSetCommonAttributes:
+
+    @pytest.mark.parametrize('creation_date_time, expected', [
+        ('2026-05-27T10:20:30Z', '2026-05-27T10:20:30Z'),
+        (None, '2026-06-01T01:02:03Z'),
+    ])
+    def test_sets_creation_time_date_and_extension(
+            self, mocker, tmp_path, creation_date_time, expected) -> None:
+        # The creation time comes from the setup when it has one and is
+        # generated otherwise; the date and the extension are derived.
+
+        # A bare product whose setup may or may not carry a creation time.
+        setup = make_product_setup(tmp_path)
+        if creation_date_time:
+            setup.creation_date_time = creation_date_time
+        product = Product.__new__(Product)
+        product.setup = setup
+        product.path = str(tmp_path / 'collection_inventory_v001.csv')
+        mocker.patch(
+            'pds.naif_pds4_bundler.classes.product.product.creation_time',
+            return_value='2026-06-01T01:02:03Z')
+
+        # Set the attributes.
+        product._set_common_attributes()
+
+        # All three are set, and nothing that needs the file is touched.
+        assert product.creation_time == expected
+        assert product.creation_date == expected.split('T')[0]
+        assert product.extension == 'csv'
+        assert not hasattr(product, 'checksum')
+
+
 class TestProductComputeChecksum:
 
     @pytest.mark.parametrize(

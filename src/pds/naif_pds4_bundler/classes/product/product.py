@@ -37,14 +37,7 @@ class Product:
             products not yet migrated to pipeline registration pass it
         """
         self.run_state = run_state
-
-        if hasattr(self.setup, "creation_date_time"):
-            self.creation_time = self.setup.creation_date_time
-        else:
-            self.creation_time = creation_time(time_format=self.setup.date_format)
-
-        self.creation_date = self.creation_time.split("T")[0]
-        self.extension = self.path.split(os.sep)[-1].split(".")[-1]
+        self._set_common_attributes()
 
         # These attributes will be assigned (computed) by the
         # derive_file_attributes method.
@@ -55,6 +48,16 @@ class Product:
         # TODO: remove this call. It should be done by the subclasses instead.
         if run_state is not None:
             self.register()
+
+    def _set_common_attributes(self) -> None:
+        """Set the creation time and date and the file extension."""
+        if hasattr(self.setup, "creation_date_time"):
+            self.creation_time = self.setup.creation_date_time
+        else:
+            self.creation_time = creation_time(time_format=self.setup.date_format)
+
+        self.creation_date = self.creation_time.split("T")[0]
+        self.extension = self.path.split(os.sep)[-1].split(".")[-1]
 
     @property
     def _archive_root_dir(self) -> str:
