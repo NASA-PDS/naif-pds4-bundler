@@ -295,9 +295,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         if meta_kernels:
             for mk in sorted(meta_kernels):
                 meta_kernel = MetaKernelProduct(
-                    setup, run_state, mk, spice_kernels_collection,
+                    setup, mk, spice_kernels_collection,
                     user_input=meta_kernels[mk]
                 )
+                run_state.register_product(meta_kernel)
 
                 if setup.pds_version == "4":
 
