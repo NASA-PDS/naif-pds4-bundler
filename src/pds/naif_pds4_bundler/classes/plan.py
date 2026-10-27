@@ -22,6 +22,7 @@ class ReleasePlan:
         self.run_state = run_state
         self.json_config = self.setup.kernel_list_config
         self._kernel_list = []
+        self._plan_path = None
 
     # ------------------------------------------------------------------
     # Public interface
@@ -35,6 +36,15 @@ class ReleasePlan:
         has been processed.
         """
         return self._kernel_list
+
+    @property
+    def plan_path(self) -> Path | None:
+        """Path of the plan file written by :meth:`write_plan`.
+
+        ``None`` unless a plan with kernels has been generated. A plan
+        written without kernels is not exposed.
+        """
+        return self._plan_path
 
     def read_plan(self, plan: Path) -> None:
         """Read Release Plan from the main module input.
@@ -128,10 +138,10 @@ class ReleasePlan:
         # Report the kernels that are included in the release plan.
         self._log_kernels_in_release_plan(kernels)
         self._kernel_list = kernels
+        self._plan_path = Path(self.setup.working_directory, plan_name)
 
         # Add plan to the list of generated files.
-        self.run_state.add_file(
-            str(Path(self.setup.working_directory, plan_name)))
+        self.run_state.add_file(str(self._plan_path))
 
         return True
 

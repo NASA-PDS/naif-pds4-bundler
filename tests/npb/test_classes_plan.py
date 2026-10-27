@@ -567,6 +567,58 @@ def test_write_plan_returns_false_when_no_kernels(tmp_path):
     assert result is False
 
 
+@pytest.mark.parametrize('release, expected_name', [
+    pytest.param(1, 'maven_release_01.plan', id='single_digit_release'),
+    pytest.param(12, 'maven_release_12.plan', id='double_digit_release'),
+])
+def test_write_plan_exposes_the_written_plan_path(
+        tmp_path, release, expected_name):
+    """When 'write_plan' finds kernels, 'plan_path' is the plan file in the
+    working directory, spelled exactly like the string the pipeline used to
+    register: str(Path(working_directory, plan_name)).
+    """
+    # One kernel in the kernels directory, so the plan is not empty.
+    ker_dir = tmp_path / 'kernels'
+    ker_dir.mkdir()
+    (ker_dir / 'maven_sc_rec_200101_200201_v01.bsp').touch()
+    setup = make_setup(
+        tmp_path, kernels_directory=[str(ker_dir)], release=release)
+    rp = make_release_plan(setup)
+
+    rp.write_plan()
+
+    # Compare the strings, since that is what ends up in the file list.
+    assert str(rp.plan_path) == str(
+        Path(setup.working_directory, expected_name))
+
+
+@pytest.mark.parametrize('calls', [
+    pytest.param([], id='before_any_call'),
+    pytest.param([('write_plan', [])], id='empty_plan_written'),
+    pytest.param([('read_plan', ['maven_release_01.plan'])], id='plan_read'),
+])
+def test_plan_path_is_none_unless_a_plan_with_kernels_is_written(
+        tmp_path, calls):
+    """'plan_path' stays None before any call, after 'write_plan' finds no
+    kernels, and after 'read_plan', since none of them generate a plan.
+    """
+    # A plan file with one kernel for 'read_plan' to read. The kernels
+    # directory is empty, so 'write_plan' finds nothing to put in a plan.
+    setup = make_setup(tmp_path)
+    working = Path(setup.working_directory)
+    write_plan_file(
+        working / 'maven_release_01.plan',
+        ['maven_sc_rec_200101_200201_v01.bsp'])
+    rp = make_release_plan(setup)
+
+    # Run the calls of the case, with the plan names inside the working
+    # directory.
+    for method, plan_names in calls:
+        getattr(rp, method)(*[working / name for name in plan_names])
+
+    assert rp.plan_path is None
+
+
 def test_write_plan_kernel_list_is_empty_list(tmp_path):
     setup = make_setup(tmp_path)
     rp = make_release_plan(setup)
