@@ -40,23 +40,39 @@ def test_main_cli_error(mocker):
     assert result == 2
 
 
-def test_main_system_exit_from_pipeline_coerced_to_2(mocker):
-    """Test main returns 2 for any SystemExit, regardless of its code.
+@pytest.mark.parametrize("code, expected", [
+    (0, 0),
+    (2, 2),
+    (1, 1),
+    (None, 0),
+    ("message", 2),
+])
+def test_main_system_exit_code_propagated(mocker, code, expected):
+    """Test main propagates the SystemExit code.
 
-    except SystemExit: return 2 does not inspect the actual exit code — it
-    assumes SystemExit only ever comes from argparse (always code 2). This
-    documents that assumption explicitly: a SystemExit raised elsewhere
-    (here, from run_pipeline) with a different code is still coerced to 2.
+    argparse exits with 0 for -h/--help and 2 for usage errors. None means
+    success, and a non-integer code (e.g. sys.exit("message")) is mapped to 2.
     """
     mocker.patch('pds.naif_pds4_bundler.__main__.cli_npb.parse_arguments',
-                 return_value=object())
+                 side_effect=SystemExit(code))
 
-    mocker.patch('pds.naif_pds4_bundler.__main__.npb.run_pipeline',
-                 side_effect=SystemExit(1))
+    assert main() == expected
 
-    result = main()
 
-    assert result == 2
+def test_main_help_returns_0(monkeypatch, capsys):
+    """Test that -h prints the help and main returns 0."""
+    monkeypatch.setattr(sys, "argv", ["naif-pds4-bundler", "-h"])
+
+    assert main() == 0
+    assert "usage:" in capsys.readouterr().out
+
+
+def test_main_unknown_argument_returns_2(monkeypatch, capsys):
+    """Test that an unknown option makes main return 2."""
+    monkeypatch.setattr(sys, "argv", ["naif-pds4-bundler", "cfg.xml", "--bogus"])
+
+    assert main() == 2
+    assert "unrecognized arguments" in capsys.readouterr().err
 
 
 def test_main_unexpected_error(mocker, capsys):
