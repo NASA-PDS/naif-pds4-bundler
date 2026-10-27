@@ -15,7 +15,6 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.plan import ReleasePlan
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 # ===========================================================================
@@ -475,9 +474,8 @@ def test_write_plan_plan_file_is_created(tmp_path):
 
 
 def test_write_plan_plan_contains_matched_kernel(tmp_path):
-    """Tests that the plan contains the matched kernel, the kernel is in the kernel_list
-    attribute and that the plan has been registered in the list of file to write at the
-    end of an execution.
+    """Tests that the plan contains the matched kernel and that the kernel is
+    in the kernel_list attribute.
     """
     ker_dir = tmp_path / "kernels"
     ker_dir.mkdir()
@@ -489,8 +487,6 @@ def test_write_plan_plan_contains_matched_kernel(tmp_path):
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in plan_contents(setup)
     assert "maven_sc_rec_200101_200201_v01.bsp" in rp.kernel_list
-    files = [f.replace(str(tmp_path), 'p') for f in rp.run_state.file_list]
-    assert files == [f'{Path("p/working/maven_release_01.plan")}']
 
 
 def test_write_plan_unmatched_kernel_not_in_plan(tmp_path):
@@ -625,14 +621,6 @@ def test_write_plan_kernel_list_is_empty_list(tmp_path):
     rp.write_plan()
 
     assert rp.kernel_list == []
-
-
-def test_write_plan_add_file_not_called_when_empty(tmp_path):
-    setup = make_setup(tmp_path)
-    rp = make_release_plan(setup)
-    rp.write_plan()
-
-    assert rp.run_state.file_list == []
 
 
 @pytest.mark.skip(reason="Bug not fixed yet.")
@@ -1676,7 +1664,7 @@ def make_release_plan(setup):
     """Instantiate ReleasePlan while suppressing the read_config I/O."""
     # read_config only reads from setup.kernel_list_config (already a dict)
     # and writes to self.re_config / self.json_config — no filesystem access.
-    return ReleasePlan(setup, RunState())
+    return ReleasePlan(setup)
 
 
 def make_setup(

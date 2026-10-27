@@ -14,12 +14,10 @@ class ReleasePlan:
     """Class to represent the release plan.
 
     :param setup: NPB execution setup object.
-    :param run_state: State of the current pipeline execution
     """
-    def __init__(self, setup, run_state):
+    def __init__(self, setup):
         """Constructor."""
         self.setup = setup
-        self.run_state = run_state
         self.json_config = self.setup.kernel_list_config
         self._kernel_list = []
         self._plan_path = None
@@ -139,9 +137,6 @@ class ReleasePlan:
         self._log_kernels_in_release_plan(kernels)
         self._kernel_list = kernels
         self._plan_path = Path(self.setup.working_directory, plan_name)
-
-        # Add plan to the list of generated files.
-        self.run_state.add_file(str(self._plan_path))
 
         return True
 
