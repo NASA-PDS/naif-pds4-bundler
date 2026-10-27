@@ -842,7 +842,7 @@ Product in Kernel List Checks
 SPICE Kernel Integrity Check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity
+.. automodule:: pds.naif_pds4_bundler.classes.list.KernelList._check_kernel_integrity
 
 
 Meta-kernel Validation
@@ -866,16 +866,16 @@ Inventory Product Validation
 Checksum Validation
 ^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: pds.naif_pds4_bundler.classes.bundle.Bundle.validate_history
+.. automodule:: pds.naif_pds4_bundler.classes.bundle.Bundle._validate_history
 
 
 Product Comparison
 ^^^^^^^^^^^^^^^^^^
 
-.. automodule:: pds.naif_pds4_bundler.classes.label.PDSLabel.compare
+.. automodule:: pds.naif_pds4_bundler.classes.label.label.PDSLabel.compare
 .. automodule:: pds.naif_pds4_bundler.classes.product.MetaKernelProduct.compare
 .. automodule:: pds.naif_pds4_bundler.classes.product.InventoryPDS4Product.compare
-.. automodule:: pds.naif_pds4_bundler.classes.product.SpicedsProduct.compare
+.. automodule:: pds.naif_pds4_bundler.classes.product.SpicedsProduct._compare
 .. automodule:: pds.naif_pds4_bundler.classes.product.ChecksumProduct.compare
 
 

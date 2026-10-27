@@ -196,8 +196,8 @@ class PDSLabel:
     def compare(self) -> None:
         """Compare the label with another label.
 
-        The label to compare against is determined by the first criteria
-        met from the following list, in order:
+        The label is compared with another label, determined by the first
+        criteria met from the following list, in order:
 
            * find a different version of the same label
            * find the label of a product of the same kind (e.g.: same kernel

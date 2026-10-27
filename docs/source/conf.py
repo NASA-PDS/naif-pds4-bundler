@@ -10,6 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import inspect
 import os
 import sys
 sys.path.insert(0, os.path.abspath('.'))
@@ -51,6 +52,40 @@ extensions = [
 
 # Make sure the target is unique
 autosectionlabel_prefix_document = True
+
+
+def strip_api_summary_and_fields(app, what, name, obj, options, lines):
+    """Strip the API parts of method docstrings used as narrative text.
+
+    The "Checks performed by NPB" section of the user guide includes method
+    docstrings with ``automodule`` to describe each check. autodoc reports
+    those objects as modules, whereas their API documentation goes through
+    ``automethod``/``autoclass``. The summary line (already given by the
+    section heading) and the field list (``:param:``, ``:return:``, etc.)
+    are only meaningful in the latter, so they are removed from the former.
+    """
+    if what != "module" or inspect.ismodule(obj):
+        return
+
+    # The summary is the first paragraph; keep it if it is all there is.
+    body_start = lines.index("") + 1 if "" in lines else len(lines)
+    if any(lines[body_start:]):
+        del lines[:body_start]
+
+    kept = []
+    in_field = False
+    for line in lines:
+        if line.startswith(":"):
+            in_field = True
+        elif in_field and line and not line[0].isspace():
+            in_field = False
+        if not in_field:
+            kept.append(line)
+    lines[:] = kept
+
+
+def setup(app):
+    app.connect("autodoc-process-docstring", strip_api_summary_and_fields)
 
 
 # Add any paths that contain templates here, relative to this directory.

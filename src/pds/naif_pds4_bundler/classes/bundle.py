@@ -718,7 +718,7 @@ class Bundle:
     def _validate_history(self):
         """Validate the bundle updated history with the checksum files.
 
-        This method validates all the archive Checksum files with the "Archive
+        NPB validates all the archive Checksum files with the "Archive
         History". The "Archive history" is obtained by extracting the
         previous releases and the Collections that correspond to each release
         from the Bundle labels. The other products' information is extracted
@@ -730,7 +730,7 @@ class Bundle:
         The validation is performed by comparing each release entry of the
         dictionary with the release checksum file ``checksum_v???.tab``.
 
-        In parallel the method writes in the execution log the complete bundle
+        In parallel NPB writes in the execution log the complete bundle
         release history, providing an ordered list of files released for each
         release number.
         """
