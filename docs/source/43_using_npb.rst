@@ -842,7 +842,7 @@ Product in Kernel List Checks
 SPICE Kernel Integrity Check
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: pds.naif_pds4_bundler.classes.product.SpiceKernelProduct.check_kernel_integrity
+.. automodule:: pds.naif_pds4_bundler.classes.list.KernelList._check_kernel_integrity
 
 
 Meta-kernel Validation
