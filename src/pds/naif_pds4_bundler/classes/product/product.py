@@ -18,8 +18,8 @@ class Product:
     exists on disk.
     """
 
-    # Stays None for a product that returns before deriving its file
-    # attributes, so the registration can tell it has no file to register.
+    # ChecksumProduct never calls Product.__init__, so it relies on this
+    # default to have the attribute before generate() runs.
     registered_path = None
 
     def __init__(self) -> None:
@@ -30,7 +30,6 @@ class Product:
         # derive_file_attributes method.
         self.checksum = None
         self._size = None
-        self.registered_path = None
 
     def _set_common_attributes(self) -> None:
         """Set the creation time and date and the file extension."""
