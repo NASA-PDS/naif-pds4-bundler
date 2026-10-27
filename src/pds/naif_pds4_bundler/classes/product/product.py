@@ -18,6 +18,14 @@ class Product:
     exists on disk.
     """
 
+    # Whether the product is new in this run. Subclasses that can find their
+    # file already in place override it to False. It stays a class attribute
+    # because ChecksumProduct, and SpicedsProduct when it returns early, never
+    # reach Product.__init__ and still need it for is_registrable.
+    # TODO: (product-split) assign it in Product.__init__ once both always
+    #       reach it.
+    new_product = True
+
     # ChecksumProduct never calls Product.__init__, so it relies on this
     # default to have the attribute before generate() runs.
     _registered_path = None

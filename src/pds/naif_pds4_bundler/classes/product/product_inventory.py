@@ -27,11 +27,7 @@ class InventoryProduct(Product):
 
         self._set_location()
 
-        #
-        # Kernels are already generated products but Inventories are not.
-        #
         self.write_product()
-        self.new_product = True
 
         super().__init__()
         self.derive_file_attributes()

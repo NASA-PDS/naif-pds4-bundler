@@ -97,7 +97,6 @@ class SpiceKernelProduct(Product):
                 #
                 if file:
                     origin_path = file[0]
-                    self.new_product = True
                     break
 
             #
@@ -115,7 +114,6 @@ class SpiceKernelProduct(Product):
 
                     if file:
                         origin_path = file[0]
-                        self.new_product = True
 
                         logging.info(
                             '-- Mapping %s with %s',
@@ -132,13 +130,10 @@ class SpiceKernelProduct(Product):
             shutil.copy2(origin_path, product_path + os.sep + self.name)
 
         else:
-            logging.warning('     %s already present in staging directory.', self.name)
-
-            #
             # Even though it is not a 'new' product, the file is present in
-            # the staging area because it was generated in a prior run.
-            #
-            self.new_product = True
+            # the staging area because it was generated in a prior run, so
+            # do not change the new_product value (keep it True).
+            logging.warning('     %s already present in staging directory.', self.name)
 
         #
         # We update the path after having copied the kernel.

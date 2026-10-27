@@ -58,7 +58,6 @@ class MetaKernelProduct(Product):
             self.template = f"{setup.templates_directory}/template_metakernel.tm"
             self.path = self.template
 
-        self.new_product = True
         self.setup = setup
         self.collection = spice_kernels_collection
         self.file_format = "Character"
@@ -214,8 +213,6 @@ class MetaKernelProduct(Product):
         if self.setup.args.diff:
             self.compare()
         logging.info("")
-
-        self.new_product = True
 
         #
         # Following the product generation we read the kernels again to

@@ -35,8 +35,6 @@ class OrbnumFileProduct(Product):
         self.kernels_collection = spice_kernels_collection
         self.setup = setup
         self.name = name
-        self.extension = name.split(".")[-1].strip()
-        self.path = setup.orbnum_directory
 
         # The orbnum files are staged under "extras" (PDS3) or "miscellaneous"
         # (PDS4), in an "orbnum" directory.
@@ -45,6 +43,12 @@ class OrbnumFileProduct(Product):
             + archive_subdirectory("orbnum", setup.pds_version)
         )
         product_path = self.collection_path + os.sep + "orbnum" + os.sep
+
+        # The file is copied from the orbnum directory in the configuration
+        # and from then on lives in the staging directory.
+        self.path = product_path + self.name
+
+        super().__init__()
 
         #
         # Map the orbnum file with its configuration.
@@ -76,9 +80,9 @@ class OrbnumFileProduct(Product):
 
         if not os.path.isfile(product_path + self.name):
             shutil.copy2(
-                self.path + os.sep + self.name, product_path + os.sep + self.name
+                setup.orbnum_directory + os.sep + self.name,
+                product_path + os.sep + self.name
             )
-            self.new_product = True
         else:
             logging.warning('     %s already present in staging directory.',
                             self.name)
@@ -94,11 +98,6 @@ class OrbnumFileProduct(Product):
                 add_crs_to_file(
                     product_path + os.sep + self.name, self.setup.eol
                 )
-
-        #
-        # We update the path after having copied the kernel.
-        #
-        self.path = product_path + self.name
 
         #
         # We obtain the parameters required to fill the label.
@@ -140,7 +139,6 @@ class OrbnumFileProduct(Product):
             if "target" in self._orbnum_type:
                 self.targets = [self._orbnum_type["target"]]
 
-        super().__init__()
         self.derive_file_attributes()
 
     def set_product_lid(self) -> None:

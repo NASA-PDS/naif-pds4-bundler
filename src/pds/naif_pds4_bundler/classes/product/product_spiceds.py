@@ -25,7 +25,6 @@ class SpicedsProduct(Product):
         """Constructor."""
         self.setup = setup
         self.collection = collection
-        self.new_product = True
 
         try:
             spiceds = self.setup.spiceds
@@ -117,10 +116,6 @@ class SpicedsProduct(Product):
         #
         self._check_cr()
 
-        #
-        # Kernels are already generated products but Inventories are not.
-        #
-        self.new_product = True
         super().__init__()
         self.derive_file_attributes()
 

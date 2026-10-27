@@ -20,6 +20,8 @@ class PDS3DocumentProduct(Product):
         self.setup = setup
         self.name = path.split(os.sep)[-1]
 
+        super().__init__()
+
         #
         # Compare with the already existing file -that has the same name-, if
         # files are the same do not include as an updated file.
@@ -38,11 +40,8 @@ class PDS3DocumentProduct(Product):
         if not same_files:
             self.new_product = False
         else:
-            self.new_product = True
-
             self._validate()
 
-        super().__init__()
         self.derive_file_attributes()
 
     def _validate(self) -> None:

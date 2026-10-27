@@ -45,7 +45,6 @@ class ChecksumProduct(Product):
         )
         self.file_records = 0
         self.label = None
-        self.new_product = True
         self.record_bytes = 0
         self.start_time = ''
         self.stop_time = ''

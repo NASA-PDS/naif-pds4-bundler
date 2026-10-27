@@ -340,6 +340,16 @@ class TestProductDeriveFileAttributes:
         # Both conditions have to hold.
         assert result is expected
 
+    def test_new_product_defaults_to_true_without_running_init(self) -> None:
+        """A product that skips the constructor, like ChecksumProduct, is
+        still new unless it says otherwise."""
+
+        # A product that never ran __init__ nor set the attribute.
+        product = Product.__new__(Product)
+
+        # The class default applies.
+        assert product.new_product is True
+
     def test_init_does_not_read_the_file(self, tmp_path) -> None:
         """The constructor only sets the common attributes; it neither reads
         the file nor derives anything from it."""

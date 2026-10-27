@@ -28,6 +28,8 @@ class ReadmeProduct(Product):
         # Create an attribute named "collection", with an attribute "name".
         self.collection = SimpleNamespace(name="")
 
+        super().__init__()
+
         path = (
             self.setup.bundle_directory
             + f"/{self.setup.mission_acronym}_spice/readme.txt"
@@ -40,7 +42,6 @@ class ReadmeProduct(Product):
         else:
             logging.info("-- Generating readme file...")
             self._write_product()
-            self.new_product = True
 
             #
             # If the product is generated we define a checksum attribute for
@@ -48,7 +49,6 @@ class ReadmeProduct(Product):
             #
             self.bundle.checksum = md5(self.path)
 
-        super().__init__()
         self.derive_file_attributes()
 
         logging.info("")
