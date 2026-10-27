@@ -39,6 +39,7 @@ from .time import (
     creation_time,
     current_date,
     dsk_coverage,
+    ek_coverage,
     et_to_date,
     pck_coverage,
     spk_coverage
@@ -58,6 +59,7 @@ __all__ = [
     'creation_time',
     'current_date',
     'dsk_coverage',
+    'ek_coverage',
     'et_to_date',
     'etree_to_dict',
     'extension_to_type',

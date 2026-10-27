@@ -10,6 +10,7 @@ from ..exceptions import NPBError, NPBInternalError
 from ...utils import archive_subdirectory
 from ...utils import ck_coverage
 from ...utils import dsk_coverage
+from ...utils import ek_coverage
 from ...utils import extension_to_type
 from ...utils import extract_comment
 from ...utils import pck_coverage
@@ -305,6 +306,16 @@ class SpiceKernelProduct(Product):
                 coverage += dsk_coverage(
                     self.path, date_format=self.setup.date_format, system=system
                 )
+            elif self.type.lower() == "ek":
+                coverage += ek_coverage(
+                    self.path, date_format=self.setup.date_format, system=system
+                )
+                # If EK has no time coverage, use mission defaults
+                if coverage == ["", ""]:
+                    if self.setup.pds_version == "3":
+                        coverage = ['"N/A"', '"N/A"']
+                    else:
+                        coverage = [self.setup.mission_start, self.setup.mission_finish]
             else:
                 if self.setup.pds_version == "3":
                     coverage = ['"N/A"', '"N/A"']
