@@ -345,7 +345,7 @@ class TestPhase3ReleasePlan:
         'written, plan_path, arg_overrides, expected_files', [
             pytest.param(
                 True, Path('/work/maven_release_01.plan'), {},
-                ['/work/maven_release_01.plan'], id='plan_generated'),
+                [Path('/work/maven_release_01.plan')], id='plan_generated'),
             pytest.param(
                 False, None, {}, [], id='empty_plan_run_continues'),
             pytest.param(
@@ -374,9 +374,10 @@ class TestPhase3ReleasePlan:
         run_pipeline(_args(**arg_overrides))
 
         # The mocked products and labels never call 'add_file', so any call
-        # to it comes from the plan.
+        # to it comes from the plan. The path is registered as a string, in
+        # the separator style of the platform.
         assert mocks.RunState.return_value.add_file.call_args_list == [
-            call(path) for path in expected_files]
+            call(str(path)) for path in expected_files]
 
     def test_plan_registered_before_the_products(self, mocks):
         """The plan file is the first entry of the list of generated files,
