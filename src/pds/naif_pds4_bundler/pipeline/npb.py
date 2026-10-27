@@ -251,8 +251,9 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # orbnum file name is updated.
                 #
                 orbnum_product = OrbnumFileProduct(
-                    setup, run_state, kernel, miscellaneous_collection,
+                    setup, kernel, miscellaneous_collection,
                     spice_kernels_collection)
+                run_state.register_product(orbnum_product)
 
                 # Labeling used to happen inside OrbnumFileProduct itself, PDS4
                 # only -- there's no PDS3 label for orbnum files.
@@ -265,8 +266,9 @@ def run_pipeline(args: PipelineArgs) -> None:
                 miscellaneous_collection.add(orbnum_product)
 
             elif ".tm" not in kernel.lower():
-                kernel_product = SpiceKernelProduct(setup, run_state, kernel,
+                kernel_product = SpiceKernelProduct(setup, kernel,
                                                     spice_kernels_collection)
+                run_state.register_product(kernel_product)
 
                 # Labeling used to happen inside SpiceKernelProduct itself; it's
                 # picked here now, same PDS3/PDS4 choice as before.
@@ -293,9 +295,10 @@ def run_pipeline(args: PipelineArgs) -> None:
         if meta_kernels:
             for mk in sorted(meta_kernels):
                 meta_kernel = MetaKernelProduct(
-                    setup, run_state, mk, spice_kernels_collection,
+                    setup, mk, spice_kernels_collection,
                     user_input=meta_kernels[mk]
                 )
+                run_state.register_product(meta_kernel)
 
                 if setup.pds_version == "4":
 
@@ -370,8 +373,9 @@ def run_pipeline(args: PipelineArgs) -> None:
             # label classes are both picked here.
             if setup.pds_version == "4":
                 spice_kernels_collection_inventory = InventoryPDS4Product(
-                    setup, run_state, spice_kernels_collection
+                    setup, spice_kernels_collection
                 )
+                run_state.register_product(spice_kernels_collection_inventory)
                 spice_kernels_collection_inventory.label = InventoryPDS4Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
                 run_state.register_label_file(
@@ -379,8 +383,9 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             else:
                 spice_kernels_collection_inventory = InventoryPDS3Product(
-                    setup, run_state, spice_kernels_collection
+                    setup, spice_kernels_collection
                 )
+                run_state.register_product(spice_kernels_collection_inventory)
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
                     spice_kernels_collection_inventory, spice_kernels_collection)
                 run_state.register_label_file(
@@ -396,14 +401,15 @@ def run_pipeline(args: PipelineArgs) -> None:
             #
             # * Generate the Document Collection.
             #
-            document_collection = DocumentCollection(setup, run_state, bundle)
+            document_collection = DocumentCollection(setup, bundle)
             document_collection.set_collection_vid()
 
             #
             # * Generate of SPICEDS document.
             #
             log_step(setup, run_state, title='Processing spiceds file')
-            spiceds = SpicedsProduct(setup, run_state, document_collection)
+            spiceds = SpicedsProduct(setup, document_collection)
+            run_state.register_product(spiceds)
 
             #
             # * If the SPICEDS document is generated, generate the
@@ -422,8 +428,9 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 log_step(setup, run_state, title=f'Generation of {document_collection.name} collection')
                 document_collection_inventory = InventoryPDS4Product(
-                    setup, run_state, document_collection
+                    setup, document_collection
                 )
+                run_state.register_product(document_collection_inventory)
 
                 # This branch only runs for PDS4, so there's no PDS3 label to pick.
                 document_collection_inventory.label = InventoryPDS4Label(
@@ -463,10 +470,11 @@ def run_pipeline(args: PipelineArgs) -> None:
                         log_step(setup, run_state,
                                  title='Generate checksum file')
                         release_checksum = ChecksumProduct(
-                            setup, run_state, miscellaneous_collection,
+                            setup, miscellaneous_collection,
                             add_previous_checksum=False
                         )
                         release_checksum.generate(history=release)
+                        run_state.register_product(release_checksum)
 
                         # Labeling used to happen inside ChecksumProduct.generate()
                         # itself. This whole branch only runs for PDS4, so
@@ -500,8 +508,9 @@ def run_pipeline(args: PipelineArgs) -> None:
                         # (PDS4 branch), therefore, we do not log the step, as we do
                         # every other time we generate an inventory product.
                         release_miscellaneous_collection_inventory = InventoryPDS4Product(
-                            setup, run_state, release_miscellaneous_collection
+                            setup, release_miscellaneous_collection
                         )
+                        run_state.register_product(release_miscellaneous_collection_inventory)
 
                         # This runs once per past release, always PDS4-only,
                         # same as the site above.
@@ -541,8 +550,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #      updated.
             #
             log_step(setup, run_state, title='Generate checksum file')
-            checksum = ChecksumProduct(
-                setup, run_state, miscellaneous_collection)
+            checksum = ChecksumProduct(setup, miscellaneous_collection)
 
             #
             # Before adding the checksum to the current collection
@@ -561,8 +569,9 @@ def run_pipeline(args: PipelineArgs) -> None:
             # therefore, we do not log the step, as we do every other time we
             # generate an inventory product.
             miscellaneous_collection_inventory = InventoryPDS4Product(
-                setup, run_state, miscellaneous_collection
+                setup, miscellaneous_collection
             )
+            run_state.register_product(miscellaneous_collection_inventory)
 
             # The current release's own miscellaneous inventory, PDS4-only.
             miscellaneous_collection_inventory.label = InventoryPDS4Label(
@@ -576,7 +585,8 @@ def run_pipeline(args: PipelineArgs) -> None:
             # * Generate the Bundle label and if necessary the readme file.
             #
             log_step(setup, run_state, title='Generation of bundle products')
-            bundle.readme = ReadmeProduct(setup, run_state, bundle)
+            bundle.readme = ReadmeProduct(setup, bundle)
+            run_state.register_product(bundle.readme)
 
             logging.info("-- Generating bundle label...")
             bundle.readme.label = BundlePDS4Label(bundle.readme)
@@ -589,6 +599,7 @@ def run_pipeline(args: PipelineArgs) -> None:
             #   Miscellaneous Collection Inventory.
             #
             checksum.generate()
+            run_state.register_product(checksum)
 
             # Labeling used to happen inside ChecksumProduct.generate() itself.
             # This branch only runs for PDS4, so there's no PDS3 label to pick
@@ -601,10 +612,11 @@ def run_pipeline(args: PipelineArgs) -> None:
 
         else:  # if setup.pds_version == "3":
 
-            document_collection = DocumentCollection(setup, run_state, bundle)
+            document_collection = DocumentCollection(setup, bundle)
 
             log_step(setup, run_state, title='Generation of PDS3 products')
-            document_collection.get_pds3_documents()
+            for document in document_collection.get_pds3_documents():
+                run_state.register_product(document)
 
             bundle.add(spice_kernels_collection)
             bundle.add(document_collection)
@@ -612,10 +624,11 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             log_step(setup, run_state, title='Generate checksum file')
             checksum = ChecksumProduct(
-                setup, run_state, miscellaneous_collection,
+                setup, miscellaneous_collection,
                 add_previous_checksum=False
             )
             checksum.generate()
+            run_state.register_product(checksum)
 
             # Labeling used to happen inside ChecksumProduct.generate() itself.
             # This branch only runs for PDS3, so there's no PDS4 label to pick

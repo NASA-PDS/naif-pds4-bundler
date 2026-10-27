@@ -18,11 +18,10 @@ class SpicedsProduct(Product):
     """Class to process the SPICEDS file.
 
     :param setup:      NPB execution setup object
-    :param run_state:  State of the current pipeline execution
     :param collection: Collection that the inventory product belongs to
     """
 
-    def __init__(self, setup, run_state, collection) -> None:
+    def __init__(self, setup, collection) -> None:
         """Constructor."""
         self.setup = setup
         self.collection = collection
@@ -122,7 +121,8 @@ class SpicedsProduct(Product):
         # Kernels are already generated products but Inventories are not.
         #
         self.new_product = True
-        super().__init__(run_state)
+        super().__init__()
+        self.derive_file_attributes()
 
         #
         # Check if the spiceds has not changed.

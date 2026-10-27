@@ -14,25 +14,25 @@ class Product:
     Assigns value to the common attributes for all Products: file size,
     creation time and date, and file extension.
 
-    Subclasses must call ``register()`` once the product file exists on disk.
+    Subclasses must call ``derive_file_attributes()`` once the product file
+    exists on disk.
     """
 
-    # TODO: update this method to have path and setup as input arguments.
-    #
-    #   def __init__(self, path: str, setup, run_state) -> None:
-    #       """Constructor. Initialises attributes derivable without I/O.
-    #
-    #       :param path:  Absolute path to the product file
-    #       :param setup: NPB execution setup object
-    #       :param run_state: State of the current pipeline execution
-    #       """
-    def __init__(self, run_state) -> None:
-        """Constructor.
+    # ChecksumProduct never calls Product.__init__, so it relies on this
+    # default to have the attribute before generate() runs.
+    _registered_path = None
 
-        :param run_state: State of the current pipeline execution
-        """
-        self.run_state = run_state
+    def __init__(self) -> None:
+        """Constructor."""
+        self._set_common_attributes()
 
+        # These attributes will be assigned (computed) by the
+        # derive_file_attributes method.
+        self.checksum = None
+        self._size = None
+
+    def _set_common_attributes(self) -> None:
+        """Set the creation time and date and the file extension."""
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
         else:
@@ -41,54 +41,61 @@ class Product:
         self.creation_date = self.creation_time.split("T")[0]
         self.extension = self.path.split(os.sep)[-1].split(".")[-1]
 
-        # These attributes will be assigned (computed) by the register method.
-        self.checksum = None
-        self._size = None
-
-        # TODO: remove this call. It should be done by the subclasses instead.
-        self.register()
-
     @property
     def _archive_root_dir(self) -> str:
         """Name of the top-level archive directory for this product's PDS version."""
         raise NotImplementedError
 
-    def register(self) -> None:
-        """Finalize file-derived attributes and register the product.
+    def derive_file_attributes(self) -> None:
+        """Derive the attributes that depend on the product file.
 
-        Must be called once the product file exists on disk. Reads file size,
-        resolves or computes the checksum, and registers the file and checksum
-        with the pipeline.
+        Must be called once the product file exists on disk. Reads file size
+        and resolves or computes the checksum.
         """
         stat_info = os.stat(self.path)
         self._size = str(stat_info.st_size)
 
-        checksum = self._compute_checksum()
+        self.checksum = self._compute_checksum()
 
-        self.checksum = checksum
+        # Registration reads this instead of self.path, which a subclass may
+        # change afterward (the readme does so to name its label).
+        self._registered_path = self.path
 
-        if self.new_product:
+    @property
+    def registered_path(self) -> str:
+        """Absolute path of the product file, as it was when derived."""
+        return self._registered_path
 
-            # TODO(product-split): remove once all products migrate off Product
-            #  directly
-            try:
-                archive_dir = self._archive_root_dir
+    @property
+    def is_registrable(self) -> bool:
+        """Whether the product has a file to add to the run records.
 
-            # The base-class property raises this until a version base class
-            # implements it.
-            except NotImplementedError:
-                if self.setup.pds_version == "4":
-                    archive_dir = f"{self.setup.mission_acronym}_spice"
-                    
-                else:
-                    archive_dir = self.setup.volume_id
+        Only new products are registered, and only once their file
+        attributes were derived. The path stays None for a product that
+        returns before deriving them, so there is nothing to register.
+        """
+        return self.new_product and self._registered_path is not None
 
-            path = Path(self.path)
-            archive_dir_index = path.parts.index(archive_dir)
-            archive_path = Path(*path.parts[archive_dir_index + 1:])
+    @property
+    def archive_path(self) -> Path:
+        """Path of the product relative to the archive root directory."""
+        # TODO(product-split): remove once all products migrate off Product
+        #  directly
+        try:
+            archive_dir = self._archive_root_dir
 
-            self.run_state.add_file(str(archive_path))
-            self.run_state.add_checksum(self.path, checksum)
+        # The base-class property raises this until a version base class
+        # implements it.
+        except NotImplementedError:
+            if self.setup.pds_version == "4":
+                archive_dir = f"{self.setup.mission_acronym}_spice"
+
+            else:
+                archive_dir = self.setup.volume_id
+
+        path = Path(self._registered_path)
+        archive_dir_index = path.parts.index(archive_dir)
+        return Path(*path.parts[archive_dir_index + 1:])
 
     def _compute_checksum(self) -> str:
         """Resolve the product checksum.

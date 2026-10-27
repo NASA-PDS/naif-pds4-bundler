@@ -777,8 +777,8 @@ class TestPhase8CollectionMetadata:
         run_pipeline(_args())
         inventory = getattr(mocks, inventory_class)
         inventory.assert_called()
-        # The positional arguments are (setup, run_state, collection).
-        first_call_collection = inventory.call_args_list[0][0][2]
+        # The positional arguments are (setup, collection).
+        first_call_collection = inventory.call_args_list[0][0][1]
         assert first_call_collection is mocks.SpiceKernelsCollection.return_value
 
     def test_inventory_product_not_created_for_skc_when_not_updated(self, mocks):
@@ -792,7 +792,7 @@ class TestPhase8CollectionMetadata:
         calls_for_skc = [
             c for c in (mocks.InventoryPDS3Product.call_args_list
                         + mocks.InventoryPDS4Product.call_args_list)
-            if c[0][2] is skc
+            if c[0][1] is skc
         ]
         assert calls_for_skc == []
 
@@ -806,7 +806,7 @@ class TestPhase8CollectionMetadata:
         skc.set_collection_vid.assert_not_called()
         calls_for_skc = [
             c for c in mocks.InventoryPDS3Product.call_args_list
-            if c[0][2] is skc
+            if c[0][1] is skc
         ]
         assert len(calls_for_skc) == 1
         # The PDS3 run must not build a PDS4 inventory.
@@ -894,8 +894,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # DocumentCollection is constructed with the shared setup and bundle objects.
         run_pipeline(_args())
         mocks.DocumentCollection.assert_called_with(
-            mocks.Setup.return_value, mocks.RunState.return_value,
-            mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.Bundle.return_value
         )
 
     def test_document_collection_vid_set(self, mocks):
@@ -907,9 +906,18 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # SpicedsProduct is constructed with setup and the document collection.
         run_pipeline(_args())
         mocks.SpicedsProduct.assert_called_once_with(
-            mocks.Setup.return_value, mocks.RunState.return_value,
-            mocks.DocumentCollection.return_value
+            mocks.Setup.return_value, mocks.DocumentCollection.return_value
         )
+
+    @pytest.mark.parametrize('generated', [True, False])
+    def test_spiceds_registered_whether_or_not_generated(
+            self, mocks, generated):
+        # The pipeline hands over the spiceds either way; the run state
+        # decides whether there is anything to register.
+        mocks.SpicedsProduct.return_value.generated = generated
+        run_pipeline(_args())
+        mocks.RunState.return_value.register_product.assert_any_call(
+            mocks.SpicedsProduct.return_value)
 
     def test_spiceds_labeled_with_pds4_label_when_generated(self, mocks):
         # Force the "spiceds changed" branch so labeling actually runs.
@@ -947,7 +955,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         doc_col.add.assert_any_call(mocks.SpicedsProduct.return_value)
         inventory_calls_for_doc = [
             c for c in mocks.InventoryPDS4Product.call_args_list
-            if c[0][2] is doc_col
+            if c[0][1] is doc_col
         ]
         assert len(inventory_calls_for_doc) >= 1
 
@@ -977,7 +985,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         doc_col = mocks.DocumentCollection.return_value
         inventory_calls_for_doc = [
             c for c in mocks.InventoryPDS4Product.call_args_list
-            if c[0][2] is doc_col
+            if c[0][1] is doc_col
         ]
         assert inventory_calls_for_doc == []
 
@@ -1008,7 +1016,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         misc = mocks.MiscellaneousCollection.return_value
         checksum_calls_for_misc = [
             c for c in mocks.ChecksumProduct.call_args_list
-            if c[0][2] is misc
+            if c[0][1] is misc
         ]
         assert len(checksum_calls_for_misc) >= 1
 
@@ -1042,8 +1050,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # A ReadmeProduct is created with the shared setup and bundle.
         run_pipeline(_args())
         mocks.ReadmeProduct.assert_called_once_with(
-            mocks.Setup.return_value, mocks.RunState.return_value,
-            mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.Bundle.return_value
         )
 
     def test_bundle_label_constructed_after_readme_product(self, mocks):
@@ -1077,6 +1084,45 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # If the label were written later, the checksum would hash a file
         # that does not exist yet.
         assert calls == ['label written', 'checksum generated']
+
+    def test_checksum_registered_between_generate_and_label(self, mocks):
+        # The checksum is registered right after its file is written and
+        # before it is labeled.
+        calls = []
+        checksum = mocks.ChecksumProduct.return_value
+        checksum.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('generated'))
+        mocks.RunState.return_value.register_product.side_effect = (
+            lambda product: calls.append('registered')
+            if product is checksum else None)
+        mocks.ChecksumPDS4Label.side_effect = (
+            lambda product: calls.append('labeled') or MagicMock())
+
+        run_pipeline(_args())
+
+        assert calls == ['generated', 'registered', 'labeled']
+
+    def test_backfilled_checksums_registered_between_generate_and_label(
+            self, mocks):
+        # Each past release checksum goes through the same three steps, one
+        # release after the other, and the current checksum follows.
+        mocks.Setup.return_value.increment = True
+        mocks.isdir.return_value = False
+        mocks.Bundle.return_value.history = {
+            'release_01': ('data', 'label'), 'release_02': ('data2', 'label2')}
+        calls = []
+        checksum = mocks.ChecksumProduct.return_value
+        checksum.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('generated'))
+        mocks.RunState.return_value.register_product.side_effect = (
+            lambda product: calls.append('registered')
+            if product is checksum else None)
+        mocks.ChecksumPDS4Label.side_effect = (
+            lambda product: calls.append('labeled') or MagicMock())
+
+        run_pipeline(_args())
+
+        assert calls == ['generated', 'registered', 'labeled'] * 3
 
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
@@ -1234,14 +1280,25 @@ class TestPhase10PDS3Path:
         # DocumentCollection is constructed with setup and bundle for PDS3.
         run_pipeline(_args())
         mocks.DocumentCollection.assert_called_with(
-            mocks.Setup.return_value, mocks.RunState.return_value,
-            mocks.Bundle.return_value
+            mocks.Setup.return_value, mocks.Bundle.return_value
         )
 
     def test_get_pds3_documents_called(self, mocks):
         # PDS3 documents are retrieved from the document collection.
         run_pipeline(_args())
         mocks.DocumentCollection.return_value.get_pds3_documents.assert_called_once()
+
+    def test_pds3_documents_registered_in_order(self, mocks):
+        # Every document the collection returns is registered, in that order.
+        docs = [MagicMock(), MagicMock(), MagicMock()]
+        mocks.DocumentCollection.return_value.get_pds3_documents.return_value = docs
+        run_pipeline(_args())
+        registered = [
+            c[0][0] for c in
+            mocks.RunState.return_value.register_product.call_args_list
+            if c[0][0] in docs
+        ]
+        assert registered == docs
 
     def test_bundle_add_called_for_skc_doc_misc(self, mocks):
         # All three collections are registered with the bundle for PDS3.
@@ -1256,7 +1313,6 @@ class TestPhase10PDS3Path:
         run_pipeline(_args())
         mocks.ChecksumProduct.assert_called_once_with(
             mocks.Setup.return_value,
-            mocks.RunState.return_value,
             mocks.MiscellaneousCollection.return_value,
             add_previous_checksum=False,
         )
@@ -1265,6 +1321,23 @@ class TestPhase10PDS3Path:
         # The checksum file is written for the current PDS3 release.
         run_pipeline(_args())
         mocks.ChecksumProduct.return_value.generate.assert_called_once()
+
+    def test_pds3_checksum_registered_between_generate_and_label(self, mocks):
+        # The PDS3 checksum is registered right after its file is written and
+        # before it is labeled.
+        calls = []
+        checksum = mocks.ChecksumProduct.return_value
+        checksum.generate.side_effect = (
+            lambda *args, **kwargs: calls.append('generated'))
+        mocks.RunState.return_value.register_product.side_effect = (
+            lambda product: calls.append('registered')
+            if product is checksum else None)
+        mocks.ChecksumPDS3Label.side_effect = (
+            lambda product: calls.append('labeled') or MagicMock())
+
+        run_pipeline(_args())
+
+        assert calls == ['generated', 'registered', 'labeled']
 
     def test_checksum_labeled_with_pds3_label(self, mocks):
         # This test class runs under pds_version="3" (set by the set_pds3
@@ -1292,6 +1365,127 @@ class TestPhase10PDS3Path:
         # Bundle history validation is skipped for PDS3 archives.
         run_pipeline(_args())
         mocks.Bundle.return_value.validate.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Registration order
+# ---------------------------------------------------------------------------
+
+def _track_products(mocks: SimpleNamespace) -> None:
+    """Make every product class return its own labeled product.
+
+    The default mocks return the same object on every call, which would hide
+    both the order and the repetitions of the registrations.
+    """
+    # 'registered_as' is the label the tests read back from each product.
+    def labeled(label: str, **attributes) -> MagicMock:
+        return MagicMock(registered_as=label, **attributes)
+
+    mocks.SpiceKernelProduct.side_effect = (
+        lambda setup, kernel, collection: labeled(f'kernel {kernel}'))
+    mocks.OrbnumFileProduct.side_effect = (
+        lambda setup, kernel, misc, skc: labeled(f'orbnum {kernel}'))
+    mocks.MetaKernelProduct.side_effect = (
+        lambda setup, kernel, collection, user_input: labeled(
+            f'meta-kernel {kernel}'))
+
+    # An inventory takes the name of the collection it lists.
+    for inventory in (mocks.InventoryPDS3Product, mocks.InventoryPDS4Product):
+        inventory.side_effect = (
+            lambda setup, collection: labeled(f'{collection.name} inventory'))
+    mocks.DocumentCollection.return_value.name = 'document'
+
+    # The pipeline only builds the document inventory for a generated spiceds.
+    mocks.SpicedsProduct.side_effect = (
+        lambda setup, collection: labeled('spiceds', generated=True))
+    mocks.ReadmeProduct.side_effect = (
+        lambda setup, bundle: labeled('readme'))
+    mocks.ChecksumProduct.side_effect = (
+        lambda *args, **kwargs: labeled('checksum'))
+
+
+def _registered(mocks: SimpleNamespace) -> list:
+    """Return the products given to the run state, in the order received."""
+    register_product = mocks.RunState.return_value.register_product
+    return [call[0][0] for call in register_product.call_args_list]
+
+
+class TestRegistrationOrder:
+    # The File List and the Checksum Registry follow the order in which the
+    # run state receives the products.
+
+    @pytest.mark.parametrize('pds_version, kernels, documents, expected', [
+        pytest.param(
+            '4',
+            ['maven_2024.bc', 'maven_2024.orb', 'maven_2024.bsp'],
+            [],
+            ['kernel maven_2024.bc',
+             'orbnum maven_2024.orb',
+             'kernel maven_2024.bsp',
+             'meta-kernel maven_v01.tm',
+             'spice_kernels inventory',
+             'spiceds',
+             'document inventory',
+             'checksum',
+             'miscellaneous inventory',
+             'checksum',
+             'miscellaneous inventory',
+             'miscellaneous inventory',
+             'readme',
+             'checksum'],
+            id='pds4'),
+        pytest.param(
+            '3',
+            ['maven_2024.bc', 'maven_2024.bsp'],
+            ['document aareadme.txt', 'document release.cat'],
+            ['kernel maven_2024.bc',
+             'kernel maven_2024.bsp',
+             'meta-kernel maven_v01.tm',
+             'spice_kernels inventory',
+             'document aareadme.txt',
+             'document release.cat',
+             'checksum'],
+            id='pds3'),
+    ])
+    def test_products_registered_once_in_generation_order(
+            self, mocks, pds_version, kernels, documents, expected) -> None:
+        """A run with every kind of product gives each one to the run state
+        exactly once, in the order it was generated.
+
+        In PDS4 the two past releases bring their own checksum, each followed
+        by the miscellaneous inventory of that release. In PDS3 the new
+        documents come between the kernels inventory and the checksum.
+        """
+
+        # Every product class returns its own labeled product, so the order
+        # and any repetition can be told apart.
+        _track_products(mocks)
+
+        # A run with a kernel list, one meta-kernel and an updated kernels
+        # collection. The two past releases only matter to PDS4 and the
+        # documents only to PDS3, so each version ignores the other's.
+        mocks.Setup.return_value.pds_version = pds_version
+        mocks.Setup.return_value.increment = True
+        mocks.isdir.return_value = False
+        mocks.Bundle.return_value.history = {
+            'release_01': ('data', 'label'), 'release_02': ('data2', 'label2')}
+        mocks.ReleasePlan.return_value.kernel_list = kernels
+        skc = mocks.SpiceKernelsCollection.return_value
+        skc.updated = True
+        skc.determine_meta_kernels.return_value = {'maven_v01.tm': None}
+        document_collection = mocks.DocumentCollection.return_value
+        document_collection.get_pds3_documents.return_value = [
+            MagicMock(registered_as=label) for label in documents]
+
+        # Run the whole pipeline.
+        run_pipeline(_args())
+
+        # The run state got the products in the expected order.
+        registered = _registered(mocks)
+        assert [p.registered_as for p in registered] == expected
+
+        # None of them was given twice.
+        assert len({id(p) for p in registered}) == len(registered)
 
 
 # ---------------------------------------------------------------------------

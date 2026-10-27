@@ -14,11 +14,10 @@ class ReadmeProduct(Product):
     """Class to generate the Readme Product.
 
     :param setup:  NPB execution setup object
-    :param run_state: State of the current pipeline execution
     :param bundle: Bundle that contains the Readme Product
     """
 
-    def __init__(self, setup, run_state, bundle) -> None:
+    def __init__(self, setup, bundle) -> None:
         """Constructor."""
         self.name = "readme.txt"
         self.bundle = bundle
@@ -49,7 +48,8 @@ class ReadmeProduct(Product):
             #
             self.bundle.checksum = md5(self.path)
 
-        super().__init__(run_state)
+        super().__init__()
+        self.derive_file_attributes()
 
         logging.info("")
 

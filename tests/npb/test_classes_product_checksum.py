@@ -10,7 +10,6 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_checksum import ChecksumProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -73,7 +72,8 @@ PATCHES = dict(
     checksum_from_registry=f"{MOD}.checksum_from_registry",
     checksum_from_label=f"{MOD}.checksum_from_label",
     compare_files=f"{MOD}.compare_files",
-    Product_init=f"{MOD}.Product.__init__",
+    Product_common=f"{MOD}.Product._set_common_attributes",
+    Product_derive=f"{MOD}.Product.derive_file_attributes",
     os_walk=f"{MOD}.os.walk",
     os_remove=f"{MOD}.os.remove",
     os_path_isfile=f"{MOD}.os.path.isfile",
@@ -120,8 +120,7 @@ def _build_pds4(
         # duplicates don't change which entry sorts last.
         m_glob.return_value = glob_files
 
-        obj = ChecksumProduct(setup, RunState(),
-                              collection, add_previous_checksum)
+        obj = ChecksumProduct(setup, collection, add_previous_checksum)
         mocks.update(dict(
             mkdir=m_mkdir, glob=m_glob, md5=m_md5,
             walk=m_walk, open=m_open,
@@ -142,8 +141,7 @@ def _build_pds3(add_previous_checksum=False):
          patch(PATCHES["os_walk"], return_value=[]), \
          patch("builtins.open", mock_open(read_data="")):
 
-        obj = ChecksumProduct(setup, RunState(),
-                              collection, add_previous_checksum)
+        obj = ChecksumProduct(setup, collection, add_previous_checksum)
 
     return obj
 
@@ -202,7 +200,7 @@ class TestChecksumProductInit:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data="")):
 
-            ChecksumProduct(setup, RunState(), collection)
+            ChecksumProduct(setup, collection)
 
         m_mkdir.assert_called_once_with(str(Path("/staging/miscellaneous/checksum/")))
 
@@ -217,7 +215,7 @@ class TestChecksumProductInit:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data="")):
 
-            ChecksumProduct(setup, RunState(), collection)
+            ChecksumProduct(setup, collection)
 
         m_mkdir.assert_called_once_with(str(Path("/staging/index")))
 
@@ -271,8 +269,7 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, RunState(),
-                                  collection, add_previous_checksum=False)
+            obj = ChecksumProduct(setup, collection, add_previous_checksum=False)
 
         assert obj.md5_dict == {'some/file.tab': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
                                 'other/file.xml': 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'}
@@ -296,10 +293,8 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=bad_content)):
 
-            run_state = RunState()
             with pytest.raises(NPBError, match=error):
-                ChecksumProduct(setup, run_state,
-                                collection, add_previous_checksum=False)
+                ChecksumProduct(setup, collection, add_previous_checksum=False)
 
     def test_add_previous_checksum_true_adds_file_and_label_pds4(self):
 
@@ -314,8 +309,7 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, RunState(),
-                                  collection, add_previous_checksum=True)
+            obj = ChecksumProduct(setup, collection, add_previous_checksum=True)
 
         # Both the .tab and the .xml of the previous checksum should be present
         assert obj.md5_dict == {
@@ -341,8 +335,7 @@ class TestReadCurrentProduct:
              patch(PATCHES["os_walk"], return_value=[]), \
              patch("builtins.open", mock_open(read_data=prev_content)):
 
-            obj = ChecksumProduct(setup, RunState(),
-                                  collection, add_previous_checksum=True)
+            obj = ChecksumProduct(setup, collection, add_previous_checksum=True)
 
         assert obj.md5_dict == {
             'some/file.tab': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
@@ -374,21 +367,23 @@ class TestSetCoverage:
 class TestGenerate:
     """Tests for generate."""
 
-    def test_generate_writes_product_and_calls_parent_init(self):
+    def test_generate_writes_product_and_fills_file_attributes(self):
         # generate() used to also pick a label class and set self.label; that
         # moved to npb.py, so this test checks what's left: writing the file
-        # and filling in the attributes Product.__init__ sets.
+        # and filling in the attributes of the base class.
         obj, _ = _build_pds4(increment=False)
         obj.new_product = False  # reset, so we can check generate() flips it back to True
         obj.label = None  # pre-set, so the assertion below proves generate() left it alone
 
         with patch.object(obj, "write_product") as m_wp, \
-             patch(PATCHES["Product_init"]) as m_parent:
+             patch(PATCHES["Product_common"]) as m_common, \
+             patch(PATCHES["Product_derive"]) as m_derive:
 
             obj.generate(history=['some_file'])
 
         m_wp.assert_called_once_with(history=['some_file'])
-        m_parent.assert_called_once()
+        m_common.assert_called_once()
+        m_derive.assert_called_once()
 
         assert obj.new_product is True
 
@@ -928,8 +923,8 @@ class TestChecksumProductComputeChecksum:
         m_lbl.assert_not_called()
         m_md5.assert_called_once_with(product.path)
 
-    def test_register_dispatches_to_override(self, tmp_path):
-        """register() stores the md5 checksum and skips the registry."""
+    def test_derive_file_attributes_dispatches_to_override(self, tmp_path):
+        """derive_file_attributes() stores the md5 checksum and skips the registry."""
         path = tmp_path / "maven_spice" / "release.checksum"
         path.parent.mkdir(parents=True)
         path.write_text("checksum-registry", encoding="utf-8")
@@ -939,7 +934,7 @@ class TestChecksumProductComputeChecksum:
              patch("pds.naif_pds4_bundler.classes.product.product."
                    "checksum_from_registry") as m_reg:
 
-            product.register()
+            product.derive_file_attributes()
 
         assert product.checksum == "fresh-md5"
         m_reg.assert_not_called()

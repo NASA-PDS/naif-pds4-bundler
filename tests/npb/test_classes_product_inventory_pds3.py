@@ -8,7 +8,6 @@ from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.product.product import Product
 from pds.naif_pds4_bundler.classes.product.product_inventory_pds3 import InventoryPDS3Product
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 class MetaKernelSubclass(MetaKernelProduct):
@@ -34,8 +33,9 @@ class TestInventoryPDS3ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS3Product, "write_product"), \
-             patch.object(Product, "__init__", return_value=None):
-            obj = InventoryPDS3Product(setup, RunState(), collection)
+             patch.object(Product, "__init__", return_value=None), \
+             patch.object(Product, "derive_file_attributes"):
+            obj = InventoryPDS3Product(setup, collection)
 
         assert obj.name == "index.tab"
         assert obj.path == "staging/index/index.tab"
@@ -51,8 +51,9 @@ class TestInventoryPDS3ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS3Product, "write_product") as mock_write_product, \
-             patch.object(Product, "__init__", return_value=None):
-            InventoryPDS3Product(setup, RunState(), collection)
+             patch.object(Product, "__init__", return_value=None), \
+             patch.object(Product, "derive_file_attributes"):
+            InventoryPDS3Product(setup, collection)
 
         mock_write_product.assert_called_once()
 

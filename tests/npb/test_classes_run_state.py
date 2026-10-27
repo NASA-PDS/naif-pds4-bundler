@@ -1,5 +1,7 @@
 """Tests for the RunState class."""
 import logging
+import os
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -130,6 +132,38 @@ class TestRunStateAdd:
         assert run_state.checksum_registry == expected
         assert list(tmp_path.iterdir()) == []
         assert caplog.messages == []
+
+
+class TestRunStateRegisterProduct:
+
+    @pytest.mark.parametrize(
+        'is_registrable, expected_files, expected_checksums', [
+            (True,
+             [os.path.join('spice_kernels', 'ck', 'x.bc')],
+             ['/stage/maven_spice/spice_kernels/ck/x.bc '
+              'fadf8e23f21b18710f8cb1d3be8eeebd']),
+            (False, [], []),
+        ])
+    def test_register_product_records_only_registrable_products(
+            self, is_registrable, expected_files, expected_checksums) -> None:
+        """A registrable product adds its archive path to the File List and
+        its full path with the checksum to the Checksum Registry; any other
+        adds nothing."""
+
+        # A product that already knows its archive path and checksum.
+        product = SimpleNamespace(
+            is_registrable=is_registrable,
+            archive_path=Path('spice_kernels', 'ck', 'x.bc'),
+            registered_path='/stage/maven_spice/spice_kernels/ck/x.bc',
+            checksum='fadf8e23f21b18710f8cb1d3be8eeebd')
+        run_state = RunState()
+
+        # Register it once.
+        run_state.register_product(product)
+
+        # Each record shows up exactly once, or not at all.
+        assert run_state.file_list == expected_files
+        assert run_state.checksum_registry == expected_checksums
 
 
 class TestRunStateWriters:

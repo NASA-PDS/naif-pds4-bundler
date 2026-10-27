@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from pds.naif_pds4_bundler.classes.product import PDS3DocumentProduct
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
@@ -45,6 +44,7 @@ def mock_product():
 
 MODULE = "pds.naif_pds4_bundler.classes.product"
 PRODUCT_INIT_PATH = f"{MODULE}.product.Product.__init__"
+DERIVE_PATH = f"{MODULE}.product.Product.derive_file_attributes"
 VALIDATE_PATH = f"{MODULE}.product_pds3doc.PDS3DocumentProduct._validate"
 COMPARE_FILES_PATH = f"{MODULE}.product_pds3doc.compare_files"
 
@@ -61,12 +61,13 @@ class TestPDS3DocumentProductInit:
         """Test that when compare_files returns True, product is marked as new."""
 
         monkeypatch.setattr(PRODUCT_INIT_PATH, lambda *_: None)
+        monkeypatch.setattr(DERIVE_PATH, lambda *_: None)
         monkeypatch.setattr(VALIDATE_PATH, lambda _: None)
 
         # Force compare_files to return True (files differ)
         monkeypatch.setattr(COMPARE_FILES_PATH, lambda *args: True)
 
-        product = PDS3DocumentProduct(mock_setup, RunState(), str(Path("/path/FakeVOL_419/doc.txt")))
+        product = PDS3DocumentProduct(mock_setup, str(Path("/path/FakeVOL_419/doc.txt")))
 
         assert product.name == "doc.txt"
         assert product.new_product is True
@@ -75,13 +76,14 @@ class TestPDS3DocumentProductInit:
         """Test that when compare_files returns False, product is marked as not new."""
 
         monkeypatch.setattr(PRODUCT_INIT_PATH, lambda *_: None)
+        monkeypatch.setattr(DERIVE_PATH, lambda *_: None)
         mock_validate = MagicMock()
         monkeypatch.setattr(VALIDATE_PATH, mock_validate)
 
         # Force compare_files to return False (files are the same)
         monkeypatch.setattr(COMPARE_FILES_PATH, lambda *args: False)
 
-        product = PDS3DocumentProduct(mock_setup, RunState(), str(Path("/path/FakeVOL_419/doc.txt")))
+        product = PDS3DocumentProduct(mock_setup, str(Path("/path/FakeVOL_419/doc.txt")))
 
         assert product.name == "doc.txt"
         assert product.new_product is False

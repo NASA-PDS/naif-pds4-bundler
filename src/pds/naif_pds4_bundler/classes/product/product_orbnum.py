@@ -22,14 +22,13 @@ class OrbnumFileProduct(Product):
     """Class that represents an OrbNum file.
 
     :param setup:                    NPB execution setup object
-    :param run_state:                State of the current pipeline execution
     :param name:                     OrbNum file path
     :param collection:               Miscellaneous Collection that contains the
                                      OrbNum file product
     :param spice_kernels_collection: SPICE Kernel Collection
     """
 
-    def __init__(self, setup, run_state, name: str, collection,
+    def __init__(self, setup, name: str, collection,
                  spice_kernels_collection) -> None:
         """Constructor."""
         self.collection = collection
@@ -141,7 +140,8 @@ class OrbnumFileProduct(Product):
             if "target" in self._orbnum_type:
                 self.targets = [self._orbnum_type["target"]]
 
-        super().__init__(run_state)
+        super().__init__()
+        self.derive_file_attributes()
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""

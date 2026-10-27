@@ -7,7 +7,7 @@ class PDS3Product(Product):
     """Version-specific base class for PDS3 products.
 
     Leaf PDS3 product classes still do their own ``__init__``; this class
-    exists so that ``register()`` can ask any product for its archive root
+    exists so that ``archive_path`` can ask any product for its archive root
     directory without checking ``setup.pds_version``.
     """
 
