@@ -1040,11 +1040,11 @@ class KernelList:
 
     @staticmethod
     def _check_kernel_integrity(path: str) -> str:
-        """Check if the SPICE Kernel has the adequate architecture.
+        """Check if the SPICE Kernel has the adequate architecture and type.
 
         All SPICE kernels must have a NAIF file ID word as the first "word" on
         the first line of the kernel. This "word" describes the architecture
-        of the kernel.
+        and the type of the kernel.
 
         A binary kernel could have the following architectures:
 
@@ -1052,19 +1052,26 @@ class KernelList:
           * ``DAS``: The file is based on the DAS architecture.
           * ``XFR``: The file is in a SPICE transfer file format.
 
-        For an archive only ``DAF`` is acceptable.
+        For an archive both ``DAF`` and ``DAS`` are acceptable: SPKs, CKs and
+        binary PCKs are DAF-based, whereas DSKs and binary EKs are DAS-based.
+        Transfer format files are rejected.
 
         Text kernels must have ``KPL`` (Kernel Pool File) architecture.
 
+        Whether a kernel is binary or text is determined from its extension
+        (binary kernel extensions start with ``b``). In addition to the
+        architecture, NPB checks that the kernel type in the file ID word
+        matches the type expected from the kernel extension (e.g. ``SPK`` for
+        ``.bsp``).
+
         **Note:** Text event kernels (``.ten``) are validated differently
         because they use a different format than other text kernels and are not
-        loaded via standard SPICE routines.
+        loaded via standard SPICE routines. NPB only checks that they are
+        UTF-8 encoded and that their first 2000 characters contain the
+        ``\\header`` and ``\\text`` markers.
 
-        NPB checks if binary kernels have a ``DAF`` architecture and text kernels
-        a ``KPL`` architecture.
-
-        :param path: SPICE Kernel or ORBNUM path
-        :return: Error message if error present
+        :param path: SPICE Kernel path
+        :return: Error message if error present, empty string otherwise
         """
         error = ""
         name = path.split(os.sep)[-1].strip()
@@ -1112,7 +1119,8 @@ class KernelList:
             #   DAS - The file is based on the DAS architecture.
             #   XFR - The file is in a SPICE transfer file format.
             #
-            # But for an archive only DAF is acceptable.
+            # For an archive both DAF and DAS (DSKs and binary EKs) are
+            # acceptable.
             #
             if arch not in ('DAF', 'DAS'):
                 error = f"Kernel {name} architecture {arch} is invalid."
