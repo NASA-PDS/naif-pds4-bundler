@@ -28,9 +28,9 @@ class TestPDS3ProductArchiveRootDir:
         setup = SimpleNamespace(volume_id=volume_id, pds_version='4',
                                 mission_acronym='maven')
 
-        # Skip __init__; only registered_path and setup matter here.
+        # Skip __init__; only _registered_path and setup matter here.
         product = PDS3Product.__new__(PDS3Product)
-        product.registered_path = str(
+        product._registered_path = str(
             tmp_path / 'bundle' / volume_id / 'data' / 'k.bsp')
         product.setup = setup
 

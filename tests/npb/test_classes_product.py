@@ -316,6 +316,30 @@ class TestProductDeriveFileAttributes:
         assert run_state.file_list == ['readme.txt']
         assert run_state.checksum_registry == [f'{path} hook-sum']
 
+    @pytest.mark.parametrize('new_product, registered_path, expected', [
+        (True, '/stage/maven_spice/k.bsp', True),
+        (False, '/stage/maven_spice/k.bsp', False),
+        (True, None, False),
+        (False, None, False),
+    ])
+    def test_is_registrable_needs_a_new_product_with_a_derived_file(
+            self, tmp_path, new_product, registered_path, expected) -> None:
+        """Only a new product that derived its file attributes can be
+        registered."""
+
+        # A product whose derived path is set or not, without running
+        # __init__.
+        product = make_product_without_init(
+            tmp_path / 'k.bsp', make_product_setup(tmp_path),
+            new_product=new_product)
+        product._registered_path = registered_path
+
+        # Ask whether it can be registered.
+        result = product.is_registrable
+
+        # Both conditions have to hold.
+        assert result is expected
+
     def test_init_does_not_read_the_file(self, tmp_path) -> None:
         """The constructor only sets the common attributes; it neither reads
         the file nor derives anything from it."""
@@ -331,7 +355,7 @@ class TestProductDeriveFileAttributes:
         # Nothing was derived.
         assert product.checksum is None
         assert product.size is None
-        assert product.registered_path is None
+        assert product._registered_path is None
 
     def test_derive_file_attributes_uses_real_checksum_resolution(
             self, tmp_path) -> None:
@@ -404,9 +428,9 @@ class TestProductArchivePath:
         """The path starts below '<mission>_spice' (PDS4), the volume id
         (PDS3) or the directory named by an implemented _archive_root_dir."""
 
-        # Skip __init__; only registered_path and setup matter here.
+        # Skip __init__; only _registered_path and setup matter here.
         product = product_class.__new__(product_class)
-        product.registered_path = str(tmp_path.joinpath(*parts))
+        product._registered_path = str(tmp_path.joinpath(*parts))
         product.setup = make_product_setup(tmp_path, pds_version=pds_version)
 
         # Read the property.
@@ -425,7 +449,7 @@ class TestProductArchivePath:
         # A layout the fallback could resolve, so a wrongly swallowed error
         # would show up as a successful path.
         product = StubFailingHookProduct.__new__(StubFailingHookProduct)
-        product.registered_path = str(tmp_path / 'maven_spice' / 'k.bsp')
+        product._registered_path = str(tmp_path / 'maven_spice' / 'k.bsp')
         product.setup = make_product_setup(tmp_path)
 
         # Reading the path must raise the hook's own error.

@@ -20,7 +20,7 @@ class Product:
 
     # ChecksumProduct never calls Product.__init__, so it relies on this
     # default to have the attribute before generate() runs.
-    registered_path = None
+    _registered_path = None
 
     def __init__(self) -> None:
         """Constructor."""
@@ -59,7 +59,22 @@ class Product:
 
         # Registration reads this instead of self.path, which a subclass may
         # change afterward (the readme does so to name its label).
-        self.registered_path = self.path
+        self._registered_path = self.path
+
+    @property
+    def registered_path(self) -> str:
+        """Absolute path of the product file, as it was when derived."""
+        return self._registered_path
+
+    @property
+    def is_registrable(self) -> bool:
+        """Whether the product has a file to add to the run records.
+
+        Only new products are registered, and only once their file
+        attributes were derived. The path stays None for a product that
+        returns before deriving them, so there is nothing to register.
+        """
+        return self.new_product and self._registered_path is not None
 
     @property
     def archive_path(self) -> Path:
@@ -78,7 +93,7 @@ class Product:
             else:
                 archive_dir = self.setup.volume_id
 
-        path = Path(self.registered_path)
+        path = Path(self._registered_path)
         archive_dir_index = path.parts.index(archive_dir)
         return Path(*path.parts[archive_dir_index + 1:])
 

@@ -65,7 +65,7 @@ class RunState:
         :param product: Product whose file has been written and whose
             checksum is already resolved.
         """
-        if not product.new_product or product.registered_path is None:
+        if not product.is_registrable:
             return
 
         self.add_file(str(product.archive_path))

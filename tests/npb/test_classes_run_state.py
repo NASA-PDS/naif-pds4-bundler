@@ -136,22 +136,23 @@ class TestRunStateAdd:
 
 class TestRunStateRegisterProduct:
 
-    @pytest.mark.parametrize('new_product, expected_files, expected_checksums', [
-        (True,
-         [os.path.join('spice_kernels', 'ck', 'x.bc')],
-         ['/stage/maven_spice/spice_kernels/ck/x.bc '
-          'fadf8e23f21b18710f8cb1d3be8eeebd']),
-        (False, [], []),
-    ])
-    def test_register_product_records_only_new_products(
-            self, new_product, expected_files, expected_checksums) -> None:
-        """A new product adds its archive path to the File List and its full
-        path with the checksum to the Checksum Registry; any other adds
-        nothing."""
+    @pytest.mark.parametrize(
+        'is_registrable, expected_files, expected_checksums', [
+            (True,
+             [os.path.join('spice_kernels', 'ck', 'x.bc')],
+             ['/stage/maven_spice/spice_kernels/ck/x.bc '
+              'fadf8e23f21b18710f8cb1d3be8eeebd']),
+            (False, [], []),
+        ])
+    def test_register_product_records_only_registrable_products(
+            self, is_registrable, expected_files, expected_checksums) -> None:
+        """A registrable product adds its archive path to the File List and
+        its full path with the checksum to the Checksum Registry; any other
+        adds nothing."""
 
         # A product that already knows its archive path and checksum.
         product = SimpleNamespace(
-            new_product=new_product,
+            is_registrable=is_registrable,
             archive_path=Path('spice_kernels', 'ck', 'x.bc'),
             registered_path='/stage/maven_spice/spice_kernels/ck/x.bc',
             checksum='fadf8e23f21b18710f8cb1d3be8eeebd')
@@ -163,21 +164,6 @@ class TestRunStateRegisterProduct:
         # Each record shows up exactly once, or not at all.
         assert run_state.file_list == expected_files
         assert run_state.checksum_registry == expected_checksums
-
-    def test_register_product_skips_product_without_a_file(self) -> None:
-        """A new product that never derived its file attributes adds
-        nothing."""
-
-        # A new product that returned before reading its file.
-        product = SimpleNamespace(new_product=True, registered_path=None)
-        run_state = RunState()
-
-        # Register it.
-        run_state.register_product(product)
-
-        # Nothing was recorded, and its archive path was never needed.
-        assert run_state.file_list == []
-        assert run_state.checksum_registry == []
 
 
 class TestRunStateWriters:
