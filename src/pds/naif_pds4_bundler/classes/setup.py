@@ -286,7 +286,7 @@ class Setup:
         super().__delattr__(name)
 
     @staticmethod
-    def _find_directory(path, cwd):
+    def _find_directory(path: str, cwd: str) -> str | None:
         """Finds where a directory from the configuration really is.
 
         It looks under ``cwd`` first and then under the root of the
@@ -295,11 +295,8 @@ class Setup:
         either candidate.
 
         :param path: directory as written in the configuration
-        :type path: str
         :param cwd: directory NPB was run from
-        :type cwd: str
         :return: the first candidate that is a directory, or None if neither is
-        :rtype: str or None
         """
         candidates = (
             os.path.join(cwd, path),
@@ -307,7 +304,7 @@ class Setup:
         )
         return next((c for c in candidates if os.path.isdir(c)), None)
 
-    def check_configuration(self):
+    def check_configuration(self) -> None:
         """Performs the following checks to the loaded configuration items:
 
         * IM, Line Feed, and Date Time format NAIF recommendations
