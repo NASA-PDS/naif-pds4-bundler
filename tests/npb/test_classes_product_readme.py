@@ -11,6 +11,12 @@ import pytest
 from pds.naif_pds4_bundler.classes.product.product_readme import ReadmeProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
+
+def fake_product_init(self, setup) -> None:
+    """Stand in for Product.__init__, which only has to store the setup."""
+    self.setup = setup
+
+
 # ---------------------------------------------------------------------------
 # Patch target: every name imported into product_readme is patched here so the
 # real Product registration, label generation and filesystem helpers never run.
@@ -76,7 +82,8 @@ def build_product(setup, bundle):
     :param bundle: mock Bundle object
     :return:       tuple ``(product, mocks_dict)``
     """
-    with patch(f'{MOD}.Product.__init__', return_value=None) as m_init, \
+    with patch(f'{MOD}.Product.__init__', autospec=True,
+               side_effect=fake_product_init) as m_init, \
          patch(f'{MOD}.Product.derive_file_attributes'), \
          patch(f'{MOD}.md5', return_value='d' * 32) as m_md5, \
          patch.object(ReadmeProduct, '_write_product') as m_write:

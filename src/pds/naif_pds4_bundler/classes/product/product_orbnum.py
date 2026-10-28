@@ -31,9 +31,10 @@ class OrbnumFileProduct(Product):
     def __init__(self, setup, name: str, collection,
                  spice_kernels_collection) -> None:
         """Constructor."""
+        super().__init__(setup)
+
         self.collection = collection
         self.kernels_collection = spice_kernels_collection
-        self.setup = setup
         self.name = name
 
         # The orbnum files are staged under "extras" (PDS3) or "miscellaneous"
@@ -47,8 +48,6 @@ class OrbnumFileProduct(Product):
         # The file is copied from the orbnum directory in the configuration
         # and from then on lives in the staging directory.
         self.path = product_path + self.name
-
-        super().__init__()
 
         #
         # Map the orbnum file with its configuration.

@@ -16,11 +16,10 @@ class PDS3DocumentProduct(Product):
 
     def __init__(self, setup, path: str) -> None:
         """Constructor."""
-        self.path = path
-        self.setup = setup
-        self.name = path.split(os.sep)[-1]
+        super().__init__(setup)
 
-        super().__init__()
+        self.path = path
+        self.name = path.split(os.sep)[-1]
 
         #
         # Compare with the already existing file -that has the same name-, if

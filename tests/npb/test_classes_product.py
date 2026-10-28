@@ -102,12 +102,12 @@ class TestProductInit:
 
         Subclasses can then call it before their path is known.
         """
-        # A bare product with a setup and no path at all.
+        # A bare product with no path at all.
         product = Product.__new__(Product)
-        product.setup = make_product_setup(tmp_path)
+        setup = make_product_setup(tmp_path)
 
         # Run the base constructor.
-        Product.__init__(product)
+        Product.__init__(product, setup)
 
         # It finished without asking for a path, and did not create one.
         assert not hasattr(product, 'path')
@@ -116,8 +116,9 @@ class TestProductInit:
             self, mocker, tmp_path) -> None:
         """Product.__init__ keeps the creation date time from the setup.
 
-        It does not generate a new one, and it initializes the attributes
-        that derive_file_attributes() fills in later.
+        It stores the setup, does not generate a new creation time, and
+        initializes the attributes that derive_file_attributes() fills in
+        later.
         """
 
         # Build a minimal setup.
@@ -126,17 +127,19 @@ class TestProductInit:
         # Forces a configured date.
         setup_instance.creation_date_time = '2026-05-27T10:20:30Z'
 
-        # Create a product instance to which the attributes setup and
-        # new_product will then be added.
+        # Create a product instance to which the attribute new_product will
+        # then be added.
         product = Product.__new__(Product)
-        product.setup = setup_instance
         product.new_product = False
 
         # Mock create_time to check that it is not called.
         creation_time_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.product.product.creation_time')
 
-        Product.__init__(product)
+        Product.__init__(product, setup_instance)
+
+        # Check that the constructor keeps the setup it was given.
+        assert product.setup is setup_instance
 
         # Check that the given date is used.
         assert product.creation_time == '2026-05-27T10:20:30Z'
@@ -171,9 +174,6 @@ class TestProductInit:
         # Build a product instance.
         product = Product.__new__(Product)
 
-        # Assign the setup that the constructor will use.
-        product.setup = setup_instance
-
         # Adds the new_product attribute even it will not be used.
         product.new_product = False
 
@@ -182,7 +182,7 @@ class TestProductInit:
             'pds.naif_pds4_bundler.classes.product.product.creation_time',
             return_value=generated_creation_time)
 
-        Product.__init__(product)
+        Product.__init__(product, setup_instance)
 
         # Check that the constructor has stored the value returned by
         # creation_time().
@@ -419,11 +419,10 @@ class TestProductDeriveFileAttributes:
 
         # Product with a path that does not exist on disk.
         product = Product.__new__(Product)
-        product.setup = make_product_setup(tmp_path)
         product.path = str(tmp_path / 'missing.txt')
 
         # Build it.
-        Product.__init__(product)
+        Product.__init__(product, make_product_setup(tmp_path))
 
         # Nothing was derived.
         assert product.checksum is None

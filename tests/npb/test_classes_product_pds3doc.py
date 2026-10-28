@@ -44,9 +44,15 @@ def mock_product():
 
 MODULE = "pds.naif_pds4_bundler.classes.product"
 PRODUCT_INIT_PATH = f"{MODULE}.product.Product.__init__"
+
 DERIVE_PATH = f"{MODULE}.product.Product.derive_file_attributes"
 VALIDATE_PATH = f"{MODULE}.product_pds3doc.PDS3DocumentProduct._validate"
 COMPARE_FILES_PATH = f"{MODULE}.product_pds3doc.compare_files"
+
+
+def fake_product_init(self, setup) -> None:
+    """Stand in for Product.__init__, which only has to store the setup."""
+    self.setup = setup
 
 
 # ---------------------------------------------------------------------------
@@ -60,7 +66,7 @@ class TestPDS3DocumentProductInit:
     def test_new_product_when_files_differ(self, monkeypatch, mock_setup):
         """Test that when compare_files returns True, product is marked as new."""
 
-        monkeypatch.setattr(PRODUCT_INIT_PATH, lambda *_: None)
+        monkeypatch.setattr(PRODUCT_INIT_PATH, fake_product_init)
         monkeypatch.setattr(DERIVE_PATH, lambda *_: None)
         monkeypatch.setattr(VALIDATE_PATH, lambda _: None)
 
@@ -75,7 +81,7 @@ class TestPDS3DocumentProductInit:
     def test_not_new_product_when_files_match(self, monkeypatch, mock_setup):
         """Test that when compare_files returns False, product is marked as not new."""
 
-        monkeypatch.setattr(PRODUCT_INIT_PATH, lambda *_: None)
+        monkeypatch.setattr(PRODUCT_INIT_PATH, fake_product_init)
         monkeypatch.setattr(DERIVE_PATH, lambda *_: None)
         mock_validate = MagicMock()
         monkeypatch.setattr(VALIDATE_PATH, mock_validate)

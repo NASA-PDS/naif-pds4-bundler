@@ -10,6 +10,11 @@ from pds.naif_pds4_bundler.classes.product.product_inventory import InventoryPro
 from pds.naif_pds4_bundler.classes.product.product_inventory_pds4 import InventoryPDS4Product
 
 
+def fake_product_init(self, setup) -> None:
+    """Stand in for Product.__init__, which only has to store the setup."""
+    self.setup = setup
+
+
 class InventorySubclass(InventoryProduct):
     """Stand-in for a version-specific inventory class."""
 
@@ -52,7 +57,8 @@ class TestInventoryPDS4ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS4Product, "write_product"), \
-                patch.object(Product, "__init__", return_value=None), \
+                patch.object(Product, "__init__", autospec=True,
+                             side_effect=fake_product_init), \
                 patch.object(Product, "derive_file_attributes"):
             obj = InventoryPDS4Product(setup, collection)
 
@@ -85,7 +91,8 @@ class TestInventoryPDS4ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS4Product, "write_product") as mock_write_product, \
-                patch.object(Product, "__init__", return_value=None), \
+                patch.object(Product, "__init__", autospec=True,
+                             side_effect=fake_product_init), \
                 patch.object(Product, "derive_file_attributes"):
             InventoryPDS4Product(setup, collection)
 

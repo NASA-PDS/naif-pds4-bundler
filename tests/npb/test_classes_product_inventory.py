@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.product.product import Product
 from pds.naif_pds4_bundler.classes.product.product_inventory import InventoryProduct
 from pds.naif_pds4_bundler.classes.product.product_inventory_pds3 import InventoryPDS3Product
 from pds.naif_pds4_bundler.classes.product.product_inventory_pds4 import InventoryPDS4Product
@@ -15,6 +16,44 @@ from pds.naif_pds4_bundler.classes.product.product_pds4 import PDS4Product
 # Patch targets (relative to where InventoryProduct imports things)
 # ---------------------------------------------------------------------------
 MODULE = "pds.naif_pds4_bundler.classes.product.product_inventory"
+
+
+class RecordingInventory(InventoryProduct):
+    """Inventory whose hooks note the creation time they can read."""
+
+    def _set_location(self) -> None:
+        self.path = "staging/collection_inventory_v001.csv"
+        self.time_in_set_location = self.creation_time
+
+    def write_product(self) -> None:
+        self.time_in_write_product = self.creation_time
+
+
+# ---------------------------------------------------------------------------
+# InventoryProduct.__init__
+# ---------------------------------------------------------------------------
+
+class TestInventoryProductInit:
+    """Tests for the order of the constructor."""
+
+    def test_hooks_can_read_the_creation_time(self, inventory_helpers):
+        """The location and write hooks see the creation time of the setup.
+
+        The base constructor runs before them, so reading it does not raise
+        an AttributeError.
+        """
+        # A setup with a fixed creation time, and a collection to go with it
+        setup = inventory_helpers.make_setup()
+        setup.creation_date_time = "2026-05-27T10:20:30Z"
+        collection = inventory_helpers.make_collection()
+
+        # Build the inventory without touching a file on disk
+        with patch.object(Product, "derive_file_attributes"):
+            obj = RecordingInventory(setup, collection)
+
+        # Both hooks read the creation time while the inventory was built
+        assert obj.time_in_set_location == "2026-05-27T10:20:30Z"
+        assert obj.time_in_write_product == "2026-05-27T10:20:30Z"
 
 
 # ---------------------------------------------------------------------------

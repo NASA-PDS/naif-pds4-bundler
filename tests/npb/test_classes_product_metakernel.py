@@ -13,6 +13,12 @@ from spiceypy.utils.exceptions import SpiceyPyError
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
+
+def fake_product_init(self, setup) -> None:
+    """Stand in for Product.__init__, which only has to store the setup."""
+    self.setup = setup
+
+
 # ---------------------------------------------------------------------------
 # Module path used to target patches
 # ---------------------------------------------------------------------------
@@ -143,7 +149,8 @@ def base_init_patches():
         patch(f"{_MODULE}.MetaKernelProduct.coverage"),
         patch(f"{_MODULE}.MetaKernelProduct.compare"),
         patch(f"{_MODULE}.shutil.copy2"),
-        patch(f"{_MODULE}.Product.__init__", return_value=None),
+        patch(f"{_MODULE}.Product.__init__", autospec=True,
+              side_effect=fake_product_init),
         patch(f"{_MODULE}.Product.derive_file_attributes"),
     ]
 
@@ -352,7 +359,8 @@ class TestMetaKernelProductInit:
             patch(f"{_MODULE}.current_date", return_value="2024-01-01"),
             patch(f"{_MODULE}.mk_to_list", return_value=[]),
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
             patch(f"{_MODULE}.get_latest_kernel", return_value=[]),
         ):
@@ -614,7 +622,8 @@ class TestMetaKernelProductInit:
             patch(f"{_MODULE}.mk_to_list", return_value=[]),
             patch(f"{_MODULE}.MetaKernelProduct.write_product"),
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
             patch(f"{_MODULE}.MetaKernelProduct.check_version") as mock_check_version,
         ):
@@ -1704,7 +1713,8 @@ class TestMetaKernelProductWriteProduct:
             patch(f"{_MODULE}.current_date", return_value="2024-01-01"),
             patch(f"{_MODULE}.mk_to_list", return_value=[]),
             patch(f"{_MODULE}.MetaKernelProduct.coverage"),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
         ):
             MetaKernelProduct(setup, "insight_v01.tm", collection)

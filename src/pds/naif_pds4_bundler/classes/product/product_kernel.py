@@ -30,8 +30,8 @@ class SpiceKernelProduct(Product):
 
     def __init__(self, setup, name: str, collection) -> None:
         """Constructor."""
+        super().__init__(setup)
         self.collection = collection
-        self.setup = setup
         self.name = name
 
         extension = name.split(".")[-1].strip()
@@ -143,7 +143,6 @@ class SpiceKernelProduct(Product):
         self.coverage()
         self.description = self.read_description()
 
-        Product.__init__(self)
         self.derive_file_attributes()
 
         #

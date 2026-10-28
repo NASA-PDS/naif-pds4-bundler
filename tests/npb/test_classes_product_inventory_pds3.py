@@ -10,6 +10,11 @@ from pds.naif_pds4_bundler.classes.product.product_inventory_pds3 import Invento
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
 
 
+def fake_product_init(self, setup) -> None:
+    """Stand in for Product.__init__, which only has to store the setup."""
+    self.setup = setup
+
+
 class MetaKernelSubclass(MetaKernelProduct):
     """Stand-in for a version-specific meta-kernel class."""
 
@@ -33,7 +38,8 @@ class TestInventoryPDS3ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS3Product, "write_product"), \
-             patch.object(Product, "__init__", return_value=None), \
+             patch.object(Product, "__init__", autospec=True,
+                          side_effect=fake_product_init), \
              patch.object(Product, "derive_file_attributes"):
             obj = InventoryPDS3Product(setup, collection)
 
@@ -51,7 +57,8 @@ class TestInventoryPDS3ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS3Product, "write_product") as mock_write_product, \
-             patch.object(Product, "__init__", return_value=None), \
+             patch.object(Product, "__init__", autospec=True,
+                          side_effect=fake_product_init), \
              patch.object(Product, "derive_file_attributes"):
             InventoryPDS3Product(setup, collection)
 

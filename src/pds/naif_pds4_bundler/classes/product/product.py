@@ -31,8 +31,9 @@ class Product:
     # default to have the attribute before generate() runs.
     _registered_path = None
 
-    def __init__(self) -> None:
+    def __init__(self, setup) -> None:
         """Constructor."""
+        self.setup = setup
         self._set_common_attributes()
 
         # These attributes will be assigned (computed) by the

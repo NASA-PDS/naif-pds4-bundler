@@ -12,6 +12,11 @@ from pds.naif_pds4_bundler.classes.product.product_kernel import SpiceKernelProd
 from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
 
 
+def fake_product_init(self, setup) -> None:
+    """Stand in for Product.__init__, which only has to store the setup."""
+    self.setup = setup
+
+
 # ---------------------------------------------------------------------------
 # Helpers / shared fixtures
 # ---------------------------------------------------------------------------
@@ -136,7 +141,8 @@ def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None
         patch(f"{_MODULE}.ck_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.pck_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.dsk_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
-        patch(f"{_MODULE}.Product.__init__", return_value=None),
+        patch(f"{_MODULE}.Product.__init__", autospec=True,
+              side_effect=fake_product_init),
         patch(f"{_MODULE}.Product.derive_file_attributes"),
     ):
         product = SpiceKernelProduct(setup, name, collection)
@@ -182,7 +188,8 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
         ):
             product = SpiceKernelProduct.__new__(SpiceKernelProduct)
@@ -230,7 +237,8 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.extension_to_type", return_value="spk"),
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
         ):
             product = SpiceKernelProduct(setup, "test.bsp", collection)
@@ -256,7 +264,8 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.product_mapping", return_value="mapped_test.bsp"),
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
         ):
             product = SpiceKernelProduct(setup, "test.bsp", collection)
