@@ -482,12 +482,15 @@ class Setup:
 
         self.working_directory = found
 
-        # Staging can't go through _find_directory. If it's found under the run
-        # directory we always append the mission dir, but if it's found under
-        # the root we only append it when the configured value doesn't already
-        # have it. An absolute value skips the cwd branch entirely and always
-        # goes through that second, conditional-append path, since it may
-        # already point at its final location.
+        # Staging resolves differently from the other directories, so it
+        # can't use _find_directory:
+        #   - relative and found under cwd: <cwd>/<value>/<mission_dir>,
+        #     always appending the mission dir.
+        #   - absolute, or found only under the root: <root>/<value>, with
+        #     the mission dir appended only if the configured value doesn't
+        #     already contain it.
+        #   - not found: create <value> only, under cwd if it is relative.
+        #     The mission dir isn't appended and the attribute isn't updated.
         under_cwd = os.path.join(cwd, self.staging_directory)
         root_candidate = os.path.join(Path(cwd).anchor, self.staging_directory)
 

@@ -982,6 +982,26 @@ class TestSetupCheckConfiguration:
         # Check that the staging base directory has been created.
         assert (tmp_path / 'missing_staging').is_dir()
 
+    def test_creates_missing_absolute_staging_directory_at_its_configured_path(
+            self, tmp_path, monkeypatch) -> None:
+        """A missing absolute staging directory whose parent exists should be
+        created where it's configured, not under the current directory.
+        """
+        # Run from an empty directory so anything created under cwd shows up.
+        cwd_dir = tmp_path / 'cwd'
+        cwd_dir.mkdir()
+        monkeypatch.chdir(cwd_dir)
+
+        # Absolute paths everywhere, with a staging directory that doesn't
+        # exist yet but whose parent (tmp_path) does.
+        setup = self.make_check_setup(tmp_path)
+        setup.staging_directory = str(tmp_path / 'new_staging')
+
+        setup.check_configuration()
+
+        assert (tmp_path / 'new_staging').is_dir()
+        assert list(cwd_dir.iterdir()) == []
+
     @pytest.mark.parametrize('faucet', ['plan', 'list', 'checks'])
     def test_keeps_running_when_staging_and_bundle_are_unused_by_faucet(
             self, tmp_path, monkeypatch, caplog, faucet) -> None:
@@ -1215,8 +1235,7 @@ class TestSetupCheckConfiguration:
         """
         monkeypatch.chdir(tmp_path)
 
-        fake_root_dir = os.path.join(os.path.splitdrive(os.getcwd())[0] + os.sep,
-                                     'root_only')
+        fake_root_dir = os.path.join(Path(os.getcwd()).anchor, 'root_only')
         real_isdir = os.path.isdir
         monkeypatch.setattr(
             'pds.naif_pds4_bundler.classes.setup.os.path.isdir',
