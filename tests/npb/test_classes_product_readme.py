@@ -8,6 +8,7 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.label.pds4_bundle import BundlePDS4Label
 from pds.naif_pds4_bundler.classes.product.product_readme import ReadmeProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
@@ -137,6 +138,48 @@ class TestReadmeProductInit:
 
         expected = setup.staging_directory + os.sep + 'bundle_insight_spice_v003.xml'
         assert product.path == expected
+
+    @pytest.mark.parametrize('existing_files', [
+        pytest.param([], id='generated'),
+        pytest.param(['readme.txt'], id='already_in_final_area')])
+    def test_extension_follows_the_path_to_the_bundle_label(
+            self, tmp_path, existing_files):
+        """After construction the readme reports the extension of the
+        bundle label, whether it was generated or found in the final area.
+        """
+        # A final area that holds the given files, and a bundle whose label
+        # is a xml file.
+        final_dir = Path(tmp_path) / 'bundle' / 'insight_spice'
+        final_dir.mkdir(parents=True)
+        for name in existing_files:
+            (final_dir / name).write_text('existing', encoding='utf-8')
+        setup = make_setup(tmp_path)
+        bundle = make_bundle(name='bundle_insight_spice_v003.xml')
+
+        # Build the readme.
+        product, _ = build_product(setup, bundle)
+
+        # It was a txt file while being built, but it now carries the name of
+        # the bundle label, and so does its extension.
+        assert product.name == 'readme.txt'
+        assert product.extension == 'xml'
+
+    def test_label_name_is_the_bundle_label_path(self, tmp_path):
+        """The bundle label is written to the path of the bundle label
+        itself, not to a name derived from the readme extension.
+        """
+        # A built readme, and a bundle label that has not run its constructor.
+        setup = make_setup(tmp_path)
+        bundle = make_bundle(name='bundle_insight_spice_v003.xml')
+        product, _ = build_product(setup, bundle)
+        label = BundlePDS4Label.__new__(BundlePDS4Label)
+        label.product = product
+
+        # Ask the label where it is going to be written.
+        label_name = label._derive_name()
+
+        # The path passes through unchanged.
+        assert label_name == product.path
 
     def test_init_reuses_existing_readme_in_final_area(self, tmp_path):
         # When a readme already exists in the final (bundle) area:
