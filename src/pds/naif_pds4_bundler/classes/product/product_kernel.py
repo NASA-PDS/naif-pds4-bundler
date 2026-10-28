@@ -34,14 +34,14 @@ class SpiceKernelProduct(Product):
         self.setup = setup
         self.name = name
 
-        self.extension = name.split(".")[-1].strip()
-        self.type = extension_to_type(self)
+        extension = name.split(".")[-1].strip()
+        self.type = extension_to_type(self.name)
 
         if setup.pds_version == "4":
             #
             # Determine if it is a binary or a text kernel.
             #
-            if self.extension[0].lower() == "b":
+            if extension[0].lower() == "b":
                 self.file_format = "Binary"
             else:
                 self.file_format = "Character"
@@ -53,7 +53,7 @@ class SpiceKernelProduct(Product):
             #
             # Determine if it is a binary or a text kernel.
             #
-            if self.extension[0].lower() == "b":
+            if extension[0].lower() == "b":
                 self.file_format = "BINARY"
                 self.record_type = "FIXED_LENGTH"
                 self.record_bytes = "1024"

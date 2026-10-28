@@ -67,8 +67,6 @@ class MetaKernelProduct(Product):
         else:
             self.name = kernel
 
-        self.extension = self.path.split(".")[1]
-
         self.type = extension_to_type(self.name)
 
         #

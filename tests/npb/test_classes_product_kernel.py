@@ -417,11 +417,10 @@ class TestSpiceKernelProductCoverage:
     """Tests for SpiceKernelProduct.coverage."""
 
     @staticmethod
-    def _make_product_stub(setup, kernel_type, extension, path):
+    def _make_product_stub(setup, kernel_type, path):
         product = SpiceKernelProduct.__new__(SpiceKernelProduct)
         product.setup = setup
         product.type = kernel_type
-        product.extension = extension
         product.path = path
         return product
 
@@ -435,7 +434,7 @@ class TestSpiceKernelProductCoverage:
             f.write("<start_date_time>2001-01-01T00:00:00Z</start_date_time>\n")
             f.write("<stop_date_time>2010-01-01T00:00:00Z</stop_date_time>\n")
 
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
         product.coverage()
 
         assert product.start_time == "2001-01-01T00:00:00Z"
@@ -444,7 +443,7 @@ class TestSpiceKernelProductCoverage:
     def test_spk_coverage_pds4(self, tmp_path):
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "fake.bsp")
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
 
         with patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]) as mock_spk:
             product.coverage()
@@ -461,7 +460,7 @@ class TestSpiceKernelProductCoverage:
     def test_spk_coverage_pds3_no_main_name(self, tmp_path):
         setup = make_setup(pds_version="3")
         kernel_path = str(tmp_path / "fake.bsp")
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
 
         with patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]) as mock_spk:
             product.coverage()
@@ -476,7 +475,7 @@ class TestSpiceKernelProductCoverage:
     def test_ck_coverage(self, tmp_path):
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "fake.bc")
-        product = self._make_product_stub(setup, "ck", "bc", path=kernel_path)
+        product = self._make_product_stub(setup, "ck", path=kernel_path)
 
         with patch(f"{_MODULE}.ck_coverage", return_value=["2001T", "2021T"]) as mock_ck:
             product.coverage()
@@ -487,7 +486,7 @@ class TestSpiceKernelProductCoverage:
     def test_pck_coverage_for_bpc_extension(self, tmp_path):
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "fake.bpc")
-        product = self._make_product_stub(setup, "pck", "bpc", path=kernel_path)
+        product = self._make_product_stub(setup, "pck", path=kernel_path)
 
         with patch(f"{_MODULE}.pck_coverage", return_value=["2002T", "2022T"]) as mock_pck:
             product.coverage()
@@ -498,7 +497,7 @@ class TestSpiceKernelProductCoverage:
     def test_dsk_coverage(self, tmp_path):
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "fake.bds")
-        product = self._make_product_stub(setup, "dsk", "bds", path=kernel_path)
+        product = self._make_product_stub(setup, "dsk", path=kernel_path)
 
         with patch(f"{_MODULE}.dsk_coverage", return_value=["2003T", "2023T"]) as mock_dsk:
             product.coverage()
@@ -509,7 +508,7 @@ class TestSpiceKernelProductCoverage:
     def test_other_kernel_pds4_uses_mission_times(self, tmp_path):
         setup = make_setup(pds_version="4", mission_start="2005T", mission_finish="2025T")
         kernel_path = str(tmp_path / "fake.tls")
-        product = self._make_product_stub(setup, "lsk", "tls", path=kernel_path)
+        product = self._make_product_stub(setup, "lsk", path=kernel_path)
         product.coverage()
         assert product.start_time == "2005T"
         assert product.stop_time == "2025T"
@@ -517,7 +516,7 @@ class TestSpiceKernelProductCoverage:
     def test_other_kernel_pds3_uses_na_times(self, tmp_path):
         setup = make_setup(pds_version="3")
         kernel_path = str(tmp_path / "fake.tls")
-        product = self._make_product_stub(setup, "lsk", "tls", path=kernel_path)
+        product = self._make_product_stub(setup, "lsk", path=kernel_path)
         product.coverage()
         assert product.start_time == '"N/A"'
         assert product.stop_time == '"N/A"'
@@ -527,7 +526,7 @@ class TestSpiceKernelProductCoverage:
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "no_label.bsp")
         # Ensure XML label does not exist
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
 
         with patch(f"{_MODULE}.spk_coverage", return_value=["1999T", "2019T"]) as mock_spk:
             product.coverage()
@@ -547,7 +546,7 @@ class TestSpiceKernelProductCoverage:
             f.write("No_coverage_information_provided\n")
 
         # Ensure XML label does not exist
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
 
         with patch(f"{_MODULE}.spk_coverage", return_value=["1999T", "2019T"]) as mock_spk:
             product.coverage()

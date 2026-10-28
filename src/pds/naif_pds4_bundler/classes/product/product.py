@@ -11,8 +11,9 @@ from ...utils import md5
 class Product:
     """Class that defines a generic archive product (or file).
 
-    Assigns value to the common attributes for all Products: file size,
-    creation time and date, and file extension.
+    Assigns value to the common attributes for all Products: file size and
+    creation time and date. The file extension is derived from the path
+    whenever it is read.
 
     Subclasses must call ``derive_file_attributes()`` once the product file
     exists on disk.
@@ -40,14 +41,18 @@ class Product:
         self._size = None
 
     def _set_common_attributes(self) -> None:
-        """Set the creation time and date and the file extension."""
+        """Set the creation time and date."""
         if hasattr(self.setup, "creation_date_time"):
             self.creation_time = self.setup.creation_date_time
         else:
             self.creation_time = creation_time(time_format=self.setup.date_format)
 
         self.creation_date = self.creation_time.split("T")[0]
-        self.extension = self.path.split(os.sep)[-1].split(".")[-1]
+
+    @property
+    def extension(self) -> str:
+        """File extension of the product, taken from its current path."""
+        return self.path.split(os.sep)[-1].split(".")[-1]
 
     @property
     def _archive_root_dir(self) -> str:
