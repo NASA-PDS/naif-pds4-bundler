@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 import shutil
 import sys
+from typing import Iterable
+from typing import NamedTuple
 from typing import Optional
 
 import spiceypy
@@ -23,6 +25,16 @@ from ..utils import extract_comment
 from ..utils import FILE_READ_ERRORS
 from ..utils import product_mapping
 from ..utils import spice_exception_handler
+
+
+class KernelListEntries(NamedTuple):
+    """Entries found in the lines of a kernel list."""
+
+    files: list[str]
+    options: list[str]
+    num_file: int
+    num_opti: int
+    num_desc: int
 
 
 class KernelList:
@@ -1025,6 +1037,43 @@ class KernelList:
                     if isinstance(value, str) and key in line and "$" in line:
                         line = line.replace("$" + key, value)
                 f.write(f"{line}\n")
+
+    @staticmethod
+    def _parse_entries(lines: Iterable[str]) -> KernelListEntries:
+        """Classify the lines of a kernel list and collect their entries.
+
+        The FILE basenames and the option tokens are returned in the order
+        they appear. The option tokens are not filtered, so a ``None``
+        token is returned like any other.
+
+        :param lines: Lines of a kernel list
+        :return: FILE basenames, option tokens and the number of FILE,
+                 MAKLABEL_OPTIONS and DESCRIPTION entries
+        """
+        files = []
+        options = []
+        num_file = 0
+        num_opti = 0
+        num_desc = 0
+
+        for line in lines:
+            # TODO: BUG, when performing the check using substring, there is
+            #       a possibility that a description may contain the word
+            #       FILE. If this is the case, it would be counted
+            #       incorrectly and, furthermore, the DESCRIPTION line would
+            #       not be counted at all.
+            if ("FILE" in line) and (line.split("=")[-1].strip()):
+                num_file += 1
+                files.append(line.split("/")[-1].strip())
+
+            elif "OPTIONS" in line:
+                num_opti += 1
+                options.extend(line.split("=")[-1].split())
+
+            elif ("DESCRIPTION" in line) and (line.split("=")[-1].strip()):
+                num_desc += 1
+
+        return KernelListEntries(files, options, num_file, num_opti, num_desc)
 
     @staticmethod
     def _check_consecutive(lst: list[int]) -> bool:

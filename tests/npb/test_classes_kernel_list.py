@@ -973,6 +973,67 @@ class TestKernelListReadList:
         assert kernel_list.kernel_list == []
 
 
+class TestKernelListParseEntries:
+    """Tests for KernelList._parse_entries."""
+
+    @pytest.mark.parametrize(
+        'lines, files, options, num_file, num_opti, num_desc',
+        [
+            pytest.param(
+                ['FILE             = /data/ck/a.bc\n',
+                 'MAKLABEL_OPTIONS = -opt1 -opt2\n',
+                 'DESCRIPTION      = A description\n'],
+                ['a.bc'], ['-opt1', '-opt2'], 1, 1, 1,
+                id='well-formed-block'),
+            pytest.param(
+                ['FILE             = \n'],
+                [], [], 0, 0, 0,
+                id='file-without-value-not-counted'),
+            pytest.param(
+                ['DESCRIPTION      = \n'],
+                [], [], 0, 0, 0,
+                id='description-without-value-not-counted'),
+            pytest.param(
+                ['MAKLABEL_OPTIONS = \n'],
+                [], [], 0, 1, 0,
+                id='options-without-value-counted'),
+            pytest.param(
+                ['MAKLABEL_OPTIONS = None\n'],
+                [], ['None'], 0, 1, 0,
+                id='none-option-token-returned'),
+            pytest.param(
+                ['DESCRIPTION      = Kernel FILE for the lander\n'],
+                ['DESCRIPTION      = Kernel FILE for the lander'],
+                [], 1, 0, 0,
+                id='known-flaw-description-containing-FILE-miscounted'),
+            pytest.param(
+                ['FILE = /d/a.bsp\n', 'MAKLABEL_OPTIONS = -x\n',
+                 'DESCRIPTION = one\n',
+                 'FILE = /d/b.bsp\n', 'MAKLABEL_OPTIONS = None\n',
+                 'DESCRIPTION = two\n'],
+                ['a.bsp', 'b.bsp'], ['-x', 'None'], 2, 2, 2,
+                id='several-blocks-keep-order'),
+        ])
+    def test_parse_entries(self, lines, files, options, num_file, num_opti,
+                           num_desc) -> None:
+        """Check the basenames, option tokens and counts of a list.
+
+        A FILE or DESCRIPTION line only counts when it has a value, while
+        an OPTIONS line always counts and its tokens, 'None' included, are
+        returned as they are. A DESCRIPTION line that contains the word
+        'FILE' is counted as a FILE entry and not as a DESCRIPTION.
+        """
+        # A plain list of lines stands in for the open file, as the parser
+        # only iterates over them.
+        entries = KernelList._parse_entries(lines)
+
+        # The basenames and tokens come back in the order they were read.
+        assert entries.files == files
+        assert entries.options == options
+        assert (entries.num_file, entries.num_opti,
+                entries.num_desc) == (num_file, num_opti, num_desc)
+
+
 class TestKernelListValidate:
 
     @staticmethod
