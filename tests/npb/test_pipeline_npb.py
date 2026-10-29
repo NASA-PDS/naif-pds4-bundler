@@ -126,6 +126,10 @@ def _args(**overrides) -> PipelineArgs:
     return PipelineArgs(**defaults)
 
 
+# Where the mocked release plan says it writes the plan.
+PLAN_PATH = Path('/work/maven_release_01.plan')
+
+
 def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     """Set mock defaults that let a full PDS4 run complete without errors."""
     setup = m.Setup.return_value
@@ -137,7 +141,7 @@ def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     release_plan = m.ReleasePlan.return_value
     release_plan.kernel_list = []
     release_plan.write_plan.return_value = True
-    release_plan.plan_path = None
+    release_plan.plan_path = PLAN_PATH
 
     k_list = m.KernelList.return_value
     k_list.kernel_list = []
@@ -342,34 +346,31 @@ class TestPhase3ReleasePlan:
         mocks.KernelList.assert_not_called()
 
     @pytest.mark.parametrize(
-        'written, plan_path, arg_overrides, expected_files', [
+        'written, arg_overrides, expected_files', [
             pytest.param(
-                True, Path('/work/maven_release_01.plan'), {},
-                [Path('/work/maven_release_01.plan')], id='plan_generated'),
+                True, {}, [PLAN_PATH], id='plan_generated'),
             pytest.param(
-                False, None, {}, [], id='empty_plan_run_continues'),
+                False, {}, [], id='empty_plan_run_continues'),
             pytest.param(
-                False, None, {'faucet': 'labels'}, [],
+                False, {'faucet': 'labels'}, [],
                 id='empty_plan_labels_faucet_returns'),
             pytest.param(
-                True, None, {'plan': 'maven_release_01.plan'}, [],
+                True, {'plan': 'maven_release_01.plan'}, [],
                 id='plan_provided'),
             pytest.param(
-                True, None, {'kerlist': 'maven_release_01.kernel_list'}, [],
+                True, {'kerlist': 'maven_release_01.kernel_list'}, [],
                 id='kernel_list_provided'),
         ])
     def test_plan_registered_only_when_generated_with_kernels(
-            self, mocks, written, plan_path, arg_overrides, expected_files):
+            self, mocks, written, arg_overrides, expected_files):
         """The plan file is added to the list of generated files, as the
         string of its path, only when 'write_plan' generates a plan with
         kernels. An empty plan, a plan read from a file or a kernel list
         add nothing.
         """
-        # 'write_plan' reports whether a plan was generated and, if so, the
-        # path it wrote.
-        release_plan = mocks.ReleasePlan.return_value
-        release_plan.write_plan.return_value = written
-        release_plan.plan_path = plan_path
+        # The plan path is always set, so only what 'write_plan' reports
+        # decides whether the plan is registered.
+        mocks.ReleasePlan.return_value.write_plan.return_value = written
 
         run_pipeline(_args(**arg_overrides))
 
@@ -383,9 +384,8 @@ class TestPhase3ReleasePlan:
         """The plan file is the first entry of the list of generated files,
         ahead of the first product registered.
         """
-        # A plan with a path and one kernel, so a product gets registered.
+        # One kernel, so a product gets registered after the plan.
         release_plan = mocks.ReleasePlan.return_value
-        release_plan.plan_path = Path('/work/maven_release_01.plan')
         release_plan.kernel_list = ['maven_2024.bsp']
 
         run_pipeline(_args())

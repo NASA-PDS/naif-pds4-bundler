@@ -155,15 +155,13 @@ def run_pipeline(args: PipelineArgs) -> None:
         if not args.kerlist:
             if not args.plan or (".plan" not in args.plan):
 
-                # Stop the execution if we cannot write a release plan when we are
-                # running on "labels" mode.
-                if not release_plan.write_plan() and (args.faucet == "labels"):
-                    return
-
-                # A plan without kernels is written but has no path, so it
-                # is not added to the list of generated files.
-                if release_plan.plan_path is not None:
+                # The plan is always written, but it is only added to the
+                # list of generated files when it has kernels. Without
+                # kernels, stop the execution when running on "labels" mode.
+                if release_plan.write_plan():
                     run_state.add_file(str(release_plan.plan_path))
+                elif args.faucet == "labels":
+                    return
             else:
                 release_plan.read_plan(Path(args.plan))
 

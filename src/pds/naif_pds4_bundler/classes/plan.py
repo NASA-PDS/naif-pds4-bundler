@@ -20,7 +20,7 @@ class ReleasePlan:
         self.setup = setup
         self.json_config = self.setup.kernel_list_config
         self._kernel_list = []
-        self._plan_path = None
+        self._plan_path = Path(self.setup.working_directory, self._plan_name())
 
     # ------------------------------------------------------------------
     # Public interface
@@ -36,11 +36,12 @@ class ReleasePlan:
         return self._kernel_list
 
     @property
-    def plan_path(self) -> Path | None:
-        """Path of the plan file written by :meth:`write_plan`.
+    def plan_path(self) -> Path:
+        """Path where :meth:`write_plan` writes the release plan.
 
-        ``None`` unless a plan with kernels has been generated. A plan
-        written without kernels is not exposed.
+        The path is known from construction, whether the plan has been written
+        yet. The release of the setup must already be set when the object is
+        built.
         """
         return self._plan_path
 
@@ -57,9 +58,9 @@ class ReleasePlan:
         # If NPB runs in labeling mode, a single file can be specified
         # as a release plan. If so, a plan is generated.
         if plan.suffix != ".plan" and self.setup.args.faucet == "labels":
-            plan = os.path.join(self.setup.working_directory, self._plan_name())
+            plan = self._plan_path
             with open(plan, "w", encoding='utf-8') as pl:
-                pl.write(plan.split(os.sep)[-1])
+                pl.write(plan.name)
 
         elif plan.suffix != ".plan":
             raise NPBError(
@@ -106,8 +107,8 @@ class ReleasePlan:
     def write_plan(self):
         """Write the Release Plan if not provided.
 
-        :return: True if a release plan has been generated, False if it has
-                 been provided as input
+        :return: True if the plan has kernels, False if no inputs were found.
+                 The plan is written to :attr:`plan_path` either way.
         :rtype: bool
         """
         # The release plan is generated from the kernel directory unless
@@ -118,8 +119,7 @@ class ReleasePlan:
         kernels = self._collect_plan_files(candidates)
 
         # The kernel list is complete.
-        plan_name = self._plan_name()
-        self._write_plan_file(plan_name, kernels)
+        self._write_plan_file(kernels)
 
         if not kernels:
 
@@ -136,7 +136,6 @@ class ReleasePlan:
         # Report the kernels that are included in the release plan.
         self._log_kernels_in_release_plan(kernels)
         self._kernel_list = kernels
-        self._plan_path = Path(self.setup.working_directory, plan_name)
 
         return True
 
@@ -401,12 +400,10 @@ class ReleasePlan:
 
         return result
 
-    def _write_plan_file(self, plan_name: str, kernels: list) -> None:
+    def _write_plan_file(self, kernels: list) -> None:
         """Write kernel names to the .plan file, one per line.
 
-        :param plan_name: Filename (not full path) of the plan file.
         :param kernels:   Ordered list of kernel filenames to write.
         """
-        plan_path = Path(self.setup.working_directory) / plan_name
-        with open(plan_path, "wt", encoding='utf-8') as handle:
+        with open(self._plan_path, "wt", encoding='utf-8') as handle:
             handle.write('\n'.join(kernels) + '\n')
