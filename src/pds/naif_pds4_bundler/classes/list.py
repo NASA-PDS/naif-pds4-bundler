@@ -427,13 +427,6 @@ class KernelList:
          * if the ``-d DIFF --diff DIFF`` argument is used, compare the kernel
            list with the kernel list of the previous release -if avaialble.
         """
-        num_file = 0
-        num_opti = 0
-        num_desc = 0
-
-        ker_in_list = []
-        opt_in_list = []
-
         list_path = self.setup.working_directory + os.sep + self.list_name
 
         #
@@ -452,32 +445,22 @@ class KernelList:
             # Check that the list has the same number of FILE,
             # MAKLABEL_OPTIONS, and DESCRIPTION entries
             #
-            for line in lst:
-                # TODO: BUG, when performing the check using substring, there is
-                #       a possibility that a description may contain the word
-                #       FILE. If this is the case, it would be counted
-                #       incorrectly and, furthermore, the DESCRIPTION line would
-                #       not be counted at all.
-                if ("FILE" in line) and (line.split("=")[-1].strip()):
-                    num_file += 1
-                    #
-                    # We add kernels to compare plan and list and to look
-                    # for duplicates.
-                    #
-                    ker_in_list.append(line.split("/")[-1].strip())
+            entries = self._parse_entries(lst)
+            num_file = entries.num_file
+            num_opti = entries.num_opti
+            num_desc = entries.num_desc
 
-                elif "OPTIONS" in line:
-                    num_opti += 1
-                    #
-                    # We add options to display and compare to template
-                    #
-                    options = line.split("=")[-1].split()
-                    for option in options:
-                        if option != "None":
-                            opt_in_list.append(option)
+            #
+            # We add kernels to compare plan and list and to look
+            # for duplicates.
+            #
+            ker_in_list = entries.files
 
-                elif ("DESCRIPTION" in line) and (line.split("=")[-1].strip()):
-                    num_desc += 1
+            #
+            # We add options to display and compare to template. The parser
+            # also returns the 'None' tokens, which are not options.
+            #
+            opt_in_list = [opt for opt in entries.options if opt != "None"]
 
             if (num_file != num_opti) or (num_opti != num_desc):
 
