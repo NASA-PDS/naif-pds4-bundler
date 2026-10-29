@@ -622,9 +622,7 @@ class KernelList:
                     #
                     logging.info('     Adding %s in check.', kernel_list)
 
-                    for line in lst:
-                        if ("FILE" in line) and (line.split("=")[-1].strip()):
-                            ker_in_list.append(line.split("/")[-1].strip())
+                    ker_in_list.extend(self._parse_entries(lst).files)
 
             if check_list_duplicates(ker_in_list):
                 raise NPBError("List contains duplicates.")
