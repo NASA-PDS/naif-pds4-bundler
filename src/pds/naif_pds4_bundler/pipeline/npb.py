@@ -36,6 +36,17 @@ from ..classes.setup import Setup
 from ..utils.types.datatypes import PipelineArgs
 
 
+def _write_label(run_state: RunState, product, label_cls) -> None:
+    """Build, write and register the label of a product.
+
+    :param run_state: Run state the label file gets registered in.
+    :param product: Product to label.
+    :param label_cls: Label class to build the label with.
+    """
+    product.label = label_cls(product)
+    run_state.register_label_file(product.label.write_label())
+
+
 def run_pipeline(args: PipelineArgs) -> None:
     """NAIF PDS4 Bundler pipeline for the archive generation.
 
