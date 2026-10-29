@@ -8,6 +8,8 @@ import os
 from pathlib import Path
 import shutil
 import sys
+from typing import Iterable
+from typing import NamedTuple
 from typing import Optional
 
 import spiceypy
@@ -23,6 +25,16 @@ from ..utils import extract_comment
 from ..utils import FILE_READ_ERRORS
 from ..utils import product_mapping
 from ..utils import spice_exception_handler
+
+
+class KernelListEntries(NamedTuple):
+    """Entries found in the lines of a kernel list."""
+
+    files: list[str]
+    options: list[str]
+    num_file: int
+    num_opti: int
+    num_desc: int
 
 
 class KernelList:
@@ -415,13 +427,6 @@ class KernelList:
          * if the ``-d DIFF --diff DIFF`` argument is used, compare the kernel
            list with the kernel list of the previous release -if avaialble.
         """
-        num_file = 0
-        num_opti = 0
-        num_desc = 0
-
-        ker_in_list = []
-        opt_in_list = []
-
         list_path = self.setup.working_directory + os.sep + self.list_name
 
         #
@@ -440,32 +445,22 @@ class KernelList:
             # Check that the list has the same number of FILE,
             # MAKLABEL_OPTIONS, and DESCRIPTION entries
             #
-            for line in lst:
-                # TODO: BUG, when performing the check using substring, there is
-                #       a possibility that a description may contain the word
-                #       FILE. If this is the case, it would be counted
-                #       incorrectly and, furthermore, the DESCRIPTION line would
-                #       not be counted at all.
-                if ("FILE" in line) and (line.split("=")[-1].strip()):
-                    num_file += 1
-                    #
-                    # We add kernels to compare plan and list and to look
-                    # for duplicates.
-                    #
-                    ker_in_list.append(line.split("/")[-1].strip())
+            entries = self._parse_entries(lst)
+            num_file = entries.num_file
+            num_opti = entries.num_opti
+            num_desc = entries.num_desc
 
-                elif "OPTIONS" in line:
-                    num_opti += 1
-                    #
-                    # We add options to display and compare to template
-                    #
-                    options = line.split("=")[-1].split()
-                    for option in options:
-                        if option != "None":
-                            opt_in_list.append(option)
+            #
+            # We add kernels to compare plan and list and to look
+            # for duplicates.
+            #
+            ker_in_list = entries.files
 
-                elif ("DESCRIPTION" in line) and (line.split("=")[-1].strip()):
-                    num_desc += 1
+            #
+            # We add options to display and compare to template. The parser
+            # also returns the 'None' tokens, which are not options.
+            #
+            opt_in_list = [opt for opt in entries.options if opt != "None"]
 
             if (num_file != num_opti) or (num_opti != num_desc):
 
@@ -627,9 +622,7 @@ class KernelList:
                     #
                     logging.info('     Adding %s in check.', kernel_list)
 
-                    for line in lst:
-                        if ("FILE" in line) and (line.split("=")[-1].strip()):
-                            ker_in_list.append(line.split("/")[-1].strip())
+                    ker_in_list.extend(self._parse_entries(lst).files)
 
             if check_list_duplicates(ker_in_list):
                 raise NPBError("List contains duplicates.")
@@ -1025,6 +1018,43 @@ class KernelList:
                     if isinstance(value, str) and key in line and "$" in line:
                         line = line.replace("$" + key, value)
                 f.write(f"{line}\n")
+
+    @staticmethod
+    def _parse_entries(lines: Iterable[str]) -> KernelListEntries:
+        """Classify the lines of a kernel list and collect their entries.
+
+        The FILE basenames and the option tokens are returned in the order
+        they appear. The option tokens are not filtered, so a ``None``
+        token is returned like any other.
+
+        :param lines: Lines of a kernel list
+        :return: FILE basenames, option tokens and the number of FILE,
+                 MAKLABEL_OPTIONS and DESCRIPTION entries
+        """
+        files = []
+        options = []
+        num_file = 0
+        num_opti = 0
+        num_desc = 0
+
+        for line in lines:
+            # TODO: BUG, when performing the check using substring, there is
+            #       a possibility that a description may contain the word
+            #       FILE. If this is the case, it would be counted
+            #       incorrectly and, furthermore, the DESCRIPTION line would
+            #       not be counted at all.
+            if ("FILE" in line) and (line.split("=")[-1].strip()):
+                num_file += 1
+                files.append(line.split("/")[-1].strip())
+
+            elif "OPTIONS" in line:
+                num_opti += 1
+                options.extend(line.split("=")[-1].split())
+
+            elif ("DESCRIPTION" in line) and (line.split("=")[-1].strip()):
+                num_desc += 1
+
+        return KernelListEntries(files, options, num_file, num_opti, num_desc)
 
     @staticmethod
     def _check_consecutive(lst: list[int]) -> bool:
