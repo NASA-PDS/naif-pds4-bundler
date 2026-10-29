@@ -377,7 +377,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 )
                 run_state.register_product(spice_kernels_collection_inventory)
                 spice_kernels_collection_inventory.label = InventoryPDS4Label(
-                    spice_kernels_collection_inventory, spice_kernels_collection)
+                    spice_kernels_collection_inventory)
                 run_state.register_label_file(
                     spice_kernels_collection_inventory.label.write_label())
 
@@ -387,7 +387,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 )
                 run_state.register_product(spice_kernels_collection_inventory)
                 spice_kernels_collection_inventory.label = InventoryPDS3Label(
-                    spice_kernels_collection_inventory, spice_kernels_collection)
+                    spice_kernels_collection_inventory)
                 run_state.register_label_file(
                     spice_kernels_collection_inventory.label.write_label())
 
@@ -419,7 +419,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                 # Labeling used to happen inside SpicedsProduct itself, under
                 # the same generated check -- a spiceds file that hasn't changed
                 # since the last release isn't relabeled.
-                spiceds.label = DocumentPDS4Label(spiceds, document_collection)
+                spiceds.label = DocumentPDS4Label(spiceds)
                 run_state.register_label_file(spiceds.label.write_label())
 
                 document_collection.add(spiceds)
@@ -434,7 +434,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
                 # This branch only runs for PDS4, so there's no PDS3 label to pick.
                 document_collection_inventory.label = InventoryPDS4Label(
-                    document_collection_inventory, document_collection)
+                    document_collection_inventory)
                 run_state.register_label_file(
                     document_collection_inventory.label.write_label())
 
@@ -515,8 +515,7 @@ def run_pipeline(args: PipelineArgs) -> None:
                         # This runs once per past release, always PDS4-only,
                         # same as the site above.
                         release_miscellaneous_collection_inventory.label = InventoryPDS4Label(
-                            release_miscellaneous_collection_inventory,
-                            release_miscellaneous_collection)
+                            release_miscellaneous_collection_inventory)
                         run_state.register_label_file(
                             release_miscellaneous_collection_inventory.label.write_label())
 
@@ -575,7 +574,7 @@ def run_pipeline(args: PipelineArgs) -> None:
 
             # The current release's own miscellaneous inventory, PDS4-only.
             miscellaneous_collection_inventory.label = InventoryPDS4Label(
-                miscellaneous_collection_inventory, miscellaneous_collection)
+                miscellaneous_collection_inventory)
             run_state.register_label_file(
                 miscellaneous_collection_inventory.label.write_label())
 

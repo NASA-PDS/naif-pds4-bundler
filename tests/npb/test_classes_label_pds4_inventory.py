@@ -107,10 +107,19 @@ def helpers(base_helpers: SimpleNamespace) -> SimpleNamespace:
         collection.product = products if products is not None else []
         return collection
 
+    def _attach_collection(inventory: MagicMock, collection: MagicMock) -> None:
+        # The label reads the collection off the product, so the test collection
+        # must be the product's own. The product's auto-created collection is
+        # the one carrying the bundle context products that PDS4Label reads, so
+        # hand that bundle over before replacing it.
+        collection.bundle = inventory.collection.bundle
+        inventory.collection = collection
+
     return SimpleNamespace(make_setup=_make_setup,
                            make_inventory=_make_inventory,
                            make_checksum_product=_make_checksum_product,
-                           make_collection=_make_collection)
+                           make_collection=_make_collection,
+                           attach_collection=_attach_collection)
 
 
 # ===========================================================================
@@ -141,7 +150,8 @@ class TestInventoryPDS4Label:
 
         # PDSLabel.__init__ is intentionally NOT mocked.
         inventory.setup = setup
-        return InventoryPDS4Label(inventory, collection)
+        helpers.attach_collection(inventory, collection)
+        return InventoryPDS4Label(inventory)
 
     # ------------------------------------------------------------------
     # Regular tests – attribute assignments (spice_kernels / else branch)
@@ -192,7 +202,8 @@ class TestInventoryPDS4Label:
         with patch('pds.naif_pds4_bundler.classes.label.label.'
                    'PDSLabel.write_label', autospec=True) as mock_write:
             inventory.setup = setup
-            label = InventoryPDS4Label(inventory, collection)
+            helpers.attach_collection(inventory, collection)
+            label = InventoryPDS4Label(inventory)
 
         # setup, product (the inventory) and collection are stored as-is.
         assert label.setup is setup
@@ -235,7 +246,8 @@ class TestInventoryPDS4Label:
                                              coll_type=coll_type)
 
         inventory.setup = setup
-        label = InventoryPDS4Label(inventory, collection)
+        helpers.attach_collection(inventory, collection)
+        label = InventoryPDS4Label(inventory)
 
         assert label._template == str(
             Path(setup.templates_directory)
@@ -258,7 +270,8 @@ class TestInventoryPDS4Label:
         collection = helpers.make_collection()
 
         inventory.setup = setup
-        label = InventoryPDS4Label(inventory, collection)
+        helpers.attach_collection(inventory, collection)
+        label = InventoryPDS4Label(inventory)
 
         assert label._label_fields["N_RECORDS"] == expected
 
@@ -277,8 +290,9 @@ class TestInventoryPDS4Label:
         # Wiring happens before the assertion block so pytest.raises only
         # wraps the call actually expected to raise.
         inventory.setup = setup
+        helpers.attach_collection(inventory, collection)
         with pytest.raises(FileNotFoundError):
-            InventoryPDS4Label(inventory, collection)
+            InventoryPDS4Label(inventory)
 
     # ------------------------------------------------------------------
     # Miscellaneous branch – coverage from the checksum products
@@ -309,7 +323,8 @@ class TestInventoryPDS4Label:
                                              products=checksums)
 
         inventory.setup = setup
-        label = InventoryPDS4Label(inventory, collection)
+        helpers.attach_collection(inventory, collection)
+        label = InventoryPDS4Label(inventory)
 
         assert label._label_fields["START_TIME"] == expected_start
         assert label._label_fields["STOP_TIME"] == expected_stop
@@ -334,7 +349,8 @@ class TestInventoryPDS4Label:
             products=[non_checksum, checksum])
 
         inventory.setup = setup
-        label = InventoryPDS4Label(inventory, collection)
+        helpers.attach_collection(inventory, collection)
+        label = InventoryPDS4Label(inventory)
 
         assert label._label_fields["START_TIME"] == '2024-01-05T00:00:00'
         assert label._label_fields["STOP_TIME"] == '2024-01-25T00:00:00'
@@ -360,7 +376,8 @@ class TestInventoryPDS4Label:
         collection.increment_finish = 'SHOULD_NOT_BE_USED_STOP'
 
         inventory.setup = setup
-        label = InventoryPDS4Label(inventory, collection)
+        helpers.attach_collection(inventory, collection)
+        label = InventoryPDS4Label(inventory)
 
         # The checksum coverage wins.
         assert label._label_fields["START_TIME"] == '2024-01-01T00:00:00'
@@ -378,7 +395,8 @@ class TestInventoryPDS4Label:
             name='document', coll_type='document')
 
         inventory.setup = setup
-        label = InventoryPDS4Label(inventory, collection)
+        helpers.attach_collection(inventory, collection)
+        label = InventoryPDS4Label(inventory)
 
         # Neither field is set, instead of holding an empty or stale value.
         assert "START_TIME" not in label._label_fields
@@ -411,8 +429,9 @@ class TestInventoryPDS4Label:
         # Wiring happens before the assertion block so pytest.raises only
         # wraps the call actually expected to raise.
         inventory.setup = setup
+        helpers.attach_collection(inventory, collection)
         with pytest.raises(NPBInternalError, match=f'^{expected_message}$'):
-            InventoryPDS4Label(inventory, collection)
+            InventoryPDS4Label(inventory)
 
     def test_miscellaneous_branch_with_empty_product_list_raises_npbinternalerror(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
@@ -436,8 +455,9 @@ class TestInventoryPDS4Label:
         # Wiring happens before the assertion block so pytest.raises only
         # wraps the call actually expected to raise.
         inventory.setup = setup
+        helpers.attach_collection(inventory, collection)
         with pytest.raises(NPBInternalError, match=f'^{expected_message}$'):
-            InventoryPDS4Label(inventory, collection)
+            InventoryPDS4Label(inventory)
 
 
 # ===========================================================================
@@ -501,6 +521,7 @@ class TestInventoryPDS4LabelIntegration:
         inventory = helpers.make_inventory(staging_dir, n_records=3)
         collection = helpers.make_collection(name='spice_kernels',
                                              coll_type='spice_kernels')
+        helpers.attach_collection(inventory, collection)
 
         # The inherited writer derives the XML label path from product.path:
         # it swaps the product extension for '.xml' AND, because the path
@@ -527,7 +548,7 @@ class TestInventoryPDS4LabelIntegration:
         context_effect_helpers.diverge(inventory)
 
         inventory.setup = setup
-        label = InventoryPDS4Label(inventory, collection)
+        label = InventoryPDS4Label(inventory)
 
         # setup must win
         context_effect_helpers.assert_source(label, from_product=False)
@@ -547,7 +568,7 @@ class TestInventoryPDS4LabelIntegration:
 
         inventory.setup = setup
 
-        label = InventoryPDS4Label(inventory, collection)
+        label = InventoryPDS4Label(inventory)
         label.write_label()
 
         # The class resolved the template from collection.type.
@@ -583,7 +604,7 @@ class TestInventoryPDS4LabelIntegration:
 
         inventory.setup = setup
 
-        InventoryPDS4Label(inventory, collection).write_label()
+        InventoryPDS4Label(inventory).write_label()
 
         tree = ElementTree.parse(label_path)
         root = tree.getroot()
@@ -611,7 +632,7 @@ class TestInventoryPDS4LabelIntegration:
 
         inventory.setup = setup
 
-        InventoryPDS4Label(inventory, collection).write_label()
+        InventoryPDS4Label(inventory).write_label()
 
         raw = label_path.read_bytes()
 
@@ -633,7 +654,7 @@ class TestInventoryPDS4LabelIntegration:
         setup, collection, inventory, _, label_path = env
         inventory.setup = setup
 
-        written_path = InventoryPDS4Label(inventory, collection).write_label()
+        written_path = InventoryPDS4Label(inventory).write_label()
 
         expected_relative = str(
             label_path.relative_to(Path(setup.staging_directory)))
@@ -652,7 +673,7 @@ class TestInventoryPDS4LabelIntegration:
         template_path.unlink()
 
         inventory.setup = setup
-        label = InventoryPDS4Label(inventory, collection)
+        label = InventoryPDS4Label(inventory)
 
         # Wiring happens before the assertion block so pytest.raises only
         # wraps the call actually expected to raise.
@@ -678,7 +699,7 @@ class TestInventoryPDS4LabelIntegration:
 
         inventory.setup = setup
 
-        written_path = InventoryPDS4Label(inventory, collection).write_label()
+        written_path = InventoryPDS4Label(inventory).write_label()
 
         assert label_path.exists()
         with open(label_path, 'rt', encoding='utf-8', newline='') as f:
@@ -733,10 +754,11 @@ class TestInventoryPDS4LabelIntegration:
         collection = helpers.make_collection(name='miscellaneous',
                                              coll_type='miscellaneous',
                                              products=checksums)
+        helpers.attach_collection(inventory, collection)
 
         inventory.setup = setup
 
-        label = InventoryPDS4Label(inventory, collection)
+        label = InventoryPDS4Label(inventory)
         label.write_label()
 
         # The writer-generated file is derived from inventory.path, stripping

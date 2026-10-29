@@ -34,9 +34,8 @@ class TestDocumentPDS4LabelInit:
 
     def test_init_sets_document_label_state_and_does_not_write_label(
             self, mocker, tmp_path: Path) -> None:
-        """The constructor calls the parent initializer, stores the collection,
-        builds the template path and fills the label fields, but does not
-        write the label."""
+        """The constructor calls the parent initializer, builds the template
+        path and fills the label fields, but does not write the label."""
 
         # Create the minimal objects.
         setup, collection, inventory = self.make_document_label_inputs(tmp_path)
@@ -58,14 +57,14 @@ class TestDocumentPDS4LabelInit:
         write_label_mock = mocker.patch.object(DocumentPDS4Label, 'write_label',
                                                autospec=True)
 
-        document_label = DocumentPDS4Label(inventory, collection)
+        document_label = DocumentPDS4Label(inventory)
 
         # Verification of the call to the parent.
         parent_init_mock.assert_called_once_with(document_label, inventory)
 
         # Check that the class stores the same references as those received.
         assert document_label.setup is setup
-        assert document_label.collection is collection
+        assert not hasattr(document_label, 'collection')
         assert document_label._template == str(Path(setup.templates_directory) /
                                                'template_product_html_document.xml')
 
@@ -208,7 +207,7 @@ class TestDocumentPDS4LabelIntegration:
         setup, collection, inventory, _, label_path = env
 
         # Build the label.
-        label = DocumentPDS4Label(inventory, collection)
+        label = DocumentPDS4Label(inventory)
 
         # The path is set, and no file exists yet because nothing has
         # written the label.
@@ -230,7 +229,7 @@ class TestDocumentPDS4LabelIntegration:
         # inventory now differs from setup
         context_effect_helpers.diverge(inventory)
 
-        label = DocumentPDS4Label(inventory, collection)
+        label = DocumentPDS4Label(inventory)
 
         # setup must win
         context_effect_helpers.assert_source(label, from_product=False)
@@ -242,7 +241,7 @@ class TestDocumentPDS4LabelIntegration:
         # compare the generated label with the expected full content.
         setup, collection, inventory, template_path, label_path = env
 
-        label = DocumentPDS4Label(inventory, collection)
+        label = DocumentPDS4Label(inventory)
         label.write_label()
 
         # DocumentPDS4Label must resolve the document-specific template.
@@ -277,7 +276,7 @@ class TestDocumentPDS4LabelIntegration:
 
         setup, collection, inventory, _, label_path = env
 
-        written_path = DocumentPDS4Label(inventory, collection).write_label()
+        written_path = DocumentPDS4Label(inventory).write_label()
 
         # The expected path is the generated label relative to staging.
         expected_label_path = str(label_path.relative_to(Path(setup.staging_directory)))
@@ -294,7 +293,7 @@ class TestDocumentPDS4LabelIntegration:
         # DocumentPDS4Label overrides the mission reference type only; the
         # target reference type keeps PDS4Label's default (see below).
         setup, collection, inventory, _, _ = env
-        label = DocumentPDS4Label(inventory, collection)
+        label = DocumentPDS4Label(inventory)
         assert label._mission_reference_type == 'document_to_investigation'
 
     def test_target_reference_type(
@@ -302,5 +301,5 @@ class TestDocumentPDS4LabelIntegration:
             env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # No override on DocumentPDS4Label: falls back to PDS4Label's default.
         setup, collection, inventory, _, _ = env
-        label = DocumentPDS4Label(inventory, collection)
+        label = DocumentPDS4Label(inventory)
         assert label._target_reference_type == 'data_to_target'
