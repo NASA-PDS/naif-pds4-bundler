@@ -10,6 +10,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.product.product_kernel import SpiceKernelProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
+from pds.naif_pds4_bundler.utils.files import extension_to_type
 
 
 # ---------------------------------------------------------------------------
@@ -109,10 +110,15 @@ def write_kernel_list(env, setup, name, description="Test kernel desc",
 # Utility: build a fully-constructed SpiceKernelProduct via __init__
 # ---------------------------------------------------------------------------
 
-def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None):
+def build_product(
+        env, fake_product_init, name="test.bsp", pds_version="4",
+        extra_setup_kwargs=None, type_side_effect=None):
     """
     Construct a real SpiceKernelProduct with all heavy collaborators mocked.
     Returns (product, setup, collection).
+
+    ``extension_to_type`` always returns "spk" unless ``type_side_effect`` is
+    given, e.g. the real function to get the actual kernel type.
     """
     extra_setup_kwargs = extra_setup_kwargs or {}
     setup = make_setup(
@@ -128,7 +134,8 @@ def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None
     write_kernel_list(env, setup, name)
 
     with (
-        patch(f"{_MODULE}.extension_to_type", return_value="spk"),
+        patch(f"{_MODULE}.extension_to_type", return_value="spk",
+              side_effect=type_side_effect),
         patch(f"{_MODULE}.safe_make_directory"),
         patch(f"{_MODULE}.product_mapping", return_value=name),
         patch(f"{_MODULE}.shutil.copy2"),
@@ -136,7 +143,8 @@ def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None
         patch(f"{_MODULE}.ck_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.pck_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
         patch(f"{_MODULE}.dsk_coverage", return_value=["2000-01-01T00:00:00Z", "2020-01-01T00:00:00Z"]),
-        patch(f"{_MODULE}.Product.__init__", return_value=None),
+        patch(f"{_MODULE}.Product.__init__", autospec=True,
+              side_effect=fake_product_init),
         patch(f"{_MODULE}.Product.derive_file_attributes"),
     ):
         product = SpiceKernelProduct(setup, name, collection)
@@ -148,28 +156,51 @@ def build_product(env, name="test.bsp", pds_version="4", extra_setup_kwargs=None
 # SpiceKernelProduct.__init__
 # ===========================================================================
 
+# Binary kernels are the extensions that start with "b"; the PDS3 and PDS4
+# labels describe them differently.
+FILE_FORMATS = {
+    "4": {
+        "binary": {"file_format": "Binary"},
+        "text": {"file_format": "Character"},
+    },
+    "3": {
+        "binary": {"file_format": "BINARY", "record_type": "FIXED_LENGTH",
+                   "record_bytes": "1024"},
+        "text": {"file_format": "ASCII", "record_type": "STREAM",
+                 "record_bytes": '"N/A"'},
+    },
+}
+
+
 class TestSpiceKernelProductInit:
     """Tests for SpiceKernelProduct.__init__, product_lid, and product_vid."""
 
-    def test_pds4_binary_kernel_sets_binary_file_format(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="4")
+    def test_pds4_binary_kernel_sets_binary_file_format(
+            self, tmp_env, fake_product_init):
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name="test.bsp", pds_version="4")
         assert product.file_format == "Binary"
 
-    def test_pds4_text_kernel_sets_character_file_format(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.tls", pds_version="4")
+    def test_pds4_text_kernel_sets_character_file_format(
+            self, tmp_env, fake_product_init):
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name="test.tls", pds_version="4")
         # extension_to_type is mocked; just verify Character branch
         assert product.file_format == "Character"
 
-    def test_pds4_lid_format(self, tmp_env):
-        product, setup, _ = build_product(tmp_env, name="test.bsp", pds_version="4")
+    def test_pds4_lid_format(self, tmp_env, fake_product_init):
+        product, setup, _ = build_product(
+            tmp_env, fake_product_init, name="test.bsp", pds_version="4")
         expected = f"{setup.logical_identifier}:spice_kernels:spk_test.bsp".lower()
         assert product.lid == expected
 
-    def test_pds4_vid_is_one_dot_zero(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="4")
+    def test_pds4_vid_is_one_dot_zero(self, tmp_env, fake_product_init):
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name="test.bsp", pds_version="4")
         assert product.vid == "1.0"
 
-    def test_pds4_collection_path_uses_spice_kernels_dir(self, tmp_env):
+    def test_pds4_collection_path_uses_spice_kernels_dir(
+            self, tmp_env, fake_product_init):
         setup = make_setup(pds_version="4", staging_directory=tmp_env["staging"],
                            kernels_directory=[tmp_env["kernel_dir"]],
                            working_directory=tmp_env["work"])
@@ -182,7 +213,8 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
         ):
             product = SpiceKernelProduct.__new__(SpiceKernelProduct)
@@ -190,8 +222,10 @@ class TestSpiceKernelProductInit:
 
         assert product.collection_path == str(Path(f"{tmp_env['staging']}/spice_kernels/"))
 
-    def test_pds3_binary_kernel_sets_binary_file_format(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="3")
+    def test_pds3_binary_kernel_sets_binary_file_format(
+            self, tmp_env, fake_product_init):
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name="test.bsp", pds_version="3")
         assert product.file_format == "BINARY"
         assert product.record_type == "FIXED_LENGTH"
         assert product.record_bytes == "1024"
@@ -199,8 +233,10 @@ class TestSpiceKernelProductInit:
         assert product.collection_path == str(Path(f"{tmp_env['staging']}/data/"))
         assert product.maklabel_options == ['MAKLABEL_OPT']
 
-    def test_pds3_text_kernel_sets_ascii_file_format(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.tls", pds_version="3")
+    def test_pds3_text_kernel_sets_ascii_file_format(
+            self, tmp_env, fake_product_init):
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name="test.tls", pds_version="3")
         assert product.file_format == "ASCII"
         assert product.record_type == "STREAM"
         assert product.record_bytes == '"N/A"'
@@ -208,7 +244,8 @@ class TestSpiceKernelProductInit:
         assert product.collection_path == str(Path(f"{tmp_env['staging']}/data/"))
         assert product.maklabel_options == ['MAKLABEL_OPT']
 
-    def test_kernel_already_in_staging_sets_new_product_true(self, tmp_env):
+    def test_kernel_already_in_staging_sets_new_product_true(
+            self, tmp_env, fake_product_init):
         """When kernel already exists in staging, new_product should still be True."""
         setup = make_setup(
             pds_version="4",
@@ -230,14 +267,16 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.extension_to_type", return_value="spk"),
             patch(f"{_MODULE}.safe_make_directory"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
         ):
             product = SpiceKernelProduct(setup, "test.bsp", collection)
 
         assert product.new_product is True
 
-    def test_kernel_found_via_mapping_on_second_loop(self, tmp_env):
+    def test_kernel_found_via_mapping_on_second_loop(
+            self, tmp_env, fake_product_init):
         """If direct name lookup fails, fallback to product_mapping."""
         setup = make_setup(
             pds_version="4",
@@ -256,7 +295,8 @@ class TestSpiceKernelProductInit:
             patch(f"{_MODULE}.product_mapping", return_value="mapped_test.bsp"),
             patch(f"{_MODULE}.shutil.copy2"),
             patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]),
-            patch(f"{_MODULE}.Product.__init__", return_value=None),
+            patch(f"{_MODULE}.Product.__init__", autospec=True,
+                  side_effect=fake_product_init),
             patch(f"{_MODULE}.Product.derive_file_attributes"),
         ):
             product = SpiceKernelProduct(setup, "test.bsp", collection)
@@ -284,23 +324,59 @@ class TestSpiceKernelProductInit:
             ):
                 SpiceKernelProduct(setup, "missing.bsp", collection)
 
-    def test_init_stores_missions_observers_targets(self, tmp_env):
-        product, _, _ = build_product(tmp_env, name="test.bsp")
+    def test_init_stores_missions_observers_targets(
+            self, tmp_env, fake_product_init):
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name="test.bsp")
         assert product.missions == ["TEST_MISSION"]
         assert product.observers == ["SPACECRAFT"]
         assert product.targets == ["MARS"]
 
-    def test_pds3_reads_maklabel_options(self, tmp_env):
+    def test_pds3_reads_maklabel_options(self, tmp_env, fake_product_init):
         # Labeling itself moved to the pipeline, but PDS3 labeling reads
         # maklabel_options back off the product, so it still has to be set
         # here.
-        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="3")
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name="test.bsp", pds_version="3")
         assert product.maklabel_options == ['MAKLABEL_OPT']
 
-    def test_pds4_does_not_set_maklabel_options(self, tmp_env):
+    def test_pds4_does_not_set_maklabel_options(
+            self, tmp_env, fake_product_init):
         # PDS4 labeling doesn't use maklabel_options at all.
-        product, _, _ = build_product(tmp_env, name="test.bsp", pds_version="4")
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name="test.bsp", pds_version="4")
         assert not hasattr(product, "maklabel_options")
+
+    @pytest.mark.parametrize("pds_version", ["4", "3"])
+    @pytest.mark.parametrize("extension, kernel_type, kind", [
+        ("ti", "ik", "text"),
+        ("tf", "fk", "text"),
+        ("tm", "mk", "text"),
+        ("tsc", "sclk", "text"),
+        ("tls", "lsk", "text"),
+        ("tpc", "pck", "text"),
+        ("ten", "ek", "text"),
+        ("orb", "orb", "text"),
+        ("nrb", "orb", "text"),
+        ("bc", "ck", "binary"),
+        ("bsp", "spk", "binary"),
+        ("bpc", "pck", "binary"),
+        ("bes", "ek", "binary"),
+        ("bdb", "ek", "binary"),
+        ("bpe", "ek", "binary"),
+        ("bep", "ek", "binary"),
+        ("bds", "dsk", "binary"),
+    ])
+    def test_type_and_file_format_for_each_kernel_extension(
+            self, tmp_env, fake_product_init, pds_version, extension,
+            kernel_type, kind):
+        product, _, _ = build_product(
+            tmp_env, fake_product_init, name=f"test.{extension}",
+            pds_version=pds_version, type_side_effect=extension_to_type)
+
+        expected = FILE_FORMATS[pds_version][kind]
+        assert product.type == kernel_type
+        assert {attr: getattr(product, attr) for attr in expected} == expected
 
 
 # ===========================================================================
@@ -417,11 +493,10 @@ class TestSpiceKernelProductCoverage:
     """Tests for SpiceKernelProduct.coverage."""
 
     @staticmethod
-    def _make_product_stub(setup, kernel_type, extension, path):
+    def _make_product_stub(setup, kernel_type, path):
         product = SpiceKernelProduct.__new__(SpiceKernelProduct)
         product.setup = setup
         product.type = kernel_type
-        product.extension = extension
         product.path = path
         return product
 
@@ -435,7 +510,7 @@ class TestSpiceKernelProductCoverage:
             f.write("<start_date_time>2001-01-01T00:00:00Z</start_date_time>\n")
             f.write("<stop_date_time>2010-01-01T00:00:00Z</stop_date_time>\n")
 
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
         product.coverage()
 
         assert product.start_time == "2001-01-01T00:00:00Z"
@@ -444,7 +519,7 @@ class TestSpiceKernelProductCoverage:
     def test_spk_coverage_pds4(self, tmp_path):
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "fake.bsp")
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
 
         with patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]) as mock_spk:
             product.coverage()
@@ -461,7 +536,7 @@ class TestSpiceKernelProductCoverage:
     def test_spk_coverage_pds3_no_main_name(self, tmp_path):
         setup = make_setup(pds_version="3")
         kernel_path = str(tmp_path / "fake.bsp")
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
 
         with patch(f"{_MODULE}.spk_coverage", return_value=["2000T", "2020T"]) as mock_spk:
             product.coverage()
@@ -476,7 +551,7 @@ class TestSpiceKernelProductCoverage:
     def test_ck_coverage(self, tmp_path):
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "fake.bc")
-        product = self._make_product_stub(setup, "ck", "bc", path=kernel_path)
+        product = self._make_product_stub(setup, "ck", path=kernel_path)
 
         with patch(f"{_MODULE}.ck_coverage", return_value=["2001T", "2021T"]) as mock_ck:
             product.coverage()
@@ -487,7 +562,7 @@ class TestSpiceKernelProductCoverage:
     def test_pck_coverage_for_bpc_extension(self, tmp_path):
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "fake.bpc")
-        product = self._make_product_stub(setup, "pck", "bpc", path=kernel_path)
+        product = self._make_product_stub(setup, "pck", path=kernel_path)
 
         with patch(f"{_MODULE}.pck_coverage", return_value=["2002T", "2022T"]) as mock_pck:
             product.coverage()
@@ -498,7 +573,7 @@ class TestSpiceKernelProductCoverage:
     def test_dsk_coverage(self, tmp_path):
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "fake.bds")
-        product = self._make_product_stub(setup, "dsk", "bds", path=kernel_path)
+        product = self._make_product_stub(setup, "dsk", path=kernel_path)
 
         with patch(f"{_MODULE}.dsk_coverage", return_value=["2003T", "2023T"]) as mock_dsk:
             product.coverage()
@@ -509,7 +584,7 @@ class TestSpiceKernelProductCoverage:
     def test_other_kernel_pds4_uses_mission_times(self, tmp_path):
         setup = make_setup(pds_version="4", mission_start="2005T", mission_finish="2025T")
         kernel_path = str(tmp_path / "fake.tls")
-        product = self._make_product_stub(setup, "lsk", "tls", path=kernel_path)
+        product = self._make_product_stub(setup, "lsk", path=kernel_path)
         product.coverage()
         assert product.start_time == "2005T"
         assert product.stop_time == "2025T"
@@ -517,7 +592,7 @@ class TestSpiceKernelProductCoverage:
     def test_other_kernel_pds3_uses_na_times(self, tmp_path):
         setup = make_setup(pds_version="3")
         kernel_path = str(tmp_path / "fake.tls")
-        product = self._make_product_stub(setup, "lsk", "tls", path=kernel_path)
+        product = self._make_product_stub(setup, "lsk", path=kernel_path)
         product.coverage()
         assert product.start_time == '"N/A"'
         assert product.stop_time == '"N/A"'
@@ -527,7 +602,7 @@ class TestSpiceKernelProductCoverage:
         setup = make_setup(pds_version="4")
         kernel_path = str(tmp_path / "no_label.bsp")
         # Ensure XML label does not exist
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
 
         with patch(f"{_MODULE}.spk_coverage", return_value=["1999T", "2019T"]) as mock_spk:
             product.coverage()
@@ -547,7 +622,7 @@ class TestSpiceKernelProductCoverage:
             f.write("No_coverage_information_provided\n")
 
         # Ensure XML label does not exist
-        product = self._make_product_stub(setup, "spk", "bsp", path=kernel_path)
+        product = self._make_product_stub(setup, "spk", path=kernel_path)
 
         with patch(f"{_MODULE}.spk_coverage", return_value=["1999T", "2019T"]) as mock_spk:
             product.coverage()

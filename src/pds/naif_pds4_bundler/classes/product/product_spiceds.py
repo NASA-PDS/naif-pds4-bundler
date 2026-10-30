@@ -116,7 +116,7 @@ class SpicedsProduct(Product):
         #
         self._check_cr()
 
-        super().__init__()
+        super().__init__(setup)
         self.derive_file_attributes()
 
         #

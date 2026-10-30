@@ -19,16 +19,15 @@ class ReadmeProduct(Product):
 
     def __init__(self, setup, bundle) -> None:
         """Constructor."""
+        super().__init__(setup)
+
         self.name = "readme.txt"
         self.bundle = bundle
         self.path = setup.staging_directory + os.sep + self.name
-        self.setup = setup
         self.vid = bundle.vid
         # TODO: Verify if this attribute is required.
         # Create an attribute named "collection", with an attribute "name".
         self.collection = SimpleNamespace(name="")
-
-        super().__init__()
 
         path = (
             self.setup.bundle_directory

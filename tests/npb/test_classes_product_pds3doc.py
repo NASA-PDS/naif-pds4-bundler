@@ -57,10 +57,11 @@ class TestPDS3DocumentProductInit:
     """Tests for __init__ and _validate with pds_version == '3'."""
 
     # __init__
-    def test_new_product_when_files_differ(self, monkeypatch, mock_setup):
+    def test_new_product_when_files_differ(
+            self, monkeypatch, mock_setup, fake_product_init):
         """Test that when compare_files returns True, product is marked as new."""
 
-        monkeypatch.setattr(PRODUCT_INIT_PATH, lambda *_: None)
+        monkeypatch.setattr(PRODUCT_INIT_PATH, fake_product_init)
         monkeypatch.setattr(DERIVE_PATH, lambda *_: None)
         monkeypatch.setattr(VALIDATE_PATH, lambda _: None)
 
@@ -72,10 +73,11 @@ class TestPDS3DocumentProductInit:
         assert product.name == "doc.txt"
         assert product.new_product is True
 
-    def test_not_new_product_when_files_match(self, monkeypatch, mock_setup):
+    def test_not_new_product_when_files_match(
+            self, monkeypatch, mock_setup, fake_product_init):
         """Test that when compare_files returns False, product is marked as not new."""
 
-        monkeypatch.setattr(PRODUCT_INIT_PATH, lambda *_: None)
+        monkeypatch.setattr(PRODUCT_INIT_PATH, fake_product_init)
         monkeypatch.setattr(DERIVE_PATH, lambda *_: None)
         mock_validate = MagicMock()
         monkeypatch.setattr(VALIDATE_PATH, mock_validate)

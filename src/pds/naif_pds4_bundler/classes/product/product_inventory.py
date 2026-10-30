@@ -16,6 +16,7 @@ class InventoryProduct(Product):
 
     def __init__(self, setup, collection) -> None:
         """Constructor."""
+        super().__init__(setup)
 
         self.collection = collection
         self.column_bytes = []
@@ -23,13 +24,11 @@ class InventoryProduct(Product):
         self.file_types = []
         self.rows = 0
         self.row_bytes = 0
-        self.setup = setup
 
         self._set_location()
 
         self.write_product()
 
-        super().__init__()
         self.derive_file_attributes()
 
         # Labeling used to happen here (PDS3/PDS4 label picked and built), and

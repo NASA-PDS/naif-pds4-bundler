@@ -38,17 +38,88 @@ def make_product_without_init(path: Path, setup: SimpleNamespace,
     return product
 
 
-class TestProductInit:
+class TestProductExtension:
 
-    @pytest.mark.parametrize('file_name, expected_extension', [
+    @pytest.mark.parametrize('relative_path, expected', [
         ('bundle_maven_spice_v001.xml', 'xml'),
         ('readme', 'readme'),
-        (Path('document') / 'spiceds_v001.html', 'html')])
+        ('document/spiceds_v001.html', 'html'),
+        ('dotted.dir/readme', 'readme'),
+        ('archive.tar.gz', 'gz')])
+    def test_is_the_last_dot_segment_of_the_file_name(
+            self, tmp_path, relative_path, expected) -> None:
+        """The extension is the last dot-separated segment of the file name.
+
+        A name without a dot gives the whole name, and dots in the
+        directories are ignored.
+        """
+        # A bare product that only knows its path.
+        product = make_product_without_init(
+            tmp_path / relative_path, make_product_setup(tmp_path))
+
+        # Read the extension.
+        extension = product.extension
+
+        # Only the file name decides the value, not the directories.
+        assert extension == expected
+
+    @pytest.mark.parametrize('first_name, second_name, expected', [
+        ('readme.txt', 'bundle_maven_spice_v001.xml', 'xml'),
+        ('kernel.bsp', 'kernel.xml', 'xml')])
+    def test_follows_the_path_when_it_changes(
+            self, tmp_path, first_name, second_name, expected) -> None:
+        """The extension is read from the current path, not a stored value.
+
+        A product that changes its path after construction, as the readme
+        does, reports the extension of the new one.
+        """
+        # A product whose path is then swapped for a different file.
+        product = make_product_without_init(
+            tmp_path / first_name, make_product_setup(tmp_path))
+        product.path = str(tmp_path / second_name)
+
+        # Read the extension after the swap.
+        extension = product.extension
+
+        # It belongs to the second file, not to the first one.
+        assert extension == expected
+
+    def test_cannot_be_assigned(self, tmp_path) -> None:
+        """Assigning an extension to a product raises an AttributeError."""
+        # A bare product with a known path.
+        product = make_product_without_init(
+            tmp_path / 'readme.txt', make_product_setup(tmp_path))
+
+        # Try to store an extension that could disagree with the path.
+        with pytest.raises(AttributeError):
+            product.extension = 'xml'
+
+
+class TestProductInit:
+
+    def test_init_does_not_need_the_path(self, tmp_path) -> None:
+        """The base constructor runs on a product that has no path yet.
+
+        Subclasses can then call it before their path is known.
+        """
+        # A bare product with no path at all.
+        product = Product.__new__(Product)
+        setup = make_product_setup(tmp_path)
+
+        # Run the base constructor.
+        Product.__init__(product, setup)
+
+        # It finished without asking for a path, and did not create one.
+        assert not hasattr(product, 'path')
+
     def test_init_uses_configured_creation_datetime_and_initializes_attributes(
-            self, mocker, tmp_path, file_name, expected_extension) -> None:
-        # Verify that Product.__init__ uses setup.creation_date_time when it is already
-        # configured and initializes the attributes that derive_file_attributes()
-        # fills in later, without calling creation_time().
+            self, mocker, tmp_path) -> None:
+        """Product.__init__ keeps the creation date time from the setup.
+
+        It stores the setup, does not generate a new creation time, and
+        initializes the attributes that derive_file_attributes() fills in
+        later.
+        """
 
         # Build a minimal setup.
         setup_instance = make_product_setup(tmp_path)
@@ -56,27 +127,25 @@ class TestProductInit:
         # Forces a configured date.
         setup_instance.creation_date_time = '2026-05-27T10:20:30Z'
 
-        # Create a product instance to which the attributes setup, path and
-        # new_product will then be added.
+        # Create a product instance to which the attribute new_product will
+        # then be added.
         product = Product.__new__(Product)
-        product.setup = setup_instance
-        product.path = str(tmp_path / file_name)
         product.new_product = False
 
         # Mock create_time to check that it is not called.
         creation_time_mock = mocker.patch(
             'pds.naif_pds4_bundler.classes.product.product.creation_time')
 
-        Product.__init__(product)
+        Product.__init__(product, setup_instance)
+
+        # Check that the constructor keeps the setup it was given.
+        assert product.setup is setup_instance
 
         # Check that the given date is used.
         assert product.creation_time == '2026-05-27T10:20:30Z'
 
         # Check that the date has been correctly derived without the time.
         assert product.creation_date == '2026-05-27'
-
-        # Check the extension.
-        assert product.extension == expected_extension
 
         # Check that these attributes have been initialised but do not yet have
         # a calculated value.
@@ -91,9 +160,12 @@ class TestProductInit:
         ('infomod2', '2026-05-27T10:20:30.000Z')])
     def test_init_generates_creation_time_when_setup_has_no_creation_datetime(
             self, mocker, tmp_path, date_format, generated_creation_time) -> None:
-        # Verify that Product.__init__ generates creation_time through creation_time()
-        # when setup.creation_date_time is absent, using setup.date_format and still
-        # initializing the constructor-owned attributes.
+        """Product.__init__ generates the creation time when the setup has none.
+
+        It asks creation_time() with the date format of the setup and still
+        initializes the attributes that derive_file_attributes() fills in
+        later.
+        """
 
         # Build a minimal setup instance.
         setup_instance = make_product_setup(tmp_path)
@@ -101,12 +173,6 @@ class TestProductInit:
 
         # Build a product instance.
         product = Product.__new__(Product)
-
-        # Assign the setup that the constructor will use.
-        product.setup = setup_instance
-
-        # Assign the product's path.
-        product.path = str(tmp_path / 'collection_spice_kernels_v001.xml')
 
         # Adds the new_product attribute even it will not be used.
         product.new_product = False
@@ -116,7 +182,7 @@ class TestProductInit:
             'pds.naif_pds4_bundler.classes.product.product.creation_time',
             return_value=generated_creation_time)
 
-        Product.__init__(product)
+        Product.__init__(product, setup_instance)
 
         # Check that the constructor has stored the value returned by
         # creation_time().
@@ -124,9 +190,6 @@ class TestProductInit:
 
         # Check that creation_date is correctly derived from creation_time.
         assert product.creation_date == '2026-05-27'
-
-        # Check that the file extension is correctly obtained from the filename.
-        assert product.extension == 'xml'
 
         # Check that the attributes calculated by derive_file_attributes() are initialised to
         # None in the constructor.
@@ -143,10 +206,12 @@ class TestProductSetCommonAttributes:
         ('2026-05-27T10:20:30Z', '2026-05-27T10:20:30Z'),
         (None, '2026-06-01T01:02:03Z'),
     ])
-    def test_sets_creation_time_date_and_extension(
+    def test_sets_creation_time_and_date(
             self, mocker, tmp_path, creation_date_time, expected) -> None:
-        # The creation time comes from the setup when it has one and is
-        # generated otherwise; the date and the extension are derived.
+        """The creation time comes from the setup, or is generated without one.
+
+        The creation date is derived from the creation time.
+        """
 
         # A bare product whose setup may or may not carry a creation time.
         setup = make_product_setup(tmp_path)
@@ -154,7 +219,6 @@ class TestProductSetCommonAttributes:
             setup.creation_date_time = creation_date_time
         product = Product.__new__(Product)
         product.setup = setup
-        product.path = str(tmp_path / 'collection_inventory_v001.csv')
         mocker.patch(
             'pds.naif_pds4_bundler.classes.product.product.creation_time',
             return_value='2026-06-01T01:02:03Z')
@@ -162,10 +226,9 @@ class TestProductSetCommonAttributes:
         # Set the attributes.
         product._set_common_attributes()
 
-        # All three are set, and nothing that needs the file is touched.
+        # Both are set, and nothing that needs the file is touched.
         assert product.creation_time == expected
         assert product.creation_date == expected.split('T')[0]
-        assert product.extension == 'csv'
         assert not hasattr(product, 'checksum')
 
 
@@ -356,11 +419,10 @@ class TestProductDeriveFileAttributes:
 
         # Product with a path that does not exist on disk.
         product = Product.__new__(Product)
-        product.setup = make_product_setup(tmp_path)
         product.path = str(tmp_path / 'missing.txt')
 
         # Build it.
-        Product.__init__(product)
+        Product.__init__(product, make_product_setup(tmp_path))
 
         # Nothing was derived.
         assert product.checksum is None

@@ -42,7 +42,7 @@ class TestInventoryPDS4ProductInit:
     @patch("pathlib.Path.glob")
     def test_pds4_attribute_settings(self, mock_glob, increment, previous_version,
                                      current, path_current, name, path, vid,
-                                     inventory_helpers):
+                                     inventory_helpers, fake_product_init):
         """The version, path, name, LID and VID are set up, taking the version
         after the previous inventory file when there is one.
         """
@@ -52,7 +52,8 @@ class TestInventoryPDS4ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS4Product, "write_product"), \
-                patch.object(Product, "__init__", return_value=None), \
+                patch.object(Product, "__init__", autospec=True,
+                             side_effect=fake_product_init), \
                 patch.object(Product, "derive_file_attributes"):
             obj = InventoryPDS4Product(setup, collection)
 
@@ -75,7 +76,8 @@ class TestInventoryPDS4ProductInit:
     ])
     @patch("pathlib.Path.glob")
     def test_pds4_init_logic_testing(
-            self, mock_glob, increment, glob_call_count, inventory_helpers):
+            self, mock_glob, increment, glob_call_count, inventory_helpers,
+            fake_product_init):
         """The inventory file is written once, and the previous inventories
         are only searched for when the release is an increment.
         """
@@ -85,7 +87,8 @@ class TestInventoryPDS4ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS4Product, "write_product") as mock_write_product, \
-                patch.object(Product, "__init__", return_value=None), \
+                patch.object(Product, "__init__", autospec=True,
+                             side_effect=fake_product_init), \
                 patch.object(Product, "derive_file_attributes"):
             InventoryPDS4Product(setup, collection)
 

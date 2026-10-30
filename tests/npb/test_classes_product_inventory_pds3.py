@@ -27,13 +27,15 @@ MODULE = "pds.naif_pds4_bundler.classes.product.product_inventory_pds3"
 class TestInventoryPDS3ProductInit:
     """Tests for __init__."""
 
-    def test_pds3_attribute_settings(self, inventory_helpers):
+    def test_pds3_attribute_settings(
+            self, inventory_helpers, fake_product_init):
         """For PDS3, path points to index.tab and name is 'index.tab'."""
         setup = inventory_helpers.make_setup(pds_version="3")
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS3Product, "write_product"), \
-             patch.object(Product, "__init__", return_value=None), \
+             patch.object(Product, "__init__", autospec=True,
+                          side_effect=fake_product_init), \
              patch.object(Product, "derive_file_attributes"):
             obj = InventoryPDS3Product(setup, collection)
 
@@ -41,7 +43,8 @@ class TestInventoryPDS3ProductInit:
         assert obj.path == "staging/index/index.tab"
         assert obj.new_product is True
 
-    def test_pds3_write_product_called_once(self, inventory_helpers):
+    def test_pds3_write_product_called_once(
+            self, inventory_helpers, fake_product_init):
         """write_product() is called exactly once during __init__.
 
         dsindex generation is no longer part of __init__ -- see
@@ -51,7 +54,8 @@ class TestInventoryPDS3ProductInit:
         collection = inventory_helpers.make_collection()
 
         with patch.object(InventoryPDS3Product, "write_product") as mock_write_product, \
-             patch.object(Product, "__init__", return_value=None), \
+             patch.object(Product, "__init__", autospec=True,
+                          side_effect=fake_product_init), \
              patch.object(Product, "derive_file_attributes"):
             InventoryPDS3Product(setup, collection)
 

@@ -30,18 +30,18 @@ class SpiceKernelProduct(Product):
 
     def __init__(self, setup, name: str, collection) -> None:
         """Constructor."""
+        super().__init__(setup)
         self.collection = collection
-        self.setup = setup
         self.name = name
 
-        self.extension = name.split(".")[-1].strip()
-        self.type = extension_to_type(self)
+        extension = name.split(".")[-1]
+        self.type = extension_to_type(self.name)
 
         if setup.pds_version == "4":
             #
             # Determine if it is a binary or a text kernel.
             #
-            if self.extension[0].lower() == "b":
+            if extension[0].lower() == "b":
                 self.file_format = "Binary"
             else:
                 self.file_format = "Character"
@@ -53,7 +53,7 @@ class SpiceKernelProduct(Product):
             #
             # Determine if it is a binary or a text kernel.
             #
-            if self.extension[0].lower() == "b":
+            if extension[0].lower() == "b":
                 self.file_format = "BINARY"
                 self.record_type = "FIXED_LENGTH"
                 self.record_bytes = "1024"
@@ -143,7 +143,6 @@ class SpiceKernelProduct(Product):
         self.coverage()
         self.description = self.read_description()
 
-        Product.__init__(self)
         self.derive_file_attributes()
 
         #

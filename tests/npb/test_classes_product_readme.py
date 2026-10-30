@@ -8,8 +8,10 @@ from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.label.pds4_bundle import BundlePDS4Label
 from pds.naif_pds4_bundler.classes.product.product_readme import ReadmeProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+
 
 # ---------------------------------------------------------------------------
 # Patch target: every name imported into product_readme is patched here so the
@@ -61,7 +63,7 @@ def make_bundle(name='bundle_insight_spice_v001.xml', vid='1.0'):
     return bundle
 
 
-def build_product(setup, bundle):
+def build_product(setup, bundle, fake_product_init):
     """Construct a ``ReadmeProduct`` with the heavy collaborators mocked.
 
     ``Product.__init__`` and ``derive_file_attributes`` are always patched so
@@ -74,9 +76,11 @@ def build_product(setup, bundle):
 
     :param setup:  mock Setup object
     :param bundle: mock Bundle object
+    :param fake_product_init: stand-in for ``Product.__init__``
     :return:       tuple ``(product, mocks_dict)``
     """
-    with patch(f'{MOD}.Product.__init__', return_value=None) as m_init, \
+    with patch(f'{MOD}.Product.__init__', autospec=True,
+               side_effect=fake_product_init) as m_init, \
          patch(f'{MOD}.Product.derive_file_attributes'), \
          patch(f'{MOD}.md5', return_value='d' * 32) as m_md5, \
          patch.object(ReadmeProduct, '_write_product') as m_write:
@@ -92,14 +96,15 @@ def build_product(setup, bundle):
 class TestReadmeProductInit:
     """Tests for ``ReadmeProduct.__init__``."""
 
-    def test_init_generates_product_when_no_existing_readme(self, tmp_path):
+    def test_init_generates_product_when_no_existing_readme(
+            self, tmp_path, fake_product_init):
         # When no readme exists in the final area the "generate" branch is taken:
         # _write_product is invoked, new_product is True, the bundle checksum is
         # set from md5, and constructor-owned attributes are initialised.
         setup = make_setup(tmp_path)
         bundle = make_bundle(vid='2.0')
 
-        product, mocks = build_product(setup, bundle)
+        product, mocks = build_product(setup, bundle, fake_product_init)
 
         # The generation branch was taken.
         mocks['write'].assert_called_once()
@@ -120,18 +125,63 @@ class TestReadmeProductInit:
         # The base Product constructor is invoked once.
         mocks['init'].assert_called_once()
 
-    def test_init_final_path_points_to_bundle_name(self, tmp_path):
+    def test_init_final_path_points_to_bundle_name(
+            self, tmp_path, fake_product_init):
         # After construction self.path is rewritten to staging + bundle.name so
         # the label uses the bundle file name rather than readme.txt.
         setup = make_setup(tmp_path)
         bundle = make_bundle(name='bundle_insight_spice_v003.xml')
 
-        product, _ = build_product(setup, bundle)
+        product, _ = build_product(setup, bundle, fake_product_init)
 
         expected = setup.staging_directory + os.sep + 'bundle_insight_spice_v003.xml'
         assert product.path == expected
 
-    def test_init_reuses_existing_readme_in_final_area(self, tmp_path):
+    @pytest.mark.parametrize('existing_files', [
+        pytest.param([], id='generated'),
+        pytest.param(['readme.txt'], id='already_in_final_area')])
+    def test_extension_follows_the_path_to_the_bundle_label(
+            self, tmp_path, existing_files, fake_product_init):
+        """After construction the readme reports the extension of the
+        bundle label, whether it was generated or found in the final area.
+        """
+        # A final area that holds the given files, and a bundle whose label
+        # is a xml file.
+        final_dir = Path(tmp_path) / 'bundle' / 'insight_spice'
+        final_dir.mkdir(parents=True)
+        for name in existing_files:
+            (final_dir / name).write_text('existing', encoding='utf-8')
+        setup = make_setup(tmp_path)
+        bundle = make_bundle(name='bundle_insight_spice_v003.xml')
+
+        # Build the readme.
+        product, _ = build_product(setup, bundle, fake_product_init)
+
+        # It was a txt file while being built, but it now carries the name of
+        # the bundle label, and so does its extension.
+        assert product.name == 'readme.txt'
+        assert product.extension == 'xml'
+
+    def test_label_name_is_the_bundle_label_path(
+            self, tmp_path, fake_product_init):
+        """The bundle label is written to the path of the bundle label
+        itself, not to a name derived from the readme extension.
+        """
+        # A built readme, and a bundle label that has not run its constructor.
+        setup = make_setup(tmp_path)
+        bundle = make_bundle(name='bundle_insight_spice_v003.xml')
+        product, _ = build_product(setup, bundle, fake_product_init)
+        label = BundlePDS4Label.__new__(BundlePDS4Label)
+        label.product = product
+
+        # Ask the label where it is going to be written.
+        label_name = label._derive_name()
+
+        # The path passes through unchanged.
+        assert label_name == product.path
+
+    def test_init_reuses_existing_readme_in_final_area(
+            self, tmp_path, fake_product_init):
         # When a readme already exists in the final (bundle) area:
         # _write_product is NOT called, new_product is False, no md5 is computed
         # and self.path is still rewritten to staging + bundle.name for the label.
@@ -144,7 +194,7 @@ class TestReadmeProductInit:
         setup = make_setup(tmp_path)
         bundle = make_bundle()
 
-        product, mocks = build_product(setup, bundle)
+        product, mocks = build_product(setup, bundle, fake_product_init)
 
         # Generation branch was skipped.
         mocks['write'].assert_not_called()
@@ -157,7 +207,8 @@ class TestReadmeProductInit:
         expected = setup.staging_directory + os.sep + bundle.name
         assert product.path == expected
 
-    def test_init_logs_existing_readme_message(self, tmp_path, caplog):
+    def test_init_logs_existing_readme_message(
+            self, tmp_path, caplog, fake_product_init):
         # The "already exists" path logs the corresponding info message.
         final_dir = Path(tmp_path) / 'bundle' / 'insight_spice'
         final_dir.mkdir(parents=True)
@@ -167,7 +218,7 @@ class TestReadmeProductInit:
         bundle = make_bundle()
 
         with caplog.at_level(logging.INFO):
-            build_product(setup, bundle)
+            build_product(setup, bundle, fake_product_init)
 
         expected = [
             (logging.INFO, '-- Readme file already exists in final area.'),
@@ -176,7 +227,8 @@ class TestReadmeProductInit:
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
 
-    def test_init_logs_generating_readme_messages(self, tmp_path, caplog):
+    def test_init_logs_generating_readme_messages(
+            self, tmp_path, caplog, fake_product_init):
         # The "generate" path logs the generation notice. The bundle-label
         # notice is no longer logged here -- it moved to the pipeline,
         # alongside the label construction call it describes.
@@ -184,7 +236,7 @@ class TestReadmeProductInit:
         bundle = make_bundle()
 
         with caplog.at_level(logging.INFO):
-            build_product(setup, bundle)
+            build_product(setup, bundle, fake_product_init)
 
         expected = [
             (logging.INFO, '-- Generating readme file...'),

@@ -48,6 +48,8 @@ class MetaKernelProduct(Product):
         user_input: bool = False,
     ) -> None:
         """Constructor."""
+        super().__init__(setup)
+
         if user_input:
             logging.info('-- Copy meta-kernel: %s', kernel)
 
@@ -58,7 +60,6 @@ class MetaKernelProduct(Product):
             self.template = f"{setup.templates_directory}/template_metakernel.tm"
             self.path = self.template
 
-        self.setup = setup
         self.collection = spice_kernels_collection
         self.file_format = "Character"
 
@@ -66,8 +67,6 @@ class MetaKernelProduct(Product):
             self.name = kernel.split(os.sep)[-1]
         else:
             self.name = kernel
-
-        self.extension = self.path.split(".")[1]
 
         self.type = extension_to_type(self.name)
 
@@ -236,7 +235,6 @@ class MetaKernelProduct(Product):
             self.targets = targets
             self.observers = observers
 
-        super().__init__()
         self.derive_file_attributes()
 
     def check_version(self) -> None:
