@@ -34,7 +34,7 @@ class SpiceKernelProduct(Product):
         self.collection = collection
         self.name = name
 
-        extension = name.split(".")[-1].strip()
+        extension = name.split(".")[-1]
         self.type = extension_to_type(self.name)
 
         if setup.pds_version == "4":

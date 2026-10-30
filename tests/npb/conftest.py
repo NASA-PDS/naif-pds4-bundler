@@ -10,6 +10,16 @@ KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels
 
 
 @pytest.fixture
+def fake_product_init():
+    """Stand in for Product.__init__, which only has to store the setup."""
+
+    def _fake_product_init(self, setup) -> None:
+        self.setup = setup
+
+    return _fake_product_init
+
+
+@pytest.fixture
 def lsk():
     """Provides the standard LSK."""
     lsk_file = str(KERNELS / "lsk" / "naif0012.tls")

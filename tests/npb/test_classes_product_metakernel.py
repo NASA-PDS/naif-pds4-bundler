@@ -14,11 +14,6 @@ from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelP
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 
 
-def fake_product_init(self, setup) -> None:
-    """Stand in for Product.__init__, which only has to store the setup."""
-    self.setup = setup
-
-
 # ---------------------------------------------------------------------------
 # Module path used to target patches
 # ---------------------------------------------------------------------------
@@ -130,7 +125,7 @@ def make_collection(missions=None, observers=None, targets=None):
     return collection
 
 
-def base_init_patches():
+def base_init_patches(fake_product_init):
     """Return a fresh list of patches that isolate ``__init__`` collaborators.
 
     Every test that constructs a real ``MetaKernelProduct`` needs the same heavy
@@ -161,6 +156,7 @@ def base_init_patches():
 
 def build_product(
     tmp_path,
+    fake_product_init,
     name="insight_v01.tm",
     pds_version="4",
     user_input=False,
@@ -204,7 +200,7 @@ def build_product(
         kernel_arg = name
 
     with ExitStack() as stack:
-        for p in base_init_patches():
+        for p in base_init_patches(fake_product_init):
             stack.enter_context(p)
         product = MetaKernelProduct(setup, kernel_arg, collection, user_input=user_input)
 
@@ -239,7 +235,8 @@ class TestMetaKernelProductInit:
         )
         return staging, bundle, work, templates
 
-    def _make_product(self, tmp_path, name="insight_v01.tm", pds_version="4",
+    def _make_product(self, tmp_path, fake_product_init,
+                      name="insight_v01.tm", pds_version="4",
                       mk_list=None, extra_setup_attrs=None,
                       extra_patches=None):
         """Build a MetaKernelProduct, optionally mutating setup after make_setup.
@@ -266,7 +263,8 @@ class TestMetaKernelProductInit:
                 target = getattr(target, parent)
             setattr(target, attr_name, value)
         collection = make_collection()
-        all_patches = base_init_patches() + (extra_patches or [])
+        all_patches = (base_init_patches(fake_product_init)
+                       + (extra_patches or []))
         with ExitStack() as stack:
             for p in all_patches:
                 stack.enter_context(p)
@@ -278,18 +276,22 @@ class TestMetaKernelProductInit:
         ("3", "extras", "./data"),
     ])
     def test_collection_path_and_kernelpath_by_pds_version(
-            self, tmp_path, pds_version, subdir, kernelpath):
-        product, setup, _ = build_product(tmp_path, pds_version=pds_version)
+            self, tmp_path, pds_version, subdir, kernelpath, fake_product_init):
+        product, setup, _ = build_product(
+            tmp_path, fake_product_init, pds_version=pds_version)
         assert product.collection_path == os.path.join(setup.staging_directory, subdir) + os.sep
         assert product.KERNELPATH == kernelpath
 
-    def test_name_and_version_parsed_from_kernel_arg(self, tmp_path):
-        product, _, _ = build_product(tmp_path, name="insight_v01.tm")
+    def test_name_and_version_parsed_from_kernel_arg(
+            self, tmp_path, fake_product_init):
+        product, _, _ = build_product(
+            tmp_path, fake_product_init, name="insight_v01.tm")
         assert product.name == "insight_v01.tm"
         assert product.version == "01"
 
-    def test_setup_attributes_copied_to_product(self, tmp_path):
-        product, setup, _ = build_product(tmp_path)
+    def test_setup_attributes_copied_to_product(
+            self, tmp_path, fake_product_init):
+        product, setup, _ = build_product(tmp_path, fake_product_init)
         assert product.AUTHOR == setup.producer_name
         assert product.SPICE_NAME == setup.spice_name
         assert product.INSTITUTION == setup.institution
@@ -297,15 +299,16 @@ class TestMetaKernelProductInit:
         assert product.new_product is True
         assert product.PDS4_MISSION_NAME == setup.mission_name
 
-    def test_pds4_mission_name_with_one_secondary_mission(self, tmp_path):
+    def test_pds4_mission_name_with_one_secondary_mission(
+            self, tmp_path, fake_product_init):
         # Re-add secondary_missions as a real list of one entry.
         product, _ = self._make_product(
-            tmp_path,
+            tmp_path, fake_product_init,
             extra_setup_attrs={"secondary_missions": ["MEX"]},
         )
         assert product.PDS4_MISSION_NAME == "InSight and MEX"
 
-    def test_user_input_true_copies_file(self, tmp_path):
+    def test_user_input_true_copies_file(self, tmp_path, fake_product_init):
         staging, bundle, work, templates = self._setup_dirs(tmp_path)
         src = str(tmp_path / "insight_v01.tm")
         Path(src).write_text("KPL/MK\n", encoding="utf-8")
@@ -315,7 +318,7 @@ class TestMetaKernelProductInit:
         collection = make_collection()
 
         with ExitStack() as stack:
-            for p in base_init_patches():
+            for p in base_init_patches(fake_product_init):
                 stack.enter_context(p)
             # Shadow the default copy2 patch with a mock we can assert on.
             mock_copy = stack.enter_context(patch(f"{_MODULE}.shutil.copy2"))
@@ -324,14 +327,15 @@ class TestMetaKernelProductInit:
 
         mock_copy.assert_called_once()
 
-    def test_user_input_false_calls_write_product(self, tmp_path):
+    def test_user_input_false_calls_write_product(
+            self, tmp_path, fake_product_init):
         staging, bundle, work, templates = self._setup_dirs(tmp_path)
         setup = make_setup(staging_directory=staging, bundle_directory=bundle,
                            working_directory=work, templates_directory=templates)
         collection = make_collection()
 
         with ExitStack() as stack:
-            for p in base_init_patches():
+            for p in base_init_patches(fake_product_init):
                 stack.enter_context(p)
             # Shadow the default write_product patch with a mock we can assert on.
             mock_write = stack.enter_context(
@@ -341,7 +345,8 @@ class TestMetaKernelProductInit:
 
         mock_write.assert_called_once()
 
-    def test_init_end_to_end_renders_metakernel_to_disk(self, tmp_path):
+    def test_init_end_to_end_renders_metakernel_to_disk(
+            self, tmp_path, fake_product_init):
         # Integration-style smoke test: unlike the other __init__ tests, this
         # one does NOT stub write_product, so __init__ actually renders the MK
         # template to a real file on disk.
@@ -383,10 +388,11 @@ class TestMetaKernelProductInit:
         (True, True),
         (False, False)
     ])
-    def test_diff_flag_controls_compare_call(self, tmp_path, diff, expect_compare):
+    def test_diff_flag_controls_compare_call(
+            self, tmp_path, diff, expect_compare, fake_product_init):
         compare_mock = MagicMock()
         self._make_product(
-            tmp_path,
+            tmp_path, fake_product_init,
             extra_setup_attrs={"args.diff": diff},
             extra_patches=[patch(f"{_MODULE}.MetaKernelProduct.compare", compare_mock)],
         )
@@ -501,25 +507,28 @@ class TestMetaKernelProductInit:
                 MetaKernelProduct(setup,
                                   "insight_v01.tm", collection)
 
-    def test_collection_metakernel_set_from_mk_to_list(self, tmp_path):
+    def test_collection_metakernel_set_from_mk_to_list(
+            self, tmp_path, fake_product_init):
         kernel_list = ["naif0012.tls", "insight_v01.bsp"]
         # The extra patch shadows the base mk_to_list patch so the product
         # receives kernel_list instead of the default empty list.
         product, _ = self._make_product(
-            tmp_path,
+            tmp_path, fake_product_init,
             extra_patches=[
                 patch(f"{_MODULE}.mk_to_list", return_value=kernel_list),
             ],
         )
         assert product.collection_metakernel == kernel_list
 
-    def test_missions_observers_targets_stored_from_collection(self, tmp_path):
-        product, _, _ = build_product(tmp_path)
+    def test_missions_observers_targets_stored_from_collection(
+            self, tmp_path, fake_product_init):
+        product, _, _ = build_product(tmp_path, fake_product_init)
         assert product.missions == ["InSight"]
         assert product.observers == ["INSIGHT"]
         assert product.targets == ["MARS"]
 
-    def test_list_name_pattern_flattened_into_patterns(self, tmp_path):
+    def test_list_name_pattern_flattened_into_patterns(
+            self, tmp_path, fake_product_init):
         # when the "pattern" value in a metak["name"] entry is a list
         # (multiple sub-patterns), the list is extended into patterns with +=.
         list_mk_list = [{
@@ -528,10 +537,12 @@ class TestMetaKernelProductInit:
             "grammar": {"pattern": ["naif0012.tls"]},
             "metadata": {"description": "Test.", "data": ""},
         }]
-        product, _ = self._make_product(tmp_path, mk_list=list_mk_list)
+        product, _ = self._make_product(
+            tmp_path, fake_product_init, mk_list=list_mk_list)
         assert product.version == "01"
 
-    def test_yearly_mk_sets_year_and_uppercase_year_attributes(self, tmp_path):
+    def test_yearly_mk_sets_year_and_uppercase_year_attributes(
+            self, tmp_path, fake_product_init):
         # when the MK template contains $YEAR and the filename
         # encodes the year, self.year and self.YEAR are set accordingly.
         yearly_mk_list = [{
@@ -545,7 +556,7 @@ class TestMetaKernelProductInit:
         }]
         yearly_pattern = r"insight_\d{4}_v\d+\.tm"
         product, _ = self._make_product(
-            tmp_path,
+            tmp_path, fake_product_init,
             name="insight_2021_v01.tm",
             mk_list=yearly_mk_list,
             extra_setup_attrs={
@@ -565,11 +576,12 @@ class TestMetaKernelProductInit:
     # two or more secondary missions
     # ------------------------------------------------------------------
 
-    def test_pds4_mission_name_with_multiple_secondary_missions(self, tmp_path):
+    def test_pds4_mission_name_with_multiple_secondary_missions(
+            self, tmp_path, fake_product_init):
         # when secondary_missions has 2+ entries the mission text is built in a
         # for-loop: non-last entries get ", " appended and the last gets "and ".
         product, _ = self._make_product(
-            tmp_path,
+            tmp_path, fake_product_init,
             extra_setup_attrs={"secondary_missions": ["X", "MEX"]},
         )
         assert product.PDS4_MISSION_NAME == "InSight, X, and MEX"
@@ -578,7 +590,8 @@ class TestMetaKernelProductInit:
     # creation_date_time present on setup → used for MK date
     # ------------------------------------------------------------------
 
-    def test_mk_creation_date_uses_creation_date_time_when_set(self, tmp_path):
+    def test_mk_creation_date_uses_creation_date_time_when_set(
+            self, tmp_path, fake_product_init):
         # when setup.creation_date_time is set, current_date is called with it
         # as the date= keyword argument rather than the no-arg form.
         #
@@ -588,7 +601,7 @@ class TestMetaKernelProductInit:
         # returns the same value either way.
         current_date_mock = MagicMock(return_value="2024-01-01")
         product, _ = self._make_product(
-            tmp_path,
+            tmp_path, fake_product_init,
             extra_setup_attrs={"creation_date_time": "2023-06-15T00:00:00"},
             extra_patches=[patch(f"{_MODULE}.current_date", current_date_mock)],
         )
@@ -602,7 +615,7 @@ class TestMetaKernelProductInit:
     # ------------------------------------------------------------------
 
     def test_check_version_called_when_increment_and_mk_setup_present(
-            self, tmp_path):
+            self, tmp_path, fake_product_init):
         # when setup.increment is True AND setup has a mk_setup
         # attribute, check_version() is invoked on the product.
         staging, bundle, work, templates = self._setup_dirs(tmp_path)
@@ -635,7 +648,8 @@ class TestMetaKernelProductInit:
     # output file already exists → overwrite warning logged
     # ------------------------------------------------------------------
 
-    def test_existing_mk_file_logs_overwrite_warning(self, tmp_path, caplog):
+    def test_existing_mk_file_logs_overwrite_warning(
+            self, tmp_path, caplog, fake_product_init):
         # when the computed output path already exists, three distinct warning
         # messages are logged before write_product is called.
         staging = str(tmp_path / "staging")
@@ -645,7 +659,7 @@ class TestMetaKernelProductInit:
         (mk_dir / "insight_v01.tm").write_text("KPL/MK\n", encoding="utf-8")
 
         with caplog.at_level(logging.INFO):
-            self._make_product(tmp_path)
+            self._make_product(tmp_path, fake_product_init)
 
         # The "Labeling meta-kernel..." message and its leading blank line moved
         # to the pipeline along with label construction, so they're not logged
@@ -1652,7 +1666,8 @@ class TestMetaKernelProductWriteProduct:
         assert not self._bundle_path_in_calls(mock_glk, bundle_kernels_path), \
             f"Non-existent path {bundle_kernels_path} should NOT be in calls"
 
-    def test_kernel_only_in_bundle_included_in_mk_pds4(self, tmp_path):
+    def test_kernel_only_in_bundle_included_in_mk_pds4(
+            self, tmp_path, fake_product_init):
         """Integration test: kernel only in bundle (not staging/previous MK) is found and included."""
         staging = str(tmp_path / "staging")
         bundle = str(tmp_path / "bundle")

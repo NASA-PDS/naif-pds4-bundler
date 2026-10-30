@@ -63,7 +63,7 @@ def make_spiceds_without_init(**attrs):
     return product
 
 
-def base_init_patches():
+def base_init_patches(fake_product_init):
     """Return a fresh list of context managers isolating ``__init__``.
 
     Every constructor test that reaches the 'spiceds provided' tail needs the
@@ -79,7 +79,8 @@ def base_init_patches():
         patch.object(SpicedsProduct, '_check_cr'),
         patch.object(SpicedsProduct, '_check_product', return_value=True),
         patch.object(SpicedsProduct, '_compare'),
-        patch(f'{_MODULE}.Product.__init__', return_value=None),
+        patch(f'{_MODULE}.Product.__init__', autospec=True,
+              side_effect=fake_product_init),
         patch(f'{_MODULE}.Product.derive_file_attributes')]
 
 
@@ -93,7 +94,7 @@ class TestSpicedsProductInit:
     they are verified through the lid/vid attributes __init__ leaves behind
     rather than in isolation."""
 
-    def test_init_no_increment_with_spiceds_provided(self):
+    def test_init_no_increment_with_spiceds_provided(self, fake_product_init):
         # Common first-release path: no increment and a 'spiceds' provided.
         # Drives the whole tail of the constructor and pins down the derived
         # name/path/lid/vid plus the ordering side effects (copy, CR check,
@@ -101,7 +102,7 @@ class TestSpicedsProductInit:
         setup = make_setup(increment=False, diff=False)
         collection = make_collection(name='document')
 
-        patches = base_init_patches()
+        patches = base_init_patches(fake_product_init)
         with patches[0] as copy2, \
                 patches[1] as check_cr, \
                 patches[2] as check_product, \
@@ -139,12 +140,12 @@ class TestSpicedsProductInit:
         # diff is False so _compare must be skipped.
         compare.assert_not_called()
 
-    def test_init_runs_compare_when_diff_enabled(self):
+    def test_init_runs_compare_when_diff_enabled(self, fake_product_init):
         # When args.diff is truthy and the product is generated, _compare runs.
         setup = make_setup(increment=False, diff=True)
         collection = make_collection()
 
-        patches = base_init_patches()
+        patches = base_init_patches(fake_product_init)
         with patches[0], patches[1], \
                 patches[2], patches[3] as compare, \
                 patches[4], patches[5]:
@@ -153,14 +154,14 @@ class TestSpicedsProductInit:
         compare.assert_called_once_with()
         assert product.generated is True
 
-    def test_init_skips_compare_when_not_generated(self):
+    def test_init_skips_compare_when_not_generated(self, fake_product_init):
         # When _check_product returns False the product is not generated, so
         # the comparison doesn't run either -- self.generated is also what
         # the pipeline reads to decide whether to build the label.
         setup = make_setup(increment=False, diff=True)
         collection = make_collection()
 
-        patches = base_init_patches()
+        patches = base_init_patches(fake_product_init)
         with patches[0], patches[1], \
                 patch.object(SpicedsProduct, '_check_product', return_value=False), \
                 patches[3] as compare, patches[4], patches[5]:
@@ -169,7 +170,8 @@ class TestSpicedsProductInit:
         assert product.generated is False
         compare.assert_not_called()
 
-    def test_init_increment_with_previous_version_and_new_spiceds(self):
+    def test_init_increment_with_previous_version_and_new_spiceds(
+            self, fake_product_init):
         # Increment + previous 'spiceds' files + a new 'spiceds' provided. glob
         # returns out-of-order versions; the constructor must sort them, pick
         # the highest, store it as latest_spiceds/latest_version and bump
@@ -183,7 +185,7 @@ class TestSpicedsProductInit:
             '/bundle/insight_spice/document/spiceds_v003.html',
             '/bundle/insight_spice/document/spiceds_v002.html']
 
-        patches = base_init_patches()
+        patches = base_init_patches(fake_product_init)
         with patch(_GLOB_GLOB, autospec=True, return_value=list(previous)) as glob_mock, \
                 patches[0] as copy2, patches[1], patches[2], \
                 patches[3], patches[4], patches[5]:
@@ -228,7 +230,8 @@ class TestSpicedsProductInit:
         assert not hasattr(product, 'name')
         assert not hasattr(product, 'lid')
 
-    def test_init_increment_no_previous_with_spiceds_provided(self):
+    def test_init_increment_no_previous_with_spiceds_provided(
+            self, fake_product_init):
         # Increment but glob finds nothing, yet a spiceds is provided.
         # find_latest_versioned_file returns None -> the fallback branch sets
         # version 1 and empty latest_spiceds; NPBError must NOT fire because a
@@ -236,7 +239,7 @@ class TestSpicedsProductInit:
         setup = make_setup(increment=True, spiceds='/input/spiceds.html')
         collection = make_collection()
 
-        patches = base_init_patches()
+        patches = base_init_patches(fake_product_init)
         with patch(_GLOB_GLOB, return_value=[]), \
                 patches[0], patches[1], patches[2], \
                 patches[3], patches[4], patches[5]:

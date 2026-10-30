@@ -10,11 +10,6 @@ from pds.naif_pds4_bundler.classes.product.product_inventory import InventoryPro
 from pds.naif_pds4_bundler.classes.product.product_inventory_pds4 import InventoryPDS4Product
 
 
-def fake_product_init(self, setup) -> None:
-    """Stand in for Product.__init__, which only has to store the setup."""
-    self.setup = setup
-
-
 class InventorySubclass(InventoryProduct):
     """Stand-in for a version-specific inventory class."""
 
@@ -47,7 +42,7 @@ class TestInventoryPDS4ProductInit:
     @patch("pathlib.Path.glob")
     def test_pds4_attribute_settings(self, mock_glob, increment, previous_version,
                                      current, path_current, name, path, vid,
-                                     inventory_helpers):
+                                     inventory_helpers, fake_product_init):
         """The version, path, name, LID and VID are set up, taking the version
         after the previous inventory file when there is one.
         """
@@ -81,7 +76,8 @@ class TestInventoryPDS4ProductInit:
     ])
     @patch("pathlib.Path.glob")
     def test_pds4_init_logic_testing(
-            self, mock_glob, increment, glob_call_count, inventory_helpers):
+            self, mock_glob, increment, glob_call_count, inventory_helpers,
+            fake_product_init):
         """The inventory file is written once, and the previous inventories
         are only searched for when the release is an increment.
         """
