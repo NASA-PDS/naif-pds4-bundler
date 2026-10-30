@@ -15,7 +15,6 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.plan import ReleasePlan
-from pds.naif_pds4_bundler.classes.run_state import RunState
 
 
 # ===========================================================================
@@ -475,9 +474,8 @@ def test_write_plan_plan_file_is_created(tmp_path):
 
 
 def test_write_plan_plan_contains_matched_kernel(tmp_path):
-    """Tests that the plan contains the matched kernel, the kernel is in the kernel_list
-    attribute and that the plan has been registered in the list of file to write at the
-    end of an execution.
+    """Tests that the plan contains the matched kernel and that the kernel is
+    in the kernel_list attribute.
     """
     ker_dir = tmp_path / "kernels"
     ker_dir.mkdir()
@@ -489,8 +487,6 @@ def test_write_plan_plan_contains_matched_kernel(tmp_path):
 
     assert "maven_sc_rec_200101_200201_v01.bsp" in plan_contents(setup)
     assert "maven_sc_rec_200101_200201_v01.bsp" in rp.kernel_list
-    files = [f.replace(str(tmp_path), 'p') for f in rp.run_state.file_list]
-    assert files == [f'{Path("p/working/maven_release_01.plan")}']
 
 
 def test_write_plan_unmatched_kernel_not_in_plan(tmp_path):
@@ -567,6 +563,69 @@ def test_write_plan_returns_false_when_no_kernels(tmp_path):
     assert result is False
 
 
+@pytest.mark.parametrize('release, expected_name', [
+    pytest.param(1, 'maven_release_01.plan', id='single_digit_release'),
+    pytest.param(12, 'maven_release_12.plan', id='double_digit_release'),
+])
+def test_plan_path_is_set_at_construction(tmp_path, release, expected_name):
+    """'plan_path' is the plan file in the working directory as soon as the
+    object is built, before any method has been called.
+    """
+    setup = make_setup(tmp_path, release=release)
+
+    rp = make_release_plan(setup)
+
+    assert rp.plan_path == Path(setup.working_directory, expected_name)
+
+
+@pytest.mark.parametrize('method, kernel_names, plan_names', [
+    pytest.param(
+        'write_plan', ['maven_sc_rec_200101_200201_v01.bsp'], [],
+        id='write_plan_with_kernels'),
+    pytest.param('write_plan', [], [], id='write_plan_without_kernels'),
+    pytest.param(
+        'read_plan', [], ['maven_release_01.plan'], id='read_plan'),
+])
+def test_plan_path_is_unchanged_by_write_and_read_plan(
+        tmp_path, method, kernel_names, plan_names):
+    """'plan_path' is the same after 'write_plan', with or without kernels,
+    and after 'read_plan' as it was when the object was built.
+    """
+    # Kernels for 'write_plan' to find, and a plan file with one kernel for
+    # 'read_plan' to read.
+    ker_dir = tmp_path / 'kernels'
+    ker_dir.mkdir()
+    for name in kernel_names:
+        (ker_dir / name).touch()
+    setup = make_setup(tmp_path, kernels_directory=[str(ker_dir)])
+    working = Path(setup.working_directory)
+    write_plan_file(
+        working / 'maven_release_01.plan',
+        ['maven_sc_rec_200101_200201_v01.bsp'])
+    rp = make_release_plan(setup)
+    path_before = rp.plan_path
+
+    getattr(rp, method)(*[working / name for name in plan_names])
+
+    assert rp.plan_path == path_before
+
+
+def test_write_plan_writes_the_plan_file_when_no_kernels_are_found(tmp_path):
+    """Without kernels 'write_plan' returns False, but the plan file is
+    still written to 'plan_path'.
+
+    This pins today's behaviour, which is a known bug: the empty plan is
+    written but never registered, so it ends up as an orphan file.
+    """
+    setup = make_setup(tmp_path)
+    rp = make_release_plan(setup)
+
+    result = rp.write_plan()
+
+    assert result is False
+    assert rp.plan_path.exists()
+
+
 def test_write_plan_kernel_list_is_empty_list(tmp_path):
     setup = make_setup(tmp_path)
     rp = make_release_plan(setup)
@@ -574,29 +633,6 @@ def test_write_plan_kernel_list_is_empty_list(tmp_path):
 
     assert rp.kernel_list == []
 
-
-def test_write_plan_add_file_not_called_when_empty(tmp_path):
-    setup = make_setup(tmp_path)
-    rp = make_release_plan(setup)
-    rp.write_plan()
-
-    assert rp.run_state.file_list == []
-
-
-@pytest.mark.skip(reason="Bug not fixed yet.")
-def test_write_plan_plan_file_not_written_when_empty(tmp_path):
-    """No .plan file should exist if there are no kernels.
-
-    NOTE: This test documents the *desired* behavior after the bug fix
-    (empty file written before the empty check). If run against the
-    current unpatched code it will FAIL — that failure is intentional
-    and flags the bug.
-    """
-    setup = make_setup(tmp_path)
-    rp = make_release_plan(setup)
-    rp.write_plan()
-
-    assert not plan_path(setup).exists()
 
 # ---------------------------------------------------------------------------
 # 2b. Empty result — print branch:
@@ -1624,7 +1660,7 @@ def make_release_plan(setup):
     """Instantiate ReleasePlan while suppressing the read_config I/O."""
     # read_config only reads from setup.kernel_list_config (already a dict)
     # and writes to self.re_config / self.json_config — no filesystem access.
-    return ReleasePlan(setup, RunState())
+    return ReleasePlan(setup)
 
 
 def make_setup(

@@ -30,7 +30,7 @@ from contextlib import ExitStack
 import logging
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pytest
 
@@ -126,6 +126,10 @@ def _args(**overrides) -> PipelineArgs:
     return PipelineArgs(**defaults)
 
 
+# Where the mocked release plan says it writes the plan.
+PLAN_PATH = Path('/work/maven_release_01.plan')
+
+
 def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     """Set mock defaults that let a full PDS4 run complete without errors."""
     setup = m.Setup.return_value
@@ -137,6 +141,7 @@ def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     release_plan = m.ReleasePlan.return_value
     release_plan.kernel_list = []
     release_plan.write_plan.return_value = True
+    release_plan.plan_path = PLAN_PATH
 
     k_list = m.KernelList.return_value
     k_list.kernel_list = []
@@ -308,8 +313,7 @@ class TestPhase3ReleasePlan:
     def test_release_plan_constructed_with_setup(self, mocks):
         # ReleasePlan is always created with the shared setup object.
         run_pipeline(_args())
-        mocks.ReleasePlan.assert_called_once_with(
-            mocks.Setup.return_value, mocks.RunState.return_value)
+        mocks.ReleasePlan.assert_called_once_with(mocks.Setup.return_value)
 
     def test_write_plan_called_when_no_kerlist_and_no_plan_file(self, mocks):
         # With no plan or kerlist input, a plan is generated from the kernels' directory.
@@ -340,6 +344,58 @@ class TestPhase3ReleasePlan:
         run_pipeline(_args(faucet='labels'))
         # No KernelList should be constructed if we returned early
         mocks.KernelList.assert_not_called()
+
+    @pytest.mark.parametrize(
+        'written, arg_overrides, expected_files', [
+            pytest.param(
+                True, {}, [PLAN_PATH], id='plan_generated'),
+            pytest.param(
+                False, {}, [], id='empty_plan_run_continues'),
+            pytest.param(
+                False, {'faucet': 'labels'}, [],
+                id='empty_plan_labels_faucet_returns'),
+            pytest.param(
+                True, {'plan': 'maven_release_01.plan'}, [],
+                id='plan_provided'),
+            pytest.param(
+                True, {'kerlist': 'maven_release_01.kernel_list'}, [],
+                id='kernel_list_provided'),
+        ])
+    def test_plan_registered_only_when_generated_with_kernels(
+            self, mocks, written, arg_overrides, expected_files):
+        """The plan file is added to the list of generated files, as the
+        string of its path, only when 'write_plan' generates a plan with
+        kernels. An empty plan, a plan read from a file or a kernel list
+        add nothing.
+        """
+        # The plan path is always set, so only what 'write_plan' reports
+        # decides whether the plan is registered.
+        mocks.ReleasePlan.return_value.write_plan.return_value = written
+
+        run_pipeline(_args(**arg_overrides))
+
+        # The mocked products and labels never call 'add_file', so any call
+        # to it comes from the plan. The path is registered as a string, in
+        # the separator style of the platform.
+        assert mocks.RunState.return_value.add_file.call_args_list == [
+            call(str(path)) for path in expected_files]
+
+    def test_plan_registered_before_the_products(self, mocks):
+        """The plan file is the first entry of the list of generated files,
+        ahead of the first product registered.
+        """
+        # One kernel, so a product gets registered after the plan.
+        release_plan = mocks.ReleasePlan.return_value
+        release_plan.kernel_list = ['maven_2024.bsp']
+
+        run_pipeline(_args())
+
+        # Keep only the calls that add entries to the list, in the order
+        # the run state received them.
+        added = [name for name, _, _ in
+                 mocks.RunState.return_value.mock_calls
+                 if name in ('add_file', 'register_product')]
+        assert added[:2] == ['add_file', 'register_product']
 
     def test_finish_execution_called_when_faucet_is_plan(self, mocks):
         # faucet='plan' stops the pipeline with a clean shutdown after the plan step.

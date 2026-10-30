@@ -143,7 +143,7 @@ def run_pipeline(args: PipelineArgs) -> None:
         # * Generate the Release Plan object.
         # TODO: Should this one be renamed to 'Release Plan generation'?
         log_step(setup, run_state, title='Kernel List generation')
-        release_plan = ReleasePlan(setup, run_state)
+        release_plan = ReleasePlan(setup)
 
         #
         #    * If a plan file is provided it is processed otherwise a plan is
@@ -155,9 +155,12 @@ def run_pipeline(args: PipelineArgs) -> None:
         if not args.kerlist:
             if not args.plan or (".plan" not in args.plan):
 
-                # Stop the execution if we cannot write a release plan when we are
-                # running on "labels" mode.
-                if not release_plan.write_plan() and (args.faucet == "labels"):
+                # The plan is always written, but it is only added to the
+                # list of generated files when it has kernels. Without
+                # kernels, stop the execution when running on "labels" mode.
+                if release_plan.write_plan():
+                    run_state.add_file(str(release_plan.plan_path))
+                elif args.faucet == "labels":
                     return
             else:
                 release_plan.read_plan(Path(args.plan))
