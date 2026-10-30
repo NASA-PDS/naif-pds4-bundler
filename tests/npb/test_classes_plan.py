@@ -613,6 +613,9 @@ def test_plan_path_is_unchanged_by_write_and_read_plan(
 def test_write_plan_writes_the_plan_file_when_no_kernels_are_found(tmp_path):
     """Without kernels 'write_plan' returns False, but the plan file is
     still written to 'plan_path'.
+
+    This pins today's behaviour, which is a known bug: the empty plan is
+    written but never registered, so it ends up as an orphan file.
     """
     setup = make_setup(tmp_path)
     rp = make_release_plan(setup)

@@ -39,8 +39,8 @@ class ReleasePlan:
     def plan_path(self) -> Path:
         """Path where :meth:`write_plan` writes the release plan.
 
-        The path is known from construction, whether the plan has been written
-        yet. The release of the setup must already be set when the object is
+        The path is known from construction, whether or not the plan has been
+        written yet. The release of the setup must already be set when the object is
         built.
         """
         return self._plan_path
