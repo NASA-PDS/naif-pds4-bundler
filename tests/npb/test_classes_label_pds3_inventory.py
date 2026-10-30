@@ -103,7 +103,8 @@ class TestInventoryPDS3LabelUnit:
         product = _make_product(staging)
 
         product.setup = setup
-        return InventoryPDS3Label(product, collection)
+        product.collection = collection
+        return InventoryPDS3Label(product)
 
     @pytest.fixture()
     def label_multi(self, tmp_path):
@@ -116,7 +117,8 @@ class TestInventoryPDS3LabelUnit:
         product.file_types = ["tf", "bc"]          # unsorted on purpose
 
         product.setup = setup
-        return InventoryPDS3Label(product, collection)
+        product.collection = collection
+        return InventoryPDS3Label(product)
 
     def test_template_keys_scalar_fields(self, label):
         """VOLUME_ID must be assigned from setup.volume_id (not uppercased)."""
@@ -176,7 +178,8 @@ class TestInventoryPDS3LabelUnit:
             "pds.naif_pds4_bundler.classes.label.label.PDSLabel.write_label", autospec=True
         ) as mock_write:
             product.setup = setup
-            label = InventoryPDS3Label(product, collection)
+            product.collection = collection
+            label = InventoryPDS3Label(product)
 
         mock_write.assert_not_called()
 
@@ -194,7 +197,8 @@ class TestInventoryPDS3LabelUnit:
         product.rows = 0
 
         product.setup = setup
-        instance = InventoryPDS3Label(product, _make_collection())
+        product.collection = _make_collection()
+        instance = InventoryPDS3Label(product)
 
         assert instance._label_fields["ROWS"] == "0"
 
@@ -208,7 +212,8 @@ class TestInventoryPDS3LabelUnit:
         product.column_start_bytes = [1]
 
         product.setup = setup
-        instance = InventoryPDS3Label(product, _make_collection())
+        product.collection = _make_collection()
+        instance = InventoryPDS3Label(product)
 
         assert instance._label_fields['BYTES_01'] == '50'
         assert instance._label_fields['START_BYTE_01'] == '1'
@@ -392,8 +397,9 @@ class TestInventoryPDS3LabelIntegration:
         collection = env["collection"]
 
         product.setup = setup
+        product.collection = collection
 
-        InventoryPDS3Label(product, collection).write_label()
+        InventoryPDS3Label(product).write_label()
 
         assert env["label_path"].exists()
 
@@ -522,7 +528,8 @@ class TestInventoryPDS3LabelIntegration:
         product = env["product"]
         collection = env["collection"]
         product.setup = setup
+        product.collection = collection
 
-        written_path = InventoryPDS3Label(product, collection).write_label()
+        written_path = InventoryPDS3Label(product).write_label()
 
         assert written_path == "INDEX.lbl"

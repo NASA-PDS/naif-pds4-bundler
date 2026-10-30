@@ -34,7 +34,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from pds.naif_pds4_bundler.pipeline.npb import run_pipeline
+from pds.naif_pds4_bundler.pipeline.npb import _write_label, run_pipeline
 from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
 from pds.naif_pds4_bundler.utils import files
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
@@ -201,6 +201,32 @@ def mocks_no_mk():
         m.MetaKernelProduct = MetaKernelProduct
         _configure_pds4_defaults(m)
         yield m
+
+
+class TestWriteLabel:
+    """Tests for the _write_label helper."""
+
+    @pytest.fixture
+    def written(self):
+        product = MagicMock()
+        run_state = MagicMock()
+        label_cls = MagicMock()
+        _write_label(run_state, product, label_cls)
+        return SimpleNamespace(product=product, run_state=run_state,
+                               label_cls=label_cls)
+
+    def test_label_is_built_from_the_product(self, written):
+        written.label_cls.assert_called_once_with(written.product)
+
+    def test_label_is_assigned_to_the_product(self, written):
+        assert written.product.label is written.label_cls.return_value
+
+    def test_label_is_written_once(self, written):
+        written.label_cls.return_value.write_label.assert_called_once_with()
+
+    def test_returned_path_is_registered(self, written):
+        written.run_state.register_label_file.assert_called_once_with(
+            written.label_cls.return_value.write_label.return_value)
 
 
 # ---------------------------------------------------------------------------
@@ -823,7 +849,7 @@ class TestPhase8CollectionMetadata:
         # later in the same run, always PDS4) calls this same label class too,
         # so InventoryPDS4Label fires more than once.
         mocks.InventoryPDS4Label.assert_any_call(
-            inventory, mocks.SpiceKernelsCollection.return_value)
+            inventory)
 
         # The label built above is what actually gets assigned back.
         assert inventory.label is mocks.InventoryPDS4Label.return_value
@@ -842,8 +868,7 @@ class TestPhase8CollectionMetadata:
 
         # PDS3 has no misc-inventory branch, so this is the only call --
         # assert_called_once_with is safe here, unlike the PDS4 test above.
-        mocks.InventoryPDS3Label.assert_called_once_with(
-            inventory, mocks.SpiceKernelsCollection.return_value)
+        mocks.InventoryPDS3Label.assert_called_once_with(inventory)
 
         assert inventory.label is mocks.InventoryPDS3Label.return_value
 
@@ -927,8 +952,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
 
         # DocumentPDS4Label is only ever used for spiceds, so
         # assert_called_once_with is safe (no other call site shares it).
-        mocks.DocumentPDS4Label.assert_called_once_with(
-            spiceds, mocks.DocumentCollection.return_value)
+        mocks.DocumentPDS4Label.assert_called_once_with(spiceds)
 
         # The label built above is what ends up assigned back onto the product.
         assert spiceds.label is mocks.DocumentPDS4Label.return_value
@@ -968,8 +992,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         # PDS4 only -- there's no PDS3 branch for the document collection.
         # assert_any_call: the misc inventory built later shares the same mock
         # InventoryPDS4Product/InventoryPDS4Label return values.
-        mocks.InventoryPDS4Label.assert_any_call(
-            inventory, mocks.DocumentCollection.return_value)
+        mocks.InventoryPDS4Label.assert_any_call(inventory)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
@@ -1136,8 +1159,7 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         inventory = mocks.InventoryPDS4Product.return_value
 
-        mocks.InventoryPDS4Label.assert_called_once_with(
-            inventory, mocks.MiscellaneousCollection.return_value)
+        mocks.InventoryPDS4Label.assert_called_once_with(inventory)
 
         assert inventory.label is mocks.InventoryPDS4Label.return_value
 
