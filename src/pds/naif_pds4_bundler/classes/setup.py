@@ -322,21 +322,7 @@ class Setup:
 
         self._check_increment_times(pattern, time_format)
 
-        #
-        # Check that directories are not the same.
-        #
-        if (
-            (self.working_directory == self.staging_directory)
-            or (self.bundle_directory == self.staging_directory)
-            or (self.bundle_directory == self.working_directory)
-        ):
-            logging.error('--The working, staging, and bundle directories must '
-                          'be different:')
-            logging.error('  working: %s', self.working_directory)
-            logging.error('  staging: %s', self.staging_directory)
-            logging.error('  bundle:  %s', self.bundle_directory)
-
-            raise NPBError("Update working, staging, or bundle directory.")
+        self._check_distinct_directories()
 
         #
         # Sort out if directories are provided as relative paths and
@@ -932,6 +918,30 @@ class Setup:
                     "increment_finish parameters need to be provided "
                     "together."
                 )
+
+    def _check_distinct_directories(self) -> None:
+        """Checks that the working, staging and bundle directories are three
+        different paths.
+
+        Reads ``working_directory``, ``staging_directory`` and
+        ``bundle_directory`` as written in the configuration, so it has to
+        run before ``_resolve_directories`` turns them into absolute paths.
+        Sets nothing.
+
+        :raises NPBError: two of the directories are the same
+        """
+        if (
+            (self.working_directory == self.staging_directory)
+            or (self.bundle_directory == self.staging_directory)
+            or (self.bundle_directory == self.working_directory)
+        ):
+            logging.error('--The working, staging, and bundle directories must '
+                          'be different:')
+            logging.error('  working: %s', self.working_directory)
+            logging.error('  staging: %s', self.staging_directory)
+            logging.error('  bundle:  %s', self.bundle_directory)
+
+            raise NPBError("Update working, staging, or bundle directory.")
 
     def set_release(self):
         """Determine the Bundle release number."""

@@ -2190,6 +2190,72 @@ class TestSetupCheckIncrementTimes:
         assert str(error.value) == expected_message
 
 
+class TestSetupCheckDistinctDirectories:
+
+    HEADLINE = ("--The working, staging, and bundle directories must be "
+                "different:")
+
+    @pytest.mark.parametrize('working, staging, bundle', [
+        pytest.param('same', 'same', 'other', id='working_equals_staging'),
+        pytest.param('one', 'same', 'same', id='bundle_equals_staging'),
+        pytest.param('same', 'one', 'same', id='bundle_equals_working'),
+        pytest.param('same', 'same', 'same', id='all_three_equal')])
+    def test_logs_the_three_directories_and_raises_when_two_are_equal(
+            self, tmp_path, caplog, working, staging, bundle) -> None:
+        """When two of the working, staging and bundle directories are the
+        same, the helper logs an error with the three paths and raises an
+        NPBError asking to update one of them.
+        """
+
+        # Build a bare setup that only has the three directories.
+        setup = make_setup(tmp_path)
+        setup.working_directory = working
+        setup.staging_directory = staging
+        setup.bundle_directory = bundle
+
+        # Run the check, catching the error it raises and the logs it writes.
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(NPBError) as error:
+                setup._check_distinct_directories()
+
+        # The logs name the three directories in a fixed order, and the error
+        # text tells the user what to change.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert logs == [(logging.ERROR, self.HEADLINE),
+                        (logging.ERROR, f'  working: {working}'),
+                        (logging.ERROR, f'  staging: {staging}'),
+                        (logging.ERROR, f'  bundle:  {bundle}')]
+        assert str(error.value) == ("Update working, staging, or bundle "
+                                    "directory.")
+
+    @pytest.mark.parametrize('working, staging, bundle', [
+        pytest.param('work', 'staging', 'bundle', id='three_different_paths'),
+        pytest.param('work', './work', 'bundle',
+                     id='same_directory_written_differently')])
+    def test_accepts_paths_that_differ_as_written_without_logging(
+            self, tmp_path, caplog, working, staging, bundle) -> None:
+        """Directories are compared as written in the configuration, so
+        three different paths pass, and so do two spellings of the same
+        directory. Nothing is logged and the object is left as it was.
+        """
+
+        # Build a bare setup that only has the three directories.
+        setup = make_setup(tmp_path)
+        setup.working_directory = working
+        setup.staging_directory = staging
+        setup.bundle_directory = bundle
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._check_distinct_directories()
+
+        # It finishes quietly, and no attribute was added or changed.
+        assert result is None
+        assert caplog.record_tuples == []
+        assert vars(setup) == attributes_before
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:
