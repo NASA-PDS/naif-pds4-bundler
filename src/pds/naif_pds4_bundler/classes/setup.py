@@ -324,106 +324,7 @@ class Setup:
 
         self._check_distinct_directories()
 
-        #
-        # Sort out if directories are provided as relative paths and
-        # if so convert them in absolute for the execution
-        #
-        cwd = os.getcwd()
-
-        #
-        # Set the staging directory WRT PDS3 or PDS4
-        #
-        if self.pds_version == "4":
-            mission_dir = f"{self.mission_acronym}_spice"
-        else:
-            mission_dir = f"{self.volume_id.lower()}"
-
-        found = self._find_directory(self.working_directory, cwd)
-
-        if not found:
-            raise NPBError(f"Directory does not exist: {self.working_directory}.")
-
-        self.working_directory = found
-
-        # Staging resolves differently from the other directories, so it
-        # can't use _find_directory:
-        #   - relative and found under cwd: <cwd>/<value>/<mission_dir>,
-        #     always appending the mission dir.
-        #   - absolute, or found only under the root: <root>/<value>, with
-        #     the mission dir appended only if the configured value doesn't
-        #     already contain it.
-        #   - not found: create <value> only, under cwd if it is relative.
-        #     The mission dir isn't appended and the attribute isn't updated.
-        under_cwd = os.path.join(cwd, self.staging_directory)
-        root_candidate = os.path.join(Path(cwd).anchor, self.staging_directory)
-
-        if not os.path.isabs(self.staging_directory) and os.path.isdir(under_cwd):
-            self.staging_directory = os.path.join(under_cwd, mission_dir)
-
-        elif not os.path.isdir(root_candidate):
-            logging.warning(
-                '-- Creating staging directory: %s/%s.',
-                self.staging_directory, mission_dir)
-
-            #
-            # If the faucet is set to plan, kerlist, or checks, this is just
-            # fine. Otherwise, the non-existence must trigger an error.
-            #
-            try:
-                os.mkdir(under_cwd)
-
-            # os.mkdir fails with OSError: missing parent, or no permission.
-            except OSError:
-
-                if self.args.faucet in ["plan", "list", "checks"]:
-                    logging.warning('-- Staging directory cannot be created but'
-                                    ' is not used with %s faucet.',
-                                    self.args.faucet)
-
-                else:
-                    raise NPBError(
-                        f"Staging directory cannot be created: {self.staging_directory}."
-                    )
-
-        else:
-            # The mission dir check looks at the value as configured, not the
-            # resolved path. Otherwise, a bare "maven_spice" would look like it
-            # already had it.
-            append_mission_dir = f"{os.sep}{mission_dir}" not in self.staging_directory
-            self.staging_directory = root_candidate
-
-            if append_mission_dir:
-                self.staging_directory += os.sep + mission_dir
-
-        found = self._find_directory(self.bundle_directory, cwd)
-
-        if found:
-            self.bundle_directory = found
-
-        else:
-            #
-            # If the faucet is set to plan, kerlist, or checks, this is just
-            # fine. Otherwise, the non-existence must trigger an error.
-            #
-            if self.args.faucet in ["plan", "list", "checks"]:
-                logging.warning("-- Bundle directory does not exist but is not"
-                                " used with %s faucet.", self.args.faucet)
-
-            else:
-                raise NPBError(
-                    f"Bundle directory does not exist: {self.bundle_directory}."
-                )
-
-        #
-        # There might be more than one kernel directory
-        #
-        for i, kd_name in enumerate(self.kernels_directory):
-            found = self._find_directory(kd_name, cwd)
-
-            if not found:
-                raise NPBError(f"Directory does not exist: {kd_name}.")
-
-            self.kernels_directory[i] = found
+        self._resolve_directories()
 
         #
         # Check IM, XML model, and Schema Location coherence (given that is not
@@ -716,6 +617,8 @@ class Setup:
         if hasattr(self, "coverage_kernels"):
             self.coverage_kernels = normalize_to_list(self.coverage_kernels)
 
+        mission_dir = self._mission_directory_name()
+
         #
         # If a readme file is present the readme section of the configuration
         # is irrelevant.
@@ -942,6 +845,137 @@ class Setup:
             logging.error('  bundle:  %s', self.bundle_directory)
 
             raise NPBError("Update working, staging, or bundle directory.")
+
+    def _resolve_directories(self) -> None:
+        """Checks that the directories in the configuration exist and turns
+        them into absolute paths.
+
+        Each directory is looked up under the directory NPB was run from
+        and, failing that, under the filesystem root. The staging directory
+        has its own rules, described next to the code, and is created when
+        it does not exist. A missing bundle directory, or a staging
+        directory that cannot be created, is only tolerated for the 'plan',
+        'list' and 'checks' faucets.
+
+        Reads ``working_directory``, ``staging_directory``,
+        ``bundle_directory``, ``kernels_directory``, ``pds_version``,
+        ``mission_acronym``, ``volume_id`` and ``args.faucet``. Sets the
+        first four to their resolved paths (the staging and bundle ones only
+        when they are found) and creates the staging directory on disk when
+        it is missing. The templates and readme checks need the resolved
+        paths, so they run after this one.
+
+        :raises NPBError: a directory is missing, or the staging directory
+            cannot be created
+        """
+        cwd = os.getcwd()
+
+        #
+        # Set the staging directory WRT PDS3 or PDS4
+        #
+        mission_dir = self._mission_directory_name()
+
+        found = self._find_directory(self.working_directory, cwd)
+
+        if not found:
+            raise NPBError(f"Directory does not exist: {self.working_directory}.")
+
+        self.working_directory = found
+
+        # Staging resolves differently from the other directories, so it
+        # can't use _find_directory:
+        #   - relative and found under cwd: <cwd>/<value>/<mission_dir>,
+        #     always appending the mission dir.
+        #   - absolute, or found only under the root: <root>/<value>, with
+        #     the mission dir appended only if the configured value doesn't
+        #     already contain it.
+        #   - not found: create <value> only, under cwd if it is relative.
+        #     The mission dir isn't appended and the attribute isn't updated.
+        under_cwd = os.path.join(cwd, self.staging_directory)
+        root_candidate = os.path.join(Path(cwd).anchor, self.staging_directory)
+
+        if not os.path.isabs(self.staging_directory) and os.path.isdir(under_cwd):
+            self.staging_directory = os.path.join(under_cwd, mission_dir)
+
+        elif not os.path.isdir(root_candidate):
+            logging.warning(
+                '-- Creating staging directory: %s/%s.',
+                self.staging_directory, mission_dir)
+
+            #
+            # If the faucet is set to plan, kerlist, or checks, this is just
+            # fine. Otherwise, the non-existence must trigger an error.
+            #
+            try:
+                os.mkdir(under_cwd)
+
+            # os.mkdir fails with OSError: missing parent, or no permission.
+            except OSError:
+
+                if self.args.faucet in ["plan", "list", "checks"]:
+                    logging.warning('-- Staging directory cannot be created but'
+                                    ' is not used with %s faucet.',
+                                    self.args.faucet)
+
+                else:
+                    raise NPBError(
+                        f"Staging directory cannot be created: {self.staging_directory}."
+                    )
+
+        else:
+            # The mission dir check looks at the value as configured, not the
+            # resolved path. Otherwise, a bare "maven_spice" would look like it
+            # already had it.
+            append_mission_dir = f"{os.sep}{mission_dir}" not in self.staging_directory
+            self.staging_directory = root_candidate
+
+            if append_mission_dir:
+                self.staging_directory += os.sep + mission_dir
+
+        found = self._find_directory(self.bundle_directory, cwd)
+
+        if found:
+            self.bundle_directory = found
+
+        else:
+            #
+            # If the faucet is set to plan, kerlist, or checks, this is just
+            # fine. Otherwise, the non-existence must trigger an error.
+            #
+            if self.args.faucet in ["plan", "list", "checks"]:
+                logging.warning("-- Bundle directory does not exist but is not"
+                                " used with %s faucet.", self.args.faucet)
+
+            else:
+                raise NPBError(
+                    f"Bundle directory does not exist: {self.bundle_directory}."
+                )
+
+        #
+        # There might be more than one kernel directory
+        #
+        for i, kd_name in enumerate(self.kernels_directory):
+            found = self._find_directory(kd_name, cwd)
+
+            if not found:
+                raise NPBError(f"Directory does not exist: {kd_name}.")
+
+            self.kernels_directory[i] = found
+
+    def _mission_directory_name(self) -> str:
+        """Returns the name of the mission directory inside the bundle and
+        staging directories: '<acronym>_spice' for PDS4, and the lowercase
+        volume id for PDS3.
+
+        Reads ``pds_version``, ``mission_acronym`` and ``volume_id``. Sets
+        nothing.
+        """
+        if self.pds_version == "4":
+            mission_dir = f"{self.mission_acronym}_spice"
+        else:
+            mission_dir = f"{self.volume_id.lower()}"
+
+        return mission_dir
 
     def set_release(self):
         """Determine the Bundle release number."""
