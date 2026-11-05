@@ -2083,6 +2083,113 @@ class TestSetupCheckEndianness:
         assert vars(setup) == attributes_before
 
 
+class TestSetupCheckIncrementTimes:
+
+    PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+    TIME_FORMAT = "YYYY-MM-DDThh:mm:ssZ"
+    GOOD = "2020-01-02T03:04:05Z"
+    BAD = "2020-01-02"
+
+    # The four format errors are not worded alike: only the two '_start'
+    # ones say 'parameter'.
+    MISSION_START_ERROR = ("mission_start parameter does not match the "
+                           f"required format: {TIME_FORMAT}.")
+    MISSION_FINISH_ERROR = ("mission_finish does not match the required "
+                            f"format: {TIME_FORMAT}.")
+    INCREMENT_START_ERROR = ("increment_start parameter does not match the "
+                             f"required format: {TIME_FORMAT}.")
+    INCREMENT_FINISH_ERROR = ("increment_finish does not match the required "
+                              f"format: {TIME_FORMAT}.")
+    PAIR_ERROR = ("If provided via configuration, increment_start and "
+                  "increment_finish parameters need to be provided together.")
+
+    @pytest.mark.parametrize('times', [
+        pytest.param({}, id='no_time_attributes'),
+        pytest.param(
+            {'mission_start': '', 'mission_finish': None,
+             'increment_start': '', 'increment_finish': None},
+            id='all_empty'),
+        pytest.param(
+            {'mission_start': GOOD, 'mission_finish': GOOD,
+             'increment_start': GOOD, 'increment_finish': GOOD},
+            id='all_valid'),
+        pytest.param(
+            {'mission_start': GOOD, 'mission_finish': GOOD},
+            id='mission_times_only'),
+        pytest.param(
+            {'increment_start': GOOD, 'increment_finish': GOOD},
+            id='increment_pair_only'),
+        pytest.param(
+            {'increment_start': GOOD},
+            id='increment_start_without_finish_attribute')])
+    def test_accepts_valid_or_absent_times_without_setting_attributes(
+            self, tmp_path, times) -> None:
+        """Times that are valid, empty or missing pass without an error.
+        An increment start with no 'increment_finish' attribute at all also
+        passes. The object is left as it was.
+        """
+
+        # Create only the attributes this case lists. The check tells a
+        # missing attribute from an empty one, so absent ones must stay absent.
+        setup = make_setup(tmp_path)
+        for name, value in times.items():
+            setattr(setup, name, value)
+        attributes_before = dict(vars(setup))
+
+        # Run the check with the 'maklabel' pattern and time format.
+        result = setup._check_increment_times(self.PATTERN, self.TIME_FORMAT)
+
+        # It finishes quietly and no attribute was added or changed.
+        assert result is None
+        assert vars(setup) == attributes_before
+
+    @pytest.mark.parametrize('times, expected_message', [
+        pytest.param(
+            {'mission_start': BAD}, MISSION_START_ERROR,
+            id='bad_mission_start'),
+        pytest.param(
+            {'mission_finish': BAD}, MISSION_FINISH_ERROR,
+            id='bad_mission_finish'),
+        pytest.param(
+            {'increment_start': BAD, 'increment_finish': GOOD},
+            INCREMENT_START_ERROR, id='bad_increment_start'),
+        pytest.param(
+            {'increment_start': GOOD, 'increment_finish': BAD},
+            INCREMENT_FINISH_ERROR, id='bad_increment_finish'),
+        pytest.param(
+            {'increment_start': GOOD, 'increment_finish': ''}, PAIR_ERROR,
+            id='increment_start_without_finish'),
+        pytest.param(
+            {'increment_start': '', 'increment_finish': GOOD}, PAIR_ERROR,
+            id='increment_finish_without_start'),
+        pytest.param(
+            {'increment_start': BAD, 'increment_finish': ''},
+            INCREMENT_START_ERROR, id='bad_format_reported_before_pairing'),
+        pytest.param(
+            {'mission_start': BAD, 'mission_finish': BAD},
+            MISSION_START_ERROR, id='first_bad_time_is_the_one_reported')])
+    def test_raises_npb_error_with_expected_message(
+            self, tmp_path, times, expected_message) -> None:
+        """A time that doesn't match the format, or an increment start and
+        finish that are not given together, raises an NPBError with the
+        message for that case. When several things are wrong, the first
+        check in order is the one reported.
+        """
+
+        # Create only the attributes this case lists.
+        setup = make_setup(tmp_path)
+        for name, value in times.items():
+            setattr(setup, name, value)
+
+        # Run the check and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._check_increment_times(self.PATTERN, self.TIME_FORMAT)
+
+        # The text must match exactly, since it is what tells the user which
+        # check failed.
+        assert str(error.value) == expected_message
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:

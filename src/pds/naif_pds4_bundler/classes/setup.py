@@ -320,42 +320,7 @@ class Setup:
 
         self._check_endianness()
 
-        #
-        # Check Bundle increment start and finish times. For the two accepted
-        # formats.
-        #
-        if hasattr(self, "mission_start") and self.mission_start:
-            if not pattern.match(self.mission_start):
-                raise NPBError(
-                    f"mission_start parameter does not match the "
-                    f"required format: {time_format}."
-                )
-        if hasattr(self, "mission_finish") and self.mission_finish:
-            if not pattern.match(self.mission_finish):
-                raise NPBError(
-                    f"mission_finish does not match the required format: {time_format}."
-                )
-        if hasattr(self, "increment_start") and self.increment_start:
-            if not pattern.match(self.increment_start):
-                raise NPBError(
-                    f"increment_start parameter does not match the "
-                    f"required format: {time_format}."
-                )
-        if hasattr(self, "increment_finish") and self.increment_finish:
-            if not pattern.match(self.increment_finish):
-                raise NPBError(
-                    f"increment_finish does not match the required "
-                    f"format: {time_format}."
-                )
-        if hasattr(self, "increment_start") and hasattr(self, "increment_finish"):
-            if ((not self.increment_start) and (self.increment_finish)) or (
-                (self.increment_start) and (not self.increment_finish)
-            ):
-                raise NPBError(
-                    "If provided via configuration, increment_start and "
-                    "increment_finish parameters need to be provided "
-                    "together."
-                )
+        self._check_increment_times(pattern, time_format)
 
         #
         # Check that directories are not the same.
@@ -917,6 +882,56 @@ class Setup:
                     logging.warning(
                         "   If binary kernels are present this will result in an error."
                     )
+
+    def _check_increment_times(self, pattern: re.Pattern,
+                               time_format: str) -> None:
+        """Checks that the mission and increment start and finish times, when
+        configured, match the timestamp format, and that the increment start
+        and finish are given together.
+
+        Reads ``mission_start``, ``mission_finish``, ``increment_start`` and
+        ``increment_finish``, any of which may be missing or empty. Sets
+        nothing. ``pattern`` and ``time_format`` come from
+        ``_check_date_and_eol_format``.
+
+        :param pattern: compiled pattern a timestamp must match
+        :param time_format: readable form of that format, used in error
+            messages
+        :raises NPBError: a time does not match the format, or only one of
+            the increment times is given
+        """
+        if hasattr(self, "mission_start") and self.mission_start:
+            if not pattern.match(self.mission_start):
+                raise NPBError(
+                    f"mission_start parameter does not match the "
+                    f"required format: {time_format}."
+                )
+        if hasattr(self, "mission_finish") and self.mission_finish:
+            if not pattern.match(self.mission_finish):
+                raise NPBError(
+                    f"mission_finish does not match the required format: {time_format}."
+                )
+        if hasattr(self, "increment_start") and self.increment_start:
+            if not pattern.match(self.increment_start):
+                raise NPBError(
+                    f"increment_start parameter does not match the "
+                    f"required format: {time_format}."
+                )
+        if hasattr(self, "increment_finish") and self.increment_finish:
+            if not pattern.match(self.increment_finish):
+                raise NPBError(
+                    f"increment_finish does not match the required "
+                    f"format: {time_format}."
+                )
+        if hasattr(self, "increment_start") and hasattr(self, "increment_finish"):
+            if (not self.increment_start) and self.increment_finish or (
+                self.increment_start and (not self.increment_finish)
+            ):
+                raise NPBError(
+                    "If provided via configuration, increment_start and "
+                    "increment_finish parameters need to be provided "
+                    "together."
+                )
 
     def set_release(self):
         """Determine the Bundle release number."""
