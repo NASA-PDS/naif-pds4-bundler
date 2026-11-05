@@ -1919,6 +1919,79 @@ class TestSetupCheckConfiguration:
             setup.check_configuration()
 
 
+class TestSetupCheckDateAndEolFormat:
+
+    @pytest.mark.parametrize(
+        'date_format, end_of_line, expected_time_format, expected_logs', [
+            pytest.param(
+                'infomod2', 'LF', 'YYYY-MM-DDThh:mm:ss.sssZ', [],
+                id='infomod2_with_recommended_eol'),
+            pytest.param(
+                'infomod2', 'CRLF', 'YYYY-MM-DDThh:mm:ss.sssZ', [
+                    (logging.WARNING,
+                     "-- NAIF recommends to use `LF' End-of-Line while using "
+                     "the `infomod2' parameter instead of `CRLF'.")],
+                id='infomod2_with_crlf'),
+            pytest.param(
+                'maklabel', 'CRLF', 'YYYY-MM-DDThh:mm:ssZ', [],
+                id='maklabel_with_recommended_eol'),
+            pytest.param(
+                'maklabel', 'LF', 'YYYY-MM-DDThh:mm:ssZ', [
+                    (logging.WARNING,
+                     "-- NAIF recommends to use `CRLF' End-of-Line while "
+                     "using the `maklabel' parameter instead of `LF'.")],
+                id='maklabel_with_lf')])
+    def test_returns_time_format_and_warns_only_on_unrecommended_eol(
+            self, tmp_path, caplog, date_format, end_of_line,
+            expected_time_format, expected_logs) -> None:
+        """Given a date format and an End-of-Line, the helper returns the
+        readable time format for that date format, and logs a warning only
+        when the End-of-Line is not the one NAIF recommends for it.
+        """
+
+        # Build a bare setup that only has the two settings the check reads.
+        setup = make_setup(tmp_path)
+        setup.date_format = date_format
+        setup.end_of_line = end_of_line
+
+        # Run the check while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            _, time_format = setup._check_date_and_eol_format()
+
+        # Reduce each record to (level, message), so both the order and the
+        # exact text of the warnings are compared.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert time_format == expected_time_format
+        assert logs == expected_logs
+
+    @pytest.mark.parametrize('date_format, timestamp, expected_match', [
+        pytest.param('infomod2', '2020-01-02T03:04:05.678Z', True,
+                     id='infomod2_accepts_milliseconds'),
+        pytest.param('infomod2', '2020-01-02T03:04:05Z', False,
+                     id='infomod2_rejects_whole_seconds'),
+        pytest.param('maklabel', '2020-01-02T03:04:05Z', True,
+                     id='maklabel_accepts_whole_seconds'),
+        pytest.param('maklabel', '2020-01-02T03:04:05.678Z', False,
+                     id='maklabel_rejects_milliseconds')])
+    def test_returns_pattern_that_accepts_only_the_selected_format(
+            self, tmp_path, date_format, timestamp, expected_match) -> None:
+        """The pattern returned for each date format accepts a timestamp
+        written in that format and rejects one written in the other.
+        """
+
+        # Only the date format matters here. The End-of-Line just decides
+        # whether a warning is logged, which this test doesn't look at.
+        setup = make_setup(tmp_path)
+        setup.date_format = date_format
+        setup.end_of_line = 'LF'
+
+        # Run the check and keep the pattern it hands back.
+        pattern, _ = setup._check_date_and_eol_format()
+
+        # 'match' gives None when the timestamp doesn't fit the pattern.
+        assert (pattern.match(timestamp) is not None) == expected_match
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:

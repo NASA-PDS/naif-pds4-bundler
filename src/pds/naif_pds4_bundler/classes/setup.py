@@ -316,49 +316,7 @@ class Setup:
         * Meta-kernel configuration
         * Presence of uppercase characters in the kernel list configuration
         """
-        #
-        # Check IM, Line Feed, and Date Time format NAIF recommendations.
-        #
-        if self.date_format == "infomod2":
-
-            #
-            # Warn the user if the End of Line character is not the one
-            # corresponding to the one recommended by NAIF for the selected
-            # date format.
-            #
-            if self.end_of_line != "LF":
-                logging.warning(
-                    "-- NAIF recommends to use `LF' End-of-Line while using the"
-                    " `%s' parameter instead of `%s'.",
-                    self.date_format, self.end_of_line)
-
-            #
-            # Set the time format for the Date format selected.
-            #
-            pattern = re.compile(
-                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
-            )
-            time_format = "YYYY-MM-DDThh:mm:ss.sssZ"
-        else:  # date_format == "maklabel"; the XSD allows no other value
-
-            #
-            # Warn the user if the End of Line character is not the one
-            # corresponding to the one recommended by NAIF for the selected
-            # date format.
-            #
-            if self.end_of_line != "CRLF":
-                logging.warning(
-                    "-- NAIF recommends to use `CRLF' End-of-Line while using"
-                    " the `%s' parameter instead of `%s'.",
-                    self.date_format, self.end_of_line)
-
-            #
-            # Set the time format for the Date format selected.
-            #
-            pattern = re.compile(
-                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
-            )
-            time_format = "YYYY-MM-DDThh:mm:ssZ"
+        pattern, time_format = self._check_date_and_eol_format()
 
         #
         # Check binary kernels endianness.
@@ -898,6 +856,60 @@ class Setup:
 
             logging.warning(
                 '   Uppercase letters in kernel names are HIGHLY discouraged. ')
+
+    def _check_date_and_eol_format(self) -> tuple[re.Pattern, str]:
+        """Checks the End-of-Line against NAIF's recommendation for the date
+        format and returns the timestamp format to validate times with.
+
+        Reads ``date_format`` and ``end_of_line``. Sets nothing on the
+        object. It runs first because ``check_configuration`` hands the
+        result to the increment time check.
+
+        :return: the compiled pattern a timestamp must match, and the
+            human-readable form of that format for error messages
+        """
+        if self.date_format == "infomod2":
+
+            #
+            # Warn the user if the End of Line character is not the one
+            # corresponding to the one recommended by NAIF for the selected
+            # date format.
+            #
+            if self.end_of_line != "LF":
+                logging.warning(
+                    "-- NAIF recommends to use `LF' End-of-Line while using the"
+                    " `%s' parameter instead of `%s'.",
+                    self.date_format, self.end_of_line)
+
+            #
+            # Set the time format for the Date format selected.
+            #
+            pattern = re.compile(
+                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z"
+            )
+            time_format = "YYYY-MM-DDThh:mm:ss.sssZ"
+        else:  # date_format == "maklabel"; the XSD allows no other value
+
+            #
+            # Warn the user if the End of Line character is not the one
+            # corresponding to the one recommended by NAIF for the selected
+            # date format.
+            #
+            if self.end_of_line != "CRLF":
+                logging.warning(
+                    "-- NAIF recommends to use `CRLF' End-of-Line while using"
+                    " the `%s' parameter instead of `%s'.",
+                    self.date_format, self.end_of_line)
+
+            #
+            # Set the time format for the Date format selected.
+            #
+            pattern = re.compile(
+                r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z"
+            )
+            time_format = "YYYY-MM-DDThh:mm:ssZ"
+
+        return pattern, time_format
 
     def set_release(self):
         """Determine the Bundle release number."""
