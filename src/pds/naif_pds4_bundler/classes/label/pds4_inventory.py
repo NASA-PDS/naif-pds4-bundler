@@ -11,21 +11,17 @@ class InventoryPDS4Label(PDS4Label):
     """Class to generate a PDS4 Collection Inventory Label.
 
     :param product: Inventory Product of the Collection
-    :param collection: Collection the product belongs to
     """
 
     _mission_reference_type = "collection_to_investigation"
     _target_reference_type = "collection_to_target"
 
-    def __init__(self, product, collection) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
-        # PDSLabel.__init__ sets self.setup from product.setup. Note
-        # PDS4Label.__init__ still dereferences product.collection.bundle
-        # internally, so product.collection must remain populated even
-        # though this class now also takes collection explicitly.
+        # PDSLabel.__init__ sets self.setup from product.setup.
         super().__init__(product)
 
-        self.collection = collection
+        self.collection = product.collection
 
         self._template = str(Path(self.setup.templates_directory)
                              / f"template_collection_{self.collection.type}.xml")

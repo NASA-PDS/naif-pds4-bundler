@@ -7,15 +7,14 @@ class InventoryPDS3Label(PDS3Label):
     """PDS Label child class to generate a PDS3 Index Label.
 
     :param product: Index Product
-    :param collection: Collection the product belongs to
     """
 
-    def __init__(self, product, collection) -> None:
+    def __init__(self, product) -> None:
         """Constructor."""
         # PDSLabel.__init__ sets self.setup from product.setup.
         super().__init__(product)
 
-        self.collection = collection
+        self.collection = product.collection
 
         # TODO: Check why this template path is not following the approach of all
         #       other labels.
