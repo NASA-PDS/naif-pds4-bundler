@@ -11,9 +11,8 @@ class TestDocumentPDS4LabelInit:
 
     @staticmethod
     def make_document_label_inputs(
-            tmp_path: Path,
-            collection_name: str = 'document'
-    ) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace]:
+            tmp_path: Path
+    ) -> tuple[SimpleNamespace, SimpleNamespace]:
         # Build only the attributes consumed directly by DocumentPDS4Label.
         # This keeps the test focused on this constructor and avoids executing
         # unrelated Setup, Collection or Product initialization logic.
@@ -21,16 +20,11 @@ class TestDocumentPDS4LabelInit:
                                 mission_start='2014-09-21T00:00:00Z',
                                 mission_finish='2026-05-04T00:00:00Z')
 
-        collection = SimpleNamespace(name=collection_name)
-
-        # product.collection is read directly by DocumentPDS4Label.__init__
-        # (PDS4Label.__init__ is mocked below, so it never runs to set it).
         inventory = SimpleNamespace(lid='urn:nasa:pds:maven_spice:document:spiceds',
                                     vid='1.0',
-                                    name='spiceds_v001.html',
-                                    collection=collection)
+                                    name='spiceds_v001.html')
 
-        return setup, collection, inventory
+        return setup, inventory
 
     def test_init_sets_document_label_state_and_does_not_write_label(
             self, mocker, tmp_path: Path) -> None:
@@ -38,7 +32,7 @@ class TestDocumentPDS4LabelInit:
         path and fills the label fields, but does not write the label."""
 
         # Create the minimal objects.
-        setup, collection, inventory = self.make_document_label_inputs(tmp_path)
+        setup, inventory = self.make_document_label_inputs(tmp_path)
 
         # This mock allows you to verify that the call is made, but without
         # executing the actual logic of PDS4Label. The real PDS4Label.__init__
@@ -94,7 +88,8 @@ class TestDocumentPDS4LabelIntegration:
 
     @pytest.fixture()
     def env(self,
-            tmp_path: Path) -> tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]:
+            tmp_path: Path
+            ) -> tuple[SimpleNamespace, SimpleNamespace, Path, Path]:
         # Create the temporary PDS4 document-label environment used by
         # integration tests: real template, staging product, expected XML label
         # path and setup state.
@@ -176,10 +171,9 @@ class TestDocumentPDS4LabelIntegration:
         inventory_path.write_text('<html>SPICE document</html>\n',
                                   encoding='utf-8')
 
-        # Inventory metadata rendered into the XML template. setup/collection
-        # are attached here because DocumentPDS4Label now reads them off the
-        # product (self.setup = product.setup, self.collection =
-        # product.collection) instead of receiving them as separate arguments.
+        # Inventory metadata rendered into the XML template. setup and
+        # collection are attached here because the parent initializer reads
+        # them off the product (product.setup, product.collection.bundle).
         inventory = SimpleNamespace(
             lid='urn:nasa:pds:maven_spice:document:spiceds',
             vid='1.0',
@@ -195,16 +189,16 @@ class TestDocumentPDS4LabelIntegration:
             bundle=SimpleNamespace(context_products=context_products))
 
         # Expected XML label path produced from the staged document product path.
-        return (setup, collection, inventory, template_path,
+        return (setup, inventory, template_path,
                 inventory_path.with_suffix('.xml'))
 
     def test_name_is_derived_in_init(
             self,
-            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+            env: tuple[SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         """label.name holds the real destination path as soon as __init__
         returns, before anything has been written."""
-        # Real setup, collection and inventory from the env fixture.
-        setup, collection, inventory, _, label_path = env
+        # Real inventory from the env fixture.
+        _, inventory, _, label_path = env
 
         # Build the label.
         label = DocumentPDS4Label(inventory)
@@ -220,11 +214,11 @@ class TestDocumentPDS4LabelIntegration:
 
     def test_context_from_product_effect_on_context_fields(
             self,
-            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path],
+            env: tuple[SimpleNamespace, SimpleNamespace, Path, Path],
             context_effect_helpers: SimpleNamespace) -> None:
         """Inherited _context_from_product=False must source MISSIONS/
         OBSERVERS/TARGETS from setup, not from the inventory product."""
-        setup, collection, inventory, _, _ = env
+        _, inventory, _, _ = env
 
         # inventory now differs from setup
         context_effect_helpers.diverge(inventory)
@@ -236,10 +230,10 @@ class TestDocumentPDS4LabelIntegration:
 
     def test_label_file_is_created_from_template(
             self,
-            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+            env: tuple[SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # Render the document XML template with the real inherited writer and
         # compare the generated label with the expected full content.
-        setup, collection, inventory, template_path, label_path = env
+        _, inventory, template_path, label_path = env
 
         label = DocumentPDS4Label(inventory)
         label.write_label()
@@ -271,10 +265,10 @@ class TestDocumentPDS4LabelIntegration:
 
     def test_write_label_returns_label_path(
             self,
-            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+            env: tuple[SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         """write_label returns the label path relative to staging."""
 
-        setup, collection, inventory, _, label_path = env
+        setup, inventory, _, label_path = env
 
         written_path = DocumentPDS4Label(inventory).write_label()
 
@@ -289,17 +283,17 @@ class TestDocumentPDS4LabelIntegration:
 
     def test_mission_reference_type(
             self,
-            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+            env: tuple[SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # DocumentPDS4Label overrides the mission reference type only; the
         # target reference type keeps PDS4Label's default (see below).
-        setup, collection, inventory, _, _ = env
+        _, inventory, _, _ = env
         label = DocumentPDS4Label(inventory)
         assert label._mission_reference_type == 'document_to_investigation'
 
     def test_target_reference_type(
             self,
-            env: tuple[SimpleNamespace, SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
+            env: tuple[SimpleNamespace, SimpleNamespace, Path, Path]) -> None:
         # No override on DocumentPDS4Label: falls back to PDS4Label's default.
-        setup, collection, inventory, _, _ = env
+        _, inventory, _, _ = env
         label = DocumentPDS4Label(inventory)
         assert label._target_reference_type == 'data_to_target'
