@@ -318,50 +318,7 @@ class Setup:
         """
         pattern, time_format = self._check_date_and_eol_format()
 
-        #
-        # Check binary kernels endianness.
-        #
-        if self.pds_version == "4":
-            if self.kernel_endianness == "little":
-                logging.info(
-                    "-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format."
-                )
-            else:
-                logging.info(
-                    "-- Binary SPICE kernels expected to have BIG-IEEE (little endian) binary format."
-                )
-                logging.warning(
-                    "-- NAIF strongly recommends to use LTL-IEEE (little endian) for binary kernels in PDS4 archives "
-                )
-                logging.warning("   and enforces it if the archive is hosted by NAIF.")
-        else:
-            if self.kernel_endianness == "little":
-                logging.info(
-                    "-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format."
-                )
-
-                logging.warning(
-                    "-- NAIF strongly recommends to use BIG-IEEE (big endian) for binary kernels in PDS3 archives "
-                )
-                logging.warning("   and enforces it if the archive is hosted by NAIF.")
-                if sys.byteorder == "big":
-                    logging.warning(
-                        "   Your system is BIG-IEEE (big endian): PDS3 Labels cannot be attached to binary kernels."
-                    )
-                    logging.warning(
-                        "   If binary kernels are present this will result in an error."
-                    )
-            else:
-                logging.info(
-                    "-- Binary SPICE kernels expected to have BIG-IEEE (big endian) binary format."
-                )
-                if sys.byteorder != "big":
-                    logging.warning(
-                        "   Your system is LTL-IEEE (little endian): PDS3 Labels cannot be attached to binary kernels."
-                    )
-                    logging.warning(
-                        "   If binary kernels are present this will result in an error."
-                    )
+        self._check_endianness()
 
         #
         # Check Bundle increment start and finish times. For the two accepted
@@ -910,6 +867,56 @@ class Setup:
             time_format = "YYYY-MM-DDThh:mm:ssZ"
 
         return pattern, time_format
+
+    def _check_endianness(self) -> None:
+        """Logs the byte order the binary kernels are expected to have, and
+        warns when that goes against NAIF's recommendation or the machine
+        running NPB.
+
+        Reads ``pds_version``, ``kernel_endianness`` and ``sys.byteorder``.
+        Sets nothing on the object, and nothing later depends on it.
+        """
+        if self.pds_version == "4":
+            if self.kernel_endianness == "little":
+                logging.info(
+                    "-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format."
+                )
+            else:
+                logging.info(
+                    "-- Binary SPICE kernels expected to have BIG-IEEE (little endian) binary format."
+                )
+                logging.warning(
+                    "-- NAIF strongly recommends to use LTL-IEEE (little endian) for binary kernels in PDS4 archives "
+                )
+                logging.warning("   and enforces it if the archive is hosted by NAIF.")
+        else:
+            if self.kernel_endianness == "little":
+                logging.info(
+                    "-- Binary SPICE kernels expected to have LTL-IEEE (little endian) binary format."
+                )
+
+                logging.warning(
+                    "-- NAIF strongly recommends to use BIG-IEEE (big endian) for binary kernels in PDS3 archives "
+                )
+                logging.warning("   and enforces it if the archive is hosted by NAIF.")
+                if sys.byteorder == "big":
+                    logging.warning(
+                        "   Your system is BIG-IEEE (big endian): PDS3 Labels cannot be attached to binary kernels."
+                    )
+                    logging.warning(
+                        "   If binary kernels are present this will result in an error."
+                    )
+            else:
+                logging.info(
+                    "-- Binary SPICE kernels expected to have BIG-IEEE (big endian) binary format."
+                )
+                if sys.byteorder != "big":
+                    logging.warning(
+                        "   Your system is LTL-IEEE (little endian): PDS3 Labels cannot be attached to binary kernels."
+                    )
+                    logging.warning(
+                        "   If binary kernels are present this will result in an error."
+                    )
 
     def set_release(self):
         """Determine the Bundle release number."""

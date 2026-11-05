@@ -1992,6 +1992,97 @@ class TestSetupCheckDateAndEolFormat:
         assert (pattern.match(timestamp) is not None) == expected_match
 
 
+class TestSetupCheckEndianness:
+
+    LTL_INFO = ("-- Binary SPICE kernels expected to have LTL-IEEE (little "
+                "endian) binary format.")
+    BIG_INFO_PDS4 = ("-- Binary SPICE kernels expected to have BIG-IEEE "
+                     "(little endian) binary format.")
+    BIG_INFO_PDS3 = ("-- Binary SPICE kernels expected to have BIG-IEEE (big "
+                     "endian) binary format.")
+    PDS4_ADVICE = ("-- NAIF strongly recommends to use LTL-IEEE (little "
+                   "endian) for binary kernels in PDS4 archives ")
+    PDS3_ADVICE = ("-- NAIF strongly recommends to use BIG-IEEE (big endian) "
+                   "for binary kernels in PDS3 archives ")
+    ENFORCED = "   and enforces it if the archive is hosted by NAIF."
+    SYSTEM_BIG = ("   Your system is BIG-IEEE (big endian): PDS3 Labels "
+                  "cannot be attached to binary kernels.")
+    SYSTEM_LTL = ("   Your system is LTL-IEEE (little endian): PDS3 Labels "
+                  "cannot be attached to binary kernels.")
+    ERROR_IF_BINARY = ("   If binary kernels are present this will result "
+                       "in an error.")
+
+    @pytest.mark.parametrize(
+        'pds_version, kernel_endianness, byteorder, expected_logs', [
+            pytest.param(
+                '4', 'little', 'little', [(logging.INFO, LTL_INFO)],
+                id='pds4_little_kernels_on_little_machine'),
+            pytest.param(
+                '4', 'little', 'big', [(logging.INFO, LTL_INFO)],
+                id='pds4_little_kernels_on_big_machine'),
+            pytest.param(
+                '4', 'big', 'little',
+                [(logging.INFO, BIG_INFO_PDS4),
+                 (logging.WARNING, PDS4_ADVICE),
+                 (logging.WARNING, ENFORCED)],
+                id='pds4_big_kernels_on_little_machine'),
+            pytest.param(
+                '4', 'big', 'big',
+                [(logging.INFO, BIG_INFO_PDS4),
+                 (logging.WARNING, PDS4_ADVICE),
+                 (logging.WARNING, ENFORCED)],
+                id='pds4_big_kernels_on_big_machine'),
+            pytest.param(
+                '3', 'little', 'little',
+                [(logging.INFO, LTL_INFO),
+                 (logging.WARNING, PDS3_ADVICE),
+                 (logging.WARNING, ENFORCED)],
+                id='pds3_little_kernels_on_little_machine'),
+            pytest.param(
+                '3', 'little', 'big',
+                [(logging.INFO, LTL_INFO),
+                 (logging.WARNING, PDS3_ADVICE),
+                 (logging.WARNING, ENFORCED),
+                 (logging.WARNING, SYSTEM_BIG),
+                 (logging.WARNING, ERROR_IF_BINARY)],
+                id='pds3_little_kernels_on_big_machine'),
+            pytest.param(
+                '3', 'big', 'little',
+                [(logging.INFO, BIG_INFO_PDS3),
+                 (logging.WARNING, SYSTEM_LTL),
+                 (logging.WARNING, ERROR_IF_BINARY)],
+                id='pds3_big_kernels_on_little_machine'),
+            pytest.param(
+                '3', 'big', 'big', [(logging.INFO, BIG_INFO_PDS3)],
+                id='pds3_big_kernels_on_big_machine')])
+    def test_logs_expected_byte_order_and_warnings_without_setting_attributes(
+            self, tmp_path, monkeypatch, caplog, pds_version,
+            kernel_endianness, byteorder, expected_logs) -> None:
+        """The helper logs the byte order the kernels are expected to have,
+        and adds warnings when that goes against NAIF's advice for the PDS
+        version or against the byte order of the machine. PDS4 ignores the
+        machine. It never changes the object.
+        """
+
+        # Build a bare setup with the PDS version and kernel byte order, and
+        # make the machine report the byte order of this case.
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.kernel_endianness = kernel_endianness
+        monkeypatch.setattr('sys.byteorder', byteorder)
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_endianness()
+
+        # Compare (level, message) pairs in order, and make sure no attribute
+        # was added or changed.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert logs == expected_logs
+        assert vars(setup) == attributes_before
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:
