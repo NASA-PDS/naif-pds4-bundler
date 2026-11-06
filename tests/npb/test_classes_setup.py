@@ -3098,6 +3098,175 @@ class TestSetupNormalizeCoverageKernels:
         assert result == expected
 
 
+class TestSetupCheckReadmeConfig:
+
+    MISSING_INPUT = os.path.join(os.sep, 'not_there', 'readme_input.txt')
+    GENERATED_WARNING = ("Input readme file not present. File will be "
+                         "generated from configuration.")
+    MISSING_ELEMENTS = "Readme elements not present in configuration file."
+
+    @staticmethod
+    def build(tmp_path, pds_version, bundle_files, attributes) -> Setup:
+        """Builds a bare setup with a bundle directory holding the given
+        files, and the given attributes, which are the only things the
+        check looks at.
+        """
+        bundle = tmp_path / 'bundle'
+        bundle.mkdir()
+        for relative_path in bundle_files:
+            (bundle / relative_path).parent.mkdir(parents=True,
+                                                  exist_ok=True)
+            (bundle / relative_path).write_text('readme')
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.volume_id = 'VOL_0001'
+        setup.bundle_directory = str(bundle)
+        for name, value in attributes.items():
+            setattr(setup, name, value)
+
+        return setup
+
+    @pytest.mark.parametrize('pds_version, bundle_files, attributes', [
+        pytest.param('4', ['maven_spice/readme.txt'], {},
+                     id='readme_file_already_in_the_bundle'),
+        pytest.param('3', [], {}, id='pds3_needs_no_readme_section'),
+        pytest.param('4', [], {'readme': {'input': __file__}},
+                     id='input_file_exists'),
+        pytest.param('4', [], {'readme': {}},
+                     id='section_without_input_is_not_checked_further'),
+        pytest.param('4', ['maven_spice/readme.txt'],
+                     {'readme': {'input': MISSING_INPUT}},
+                     id='readme_file_in_the_bundle_makes_the_section_moot')])
+    def test_accepts_a_usable_setup_without_logging(
+            self, tmp_path, caplog, pds_version, bundle_files,
+            attributes) -> None:
+        """Nothing is required of the readme section when the bundle already
+        has a readme or the archive is PDS3. Otherwise, a section that names
+        an existing input file passes, and so does one that names no input
+        at all. Nothing is logged and the object is left as it was.
+        """
+
+        # Build a setup with the given bundle files and attributes.
+        setup = self.build(tmp_path, pds_version, bundle_files, attributes)
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._check_readme_config()
+
+        # It finishes quietly, and no attribute was added or changed.
+        assert result is None
+        assert vars(setup) == attributes_before
+        assert caplog.record_tuples == []
+
+    def test_warns_when_the_missing_input_can_be_generated(
+            self, tmp_path, caplog) -> None:
+        """An input file that doesn't exist is acceptable when the section
+        has both a cognisant authority and an overview. One warning says the
+        file will be generated from them.
+        """
+
+        # Build a setup whose readme section can generate the file.
+        readme = {'input': self.MISSING_INPUT,
+                  'cognisant_authority': 'NAIF', 'overview': 'Overview'}
+        setup = self.build(tmp_path, '4', [], {'readme': readme})
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_readme_config()
+
+        # Only the warning is logged.
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.WARNING, self.GENERATED_WARNING)]
+
+    @pytest.mark.parametrize('attributes', [
+        pytest.param({}, id='no_readme_section'),
+        pytest.param({'readme': {'input': MISSING_INPUT,
+                                 'cognisant_authority': 'NAIF'}},
+                     id='missing_input_without_overview'),
+        pytest.param({'readme': {'input': MISSING_INPUT,
+                                 'overview': 'Overview'}},
+                     id='missing_input_without_cognisant_authority')])
+    def test_raises_npb_error_when_no_readme_can_be_produced(
+            self, tmp_path, attributes) -> None:
+        """Without a readme file in the bundle, a PDS4 configuration needs a
+        readme section, and a missing input file needs both a cognisant
+        authority and an overview. Otherwise, it raises an NPBError.
+        """
+
+        # Build a PDS4 setup whose bundle has no readme.
+        setup = self.build(tmp_path, '4', [], attributes)
+
+        # Run the check and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._check_readme_config()
+
+        # Every failure gives the same text.
+        assert str(error.value) == self.MISSING_ELEMENTS
+
+
+class TestSetupCheckKernelPatternCase:
+
+    HEADLINE = ("-- Kernel list configuration has entries with uppercase "
+                "letters:")
+    FOOTER = ("   Uppercase letters in kernel names are HIGHLY "
+              "discouraged. ")
+
+    @pytest.mark.parametrize('patterns', [
+        pytest.param(['maven_orb.bsp', 'maven_v[0-9]{2}.bc'],
+                     id='all_lowercase'),
+        pytest.param([], id='no_kernel_patterns')])
+    def test_stays_quiet_without_uppercase_patterns(
+            self, tmp_path, caplog, patterns) -> None:
+        """Patterns with no uppercase letter, or no patterns at all, are
+        accepted without logging and without changing the object.
+        """
+
+        # Build a bare setup that only has the kernel list patterns.
+        setup = make_setup(tmp_path)
+        setup.kernel_list_config = {pattern: {} for pattern in patterns}
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._check_kernel_pattern_case()
+
+        # It finishes quietly, and nothing was changed.
+        assert result is None
+        assert vars(setup) == attributes_before
+        assert caplog.record_tuples == []
+
+    @pytest.mark.parametrize('patterns, flagged', [
+        pytest.param(['maven_ORB.bsp'], ['maven_ORB.bsp'],
+                     id='one_uppercase_pattern'),
+        pytest.param(['a_orb.bsp', 'B_orb.bsp', 'c_orb.bsp', 'd_ORB.bc'],
+                     ['B_orb.bsp', 'd_ORB.bc'],
+                     id='only_the_uppercase_ones_are_listed_in_order'),
+        pytest.param(['maven_v[A-Z]{2}.bsp'], ['maven_v[A-Z]{2}.bsp'],
+                     id='uppercase_inside_a_regular_expression_counts')])
+    def test_warns_and_lists_the_uppercase_patterns(
+            self, tmp_path, caplog, patterns, flagged) -> None:
+        """Every pattern with an uppercase letter is listed under a
+        headline and followed by a closing sentence. It never raises.
+        """
+
+        # Build a bare setup that only has the kernel list patterns.
+        setup = make_setup(tmp_path)
+        setup.kernel_list_config = {pattern: {} for pattern in patterns}
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_kernel_pattern_case()
+
+        # The headline comes first, then one indented line per pattern, then
+        # the closing sentence, all as warnings.
+        expected = ([self.HEADLINE] + [f'      {pattern}'
+                                       for pattern in flagged]
+                    + [self.FOOTER])
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.WARNING, message) for message in expected]
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:

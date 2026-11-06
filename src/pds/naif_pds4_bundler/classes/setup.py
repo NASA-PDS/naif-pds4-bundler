@@ -336,56 +336,9 @@ class Setup:
 
         self._normalize_coverage_kernels()
 
-        mission_dir = self._mission_directory_name()
+        self._check_readme_config()
 
-        #
-        # If a readme file is present the readme section of the configuration
-        # is irrelevant.
-        #
-        if (
-            not os.path.exists(f"{self.bundle_directory}/{mission_dir}/readme.txt")
-            and self.pds_version == "4"
-        ):
-            #
-            # Check readme file inputs in configuration. Raise an error immediately
-            # if things do not look good.
-            #
-            if hasattr(self, "readme"):
-                if "input" in self.readme and not os.path.exists(self.readme["input"]):
-                    if ("cognisant_authority" in self.readme) and (
-                        "overview" in self.readme
-                    ):
-                        logging.warning(
-                            "Input readme file not present. "
-                            "File will be generated from "
-                            "configuration."
-                        )
-                    else:
-                        raise NPBError(
-                            "Readme elements not present in configuration file."
-                        )
-            else:
-                raise NPBError("Readme elements not present in configuration file.")
-
-        #
-        # Check if there is any uppercase character in the kernel list
-        # configuration section.
-        #
-        kernel_pattern_is_upper = False
-        kernel_pattern_upper = []
-        for kernel_pattern in self.kernel_list_config.keys():
-            if any(ele.isupper() for ele in kernel_pattern):
-                kernel_pattern_is_upper = True
-                kernel_pattern_upper.append(kernel_pattern)
-        if kernel_pattern_is_upper:
-            logging.warning(
-                "-- Kernel list configuration has entries with uppercase letters:"
-            )
-            for kernel_pattern in kernel_pattern_upper:
-                logging.warning('      %s', kernel_pattern)
-
-            logging.warning(
-                '   Uppercase letters in kernel names are HIGHLY discouraged. ')
+        self._check_kernel_pattern_case()
 
     def _check_date_and_eol_format(self) -> tuple[re.Pattern, str]:
         """Checks the End-of-Line against NAIF's recommendation for the date
@@ -1036,6 +989,75 @@ class Setup:
         """
         if hasattr(self, "coverage_kernels"):
             self.coverage_kernels = normalize_to_list(self.coverage_kernels)
+
+    def _check_readme_config(self) -> None:
+        """Checks that the readme section of the configuration is usable when
+        the bundle has no readme file yet. Nothing is checked for PDS3 or
+        when ``readme.txt`` is already in the bundle.
+
+        A readme section is required. If it names an input file that does
+        not exist, it also needs a cognisant authority and an overview, and
+        a warning says the file will be generated from them.
+
+        Reads ``bundle_directory``, ``pds_version`` and ``readme``, plus what
+        ``_mission_directory_name`` reads. The bundle directory is the one
+        resolved by ``_resolve_directories``. Sets nothing.
+
+        :raises NPBError: there is no readme section, or the input file is
+            missing and the section cannot generate it
+        """
+        mission_dir = self._mission_directory_name()
+
+        #
+        # If a readme file is present the readme section of the configuration
+        # is irrelevant.
+        #
+        if (
+            not os.path.exists(f"{self.bundle_directory}/{mission_dir}/readme.txt")
+            and self.pds_version == "4"
+        ):
+            #
+            # Check readme file inputs in configuration. Raise an error immediately
+            # if things do not look good.
+            #
+            if hasattr(self, "readme"):
+                if "input" in self.readme and not os.path.exists(self.readme["input"]):
+                    if ("cognisant_authority" in self.readme) and (
+                        "overview" in self.readme
+                    ):
+                        logging.warning(
+                            "Input readme file not present. "
+                            "File will be generated from "
+                            "configuration."
+                        )
+                    else:
+                        raise NPBError(
+                            "Readme elements not present in configuration file."
+                        )
+            else:
+                raise NPBError("Readme elements not present in configuration file.")
+
+    def _check_kernel_pattern_case(self) -> None:
+        """Warns about uppercase letters in the kernel list configuration,
+        which NAIF highly discourages. It only logs.
+
+        Reads ``kernel_list_config``. Sets nothing.
+        """
+        kernel_pattern_is_upper = False
+        kernel_pattern_upper = []
+        for kernel_pattern in self.kernel_list_config.keys():
+            if any(ele.isupper() for ele in kernel_pattern):
+                kernel_pattern_is_upper = True
+                kernel_pattern_upper.append(kernel_pattern)
+        if kernel_pattern_is_upper:
+            logging.warning(
+                "-- Kernel list configuration has entries with uppercase letters:"
+            )
+            for kernel_pattern in kernel_pattern_upper:
+                logging.warning('      %s', kernel_pattern)
+
+            logging.warning(
+                '   Uppercase letters in kernel names are HIGHLY discouraged. ')
 
     def set_release(self):
         """Determine the Bundle release number."""
