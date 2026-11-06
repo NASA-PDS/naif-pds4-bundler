@@ -328,138 +328,7 @@ class Setup:
 
         self._check_im_coherence()
 
-        #
-        # Check existence of templates according to the information_model
-        # or user-defined templates.
-        #
-        if self.pds_version == "4":
-
-            config_schema = self.information_model.split(".")
-            config_schema = float(
-                f"{int(config_schema[0]):03d}"
-                f"{int(config_schema[1]):03d}"
-                f"{int(config_schema[2]):03d}"
-                f"{int(config_schema[3]):03d}"
-            )
-
-            #
-            # Store the float value of the schema to evaluate element values
-            # that depend on the IM.
-            #
-            self.information_model_float = config_schema
-
-            schemas = [
-                os.path.basename(x[:-1])
-                for x in glob.glob(f"{self.root_dir}templates/*/")
-            ]
-            schemas.remove("pds3")
-
-            schemas_eval = []
-            for schema in schemas:
-                schema = schema.split(".")
-                schema = float(
-                    f"{int(schema[0]):03d}"
-                    f"{int(schema[1]):03d}"
-                    f"{int(schema[2]):03d}"
-                    f"{int(schema[3]):03d}"
-                )
-                schemas_eval.append(schema)
-
-            #
-            # Reorder the schema list according to their value.
-            #
-            schemas_index = sorted(
-                range(len(schemas_eval)), key=schemas_eval.__getitem__, reverse=True
-            )
-            schemas_eval.sort(reverse=True)
-            schemas = [schemas[i] for i in schemas_index]
-
-            schema = schemas[-1]  # oldest available; fallback if config predates all templates
-            for i, eval_val in enumerate(schemas_eval):
-                if config_schema >= eval_val:
-                    schema = schemas[i]
-                    break
-
-            templates_directory = f"{self.root_dir}templates/{schema}/"
-        #
-        # If a templates' directory is not provided, determine the templates
-        # to be used based on the IM.
-        #
-        else:
-            templates_directory = f"{self.root_dir}templates/pds3/"
-
-        template_files = []
-        if not self.templates_directory and self.pds_version == "4":
-
-            self.templates_directory = self.working_directory
-
-            templates = os.listdir(templates_directory)
-            for template in templates:
-                shutil.copy2(
-                    os.path.join(templates_directory, template),
-                    self.templates_directory,
-                )
-                template_files.append(self.working_directory + os.sep + template)
-
-            if config_schema in schemas_eval:
-                logging.info('-- Label templates will use the ones from '
-                             'information model %s.', schema)
-
-            else:
-                logging.warning('-- Label templates will use the ones from'
-                                ' information model %s.', schema)
-
-        elif self.pds_version == "4":
-            if not os.path.isdir(self.templates_directory):
-                raise NPBError("Path provided/derived for templates is not available.")
-            labels_check = [
-                os.path.basename(x)
-                for x in glob.glob(f"{self.root_dir}templates/1.5.0.0/*")
-            ]
-
-            labels = [
-                os.path.basename(x) for x in glob.glob(f"{self.templates_directory}/*")
-            ]
-
-            #
-            # Copy the templates to the working directory.
-            #
-            for label in labels_check:
-
-                if label not in labels:
-
-                    logging.warning('-- Template %s has not been provided. '
-                                    'Using label from: ', label)
-                    logging.warning('   %s', templates_directory)
-
-                    shutil.copy(
-                        templates_directory + os.sep + label, self.working_directory
-                    )
-                    template_files.append(self.working_directory + os.sep + label)
-                else:
-                    shutil.copy(
-                        self.templates_directory + os.sep + label,
-                        self.working_directory,
-                    )
-                    template_files.append(self.working_directory + os.sep + label)
-        else:
-            #
-            # PDS3 templates
-            #
-            self.templates_directory = f"{self.root_dir}templates/pds3"
-            templates = os.listdir(self.templates_directory)
-            for template in templates:
-                shutil.copy2(
-                    os.path.join(self.templates_directory, template),
-                    self.working_directory,
-                )
-                template_files.append(self.working_directory + os.sep + template)
-
-        logging.info('-- Label templates directory: %s',
-                     self.templates_directory)
-
-        self.templates_directory = self.working_directory
-        self.template_files = template_files
+        self._resolve_templates()
 
         #
         # Extract the XML files line tabs and line spaces for the element added
@@ -992,6 +861,155 @@ class Setup:
                     f"PDS4 Information Model {self.information_model}"
                     f" format from configuration is incorrect."
                 )
+
+    def _resolve_templates(self) -> None:
+        """Chooses the label templates and copies them into the working
+        directory.
+
+        For PDS4 without a templates directory, it uses the newest default
+        set that is not newer than the information model, or the oldest set
+        when the model predates all of them, and it logs a warning unless
+        the model matches a set exactly. For PDS4 with a templates directory,
+        it uses the user's templates and fills any that is missing from the
+        default set. For PDS3 it copies the PDS3 set.
+
+        Reads ``pds_version``, ``information_model``, ``root_dir``,
+        ``templates_directory`` and ``working_directory``. Sets
+        ``information_model_float`` (PDS4 only), ``template_files`` and
+        ``templates_directory``, which ends up as the working directory. The
+        XML tab detection reads it after this one.
+
+        :raises NPBError: the templates directory given for PDS4 does not
+            exist
+        """
+        if self.pds_version == "4":
+
+            config_schema = self.information_model.split(".")
+            config_schema = float(
+                f"{int(config_schema[0]):03d}"
+                f"{int(config_schema[1]):03d}"
+                f"{int(config_schema[2]):03d}"
+                f"{int(config_schema[3]):03d}"
+            )
+
+            #
+            # Store the float value of the schema to evaluate element values
+            # that depend on the IM.
+            #
+            self.information_model_float = config_schema
+
+            schemas = [
+                os.path.basename(x[:-1])
+                for x in glob.glob(f"{self.root_dir}templates/*/")
+            ]
+            schemas.remove("pds3")
+
+            schemas_eval = []
+            for schema in schemas:
+                schema = schema.split(".")
+                schema = float(
+                    f"{int(schema[0]):03d}"
+                    f"{int(schema[1]):03d}"
+                    f"{int(schema[2]):03d}"
+                    f"{int(schema[3]):03d}"
+                )
+                schemas_eval.append(schema)
+
+            #
+            # Reorder the schema list according to their value.
+            #
+            schemas_index = sorted(
+                range(len(schemas_eval)), key=schemas_eval.__getitem__, reverse=True
+            )
+            schemas_eval.sort(reverse=True)
+            schemas = [schemas[i] for i in schemas_index]
+
+            schema = schemas[-1]  # oldest available; fallback if config predates all templates
+            for i, eval_val in enumerate(schemas_eval):
+                if config_schema >= eval_val:
+                    schema = schemas[i]
+                    break
+
+            templates_directory = f"{self.root_dir}templates/{schema}/"
+        #
+        # If a templates' directory is not provided, determine the templates
+        # to be used based on the IM.
+        #
+        else:
+            templates_directory = f"{self.root_dir}templates/pds3/"
+
+        template_files = []
+        if not self.templates_directory and self.pds_version == "4":
+
+            self.templates_directory = self.working_directory
+
+            templates = os.listdir(templates_directory)
+            for template in templates:
+                shutil.copy2(
+                    os.path.join(templates_directory, template),
+                    self.templates_directory,
+                )
+                template_files.append(self.working_directory + os.sep + template)
+
+            if config_schema in schemas_eval:
+                logging.info('-- Label templates will use the ones from '
+                             'information model %s.', schema)
+
+            else:
+                logging.warning('-- Label templates will use the ones from'
+                                ' information model %s.', schema)
+
+        elif self.pds_version == "4":
+            if not os.path.isdir(self.templates_directory):
+                raise NPBError("Path provided/derived for templates is not available.")
+            labels_check = [
+                os.path.basename(x)
+                for x in glob.glob(f"{self.root_dir}templates/1.5.0.0/*")
+            ]
+
+            labels = [
+                os.path.basename(x) for x in glob.glob(f"{self.templates_directory}/*")
+            ]
+
+            #
+            # Copy the templates to the working directory.
+            #
+            for label in labels_check:
+
+                if label not in labels:
+
+                    logging.warning('-- Template %s has not been provided. '
+                                    'Using label from: ', label)
+                    logging.warning('   %s', templates_directory)
+
+                    shutil.copy(
+                        templates_directory + os.sep + label, self.working_directory
+                    )
+                    template_files.append(self.working_directory + os.sep + label)
+                else:
+                    shutil.copy(
+                        self.templates_directory + os.sep + label,
+                        self.working_directory,
+                    )
+                    template_files.append(self.working_directory + os.sep + label)
+        else:
+            #
+            # PDS3 templates
+            #
+            self.templates_directory = f"{self.root_dir}templates/pds3"
+            templates = os.listdir(self.templates_directory)
+            for template in templates:
+                shutil.copy2(
+                    os.path.join(self.templates_directory, template),
+                    self.working_directory,
+                )
+                template_files.append(self.working_directory + os.sep + template)
+
+        logging.info('-- Label templates directory: %s',
+                     self.templates_directory)
+
+        self.templates_directory = self.working_directory
+        self.template_files = template_files
 
     def set_release(self):
         """Determine the Bundle release number."""

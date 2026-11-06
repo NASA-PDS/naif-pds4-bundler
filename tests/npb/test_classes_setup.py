@@ -2618,6 +2618,227 @@ class TestSetupCheckImCoherence:
         assert result == expected
 
 
+class TestSetupResolveTemplates:
+
+    # The helper lives in another test class; it is reused as it is.
+    make_templates_root = staticmethod(
+        TestSetupCheckConfiguration.make_templates_root)
+
+    V1_5 = im_version(1, 5, 0, 0)
+    V1_11 = im_version(1, 11, 0, 0)
+    V1_14 = im_version(1, 14, 0, 0)
+    VERSIONS = (V1_5, V1_11, V1_14)
+    BUNDLE = '    <Identification_Area>\n'
+    NOT_PROVIDED = '-- Template %s has not been provided. Using label from: '
+
+    @staticmethod
+    def build(tmp_path, pds_version, information_model=None,
+              templates_directory=None, versions=VERSIONS) -> Setup:
+        """Builds a bare setup with a fake templates root and an empty
+        working directory, which are the only things the step looks at.
+        """
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.root_dir = TestSetupResolveTemplates.make_templates_root(
+            tmp_path, versions=versions)
+        setup.working_directory = str(tmp_path / 'work')
+        os.makedirs(setup.working_directory)
+        setup.templates_directory = templates_directory
+        if information_model:
+            setup.information_model = information_model
+
+        return setup
+
+    @staticmethod
+    def copied(setup) -> dict:
+        """Returns the name and content of every file in the working
+        directory.
+        """
+        return {name: Path(setup.working_directory, name).read_text()
+                for name in os.listdir(setup.working_directory)}
+
+    @pytest.mark.parametrize(
+        'information_model, chosen, expected_float, level', [
+            pytest.param(im_version(1, 11, 0, 0), V1_11, 1011000000.0,
+                         logging.INFO, id='exact_version'),
+            pytest.param(im_version(1, 12, 0, 0), V1_11, 1012000000.0,
+                         logging.WARNING, id='version_between_two_sets'),
+            pytest.param(im_version(1, 2, 0, 0), V1_5, 1002000000.0,
+                         logging.WARNING, id='older_than_every_set'),
+            pytest.param(im_version(1, 20, 0, 0), V1_14, 1020000000.0,
+                         logging.WARNING, id='newer_than_every_set')])
+    def test_copies_the_default_set_that_fits_the_information_model(
+            self, tmp_path, caplog, information_model, chosen,
+            expected_float, level) -> None:
+        """Without a templates directory, PDS4 copies the newest default set
+        that is not newer than the information model, or the oldest one when
+        the model predates them all. It logs at info level only for an exact
+        match, and at warning level otherwise.
+        """
+
+        # Build a setup with three default sets and no templates directory.
+        setup = self.build(tmp_path, '4', information_model)
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_templates()
+
+        # The chosen set is in the working directory, the setup points to it,
+        # and the logs name the set and the directory in that order.
+        work = setup.working_directory
+        assert setup.information_model_float == expected_float
+        assert setup.templates_directory == work
+        assert sorted(setup.template_files) == [
+            f'{work}{os.sep}template_bundle.xml',
+            f'{work}{os.sep}template_collection.xml']
+        assert self.copied(setup) == {
+            'template_bundle.xml': self.BUNDLE,
+            'template_collection.xml': f'collection template for {chosen}\n'}
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (level, '-- Label templates will use the ones from information '
+                    f'model {chosen}.'),
+            (logging.INFO, f'-- Label templates directory: {work}')]
+
+    @pytest.mark.parametrize('user_files, missing, expected', [
+        pytest.param(
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': 'user collection'}, [],
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': 'user collection'},
+            id='complete_user_set'),
+        pytest.param(
+            {'template_bundle.xml': 'user bundle'},
+            ['template_collection.xml'],
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': f'collection template for {V1_11}\n'},
+            id='missing_template_comes_from_the_matching_default_set'),
+        pytest.param(
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': 'user collection',
+             'template_extra.xml': 'user extra'}, [],
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': 'user collection'},
+            id='template_outside_the_default_set_is_not_copied')])
+    def test_copies_user_templates_and_fills_in_the_missing_ones(
+            self, tmp_path, caplog, user_files, missing, expected) -> None:
+        """With a templates directory, PDS4 copies the user's version of
+        every template in the default set. A template the user didn't give is
+        taken from the default set that fits the information model, with a
+        warning. Files outside the default set are ignored.
+        """
+
+        # Build a setup whose templates directory holds the user's files.
+        user_dir = tmp_path / 'user_templates'
+        user_dir.mkdir()
+        for name, content in user_files.items():
+            (user_dir / name).write_text(content)
+        setup = self.build(tmp_path, '4', self.V1_11, str(user_dir))
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_templates()
+
+        # The working directory has the expected files, and each missing
+        # template was reported with the default directory it came from.
+        # The last log still shows the user's directory, and only after that
+        # does the setup point to the working directory.
+        expected_logs = []
+        for name in missing:
+            expected_logs += [
+                (logging.WARNING, self.NOT_PROVIDED % name),
+                (logging.WARNING,
+                 f'   {setup.root_dir}templates/{self.V1_11}/')]
+        expected_logs.append(
+            (logging.INFO, f'-- Label templates directory: {user_dir}'))
+        work = setup.working_directory
+        assert self.copied(setup) == expected
+        assert sorted(setup.template_files) == [
+            f'{work}{os.sep}template_bundle.xml',
+            f'{work}{os.sep}template_collection.xml']
+        assert setup.templates_directory == work
+        assert setup.information_model_float == 1011000000.0
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == \
+            expected_logs
+
+    def test_requires_only_the_templates_of_the_oldest_default_set(
+            self, tmp_path, caplog) -> None:
+        """What a user's directory must contain is decided by the 1.5.0.0
+        default set, not by the set that fits the information model. A
+        template that only a newer set has is neither required nor copied.
+        """
+
+        # Build a setup whose matching default set has one more template
+        # than the 1.5.0.0 set, and a user directory with just the two
+        # templates that 1.5.0.0 has.
+        user_dir = tmp_path / 'user_templates'
+        user_dir.mkdir()
+        (user_dir / 'template_bundle.xml').write_text('user bundle')
+        (user_dir / 'template_collection.xml').write_text('user collection')
+        setup = self.build(tmp_path, '4', self.V1_11, str(user_dir))
+        newer_only = Path(setup.root_dir, 'templates', self.V1_11,
+                          'template_newer_only.xml')
+        newer_only.write_text('only in the newer set')
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_templates()
+
+        # Nothing is reported as missing, and the newer-only template is
+        # not in the working directory.
+        assert self.copied(setup) == {
+            'template_bundle.xml': 'user bundle',
+            'template_collection.xml': 'user collection'}
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.INFO, f'-- Label templates directory: {user_dir}')]
+
+    def test_raises_when_the_user_templates_directory_does_not_exist(
+            self, tmp_path) -> None:
+        """A PDS4 templates directory that isn't there raises an NPBError.
+        The information model has been converted by then, and the setup
+        keeps pointing to the missing directory.
+        """
+
+        # Build a setup pointing to a directory that was never created.
+        missing = str(tmp_path / 'not_there')
+        setup = self.build(tmp_path, '4', self.V1_11, missing)
+
+        # Run the step and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._resolve_templates()
+
+        # The text is exact, nothing was copied, and the attributes show how
+        # far it got.
+        assert str(error.value) == ("Path provided/derived for templates is "
+                                    "not available.")
+        assert self.copied(setup) == {}
+        assert setup.information_model_float == 1011000000.0
+        assert setup.templates_directory == missing
+
+    def test_copies_the_pds3_set_without_an_information_model(
+            self, tmp_path, caplog) -> None:
+        """PDS3 copies its own set. It never reads the information model nor
+        sets its numeric value, and the log names the PDS3 source directory.
+        """
+
+        # Build a PDS3 setup that has no information model at all.
+        setup = self.build(tmp_path, '3')
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_templates()
+
+        # The PDS3 template is in the working directory, and the log shows
+        # where it came from.
+        work = setup.working_directory
+        assert self.copied(setup) == {'pds3_template.lbl': 'pds3 template\n'}
+        assert setup.template_files == [f'{work}{os.sep}pds3_template.lbl']
+        assert setup.templates_directory == work
+        assert not hasattr(setup, 'information_model_float')
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.INFO,
+             f'-- Label templates directory: {setup.root_dir}templates/pds3')]
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:
