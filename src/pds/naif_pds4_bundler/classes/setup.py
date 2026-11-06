@@ -332,51 +332,9 @@ class Setup:
 
         self._detect_xml_tab()
 
-        #
-        # Check meta-kernel configuration
-        #
-        if hasattr(self, "mk"):
-            for metak in self.mk:
+        self._check_mk_patterns()
 
-                metak_name_check = metak["@name"]
-
-                #
-                # Fix no list or list of lists.
-                #
-                patterns = []
-                for name in metak["name"]:
-
-                    if not isinstance(name["pattern"], list):
-                        patterns = [name["pattern"]]
-                    else:
-                        for pattern in name["pattern"]:
-                            patterns.append(pattern)
-
-                for pattern in patterns:
-                    name_pattern = pattern["#text"]
-                    if name_pattern not in metak_name_check:
-                        raise NPBError(
-                            f"The meta-kernel pattern "
-                            f"{name_pattern} is not provided."
-                        )
-
-                    metak_name_check = metak_name_check.replace("$" + name_pattern, "")
-
-                #
-                # If there are remaining $ characters in the metak_name_check
-                # this means that there are remaining patterns to define in
-                # the configuration file.
-                #
-                if "$" in metak_name_check:
-                    raise NPBError(
-                        f"The MK patterns {metak['@name']} do not "
-                        f"correspond to the present MKs."
-                    )
-        else:
-            logging.warning("-- There is no meta-kernel configuration to check.")
-
-        if hasattr(self, "coverage_kernels"):
-            self.coverage_kernels = normalize_to_list(self.coverage_kernels)
+        self._normalize_coverage_kernels()
 
         mission_dir = self._mission_directory_name()
 
@@ -1019,6 +977,65 @@ class Setup:
                 xml_tab = 2
 
         self.xml_tab = xml_tab
+
+    def _check_mk_patterns(self) -> None:
+        """Checks that the patterns of every meta-kernel name are defined.
+        Each pattern must occur in the meta-kernel name, and no ``$``
+        placeholder may be left once all the patterns are removed. Logs a
+        warning when there is no meta-kernel configuration.
+
+        Reads ``mk``. Sets nothing.
+
+        :raises NPBError: a pattern does not occur in the name, or a
+            placeholder is left without a pattern
+        """
+        if hasattr(self, "mk"):
+            for metak in self.mk:
+
+                metak_name_check = metak["@name"]
+
+                #
+                # Fix no list or list of lists.
+                #
+                patterns = []
+                for name in metak["name"]:
+
+                    if not isinstance(name["pattern"], list):
+                        patterns = [name["pattern"]]
+                    else:
+                        for pattern in name["pattern"]:
+                            patterns.append(pattern)
+
+                for pattern in patterns:
+                    name_pattern = pattern["#text"]
+                    if name_pattern not in metak_name_check:
+                        raise NPBError(
+                            f"The meta-kernel pattern "
+                            f"{name_pattern} is not provided."
+                        )
+
+                    metak_name_check = metak_name_check.replace("$" + name_pattern, "")
+
+                #
+                # If there are remaining $ characters in the metak_name_check
+                # this means that there are remaining patterns to define in
+                # the configuration file.
+                #
+                if "$" in metak_name_check:
+                    raise NPBError(
+                        f"The MK patterns {metak['@name']} do not "
+                        f"correspond to the present MKs."
+                    )
+        else:
+            logging.warning("-- There is no meta-kernel configuration to check.")
+
+    def _normalize_coverage_kernels(self) -> None:
+        """Wraps ``coverage_kernels`` in a list when it holds a single value.
+
+        Reads and sets ``coverage_kernels``, when it exists.
+        """
+        if hasattr(self, "coverage_kernels"):
+            self.coverage_kernels = normalize_to_list(self.coverage_kernels)
 
     def set_release(self):
         """Determine the Bundle release number."""

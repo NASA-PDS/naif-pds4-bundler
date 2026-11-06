@@ -2945,6 +2945,159 @@ class TestSetupDetectXmlTab:
         assert caplog.record_tuples == []
 
 
+def mk_pattern(text: str) -> dict:
+    return {"#text": text}
+
+
+class TestSetupCheckMkPatterns:
+
+    NO_MK_WARNING = "-- There is no meta-kernel configuration to check."
+
+    @pytest.mark.parametrize('mk', [
+        pytest.param(
+            [{"@name": "m_$A.tm", "name": [{"pattern": mk_pattern("A")}]}],
+            id='one_name_with_one_pattern'),
+        pytest.param(
+            [{"@name": "m_$A_$B.tm",
+              "name": [{"pattern": [mk_pattern("A"), mk_pattern("B")]}]}],
+            id='one_name_with_a_list_of_patterns'),
+        pytest.param(
+            [{"@name": "m_$A_$B_$C.tm",
+              "name": [{"pattern": mk_pattern("A")},
+                       {"pattern": [mk_pattern("B"), mk_pattern("C")]}]}],
+            id='single_pattern_name_followed_by_a_list'),
+        pytest.param(
+            [{"@name": "m_A.tm", "name": [{"pattern": mk_pattern("A")}]}],
+            id='pattern_that_only_occurs_as_text_without_a_dollar'),
+        pytest.param(
+            [{"@name": "m_$A.tm", "name": [{"pattern": mk_pattern("A")}]},
+             {"@name": "n_$B.tm", "name": [{"pattern": mk_pattern("B")}]}],
+            id='two_valid_meta_kernels'),
+        pytest.param([], id='empty_meta_kernel_list')])
+    def test_accepts_defined_patterns_without_logging(
+            self, tmp_path, caplog, mk) -> None:
+        """Every pattern must occur in the meta-kernel name, and nothing
+        with a dollar may be left once they are removed. A pattern that
+        occurs in the name without its dollar also passes. Nothing is logged
+        and the object is left as it was.
+        """
+
+        # Build a bare setup that only has the meta-kernel configuration.
+        setup = make_setup(tmp_path)
+        setup.mk = mk
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._check_mk_patterns()
+
+        # It finishes quietly, and no attribute was added or changed.
+        assert result is None
+        assert vars(setup) == attributes_before
+        assert caplog.record_tuples == []
+
+    @pytest.mark.parametrize('mk, expected_message', [
+        pytest.param(
+            [{"@name": "m_$A.tm", "name": [{"pattern": mk_pattern("B")}]}],
+            "The meta-kernel pattern B is not provided.",
+            id='pattern_not_in_the_name'),
+        pytest.param(
+            [{"@name": "m_$A_$B.tm", "name": [{"pattern": mk_pattern("A")}]}],
+            "The MK patterns m_$A_$B.tm do not correspond to the present "
+            "MKs.",
+            id='placeholder_without_a_pattern'),
+        pytest.param(
+            [{"@name": "m_$A.tm",
+              "name": [{"pattern": [mk_pattern("A"), mk_pattern("A")]}]}],
+            "The meta-kernel pattern A is not provided.",
+            id='pattern_listed_twice'),
+        pytest.param(
+            [{"@name": "m_$A.tm", "name": [{"pattern": mk_pattern("A")}]},
+             {"@name": "n_$A_$B.tm",
+              "name": [{"pattern": mk_pattern("A")}]}],
+            "The MK patterns n_$A_$B.tm do not correspond to the present "
+            "MKs.",
+            id='second_meta_kernel_is_invalid'),
+        pytest.param(
+            [{"@name": "m_$A_$B.tm",
+              "name": [{"pattern": mk_pattern("A")},
+                       {"pattern": mk_pattern("B")}]}],
+            "The MK patterns m_$A_$B.tm do not correspond to the present "
+            "MKs.",
+            id='single_pattern_name_discards_the_patterns_before_it')])
+    def test_raises_npb_error_with_expected_message(
+            self, tmp_path, mk, expected_message) -> None:
+        """A pattern that is not in the name, or a placeholder left without
+        a pattern, raises an NPBError.
+
+        The last case records the current behaviour, not the intended one:
+        a name with a single pattern replaces the patterns collected from the
+        names before it, so a configuration where each name has one pattern
+        is rejected even though it defines every placeholder.
+        """
+
+        # Build a bare setup that only has the meta-kernel configuration.
+        setup = make_setup(tmp_path)
+        setup.mk = mk
+
+        # Run the check and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._check_mk_patterns()
+
+        # The text must match exactly, since it is what tells the user which
+        # meta-kernel failed.
+        assert str(error.value) == expected_message
+
+    def test_warns_when_there_is_no_meta_kernel_configuration(
+            self, tmp_path, caplog) -> None:
+        """Without an 'mk' attribute there is nothing to check, so it logs
+        one warning and leaves the object as it was.
+        """
+
+        # Build a bare setup with no meta-kernel configuration.
+        setup = make_setup(tmp_path)
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_mk_patterns()
+
+        # Only the warning is logged, and nothing was added.
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.WARNING, self.NO_MK_WARNING)]
+        assert vars(setup) == attributes_before
+
+
+class TestSetupNormalizeCoverageKernels:
+
+    @pytest.mark.parametrize('attributes, expected', [
+        pytest.param({'coverage_kernels': 'a.bsp'},
+                     {'coverage_kernels': ['a.bsp']},
+                     id='single_value_becomes_a_list'),
+        pytest.param({'coverage_kernels': ['a.bsp', 'b.bc']},
+                     {'coverage_kernels': ['a.bsp', 'b.bc']},
+                     id='list_is_left_as_it_is'),
+        pytest.param({}, {}, id='absent_attribute_stays_absent')])
+    def test_wraps_a_single_value_in_a_list(
+            self, tmp_path, attributes, expected) -> None:
+        """A single coverage kernel becomes a one-item list, a list stays
+        the same, and nothing is created when the attribute isn't there.
+        """
+
+        # Create only the attributes this case lists.
+        setup = make_setup(tmp_path)
+        for name, value in attributes.items():
+            setattr(setup, name, value)
+
+        # Run the step.
+        setup._normalize_coverage_kernels()
+
+        # Only the coverage kernels may differ.
+        result = {name: value for name, value in vars(setup).items()
+                  if name == 'coverage_kernels'}
+        assert result == expected
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:
