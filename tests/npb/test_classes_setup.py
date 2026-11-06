@@ -3267,6 +3267,65 @@ class TestSetupCheckKernelPatternCase:
             (logging.WARNING, message) for message in expected]
 
 
+class TestSetupCheckConfigurationOrder:
+
+    # The steps in the order they must run. The time checks need the format
+    # of the first one, the directories are compared before they are made
+    # absolute, and the templates, XML tab and readme need what came before.
+    STEPS = ['_check_date_and_eol_format',
+             '_check_endianness',
+             '_check_increment_times',
+             '_check_distinct_directories',
+             '_resolve_directories',
+             '_check_im_coherence',
+             '_resolve_templates',
+             '_detect_xml_tab',
+             '_check_mk_patterns',
+             '_normalize_coverage_kernels',
+             '_check_readme_config',
+             '_check_kernel_pattern_case']
+
+    def test_runs_every_step_in_order_and_hands_on_the_time_format(
+            self, tmp_path) -> None:
+        """The method only calls its steps, one after the other. The time
+        format the first step returns is passed to the increment time
+        check, and no other step is given anything.
+        """
+
+        # Replace every step by a mock, all attached to one parent so it
+        # records the order of the calls across them. The first step returns
+        # a known pair.
+        pattern, time_format = re.compile('pattern'), 'time format'
+        steps = {name: Mock() for name in self.STEPS}
+        steps['_check_date_and_eol_format'].return_value = (pattern,
+                                                            time_format)
+        setup = make_setup(tmp_path)
+        parent = Mock()
+        for name, step in steps.items():
+            setattr(setup, name, step)
+            parent.attach_mock(step, name)
+
+        # Run the method.
+        result = setup.check_configuration()
+
+        # Every step ran once, in order, and only the increment time check
+        # received arguments.
+        assert result is None
+        assert parent.mock_calls == [
+            call._check_date_and_eol_format(),
+            call._check_endianness(),
+            call._check_increment_times(pattern, time_format),
+            call._check_distinct_directories(),
+            call._resolve_directories(),
+            call._check_im_coherence(),
+            call._resolve_templates(),
+            call._detect_xml_tab(),
+            call._check_mk_patterns(),
+            call._normalize_coverage_kernels(),
+            call._check_readme_config(),
+            call._check_kernel_pattern_case()]
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:

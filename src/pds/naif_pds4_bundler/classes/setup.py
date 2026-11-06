@@ -305,16 +305,34 @@ class Setup:
         return next((c for c in candidates if os.path.isdir(c)), None)
 
     def check_configuration(self) -> None:
-        """Performs the following checks to the loaded configuration items:
+        """Checks the loaded configuration and resolves what depends on it.
+        The steps run in this order:
 
-        * IM, Line Feed, and Date Time format NAIF recommendations
-        * Archive increment start and finish times
-        * Transform relative to absolute paths
-        * Existence of kernel directories
-        * IM, XML model, and Schema Location coherence
-        * Check existence of templates according to the IM
-        * Meta-kernel configuration
-        * Presence of uppercase characters in the kernel list configuration
+        * NAIF's recommendation for the End-of-Line and the date format,
+          which also gives the timestamp format used by the time checks
+        * The byte order expected of the binary kernels
+        * The mission and increment start and finish times
+        * That the working, staging and bundle directories are different
+        * The existence of the directories, which become absolute paths
+        * The coherence of the information model, the XML model and the
+          schema location
+        * The label templates, chosen according to the information model or
+          taken from the user's directory, and copied to the working
+          directory
+        * The indentation of the XML in the bundle label template
+        * The meta-kernel patterns
+        * The coverage kernels, as a list
+        * The readme section, when the bundle has no readme yet
+        * Uppercase letters in the kernel list configuration
+
+        The order matters. The time checks need the format from the first
+        step, the directories must be compared before they are made
+        absolute, the templates and the readme need the resolved
+        directories, and the XML indentation is read from the templates
+        already copied. Each step is a method that documents what it reads
+        and sets.
+
+        :raises NPBError: any of the checks fails
         """
         pattern, time_format = self._check_date_and_eol_format()
 
