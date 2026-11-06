@@ -326,85 +326,7 @@ class Setup:
 
         self._resolve_directories()
 
-        #
-        # Check IM, XML model, and Schema Location coherence (given that is not
-        # checked by the PDS Validate tool.
-        #
-        if hasattr(self, "information_model"):
-            if re.match(r"\d+[.]\d+[.]\d+[.]\d+", self.information_model):
-
-                major = int(self.information_model.split(".")[0])
-                minor = int(self.information_model.split(".")[1])
-                maint = int(self.information_model.split(".")[2])
-                build = int(self.information_model.split(".")[3])
-
-                if major >= 10:
-                    major = chr(major + 55)
-                if minor >= 10:
-                    minor = chr(minor + 55)
-                if maint >= 10:
-                    maint = chr(maint + 55)
-                if build >= 10:
-                    build = chr(build + 55)
-
-                short_version = f"{major}{minor}{maint}{build}"
-
-                #
-                # Check if xml_model is provided via configuration, if so check
-                # its validity and if not generate it.
-                #
-                # TODO: hasattr(self, "xml_model") will need to be removed.
-                if hasattr(self, "xml_model") and self.xml_model:
-                    xml_model_version = self.xml_model.split("PDS4_PDS_")[-1]
-                    xml_model_version = xml_model_version.split(".sch")[0]
-
-                    if xml_model_version != short_version:
-                        raise NPBError(
-                            f"PDS4 Information Model "
-                            f"{short_version} "
-                            f"is incoherent with the XML Model version: "
-                            f"{self.xml_model}."
-                        )
-                else:
-                    self.xml_model = (
-                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
-                    )
-
-                    logging.info('-- Schema XML Model (xml_model) not provided '
-                                 'with configuration file. Set to:')
-                    logging.info('   %s', self.xml_model)
-
-                #
-                # Check if schema_location is provided via configuration, if so check
-                # its validity and if not generate it.
-                #
-                # TODO: hasattr(self, "schema_location") will need to be removed.
-                if hasattr(self, "schema_location") and self.schema_location:
-                    schema_loc_version = self.schema_location.split("/PDS4_PDS_")[-1]
-                    schema_loc_version = schema_loc_version.split(".xsd")[0]
-
-                    if schema_loc_version != short_version:
-                        raise NPBError(
-                            f"PDS4 Information Model "
-                            f"{short_version} "
-                            f"is incoherent with the Schema location: "
-                            f"{self.schema_location}."
-                        )
-                else:
-                    self.schema_location = (
-                        f"http://pds.nasa.gov/pds4/pds/v1 "
-                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
-                    )
-
-                    logging.info('-- Schema Location (schema_location) not '
-                                 'provided with configuration file. Set to:')
-                    logging.info('   %s', self.schema_location)
-
-            else:
-                raise NPBError(
-                    f"PDS4 Information Model {self.information_model}"
-                    f" format from configuration is incorrect."
-                )
+        self._check_im_coherence()
 
         #
         # Check existence of templates according to the information_model
@@ -976,6 +898,100 @@ class Setup:
             mission_dir = f"{self.volume_id.lower()}"
 
         return mission_dir
+
+    def _check_im_coherence(self) -> None:
+        """Checks that the information model, the XML model and the schema
+        location of the configuration agree with each other. The PDS Validate
+        tool does not check that.
+
+        The information model becomes the short version used in the PDS4
+        schema file names, where parts of 10 or more are letters (1.15.0.0 is
+        '1F00'). An XML model or schema location that is configured must carry
+        that version. One that is missing or empty is built from it and
+        logged. Nothing is checked when there is no information model.
+
+        Reads ``information_model``, ``xml_model`` and ``schema_location``.
+        Sets ``xml_model`` and ``schema_location`` when they are missing or
+        empty. The templates step reads ``information_model`` after this one.
+
+        :raises NPBError: the information model is not four numbers separated
+            by dots, or the XML model or schema location has another version
+        """
+        if hasattr(self, "information_model"):
+            if re.match(r"\d+[.]\d+[.]\d+[.]\d+", self.information_model):
+
+                major = int(self.information_model.split(".")[0])
+                minor = int(self.information_model.split(".")[1])
+                maint = int(self.information_model.split(".")[2])
+                build = int(self.information_model.split(".")[3])
+
+                if major >= 10:
+                    major = chr(major + 55)
+                if minor >= 10:
+                    minor = chr(minor + 55)
+                if maint >= 10:
+                    maint = chr(maint + 55)
+                if build >= 10:
+                    build = chr(build + 55)
+
+                short_version = f"{major}{minor}{maint}{build}"
+
+                #
+                # Check if xml_model is provided via configuration, if so check
+                # its validity and if not generate it.
+                #
+                # TODO: hasattr(self, "xml_model") will need to be removed.
+                if hasattr(self, "xml_model") and self.xml_model:
+                    xml_model_version = self.xml_model.split("PDS4_PDS_")[-1]
+                    xml_model_version = xml_model_version.split(".sch")[0]
+
+                    if xml_model_version != short_version:
+                        raise NPBError(
+                            f"PDS4 Information Model "
+                            f"{short_version} "
+                            f"is incoherent with the XML Model version: "
+                            f"{self.xml_model}."
+                        )
+                else:
+                    self.xml_model = (
+                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.sch"
+                    )
+
+                    logging.info('-- Schema XML Model (xml_model) not provided '
+                                 'with configuration file. Set to:')
+                    logging.info('   %s', self.xml_model)
+
+                #
+                # Check if schema_location is provided via configuration, if so check
+                # its validity and if not generate it.
+                #
+                # TODO: hasattr(self, "schema_location") will need to be removed.
+                if hasattr(self, "schema_location") and self.schema_location:
+                    schema_loc_version = self.schema_location.split("/PDS4_PDS_")[-1]
+                    schema_loc_version = schema_loc_version.split(".xsd")[0]
+
+                    if schema_loc_version != short_version:
+                        raise NPBError(
+                            f"PDS4 Information Model "
+                            f"{short_version} "
+                            f"is incoherent with the Schema location: "
+                            f"{self.schema_location}."
+                        )
+                else:
+                    self.schema_location = (
+                        f"http://pds.nasa.gov/pds4/pds/v1 "
+                        f"http://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_{short_version}.xsd"
+                    )
+
+                    logging.info('-- Schema Location (schema_location) not '
+                                 'provided with configuration file. Set to:')
+                    logging.info('   %s', self.schema_location)
+
+            else:
+                raise NPBError(
+                    f"PDS4 Information Model {self.information_model}"
+                    f" format from configuration is incorrect."
+                )
 
     def set_release(self):
         """Determine the Bundle release number."""

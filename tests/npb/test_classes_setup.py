@@ -2468,6 +2468,156 @@ class TestSetupResolveDirectories:
         assert name == expected_name
 
 
+class TestSetupCheckImCoherence:
+
+    IM = im_version(1, 5, 0, 0)
+    OTHER_IM = im_version(1, 6, 0, 0)
+    BASE = "http://pds.nasa.gov/pds4/pds/v1"
+    XML = f"{BASE}/PDS4_PDS_1500.sch"
+    SCHEMA = f"{BASE} {BASE}/PDS4_PDS_1500.xsd"
+    OTHER_XML = f"{BASE}/PDS4_PDS_1600.sch"
+    OTHER_SCHEMA = f"{BASE} {BASE}/PDS4_PDS_1600.xsd"
+    WIDE_IM = im_version(10, 11, 12, 13)
+    WIDE_XML = f"{BASE}/PDS4_PDS_ABCD.sch"
+    WIDE_SCHEMA = f"{BASE} {BASE}/PDS4_PDS_ABCD.xsd"
+
+    CHECKED = ("information_model", "xml_model", "schema_location")
+
+    XML_LOGS = [
+        "-- Schema XML Model (xml_model) not provided with configuration "
+        "file. Set to:",
+        f"   {XML}"]
+    SCHEMA_LOGS = [
+        "-- Schema Location (schema_location) not provided with "
+        "configuration file. Set to:",
+        f"   {SCHEMA}"]
+    WIDE_LOGS = [
+        "-- Schema XML Model (xml_model) not provided with configuration "
+        "file. Set to:",
+        f"   {WIDE_XML}",
+        "-- Schema Location (schema_location) not provided with "
+        "configuration file. Set to:",
+        f"   {WIDE_SCHEMA}"]
+
+    XML_ERROR = ("PDS4 Information Model 1500 is incoherent with the XML "
+                 f"Model version: {OTHER_XML}.")
+    SCHEMA_ERROR = ("PDS4 Information Model 1500 is incoherent with the "
+                    f"Schema location: {OTHER_SCHEMA}.")
+    FORMAT_ERROR = ("PDS4 Information Model 1.5 format from configuration "
+                    "is incorrect.")
+
+    @pytest.mark.parametrize('attributes, expected, expected_logs', [
+        pytest.param(
+            {'information_model': IM},
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            XML_LOGS + SCHEMA_LOGS, id='derives_both_when_missing'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': '',
+             'schema_location': ''},
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            XML_LOGS + SCHEMA_LOGS, id='derives_both_when_empty'),
+        pytest.param(
+            {'information_model': WIDE_IM},
+            {'information_model': WIDE_IM, 'xml_model': WIDE_XML,
+             'schema_location': WIDE_SCHEMA},
+            WIDE_LOGS, id='parts_of_ten_or_more_become_letters'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            [], id='keeps_coherent_configured_values'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': XML},
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            SCHEMA_LOGS, id='derives_only_the_missing_schema_location'),
+        pytest.param(
+            {'xml_model': 'not checked'},
+            {'xml_model': 'not checked'},
+            [], id='does_nothing_without_information_model')])
+    def test_accepts_or_derives_the_xml_model_and_schema_location(
+            self, tmp_path, caplog, attributes, expected,
+            expected_logs) -> None:
+        """Configured values that carry the short version of the information
+        model are kept. Missing or empty ones are built from it and logged.
+        Without an information model nothing is checked.
+        """
+
+        # Create only the attributes this case lists, since the check tells
+        # a missing attribute from an empty one.
+        setup = make_setup(tmp_path)
+        for name, value in attributes.items():
+            setattr(setup, name, value)
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_im_coherence()
+
+        # Only the expected attributes exist afterwards, and the logs say
+        # what was derived, in order.
+        result = {name: value for name, value in vars(setup).items()
+                  if name in self.CHECKED}
+        assert result == expected
+        assert [message for _, _, message in caplog.record_tuples] == \
+            expected_logs
+
+    @pytest.mark.parametrize('attributes, expected_message, expected', [
+        pytest.param(
+            {'information_model': '1.5'}, FORMAT_ERROR,
+            {'information_model': '1.5'}, id='bad_information_model_format'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': OTHER_XML},
+            XML_ERROR,
+            {'information_model': IM, 'xml_model': OTHER_XML},
+            id='xml_model_with_another_version'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': OTHER_SCHEMA},
+            SCHEMA_ERROR,
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': OTHER_SCHEMA},
+            id='schema_location_with_another_version'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': OTHER_XML,
+             'schema_location': OTHER_SCHEMA},
+            XML_ERROR,
+            {'information_model': IM, 'xml_model': OTHER_XML,
+             'schema_location': OTHER_SCHEMA},
+            id='xml_model_error_wins_when_both_are_wrong'),
+        pytest.param(
+            {'information_model': IM, 'schema_location': OTHER_SCHEMA},
+            SCHEMA_ERROR,
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': OTHER_SCHEMA},
+            id='derived_xml_model_stays_set_when_schema_fails')])
+    def test_raises_npb_error_with_expected_message(
+            self, tmp_path, attributes, expected_message, expected) -> None:
+        """A malformed information model, or a configured XML model or
+        schema location with another version, raises an NPBError. The XML
+        model is checked first, and a value derived before the failure stays
+        set.
+        """
+
+        # Create only the attributes this case lists.
+        setup = make_setup(tmp_path)
+        for name, value in attributes.items():
+            setattr(setup, name, value)
+
+        # Run the check and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._check_im_coherence()
+
+        # The text must match exactly, and the attributes show what the
+        # failed check left behind.
+        assert str(error.value) == expected_message
+        result = {name: value for name, value in vars(setup).items()
+                  if name in self.CHECKED}
+        assert result == expected
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:
