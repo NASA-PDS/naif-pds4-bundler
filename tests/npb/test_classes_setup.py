@@ -2839,6 +2839,112 @@ class TestSetupResolveTemplates:
              f'-- Label templates directory: {setup.root_dir}templates/pds3')]
 
 
+class TestSetupDetectXmlTab:
+
+    TAG = '<Identification_Area>'
+    NOT_FOUND = ("-- XML Template not found to determine XML Tab. It has "
+                 "been set to 2.")
+    NOT_USEFUL = ("-- XML Template not useful to determine XML Tab. It has "
+                  "been set to 2.")
+
+    @staticmethod
+    def build(tmp_path, pds_version, files) -> Setup:
+        """Builds a bare setup whose templates directory holds the given
+        files, which are the only thing the step looks at.
+        """
+        templates = tmp_path / 'templates'
+        templates.mkdir()
+        for name, content in files.items():
+            (templates / name).write_bytes(content)
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.templates_directory = str(templates)
+
+        return setup
+
+    @pytest.mark.parametrize('content, expected', [
+        pytest.param(b'<Product_Bundle>\n    <Identification_Area>\n', 4,
+                     id='indented_by_four'),
+        pytest.param(b'      <Identification_Area>\n', 6,
+                     id='indented_by_six'),
+        pytest.param(b'  <Identification_Area>\n    <Identification_Area>\n',
+                     4, id='last_matching_line_wins'),
+        pytest.param(b'<!-- <Identification_Area>\n', 5,
+                     id='text_before_the_tag_counts_as_indentation')])
+    def test_measures_the_indentation_of_the_identification_area(
+            self, tmp_path, caplog, content, expected) -> None:
+        """For PDS4 it counts the characters before the Identification_Area
+        tag in the bundle template. When the tag appears on several lines,
+        the last one decides, and anything before the tag counts. Nothing is
+        logged.
+        """
+
+        # Build a setup whose bundle template has the given content.
+        setup = self.build(tmp_path, '4', {'template_bundle.xml': content})
+        attributes_before = set(vars(setup))
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._detect_xml_tab()
+
+        # Only xml_tab was added, with the measured value, and the step
+        # stayed quiet.
+        assert result is None
+        assert setup.xml_tab == expected
+        assert set(vars(setup)) - attributes_before == {'xml_tab'}
+        assert caplog.record_tuples == []
+
+    @pytest.mark.parametrize('files, message', [
+        pytest.param({}, NOT_FOUND, id='missing_template'),
+        pytest.param({'template_bundle.xml': b'\xff\xfe\n'}, NOT_FOUND,
+                     id='template_that_is_not_utf8'),
+        pytest.param(
+            {'template_bundle.xml': b'    <Identification_Area>\n'
+                                    + b'x' * 20000 + b'\n\xff\n'},
+            NOT_FOUND, id='read_error_after_a_good_line_discards_it'),
+        pytest.param({'template_bundle.xml': b'<Product_Bundle>\n'},
+                     NOT_USEFUL, id='template_without_the_tag'),
+        pytest.param({'template_bundle.xml': b'<Identification_Area>\n'},
+                     NOT_USEFUL, id='tag_at_the_start_of_the_line')])
+    def test_falls_back_to_two_with_a_warning(
+            self, tmp_path, caplog, files, message) -> None:
+        """A template that is missing, unreadable, or has no indentation to
+        measure gives 2 and one warning. A read error also throws away what
+        had been measured before it.
+        """
+
+        # Build a setup whose templates directory holds the given files.
+        setup = self.build(tmp_path, '4', files)
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._detect_xml_tab()
+
+        # The default is used and the reason is logged once.
+        assert setup.xml_tab == 2
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.WARNING, message)]
+
+    def test_is_zero_for_pds3_without_reading_any_template(
+            self, tmp_path, caplog) -> None:
+        """PDS3 labels don't use it. The value is 0, nothing is logged, and
+        the templates directory isn't even looked at.
+        """
+
+        # Build a PDS3 setup whose templates directory doesn't exist.
+        setup = make_setup(tmp_path)
+        setup.pds_version = '3'
+        setup.templates_directory = str(tmp_path / 'not_there')
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._detect_xml_tab()
+
+        # The value is 0 and the step stayed quiet.
+        assert setup.xml_tab == 0
+        assert caplog.record_tuples == []
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:

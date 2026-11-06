@@ -330,37 +330,7 @@ class Setup:
 
         self._resolve_templates()
 
-        #
-        # Extract the XML files line tabs and line spaces for the element added
-        # to the templates. The default for the built-in templates is 2.
-        #
-        xml_tab = 0
-        if self.pds_version == "4":
-            try:
-                xml_tag = "<Identification_Area>"
-                with open(
-                    self.templates_directory + os.sep + "template_bundle.xml", "r", encoding='utf-8'
-                ) as t:
-                    for line in t:
-                        if xml_tag in line:
-                            line = line.rstrip()
-                            xml_tab = len(line) - len(xml_tag)
-
-            # open() raises OSError when template_bundle.xml doesn't exist,
-            # or UnicodeDecodeError if it isn't valid UTF-8.
-            except FILE_READ_ERRORS:
-                logging.warning(
-                    "-- XML Template not found to determine XML Tab. It has been set to 2."
-                )
-                xml_tab = 2
-
-            if xml_tab <= 0:
-                logging.warning(
-                    "-- XML Template not useful to determine XML Tab. It has been set to 2."
-                )
-                xml_tab = 2
-
-        self.xml_tab = xml_tab
+        self._detect_xml_tab()
 
         #
         # Check meta-kernel configuration
@@ -1010,6 +980,45 @@ class Setup:
 
         self.templates_directory = self.working_directory
         self.template_files = template_files
+
+    def _detect_xml_tab(self) -> None:
+        """Measures how far the ``<Identification_Area>`` element is indented
+        in the bundle label template. The elements added to the templates
+        are indented to match. The default for the built-in templates is 2,
+        and it is also used, with a warning, when the template is missing,
+        unreadable or gives no usable indentation. For PDS3 it is 0.
+
+        Reads ``pds_version`` and ``templates_directory``, which must already
+        point to the working directory where the templates have been copied.
+        Sets ``xml_tab``.
+        """
+        xml_tab = 0
+        if self.pds_version == "4":
+            try:
+                xml_tag = "<Identification_Area>"
+                with open(
+                    self.templates_directory + os.sep + "template_bundle.xml", "r", encoding='utf-8'
+                ) as t:
+                    for line in t:
+                        if xml_tag in line:
+                            line = line.rstrip()
+                            xml_tab = len(line) - len(xml_tag)
+
+            # open() raises OSError when template_bundle.xml doesn't exist,
+            # or UnicodeDecodeError if it isn't valid UTF-8.
+            except FILE_READ_ERRORS:
+                logging.warning(
+                    "-- XML Template not found to determine XML Tab. It has been set to 2."
+                )
+                xml_tab = 2
+
+            if xml_tab <= 0:
+                logging.warning(
+                    "-- XML Template not useful to determine XML Tab. It has been set to 2."
+                )
+                xml_tab = 2
+
+        self.xml_tab = xml_tab
 
     def set_release(self):
         """Determine the Bundle release number."""
