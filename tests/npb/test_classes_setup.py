@@ -2258,16 +2258,15 @@ class TestSetupCheckDistinctDirectories:
 
 class TestSetupResolveDirectories:
 
+    # A relative staging directory whose parent doesn't exist, so it can't be
+    # created.
+    NO_PARENT = Path('no_parent', 'npb_staging')
+
     @pytest.fixture(autouse=True)
     def run_inside_tmp_path(self, tmp_path, monkeypatch) -> None:
         """Runs every test with tmp_path as the current directory, so the
         relative paths of the tests resolve inside it."""
         monkeypatch.chdir(tmp_path)
-
-    @staticmethod
-    def fill(tmp_path, text: str) -> str:
-        """Replaces '{tmp}' in a path with the test's temporary directory."""
-        return text.format(tmp=tmp_path)
 
     def make_directories_setup(self, tmp_path, existing, working, staging,
                                bundle, kernels, faucet='bundle',
@@ -2275,177 +2274,220 @@ class TestSetupResolveDirectories:
         """Creates the 'existing' directories and returns a bare setup with
         the given directory settings."""
         for directory in existing:
-            os.makedirs(self.fill(tmp_path, directory), exist_ok=True)
+            os.makedirs(tmp_path / directory, exist_ok=True)
 
         setup = make_setup(tmp_path)
         setup.pds_version = pds_version
         setup.volume_id = 'MAVEN_1001'
         setup.args = SimpleNamespace(faucet=faucet)
-        setup.working_directory = self.fill(tmp_path, working)
-        setup.staging_directory = self.fill(tmp_path, staging)
-        setup.bundle_directory = self.fill(tmp_path, bundle)
-        setup.kernels_directory = [self.fill(tmp_path, k) for k in kernels]
+        setup.working_directory = str(working)
+        setup.staging_directory = str(staging)
+        setup.bundle_directory = str(bundle)
+        setup.kernels_directory = [str(kernel) for kernel in kernels]
 
         return setup
 
-    @pytest.mark.parametrize(
-        'pds_version, existing, working, staging, bundle, kernels, expected, '
-        'created', [
-            pytest.param(
-                '4', ['work', 'staging', 'bundle', 'k1', 'k2'],
-                'work', 'staging', 'bundle', ['k1', 'k2'],
-                ('{tmp}/work', '{tmp}/staging/maven_spice', '{tmp}/bundle',
-                 ['{tmp}/k1', '{tmp}/k2']), [],
-                id='relative_paths_pds4'),
-            pytest.param(
-                '4', ['{tmp}/work', '{tmp}/staging', '{tmp}/bundle',
-                      '{tmp}/k1'],
-                '{tmp}/work', '{tmp}/staging', '{tmp}/bundle', ['{tmp}/k1'],
-                ('{tmp}/work', '{tmp}/staging/maven_spice', '{tmp}/bundle',
-                 ['{tmp}/k1']), [],
-                id='absolute_paths_pds4'),
-            pytest.param(
-                '4', ['work', 'staging/maven_spice', 'bundle', 'k1'],
-                'work', '{tmp}/staging/maven_spice', 'bundle', ['k1'],
-                ('{tmp}/work', '{tmp}/staging/maven_spice', '{tmp}/bundle',
-                 ['{tmp}/k1']), [],
-                id='absolute_staging_already_has_mission_directory'),
-            pytest.param(
-                '4', ['work', '{tmp}/my_maven_spice', 'bundle', 'k1'],
-                'work', '{tmp}/my_maven_spice', 'bundle', ['k1'],
-                ('{tmp}/work', '{tmp}/my_maven_spice/maven_spice',
-                 '{tmp}/bundle', ['{tmp}/k1']), [],
-                id='absolute_staging_name_only_ends_like_mission_directory'),
-            pytest.param(
-                '3', ['work', 'staging', 'bundle', 'k1'],
-                'work', 'staging', 'bundle', ['k1'],
-                ('{tmp}/work', '{tmp}/staging/maven_1001', '{tmp}/bundle',
-                 ['{tmp}/k1']), [],
-                id='relative_paths_pds3'),
-            pytest.param(
-                '4', ['work', 'bundle', 'k1'],
-                'work', 'npb_new_staging', 'bundle', ['k1'],
-                ('{tmp}/work', 'npb_new_staging', '{tmp}/bundle',
-                 ['{tmp}/k1']), ['npb_new_staging'],
-                id='missing_staging_is_created_and_left_as_configured')])
-    def test_resolves_directories_to_absolute_paths(
-            self, tmp_path, pds_version, existing, working, staging, bundle,
-            kernels, expected, created) -> None:
-        """Directories given relative to the current directory, or as
-        absolute paths, end up as absolute paths. The staging directory gets
-        the mission directory appended unless it already has it, and a
-        missing staging directory is created and keeps its configured value.
+    @pytest.mark.parametrize('pds_version, mission_dir', [
+        pytest.param('4', 'maven_spice', id='pds4'),
+        pytest.param('3', 'maven_1001', id='pds3')])
+    def test_resolves_relative_directories_under_the_current_directory(
+            self, tmp_path, pds_version, mission_dir) -> None:
+        """Directories given relative to the current directory end up as
+        absolute paths, and the staging directory gets the mission directory
+        appended.
         """
 
-        # Create the directories this case says exist and build a setup that
-        # points at them, starting from the paths as configured.
+        # Create the directories and build a setup that names them relative
+        # to the current directory, which is tmp_path.
         setup = self.make_directories_setup(
-            tmp_path, existing, working, staging, bundle, kernels,
-            pds_version=pds_version)
+            tmp_path, ['work', 'staging', 'bundle', 'k1', 'k2'],
+            Path('work'), Path('staging'), Path('bundle'),
+            [Path('k1'), Path('k2')], pds_version=pds_version)
 
         # Run the resolution.
         setup._resolve_directories()
 
-        # Put the expected paths under tmp_path, then compare the four
-        # attributes and check that the directories to create now exist.
-        expected_directories = (
-            self.fill(tmp_path, expected[0]), self.fill(tmp_path, expected[1]),
-            self.fill(tmp_path, expected[2]),
-            [self.fill(tmp_path, k) for k in expected[3]])
+        # Every directory is now inside tmp_path, and the staging one ends
+        # with the mission directory.
         resolved = (setup.working_directory, setup.staging_directory,
                     setup.bundle_directory, setup.kernels_directory)
-        assert resolved == expected_directories
-        assert all(os.path.isdir(directory) for directory in created)
+        assert resolved == (
+            str(tmp_path / 'work'), str(tmp_path / 'staging' / mission_dir),
+            str(tmp_path / 'bundle'),
+            [str(tmp_path / 'k1'), str(tmp_path / 'k2')])
+
+    @pytest.mark.parametrize('staging, expected_staging', [
+        pytest.param(Path('staging'), Path('staging', 'maven_spice'),
+                     id='bare_name_gets_the_mission_directory'),
+        pytest.param(Path('staging', 'maven_spice'),
+                     Path('staging', 'maven_spice'),
+                     id='mission_directory_already_there'),
+        pytest.param(Path('my_maven_spice'),
+                     Path('my_maven_spice', 'maven_spice'),
+                     id='name_only_ends_like_the_mission_directory')])
+    def test_keeps_absolute_directories_and_adds_the_mission_directory_once(
+            self, tmp_path, staging, expected_staging) -> None:
+        """Directories given as absolute paths stay where they are. The
+        staging directory gets the mission directory appended unless its
+        configured value already has it.
+        """
+
+        # Create the directories and build a setup that names every one of
+        # them with its absolute path.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', staging, 'bundle', 'k1'],
+            tmp_path / 'work', tmp_path / staging, tmp_path / 'bundle',
+            [tmp_path / 'k1'])
+
+        # Run the resolution.
+        setup._resolve_directories()
+
+        # Only the staging directory changes, by the mission directory.
+        resolved = (setup.working_directory, setup.staging_directory,
+                    setup.bundle_directory, setup.kernels_directory)
+        assert resolved == (
+            str(tmp_path / 'work'), str(tmp_path / expected_staging),
+            str(tmp_path / 'bundle'), [str(tmp_path / 'k1')])
+
+    def test_creates_a_missing_staging_directory_and_leaves_it_as_configured(
+            self, tmp_path) -> None:
+        """A staging directory that doesn't exist is created, and keeps the
+        value it was configured with instead of becoming an absolute path.
+        """
+
+        # Build a setup whose staging directory does not exist yet.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', 'bundle', 'k1'], Path('work'),
+            Path('npb_new_staging'), Path('bundle'), [Path('k1')])
+
+        # Run the resolution.
+        setup._resolve_directories()
+
+        # The other directories are resolved, the staging one is not, and it
+        # now exists on disk.
+        resolved = (setup.working_directory, setup.staging_directory,
+                    setup.bundle_directory, setup.kernels_directory)
+        assert resolved == (
+            str(tmp_path / 'work'), 'npb_new_staging',
+            str(tmp_path / 'bundle'), [str(tmp_path / 'k1')])
+        assert (tmp_path / 'npb_new_staging').is_dir()
 
     @pytest.mark.parametrize(
-        'existing, working, staging, bundle, kernels, expected_message, '
-        'expected_working', [
+        'existing, staging, bundle, kernels, expected_message', [
             pytest.param(
-                ['staging', 'bundle', 'k1'],
-                'missing_work', 'staging', 'bundle', ['k1'],
-                'Directory does not exist: missing_work.', 'missing_work',
-                id='missing_working_directory'),
-            pytest.param(
-                ['work', 'staging', 'k1'],
-                'work', 'staging', 'missing_bundle', ['k1'],
+                ['work', 'staging', 'k1'], Path('staging'),
+                Path('missing_bundle'), [Path('k1')],
                 'Bundle directory does not exist: missing_bundle.',
-                '{tmp}/work', id='missing_bundle_directory'),
+                id='missing_bundle_directory'),
             pytest.param(
-                ['work', 'staging', 'bundle'],
-                'work', 'staging', 'bundle', ['missing_kernels'],
+                ['work', 'staging', 'bundle'], Path('staging'),
+                Path('bundle'), [Path('missing_kernels')],
                 'Directory does not exist: missing_kernels.',
-                '{tmp}/work', id='missing_kernels_directory'),
+                id='missing_kernels_directory'),
             pytest.param(
-                ['work', 'bundle', 'k1'],
-                'work', 'no_parent/npb_staging', 'bundle', ['k1'],
-                'Staging directory cannot be created: no_parent/npb_staging.',
-                '{tmp}/work', id='staging_directory_cannot_be_created')])
+                ['work', 'bundle', 'k1'], NO_PARENT, Path('bundle'),
+                [Path('k1')],
+                f'Staging directory cannot be created: {NO_PARENT}.',
+                id='staging_directory_cannot_be_created')])
     def test_raises_npb_error_for_missing_directories(
-            self, tmp_path, existing, working, staging, bundle, kernels,
-            expected_message, expected_working) -> None:
-        """A missing working, bundle or kernels directory, or a staging
-        directory that cannot be created, raises an NPBError that names it
-        when the faucet needs it. The directories checked before the failing
-        one have already been resolved by then.
+            self, tmp_path, existing, staging, bundle, kernels,
+            expected_message) -> None:
+        """A missing bundle or kernels directory, or a staging directory that
+        cannot be created, raises an NPBError that names it when the faucet
+        needs it. The working directory, which is checked first, has already
+        been resolved by then.
         """
 
         # Create the directories this case says exist and build a setup that
         # points at them, run with the 'bundle' faucet, which needs them all.
         setup = self.make_directories_setup(
-            tmp_path, existing, working, staging, bundle, kernels)
+            tmp_path, existing, Path('work'), staging, bundle, kernels)
 
         # Run the resolution and catch the error.
         with pytest.raises(NPBError) as error:
             setup._resolve_directories()
 
         # The message names the directory, and the working directory shows
-        # how far the resolution got before failing.
+        # that the resolution got past it.
         assert str(error.value) == expected_message
-        assert setup.working_directory == self.fill(tmp_path, expected_working)
+        assert setup.working_directory == str(tmp_path / 'work')
 
-    @pytest.mark.parametrize('faucet', ['plan', 'list', 'checks'])
-    @pytest.mark.parametrize(
-        'existing, staging, bundle, expected_logs, expected_staging, '
-        'expected_bundle', [
-            pytest.param(
-                ['work', 'staging', 'k1'], 'staging', 'missing_bundle',
-                ["-- Bundle directory does not exist but is not used with "
-                 "{faucet} faucet."],
-                '{tmp}/staging/maven_spice', 'missing_bundle',
-                id='missing_bundle_directory'),
-            pytest.param(
-                ['work', 'bundle', 'k1'], 'no_parent/npb_staging', 'bundle',
-                ["-- Creating staging directory: "
-                 "no_parent/npb_staging/maven_spice.",
-                 "-- Staging directory cannot be created but is not used "
-                 "with {faucet} faucet."],
-                'no_parent/npb_staging', '{tmp}/bundle',
-                id='staging_directory_cannot_be_created')])
-    def test_warns_instead_of_failing_for_faucets_that_do_not_need_them(
-            self, tmp_path, caplog, faucet, existing, staging, bundle,
-            expected_logs, expected_staging, expected_bundle) -> None:
-        """With the 'plan', 'list' or 'checks' faucet, a missing bundle
-        directory or a staging directory that cannot be created only logs a
-        warning, and that directory keeps the value it was configured with.
+    def test_missing_working_directory_is_reported_before_resolving_any(
+            self, tmp_path) -> None:
+        """The working directory is the first one checked, so when it is
+        missing the error names it and it keeps its configured value.
         """
 
-        # Create the directories this case says exist and build a setup that
-        # runs with the faucet under test.
+        # Build a setup whose working directory does not exist.
         setup = self.make_directories_setup(
-            tmp_path, existing, 'work', staging, bundle, ['k1'],
+            tmp_path, ['staging', 'bundle', 'k1'], Path('missing_work'),
+            Path('staging'), Path('bundle'), [Path('k1')])
+
+        # Run the resolution and catch the error.
+        with pytest.raises(NPBError) as error:
+            setup._resolve_directories()
+
+        # The error names the directory, which was left as configured.
+        assert str(error.value) == 'Directory does not exist: missing_work.'
+        assert setup.working_directory == 'missing_work'
+
+    @pytest.mark.parametrize('faucet', ['plan', 'list', 'checks'])
+    def test_missing_bundle_only_warns_for_faucets_that_do_not_need_it(
+            self, tmp_path, caplog, faucet) -> None:
+        """With the 'plan', 'list' or 'checks' faucet, a missing bundle
+        directory only logs a warning, and it keeps the value it was
+        configured with.
+        """
+
+        # Build a setup whose bundle directory does not exist, run with the
+        # faucet under test.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', 'staging', 'k1'], Path('work'),
+            Path('staging'), Path('missing_bundle'), [Path('k1')],
             faucet=faucet)
 
         # Run the resolution while capturing everything it logs.
         with caplog.at_level(logging.INFO):
             setup._resolve_directories()
 
-        # The warnings come in order, and the directory that was tolerated
-        # still has its configured value.
+        # The only log is the warning, the bundle directory is as configured,
+        # and the staging one was resolved.
         logs = [(level, message) for _, level, message in caplog.record_tuples]
-        assert logs == [(logging.WARNING, message.format(faucet=faucet))
-                        for message in expected_logs]
-        assert setup.staging_directory == self.fill(tmp_path, expected_staging)
-        assert setup.bundle_directory == self.fill(tmp_path, expected_bundle)
+        assert logs == [
+            (logging.WARNING, "-- Bundle directory does not exist but is not"
+                              f" used with {faucet} faucet.")]
+        assert setup.bundle_directory == 'missing_bundle'
+        assert setup.staging_directory == str(
+            tmp_path / 'staging' / 'maven_spice')
+
+    @pytest.mark.parametrize('faucet', ['plan', 'list', 'checks'])
+    def test_uncreatable_staging_only_warns_for_faucets_that_do_not_need_it(
+            self, tmp_path, caplog, faucet) -> None:
+        """With the 'plan', 'list' or 'checks' faucet, a staging directory
+        that cannot be created only logs warnings, and it keeps the value it
+        was configured with.
+        """
+
+        # Build a setup whose staging directory has no parent to be created
+        # in, run with the faucet under test.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', 'bundle', 'k1'], Path('work'), self.NO_PARENT,
+            Path('bundle'), [Path('k1')], faucet=faucet)
+
+        # Run the resolution while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_directories()
+
+        # The warnings come in order, the staging directory is as configured,
+        # and the bundle one was resolved.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert logs == [
+            (logging.WARNING,
+             f"-- Creating staging directory: {self.NO_PARENT}/maven_spice."),
+            (logging.WARNING, "-- Staging directory cannot be created but "
+                              f"is not used with {faucet} faucet.")]
+        assert setup.staging_directory == str(self.NO_PARENT)
+        assert setup.bundle_directory == str(tmp_path / 'bundle')
 
     @pytest.mark.parametrize('pds_version, expected_name', [
         pytest.param('4', 'maven_spice', id='pds4_uses_acronym'),
