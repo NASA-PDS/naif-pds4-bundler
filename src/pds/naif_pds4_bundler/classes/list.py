@@ -8,9 +8,7 @@ import os
 from pathlib import Path
 import shutil
 import sys
-from typing import Iterable
-from typing import NamedTuple
-from typing import Optional
+from typing import Iterable, NamedTuple, Optional
 
 import spiceypy
 from spiceypy.utils.exceptions import SpiceUNSUPPORTEDBFF
@@ -1038,11 +1036,13 @@ class KernelList:
         num_desc = 0
 
         for line in lines:
-            # TODO: BUG, when performing the check using substring, there is
-            #       a possibility that a description may contain the word
-            #       FILE. If this is the case, it would be counted
-            #       incorrectly and, furthermore, the DESCRIPTION line would
-            #       not be counted at all.
+            # TODO: BUG; entry type is detected with substring ('in')
+            #       tests instead of prefix checks. Any DESCRIPTION or
+            #       OPTIONS line whose text contains the word 'FILE'
+            #       (e.g. "DESCRIPTION = FILE naming kernel") is
+            #       miscounted as an extra FILE entry, causing the
+            #       coherence check to raise on a perfectly valid list.
+            #       The same flaw applies to 'OPTIONS' and 'DESCRIPTION'.
             if ("FILE" in line) and (line.split("=")[-1].strip()):
                 num_file += 1
                 files.append(line.split("/")[-1].strip())
