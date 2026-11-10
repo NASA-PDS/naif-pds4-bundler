@@ -680,7 +680,8 @@ class Setup:
 
         Reads ``information_model``, ``xml_model`` and ``schema_location``.
         Sets ``xml_model`` and ``schema_location`` when they are missing or
-        empty. The templates step reads ``information_model`` after this one.
+        empty. ``information_model`` is only validated here; the templates
+        step parses it afterwards.
 
         :raises NPBError: the information model is not four numbers separated
             by dots, or the XML model or schema location has another version
@@ -1019,7 +1020,8 @@ class Setup:
 
         Reads ``bundle_directory``, ``pds_version`` and ``readme``, plus what
         ``_mission_directory_name`` reads. The bundle directory is the one
-        resolved by ``_resolve_directories``. Sets nothing.
+        resolved by ``_resolve_directories`` when it exists, and the
+        configured value otherwise. Sets nothing.
 
         :raises NPBError: there is no readme section, or the input file is
             missing and the section cannot generate it
