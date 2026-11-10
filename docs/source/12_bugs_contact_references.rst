@@ -13,8 +13,8 @@ Contact Information
 ===================
 
 If you have any questions on any aspect of the generation
-of a SPICE kernel archive please contact Boris Semenov (Boris.V.Semenov@jpl.nasa.gov)
-and Alyssa Bailey (Alyssa.M.Bailey@jpl.nasa.gov)
+of a SPICE kernel archive please contact Alyssa Bailey (Alyssa.M.Bailey@jpl.nasa.gov)
+and Boris Semenov (Boris.V.Semenov@jpl.nasa.gov)
 
 at the
 

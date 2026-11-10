@@ -488,6 +488,9 @@ inserted into the ASCII text kernel files if necessary.
    * - MK
      - KPL/MK
 
+NOTE - Text EKs are not read into SPICE and do not follow the same
+       file ID type as other text kernels.
+
 While it is not possible to automate writing comments -- as
 with any other documentation this is the task that needs to be
 done by the person who puts the archive together by hand or by
@@ -567,7 +570,7 @@ convention for SPICE kernels:
    * - Text Meta-kernels
      - ``.tm``
 
-All Kenel Types with * next to them are not applicable for new archives.
+All Kernel Types with * next to them are not applicable for new archives.
 
 ORBNUM files must have either a ``.orb`` or ``.nrb`` extension.
 

@@ -69,6 +69,11 @@ described here.
    in the FK files include mounting alignment information for the
    instruments.
 
+ * **ek/** (Events Kernel) files contain events information summarizing mission
+   activities - both planned and unanticipated. Events data are contained
+   in the SPICE E-kernel file set, which consists of three components:
+   Science Plans, Sequences, and Notes.
+
  * **dsk/** (Digital Shape Kernel) files contain detailed shape models for
    extended objects such as planets, natural satellites, asteroids, and
    comet nuclei.
