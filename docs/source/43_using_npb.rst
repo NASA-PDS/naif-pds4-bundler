@@ -775,6 +775,7 @@ Would be equivalent to the following resulting ``validate`` configuration file::
 
 We recommend running validate and pointing to the validate_config file NPB
 generates for you. The following ``validate`` example command for InSight::
+
    $ validate insight/insight_spice \
    -c working/insight_release_01.validate_config -R pds4.bundle \
    -r working/insight_release_01.validate
@@ -825,18 +826,21 @@ Kernel List Validation
 ^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pds.naif_pds4_bundler.classes.list.KernelList.validate
+   :no-index:
 
 
 Complete Kernel List Validation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pds.naif_pds4_bundler.classes.list.KernelList.validate_complete
+   :no-index:
 
 
 Product in Kernel List Checks
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: pds.naif_pds4_bundler.classes.list.KernelList.check_products
+   :no-index:
 
 
 SPICE Kernel Integrity Check
