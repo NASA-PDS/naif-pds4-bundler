@@ -1919,6 +1919,1455 @@ class TestSetupCheckConfiguration:
             setup.check_configuration()
 
 
+class TestSetupCheckDateAndEolFormat:
+
+    @pytest.mark.parametrize(
+        'date_format, end_of_line, expected_time_format, expected_logs', [
+            pytest.param(
+                'infomod2', 'LF', 'YYYY-MM-DDThh:mm:ss.sssZ', [],
+                id='infomod2_with_recommended_eol'),
+            pytest.param(
+                'infomod2', 'CRLF', 'YYYY-MM-DDThh:mm:ss.sssZ', [
+                    (logging.WARNING,
+                     "-- NAIF recommends to use `LF' End-of-Line while using "
+                     "the `infomod2' parameter instead of `CRLF'.")],
+                id='infomod2_with_crlf'),
+            pytest.param(
+                'maklabel', 'CRLF', 'YYYY-MM-DDThh:mm:ssZ', [],
+                id='maklabel_with_recommended_eol'),
+            pytest.param(
+                'maklabel', 'LF', 'YYYY-MM-DDThh:mm:ssZ', [
+                    (logging.WARNING,
+                     "-- NAIF recommends to use `CRLF' End-of-Line while "
+                     "using the `maklabel' parameter instead of `LF'.")],
+                id='maklabel_with_lf')])
+    def test_returns_time_format_and_warns_only_on_unrecommended_eol(
+            self, tmp_path, caplog, date_format, end_of_line,
+            expected_time_format, expected_logs) -> None:
+        """Given a date format and an End-of-Line, the helper returns the
+        readable time format for that date format, and logs a warning only
+        when the End-of-Line is not the one NAIF recommends for it.
+        """
+
+        # Build a bare setup that only has the two settings the check reads.
+        setup = make_setup(tmp_path)
+        setup.date_format = date_format
+        setup.end_of_line = end_of_line
+
+        # Run the check while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            _, time_format = setup._check_date_and_eol_format()
+
+        # Reduce each record to (level, message), so both the order and the
+        # exact text of the warnings are compared.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert time_format == expected_time_format
+        assert logs == expected_logs
+
+    @pytest.mark.parametrize('date_format, timestamp, expected_match', [
+        pytest.param('infomod2', '2020-01-02T03:04:05.678Z', True,
+                     id='infomod2_accepts_milliseconds'),
+        pytest.param('infomod2', '2020-01-02T03:04:05Z', False,
+                     id='infomod2_rejects_whole_seconds'),
+        pytest.param('maklabel', '2020-01-02T03:04:05Z', True,
+                     id='maklabel_accepts_whole_seconds'),
+        pytest.param('maklabel', '2020-01-02T03:04:05.678Z', False,
+                     id='maklabel_rejects_milliseconds')])
+    def test_returns_pattern_that_accepts_only_the_selected_format(
+            self, tmp_path, date_format, timestamp, expected_match) -> None:
+        """The pattern returned for each date format accepts a timestamp
+        written in that format and rejects one written in the other.
+        """
+
+        # Only the date format matters here. The End-of-Line just decides
+        # whether a warning is logged, which this test doesn't look at.
+        setup = make_setup(tmp_path)
+        setup.date_format = date_format
+        setup.end_of_line = 'LF'
+
+        # Run the check and keep the pattern it hands back.
+        pattern, _ = setup._check_date_and_eol_format()
+
+        # 'match' gives None when the timestamp doesn't fit the pattern.
+        assert (pattern.match(timestamp) is not None) == expected_match
+
+
+class TestSetupCheckEndianness:
+
+    LTL_INFO = ("-- Binary SPICE kernels expected to have LTL-IEEE (little "
+                "endian) binary format.")
+    BIG_INFO_PDS4 = ("-- Binary SPICE kernels expected to have BIG-IEEE "
+                     "(little endian) binary format.")
+    BIG_INFO_PDS3 = ("-- Binary SPICE kernels expected to have BIG-IEEE (big "
+                     "endian) binary format.")
+    PDS4_ADVICE = ("-- NAIF strongly recommends to use LTL-IEEE (little "
+                   "endian) for binary kernels in PDS4 archives ")
+    PDS3_ADVICE = ("-- NAIF strongly recommends to use BIG-IEEE (big endian) "
+                   "for binary kernels in PDS3 archives ")
+    ENFORCED = "   and enforces it if the archive is hosted by NAIF."
+    SYSTEM_BIG = ("   Your system is BIG-IEEE (big endian): PDS3 Labels "
+                  "cannot be attached to binary kernels.")
+    SYSTEM_LTL = ("   Your system is LTL-IEEE (little endian): PDS3 Labels "
+                  "cannot be attached to binary kernels.")
+    ERROR_IF_BINARY = ("   If binary kernels are present this will result "
+                       "in an error.")
+
+    @pytest.mark.parametrize(
+        'pds_version, kernel_endianness, byteorder, expected_logs', [
+            pytest.param(
+                '4', 'little', 'little', [(logging.INFO, LTL_INFO)],
+                id='pds4_little_kernels_on_little_machine'),
+            pytest.param(
+                '4', 'little', 'big', [(logging.INFO, LTL_INFO)],
+                id='pds4_little_kernels_on_big_machine'),
+            pytest.param(
+                '4', 'big', 'little',
+                [(logging.INFO, BIG_INFO_PDS4),
+                 (logging.WARNING, PDS4_ADVICE),
+                 (logging.WARNING, ENFORCED)],
+                id='pds4_big_kernels_on_little_machine'),
+            pytest.param(
+                '4', 'big', 'big',
+                [(logging.INFO, BIG_INFO_PDS4),
+                 (logging.WARNING, PDS4_ADVICE),
+                 (logging.WARNING, ENFORCED)],
+                id='pds4_big_kernels_on_big_machine'),
+            pytest.param(
+                '3', 'little', 'little',
+                [(logging.INFO, LTL_INFO),
+                 (logging.WARNING, PDS3_ADVICE),
+                 (logging.WARNING, ENFORCED)],
+                id='pds3_little_kernels_on_little_machine'),
+            pytest.param(
+                '3', 'little', 'big',
+                [(logging.INFO, LTL_INFO),
+                 (logging.WARNING, PDS3_ADVICE),
+                 (logging.WARNING, ENFORCED),
+                 (logging.WARNING, SYSTEM_BIG),
+                 (logging.WARNING, ERROR_IF_BINARY)],
+                id='pds3_little_kernels_on_big_machine'),
+            pytest.param(
+                '3', 'big', 'little',
+                [(logging.INFO, BIG_INFO_PDS3),
+                 (logging.WARNING, SYSTEM_LTL),
+                 (logging.WARNING, ERROR_IF_BINARY)],
+                id='pds3_big_kernels_on_little_machine'),
+            pytest.param(
+                '3', 'big', 'big', [(logging.INFO, BIG_INFO_PDS3)],
+                id='pds3_big_kernels_on_big_machine')])
+    def test_logs_expected_byte_order_and_warnings_without_setting_attributes(
+            self, tmp_path, monkeypatch, caplog, pds_version,
+            kernel_endianness, byteorder, expected_logs) -> None:
+        """The helper logs the byte order the kernels are expected to have,
+        and adds warnings when that goes against NAIF's advice for the PDS
+        version or against the byte order of the machine. PDS4 ignores the
+        machine. It never changes the object.
+        """
+
+        # Build a bare setup with the PDS version and kernel byte order, and
+        # make the machine report the byte order of this case.
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.kernel_endianness = kernel_endianness
+        monkeypatch.setattr('sys.byteorder', byteorder)
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_endianness()
+
+        # Compare (level, message) pairs in order, and make sure no attribute
+        # was added or changed.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert logs == expected_logs
+        assert vars(setup) == attributes_before
+
+
+class TestSetupCheckIncrementTimes:
+
+    PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z")
+    TIME_FORMAT = "YYYY-MM-DDThh:mm:ssZ"
+    GOOD = "2020-01-02T03:04:05Z"
+    BAD = "2020-01-02"
+
+    # The four format errors are not worded alike: only the two '_start'
+    # ones say 'parameter'.
+    MISSION_START_ERROR = ("mission_start parameter does not match the "
+                           f"required format: {TIME_FORMAT}.")
+    MISSION_FINISH_ERROR = ("mission_finish does not match the required "
+                            f"format: {TIME_FORMAT}.")
+    INCREMENT_START_ERROR = ("increment_start parameter does not match the "
+                             f"required format: {TIME_FORMAT}.")
+    INCREMENT_FINISH_ERROR = ("increment_finish does not match the required "
+                              f"format: {TIME_FORMAT}.")
+    PAIR_ERROR = ("If provided via configuration, increment_start and "
+                  "increment_finish parameters need to be provided together.")
+
+    @pytest.mark.parametrize('times', [
+        pytest.param({}, id='no_time_attributes'),
+        pytest.param(
+            {'mission_start': '', 'mission_finish': None,
+             'increment_start': '', 'increment_finish': None},
+            id='all_empty'),
+        pytest.param(
+            {'mission_start': GOOD, 'mission_finish': GOOD,
+             'increment_start': GOOD, 'increment_finish': GOOD},
+            id='all_valid'),
+        pytest.param(
+            {'mission_start': GOOD, 'mission_finish': GOOD},
+            id='mission_times_only'),
+        pytest.param(
+            {'increment_start': GOOD, 'increment_finish': GOOD},
+            id='increment_pair_only'),
+        pytest.param(
+            {'increment_start': GOOD},
+            id='increment_start_without_finish_attribute')])
+    def test_accepts_valid_or_absent_times_without_setting_attributes(
+            self, tmp_path, times) -> None:
+        """Times that are valid, empty or missing pass without an error.
+        An increment start with no 'increment_finish' attribute at all also
+        passes. The object is left as it was.
+        """
+
+        # Create only the attributes this case lists. The check tells a
+        # missing attribute from an empty one, so absent ones must stay absent.
+        setup = make_setup(tmp_path)
+        for name, value in times.items():
+            setattr(setup, name, value)
+        attributes_before = dict(vars(setup))
+
+        # Run the check with the 'maklabel' pattern and time format.
+        result = setup._check_increment_times(self.PATTERN, self.TIME_FORMAT)
+
+        # It finishes quietly and no attribute was added or changed.
+        assert result is None
+        assert vars(setup) == attributes_before
+
+    @pytest.mark.parametrize('times, expected_message', [
+        pytest.param(
+            {'mission_start': BAD}, MISSION_START_ERROR,
+            id='bad_mission_start'),
+        pytest.param(
+            {'mission_finish': BAD}, MISSION_FINISH_ERROR,
+            id='bad_mission_finish'),
+        pytest.param(
+            {'increment_start': BAD, 'increment_finish': GOOD},
+            INCREMENT_START_ERROR, id='bad_increment_start'),
+        pytest.param(
+            {'increment_start': GOOD, 'increment_finish': BAD},
+            INCREMENT_FINISH_ERROR, id='bad_increment_finish'),
+        pytest.param(
+            {'increment_start': GOOD, 'increment_finish': ''}, PAIR_ERROR,
+            id='increment_start_without_finish'),
+        pytest.param(
+            {'increment_start': '', 'increment_finish': GOOD}, PAIR_ERROR,
+            id='increment_finish_without_start'),
+        pytest.param(
+            {'increment_start': BAD, 'increment_finish': ''},
+            INCREMENT_START_ERROR, id='bad_format_reported_before_pairing'),
+        pytest.param(
+            {'mission_start': BAD, 'mission_finish': BAD},
+            MISSION_START_ERROR, id='first_bad_time_is_the_one_reported')])
+    def test_raises_npb_error_with_expected_message(
+            self, tmp_path, times, expected_message) -> None:
+        """A time that doesn't match the format, or an increment start and
+        finish that are not given together, raises an NPBError with the
+        message for that case. When several things are wrong, the first
+        check in order is the one reported.
+        """
+
+        # Create only the attributes this case lists.
+        setup = make_setup(tmp_path)
+        for name, value in times.items():
+            setattr(setup, name, value)
+
+        # Run the check and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._check_increment_times(self.PATTERN, self.TIME_FORMAT)
+
+        # The text must match exactly, since it is what tells the user which
+        # check failed.
+        assert str(error.value) == expected_message
+
+
+class TestSetupCheckDistinctDirectories:
+
+    HEADLINE = ("--The working, staging, and bundle directories must be "
+                "different:")
+
+    @pytest.mark.parametrize('working, staging, bundle', [
+        pytest.param('same', 'same', 'other', id='working_equals_staging'),
+        pytest.param('one', 'same', 'same', id='bundle_equals_staging'),
+        pytest.param('same', 'one', 'same', id='bundle_equals_working'),
+        pytest.param('same', 'same', 'same', id='all_three_equal')])
+    def test_logs_the_three_directories_and_raises_when_two_are_equal(
+            self, tmp_path, caplog, working, staging, bundle) -> None:
+        """When two of the working, staging and bundle directories are the
+        same, the helper logs an error with the three paths and raises an
+        NPBError asking to update one of them.
+        """
+
+        # Build a bare setup that only has the three directories.
+        setup = make_setup(tmp_path)
+        setup.working_directory = working
+        setup.staging_directory = staging
+        setup.bundle_directory = bundle
+
+        # Run the check, catching the error it raises and the logs it writes.
+        with caplog.at_level(logging.INFO):
+            with pytest.raises(NPBError) as error:
+                setup._check_distinct_directories()
+
+        # The logs name the three directories in a fixed order, and the error
+        # text tells the user what to change.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert logs == [(logging.ERROR, self.HEADLINE),
+                        (logging.ERROR, f'  working: {working}'),
+                        (logging.ERROR, f'  staging: {staging}'),
+                        (logging.ERROR, f'  bundle:  {bundle}')]
+        assert str(error.value) == ("Update working, staging, or bundle "
+                                    "directory.")
+
+    @pytest.mark.parametrize('working, staging, bundle', [
+        pytest.param('work', 'staging', 'bundle', id='three_different_paths'),
+        pytest.param('work', './work', 'bundle',
+                     id='same_directory_written_differently')])
+    def test_accepts_paths_that_differ_as_written_without_logging(
+            self, tmp_path, caplog, working, staging, bundle) -> None:
+        """Directories are compared as written in the configuration, so
+        three different paths pass, and so do two spellings of the same
+        directory. Nothing is logged and the object is left as it was.
+        """
+
+        # Build a bare setup that only has the three directories.
+        setup = make_setup(tmp_path)
+        setup.working_directory = working
+        setup.staging_directory = staging
+        setup.bundle_directory = bundle
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._check_distinct_directories()
+
+        # It finishes quietly, and no attribute was added or changed.
+        assert result is None
+        assert caplog.record_tuples == []
+        assert vars(setup) == attributes_before
+
+
+class TestSetupResolveDirectories:
+
+    # A relative staging directory whose parent doesn't exist, so it can't be
+    # created.
+    NO_PARENT = Path('no_parent', 'npb_staging')
+
+    @pytest.fixture(autouse=True)
+    def run_inside_tmp_path(self, tmp_path, monkeypatch) -> None:
+        """Runs every test with tmp_path as the current directory, so the
+        relative paths of the tests resolve inside it."""
+        monkeypatch.chdir(tmp_path)
+
+    def make_directories_setup(self, tmp_path, existing, working, staging,
+                               bundle, kernels, faucet='bundle',
+                               pds_version='4') -> Setup:
+        """Creates the 'existing' directories and returns a bare setup with
+        the given directory settings."""
+        for directory in existing:
+            os.makedirs(tmp_path / directory, exist_ok=True)
+
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.volume_id = 'MAVEN_1001'
+        setup.args = SimpleNamespace(faucet=faucet)
+        setup.working_directory = str(working)
+        setup.staging_directory = str(staging)
+        setup.bundle_directory = str(bundle)
+        setup.kernels_directory = [str(kernel) for kernel in kernels]
+
+        return setup
+
+    @pytest.mark.parametrize('pds_version, mission_dir', [
+        pytest.param('4', 'maven_spice', id='pds4'),
+        pytest.param('3', 'maven_1001', id='pds3')])
+    def test_resolves_relative_directories_under_the_current_directory(
+            self, tmp_path, pds_version, mission_dir) -> None:
+        """Directories given relative to the current directory end up as
+        absolute paths, and the staging directory gets the mission directory
+        appended.
+        """
+
+        # Create the directories and build a setup that names them relative
+        # to the current directory, which is tmp_path.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', 'staging', 'bundle', 'k1', 'k2'],
+            Path('work'), Path('staging'), Path('bundle'),
+            [Path('k1'), Path('k2')], pds_version=pds_version)
+
+        # Run the resolution.
+        setup._resolve_directories()
+
+        # Every directory is now inside tmp_path, and the staging one ends
+        # with the mission directory.
+        resolved = (setup.working_directory, setup.staging_directory,
+                    setup.bundle_directory, setup.kernels_directory)
+        assert resolved == (
+            str(tmp_path / 'work'), str(tmp_path / 'staging' / mission_dir),
+            str(tmp_path / 'bundle'),
+            [str(tmp_path / 'k1'), str(tmp_path / 'k2')])
+
+    @pytest.mark.parametrize('staging, expected_staging', [
+        pytest.param(Path('staging'), Path('staging', 'maven_spice'),
+                     id='bare_name_gets_the_mission_directory'),
+        pytest.param(Path('staging', 'maven_spice'),
+                     Path('staging', 'maven_spice'),
+                     id='mission_directory_already_there'),
+        pytest.param(Path('my_maven_spice'),
+                     Path('my_maven_spice', 'maven_spice'),
+                     id='name_only_ends_like_the_mission_directory')])
+    def test_keeps_absolute_directories_and_adds_the_mission_directory_once(
+            self, tmp_path, staging, expected_staging) -> None:
+        """Directories given as absolute paths stay where they are. The
+        staging directory gets the mission directory appended unless its
+        configured value already has it.
+        """
+
+        # Create the directories and build a setup that names every one of
+        # them with its absolute path.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', staging, 'bundle', 'k1'],
+            tmp_path / 'work', tmp_path / staging, tmp_path / 'bundle',
+            [tmp_path / 'k1'])
+
+        # Run the resolution.
+        setup._resolve_directories()
+
+        # Only the staging directory changes, by the mission directory.
+        resolved = (setup.working_directory, setup.staging_directory,
+                    setup.bundle_directory, setup.kernels_directory)
+        assert resolved == (
+            str(tmp_path / 'work'), str(tmp_path / expected_staging),
+            str(tmp_path / 'bundle'), [str(tmp_path / 'k1')])
+
+    def test_creates_a_missing_staging_directory_and_leaves_it_as_configured(
+            self, tmp_path) -> None:
+        """A staging directory that doesn't exist is created, and keeps the
+        value it was configured with instead of becoming an absolute path.
+        """
+
+        # Build a setup whose staging directory does not exist yet.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', 'bundle', 'k1'], Path('work'),
+            Path('npb_new_staging'), Path('bundle'), [Path('k1')])
+
+        # Run the resolution.
+        setup._resolve_directories()
+
+        # The other directories are resolved, the staging one is not, and it
+        # now exists on disk.
+        resolved = (setup.working_directory, setup.staging_directory,
+                    setup.bundle_directory, setup.kernels_directory)
+        assert resolved == (
+            str(tmp_path / 'work'), 'npb_new_staging',
+            str(tmp_path / 'bundle'), [str(tmp_path / 'k1')])
+        assert (tmp_path / 'npb_new_staging').is_dir()
+
+    @pytest.mark.parametrize(
+        'existing, staging, bundle, kernels, expected_message', [
+            pytest.param(
+                ['work', 'staging', 'k1'], Path('staging'),
+                Path('missing_bundle'), [Path('k1')],
+                'Bundle directory does not exist: missing_bundle.',
+                id='missing_bundle_directory'),
+            pytest.param(
+                ['work', 'staging', 'bundle'], Path('staging'),
+                Path('bundle'), [Path('missing_kernels')],
+                'Directory does not exist: missing_kernels.',
+                id='missing_kernels_directory'),
+            pytest.param(
+                ['work', 'bundle', 'k1'], NO_PARENT, Path('bundle'),
+                [Path('k1')],
+                f'Staging directory cannot be created: {NO_PARENT}.',
+                id='staging_directory_cannot_be_created')])
+    def test_raises_npb_error_for_missing_directories(
+            self, tmp_path, existing, staging, bundle, kernels,
+            expected_message) -> None:
+        """A missing bundle or kernels directory, or a staging directory that
+        cannot be created, raises an NPBError that names it when the faucet
+        needs it. The working directory, which is checked first, has already
+        been resolved by then.
+        """
+
+        # Create the directories this case says exist and build a setup that
+        # points at them, run with the 'bundle' faucet, which needs them all.
+        setup = self.make_directories_setup(
+            tmp_path, existing, Path('work'), staging, bundle, kernels)
+
+        # Run the resolution and catch the error.
+        with pytest.raises(NPBError) as error:
+            setup._resolve_directories()
+
+        # The message names the directory, and the working directory shows
+        # that the resolution got past it.
+        assert str(error.value) == expected_message
+        assert setup.working_directory == str(tmp_path / 'work')
+
+    def test_missing_working_directory_is_reported_before_resolving_any(
+            self, tmp_path) -> None:
+        """The working directory is the first one checked, so when it is
+        missing the error names it and it keeps its configured value.
+        """
+
+        # Build a setup whose working directory does not exist.
+        setup = self.make_directories_setup(
+            tmp_path, ['staging', 'bundle', 'k1'], Path('missing_work'),
+            Path('staging'), Path('bundle'), [Path('k1')])
+
+        # Run the resolution and catch the error.
+        with pytest.raises(NPBError) as error:
+            setup._resolve_directories()
+
+        # The error names the directory, which was left as configured.
+        assert str(error.value) == 'Directory does not exist: missing_work.'
+        assert setup.working_directory == 'missing_work'
+
+    @pytest.mark.parametrize('faucet', ['plan', 'list', 'checks'])
+    def test_missing_bundle_only_warns_for_faucets_that_do_not_need_it(
+            self, tmp_path, caplog, faucet) -> None:
+        """With the 'plan', 'list' or 'checks' faucet, a missing bundle
+        directory only logs a warning, and it keeps the value it was
+        configured with.
+        """
+
+        # Build a setup whose bundle directory does not exist, run with the
+        # faucet under test.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', 'staging', 'k1'], Path('work'),
+            Path('staging'), Path('missing_bundle'), [Path('k1')],
+            faucet=faucet)
+
+        # Run the resolution while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_directories()
+
+        # The only log is the warning, the bundle directory is as configured,
+        # and the staging one was resolved.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert logs == [
+            (logging.WARNING, "-- Bundle directory does not exist but is not"
+                              f" used with {faucet} faucet.")]
+        assert setup.bundle_directory == 'missing_bundle'
+        assert setup.staging_directory == str(
+            tmp_path / 'staging' / 'maven_spice')
+
+    @pytest.mark.parametrize('faucet', ['plan', 'list', 'checks'])
+    def test_uncreatable_staging_only_warns_for_faucets_that_do_not_need_it(
+            self, tmp_path, caplog, faucet) -> None:
+        """With the 'plan', 'list' or 'checks' faucet, a staging directory
+        that cannot be created only logs warnings, and it keeps the value it
+        was configured with.
+        """
+
+        # Build a setup whose staging directory has no parent to be created
+        # in, run with the faucet under test.
+        setup = self.make_directories_setup(
+            tmp_path, ['work', 'bundle', 'k1'], Path('work'), self.NO_PARENT,
+            Path('bundle'), [Path('k1')], faucet=faucet)
+
+        # Run the resolution while capturing everything it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_directories()
+
+        # The warnings come in order, the staging directory is as configured,
+        # and the bundle one was resolved.
+        logs = [(level, message) for _, level, message in caplog.record_tuples]
+        assert logs == [
+            (logging.WARNING,
+             f"-- Creating staging directory: {self.NO_PARENT}/maven_spice."),
+            (logging.WARNING, "-- Staging directory cannot be created but "
+                              f"is not used with {faucet} faucet.")]
+        assert setup.staging_directory == str(self.NO_PARENT)
+        assert setup.bundle_directory == str(tmp_path / 'bundle')
+
+    @pytest.mark.parametrize('pds_version, expected_name', [
+        pytest.param('4', 'maven_spice', id='pds4_uses_acronym'),
+        pytest.param('3', 'maven_1001', id='pds3_uses_lowercase_volume_id')])
+    def test_returns_mission_directory_name_for_the_pds_version(
+            self, tmp_path, pds_version, expected_name) -> None:
+        """The mission directory is '<acronym>_spice' for PDS4 and the
+        lowercase volume id for PDS3.
+        """
+
+        # Build a bare setup with the acronym and volume id of the mission.
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.volume_id = 'MAVEN_1001'
+
+        # Ask for the name.
+        name = setup._mission_directory_name()
+
+        # Only the PDS version decides which of the two names comes back.
+        assert name == expected_name
+
+
+class TestSetupCheckImCoherence:
+
+    IM = im_version(1, 5, 0, 0)
+    OTHER_IM = im_version(1, 6, 0, 0)
+    BASE = "http://pds.nasa.gov/pds4/pds/v1"
+    XML = f"{BASE}/PDS4_PDS_1500.sch"
+    SCHEMA = f"{BASE} {BASE}/PDS4_PDS_1500.xsd"
+    OTHER_XML = f"{BASE}/PDS4_PDS_1600.sch"
+    OTHER_SCHEMA = f"{BASE} {BASE}/PDS4_PDS_1600.xsd"
+    WIDE_IM = im_version(10, 11, 12, 13)
+    WIDE_XML = f"{BASE}/PDS4_PDS_ABCD.sch"
+    WIDE_SCHEMA = f"{BASE} {BASE}/PDS4_PDS_ABCD.xsd"
+
+    CHECKED = ("information_model", "xml_model", "schema_location")
+
+    XML_LOGS = [
+        "-- Schema XML Model (xml_model) not provided with configuration "
+        "file. Set to:",
+        f"   {XML}"]
+    SCHEMA_LOGS = [
+        "-- Schema Location (schema_location) not provided with "
+        "configuration file. Set to:",
+        f"   {SCHEMA}"]
+    WIDE_LOGS = [
+        "-- Schema XML Model (xml_model) not provided with configuration "
+        "file. Set to:",
+        f"   {WIDE_XML}",
+        "-- Schema Location (schema_location) not provided with "
+        "configuration file. Set to:",
+        f"   {WIDE_SCHEMA}"]
+
+    XML_ERROR = ("PDS4 Information Model 1500 is incoherent with the XML "
+                 f"Model version: {OTHER_XML}.")
+    SCHEMA_ERROR = ("PDS4 Information Model 1500 is incoherent with the "
+                    f"Schema location: {OTHER_SCHEMA}.")
+    FORMAT_ERROR = ("PDS4 Information Model 1.5 format from configuration "
+                    "is incorrect.")
+
+    @pytest.mark.parametrize('attributes, expected, expected_logs', [
+        pytest.param(
+            {'information_model': IM},
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            XML_LOGS + SCHEMA_LOGS, id='derives_both_when_missing'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': '',
+             'schema_location': ''},
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            XML_LOGS + SCHEMA_LOGS, id='derives_both_when_empty'),
+        pytest.param(
+            {'information_model': WIDE_IM},
+            {'information_model': WIDE_IM, 'xml_model': WIDE_XML,
+             'schema_location': WIDE_SCHEMA},
+            WIDE_LOGS, id='parts_of_ten_or_more_become_letters'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            [], id='keeps_coherent_configured_values'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': XML},
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': SCHEMA},
+            SCHEMA_LOGS, id='derives_only_the_missing_schema_location'),
+        pytest.param(
+            {'xml_model': 'not checked'},
+            {'xml_model': 'not checked'},
+            [], id='does_nothing_without_information_model')])
+    def test_accepts_or_derives_the_xml_model_and_schema_location(
+            self, tmp_path, caplog, attributes, expected,
+            expected_logs) -> None:
+        """Configured values that carry the short version of the information
+        model are kept. Missing or empty ones are built from it and logged.
+        Without an information model nothing is checked.
+        """
+
+        # Create only the attributes this case lists, since the check tells
+        # a missing attribute from an empty one.
+        setup = make_setup(tmp_path)
+        for name, value in attributes.items():
+            setattr(setup, name, value)
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_im_coherence()
+
+        # Only the expected attributes exist afterwards, and the logs say
+        # what was derived, in order.
+        result = {name: value for name, value in vars(setup).items()
+                  if name in self.CHECKED}
+        assert result == expected
+        assert [message for _, _, message in caplog.record_tuples] == \
+            expected_logs
+
+    @pytest.mark.parametrize('attributes, expected_message, expected', [
+        pytest.param(
+            {'information_model': '1.5'}, FORMAT_ERROR,
+            {'information_model': '1.5'}, id='bad_information_model_format'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': OTHER_XML},
+            XML_ERROR,
+            {'information_model': IM, 'xml_model': OTHER_XML},
+            id='xml_model_with_another_version'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': OTHER_SCHEMA},
+            SCHEMA_ERROR,
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': OTHER_SCHEMA},
+            id='schema_location_with_another_version'),
+        pytest.param(
+            {'information_model': IM, 'xml_model': OTHER_XML,
+             'schema_location': OTHER_SCHEMA},
+            XML_ERROR,
+            {'information_model': IM, 'xml_model': OTHER_XML,
+             'schema_location': OTHER_SCHEMA},
+            id='xml_model_error_wins_when_both_are_wrong'),
+        pytest.param(
+            {'information_model': IM, 'schema_location': OTHER_SCHEMA},
+            SCHEMA_ERROR,
+            {'information_model': IM, 'xml_model': XML,
+             'schema_location': OTHER_SCHEMA},
+            id='derived_xml_model_stays_set_when_schema_fails')])
+    def test_raises_npb_error_with_expected_message(
+            self, tmp_path, attributes, expected_message, expected) -> None:
+        """A malformed information model, or a configured XML model or
+        schema location with another version, raises an NPBError. The XML
+        model is checked first, and a value derived before the failure stays
+        set.
+        """
+
+        # Create only the attributes this case lists.
+        setup = make_setup(tmp_path)
+        for name, value in attributes.items():
+            setattr(setup, name, value)
+
+        # Run the check and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._check_im_coherence()
+
+        # The text must match exactly, and the attributes show what the
+        # failed check left behind.
+        assert str(error.value) == expected_message
+        result = {name: value for name, value in vars(setup).items()
+                  if name in self.CHECKED}
+        assert result == expected
+
+
+class TestSetupResolveTemplates:
+
+    # The helper lives in another test class; it is reused as it is.
+    make_templates_root = staticmethod(
+        TestSetupCheckConfiguration.make_templates_root)
+
+    V1_5 = im_version(1, 5, 0, 0)
+    V1_11 = im_version(1, 11, 0, 0)
+    V1_14 = im_version(1, 14, 0, 0)
+    VERSIONS = (V1_5, V1_11, V1_14)
+    BUNDLE = '    <Identification_Area>\n'
+    NOT_PROVIDED = '-- Template %s has not been provided. Using label from: '
+
+    @staticmethod
+    def build(tmp_path, pds_version, information_model=None,
+              templates_directory=None, versions=VERSIONS) -> Setup:
+        """Builds a bare setup with a fake templates root and an empty
+        working directory, which are the only things the step looks at.
+        """
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.root_dir = TestSetupResolveTemplates.make_templates_root(
+            tmp_path, versions=versions)
+        setup.working_directory = str(tmp_path / 'work')
+        os.makedirs(setup.working_directory)
+        setup.templates_directory = templates_directory
+        if information_model:
+            setup.information_model = information_model
+
+        return setup
+
+    @staticmethod
+    def copied(setup) -> dict:
+        """Returns the name and content of every file in the working
+        directory.
+        """
+        return {name: Path(setup.working_directory, name).read_text()
+                for name in os.listdir(setup.working_directory)}
+
+    @pytest.mark.parametrize(
+        'information_model, chosen, expected_float, level', [
+            pytest.param(im_version(1, 11, 0, 0), V1_11, 1011000000.0,
+                         logging.INFO, id='exact_version'),
+            pytest.param(im_version(1, 12, 0, 0), V1_11, 1012000000.0,
+                         logging.WARNING, id='version_between_two_sets'),
+            pytest.param(im_version(1, 2, 0, 0), V1_5, 1002000000.0,
+                         logging.WARNING, id='older_than_every_set'),
+            pytest.param(im_version(1, 20, 0, 0), V1_14, 1020000000.0,
+                         logging.WARNING, id='newer_than_every_set')])
+    def test_copies_the_default_set_that_fits_the_information_model(
+            self, tmp_path, caplog, information_model, chosen,
+            expected_float, level) -> None:
+        """Without a templates directory, PDS4 copies the newest default set
+        that is not newer than the information model, or the oldest one when
+        the model predates them all. It logs at info level only for an exact
+        match, and at warning level otherwise.
+        """
+
+        # Build a setup with three default sets and no templates directory.
+        setup = self.build(tmp_path, '4', information_model)
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_templates()
+
+        # The chosen set is in the working directory, the setup points to it,
+        # and the logs name the set and the directory in that order.
+        work = setup.working_directory
+        assert setup.information_model_float == expected_float
+        assert setup.templates_directory == work
+        assert sorted(setup.template_files) == [
+            f'{work}{os.sep}template_bundle.xml',
+            f'{work}{os.sep}template_collection.xml']
+        assert self.copied(setup) == {
+            'template_bundle.xml': self.BUNDLE,
+            'template_collection.xml': f'collection template for {chosen}\n'}
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (level, '-- Label templates will use the ones from information '
+                    f'model {chosen}.'),
+            (logging.INFO, f'-- Label templates directory: {work}')]
+
+    @pytest.mark.parametrize('user_files, missing, expected', [
+        pytest.param(
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': 'user collection'}, [],
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': 'user collection'},
+            id='complete_user_set'),
+        pytest.param(
+            {'template_bundle.xml': 'user bundle'},
+            ['template_collection.xml'],
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': f'collection template for {V1_11}\n'},
+            id='missing_template_comes_from_the_matching_default_set'),
+        pytest.param(
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': 'user collection',
+             'template_extra.xml': 'user extra'}, [],
+            {'template_bundle.xml': 'user bundle',
+             'template_collection.xml': 'user collection'},
+            id='template_outside_the_default_set_is_not_copied')])
+    def test_copies_user_templates_and_fills_in_the_missing_ones(
+            self, tmp_path, caplog, user_files, missing, expected) -> None:
+        """With a templates directory, PDS4 copies the user's version of
+        every template in the default set. A template the user didn't give is
+        taken from the default set that fits the information model, with a
+        warning. Files outside the default set are ignored.
+        """
+
+        # Build a setup whose templates directory holds the user's files.
+        user_dir = tmp_path / 'user_templates'
+        user_dir.mkdir()
+        for name, content in user_files.items():
+            (user_dir / name).write_text(content)
+        setup = self.build(tmp_path, '4', self.V1_11, str(user_dir))
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_templates()
+
+        # The working directory has the expected files, and each missing
+        # template was reported with the default directory it came from.
+        # The last log still shows the user's directory, and only after that
+        # does the setup point to the working directory.
+        expected_logs = []
+        for name in missing:
+            expected_logs += [
+                (logging.WARNING, self.NOT_PROVIDED % name),
+                (logging.WARNING,
+                 f'   {setup.root_dir}templates/{self.V1_11}/')]
+        expected_logs.append(
+            (logging.INFO, f'-- Label templates directory: {user_dir}'))
+        work = setup.working_directory
+        assert self.copied(setup) == expected
+        assert sorted(setup.template_files) == [
+            f'{work}{os.sep}template_bundle.xml',
+            f'{work}{os.sep}template_collection.xml']
+        assert setup.templates_directory == work
+        assert setup.information_model_float == 1011000000.0
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == \
+            expected_logs
+
+    def test_requires_only_the_templates_of_the_oldest_default_set(
+            self, tmp_path, caplog) -> None:
+        """What a user's directory must contain is decided by the 1.5.0.0
+        default set, not by the set that fits the information model. A
+        template that only a newer set has is neither required nor copied.
+        """
+
+        # Build a setup whose matching default set has one more template
+        # than the 1.5.0.0 set, and a user directory with just the two
+        # templates that 1.5.0.0 has.
+        user_dir = tmp_path / 'user_templates'
+        user_dir.mkdir()
+        (user_dir / 'template_bundle.xml').write_text('user bundle')
+        (user_dir / 'template_collection.xml').write_text('user collection')
+        setup = self.build(tmp_path, '4', self.V1_11, str(user_dir))
+        newer_only = Path(setup.root_dir, 'templates', self.V1_11,
+                          'template_newer_only.xml')
+        newer_only.write_text('only in the newer set')
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_templates()
+
+        # Nothing is reported as missing, and the newer-only template is
+        # not in the working directory.
+        assert self.copied(setup) == {
+            'template_bundle.xml': 'user bundle',
+            'template_collection.xml': 'user collection'}
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.INFO, f'-- Label templates directory: {user_dir}')]
+
+    def test_raises_when_the_user_templates_directory_does_not_exist(
+            self, tmp_path) -> None:
+        """A PDS4 templates directory that isn't there raises an NPBError.
+        The information model has been converted by then, and the setup
+        keeps pointing to the missing directory.
+        """
+
+        # Build a setup pointing to a directory that was never created.
+        missing = str(tmp_path / 'not_there')
+        setup = self.build(tmp_path, '4', self.V1_11, missing)
+
+        # Run the step and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._resolve_templates()
+
+        # The text is exact, nothing was copied, and the attributes show how
+        # far it got.
+        assert str(error.value) == ("Path provided/derived for templates is "
+                                    "not available.")
+        assert self.copied(setup) == {}
+        assert setup.information_model_float == 1011000000.0
+        assert setup.templates_directory == missing
+
+    def test_copies_the_pds3_set_without_an_information_model(
+            self, tmp_path, caplog) -> None:
+        """PDS3 copies its own set. It never reads the information model nor
+        sets its numeric value, and the log names the PDS3 source directory.
+        """
+
+        # Build a PDS3 setup that has no information model at all.
+        setup = self.build(tmp_path, '3')
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._resolve_templates()
+
+        # The PDS3 template is in the working directory, and the log shows
+        # where it came from.
+        work = setup.working_directory
+        assert self.copied(setup) == {'pds3_template.lbl': 'pds3 template\n'}
+        assert setup.template_files == [f'{work}{os.sep}pds3_template.lbl']
+        assert setup.templates_directory == work
+        assert not hasattr(setup, 'information_model_float')
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.INFO,
+             f'-- Label templates directory: {setup.root_dir}templates/pds3')]
+
+
+class TestSetupDetectXmlTab:
+
+    TAG = '<Identification_Area>'
+    NOT_FOUND = ("-- XML Template not found to determine XML Tab. It has "
+                 "been set to 2.")
+    NOT_USEFUL = ("-- XML Template not useful to determine XML Tab. It has "
+                  "been set to 2.")
+
+    @staticmethod
+    def build(tmp_path, pds_version, files) -> Setup:
+        """Builds a bare setup whose templates directory holds the given
+        files, which are the only thing the step looks at.
+        """
+        templates = tmp_path / 'templates'
+        templates.mkdir()
+        for name, content in files.items():
+            (templates / name).write_bytes(content)
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.templates_directory = str(templates)
+
+        return setup
+
+    @pytest.mark.parametrize('content, expected', [
+        pytest.param(b'<Product_Bundle>\n    <Identification_Area>\n', 4,
+                     id='indented_by_four'),
+        pytest.param(b'      <Identification_Area>\n', 6,
+                     id='indented_by_six'),
+        pytest.param(b'  <Identification_Area>\n    <Identification_Area>\n',
+                     4, id='last_matching_line_wins'),
+        pytest.param(b'<!-- <Identification_Area>\n', 5,
+                     id='text_before_the_tag_counts_as_indentation')])
+    def test_measures_the_indentation_of_the_identification_area(
+            self, tmp_path, caplog, content, expected) -> None:
+        """For PDS4 it counts the characters before the Identification_Area
+        tag in the bundle template. When the tag appears on several lines,
+        the last one decides, and anything before the tag counts. Nothing is
+        logged.
+        """
+
+        # Build a setup whose bundle template has the given content.
+        setup = self.build(tmp_path, '4', {'template_bundle.xml': content})
+        attributes_before = set(vars(setup))
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._detect_xml_tab()
+
+        # Only xml_tab was added, with the measured value, and the step
+        # stayed quiet.
+        assert result is None
+        assert setup.xml_tab == expected
+        assert set(vars(setup)) - attributes_before == {'xml_tab'}
+        assert caplog.record_tuples == []
+
+    @pytest.mark.parametrize('files, message', [
+        pytest.param({}, NOT_FOUND, id='missing_template'),
+        pytest.param({'template_bundle.xml': b'\xff\xfe\n'}, NOT_FOUND,
+                     id='template_that_is_not_utf8'),
+        pytest.param(
+            {'template_bundle.xml': b'    <Identification_Area>\n'
+                                    + b'x' * 20000 + b'\n\xff\n'},
+            NOT_FOUND, id='read_error_after_a_good_line_discards_it'),
+        pytest.param({'template_bundle.xml': b'<Product_Bundle>\n'},
+                     NOT_USEFUL, id='template_without_the_tag'),
+        pytest.param({'template_bundle.xml': b'<Identification_Area>\n'},
+                     NOT_USEFUL, id='tag_at_the_start_of_the_line')])
+    def test_falls_back_to_two_with_a_warning(
+            self, tmp_path, caplog, files, message) -> None:
+        """A template that is missing, unreadable, or has no indentation to
+        measure gives 2 and one warning. A read error also throws away what
+        had been measured before it.
+        """
+
+        # Build a setup whose templates directory holds the given files.
+        setup = self.build(tmp_path, '4', files)
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._detect_xml_tab()
+
+        # The default is used and the reason is logged once.
+        assert setup.xml_tab == 2
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.WARNING, message)]
+
+    def test_is_zero_for_pds3_without_reading_any_template(
+            self, tmp_path, caplog) -> None:
+        """PDS3 labels don't use it. The value is 0, nothing is logged, and
+        the templates directory isn't even looked at.
+        """
+
+        # Build a PDS3 setup whose templates directory doesn't exist.
+        setup = make_setup(tmp_path)
+        setup.pds_version = '3'
+        setup.templates_directory = str(tmp_path / 'not_there')
+
+        # Run the step while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._detect_xml_tab()
+
+        # The value is 0 and the step stayed quiet.
+        assert setup.xml_tab == 0
+        assert caplog.record_tuples == []
+
+
+def mk_pattern(text: str) -> dict:
+    return {"#text": text}
+
+
+class TestSetupCheckMkPatterns:
+
+    NO_MK_WARNING = "-- There is no meta-kernel configuration to check."
+
+    @pytest.mark.parametrize('mk', [
+        pytest.param(
+            [{"@name": "m_$A.tm", "name": [{"pattern": mk_pattern("A")}]}],
+            id='one_name_with_one_pattern'),
+        pytest.param(
+            [{"@name": "m_$A_$B.tm",
+              "name": [{"pattern": [mk_pattern("A"), mk_pattern("B")]}]}],
+            id='one_name_with_a_list_of_patterns'),
+        pytest.param(
+            [{"@name": "m_$A_$B_$C.tm",
+              "name": [{"pattern": mk_pattern("A")},
+                       {"pattern": [mk_pattern("B"), mk_pattern("C")]}]}],
+            id='single_pattern_name_followed_by_a_list'),
+        pytest.param(
+            [{"@name": "m_A.tm", "name": [{"pattern": mk_pattern("A")}]}],
+            id='pattern_that_only_occurs_as_text_without_a_dollar'),
+        pytest.param(
+            [{"@name": "m_$A.tm", "name": [{"pattern": mk_pattern("A")}]},
+             {"@name": "n_$B.tm", "name": [{"pattern": mk_pattern("B")}]}],
+            id='two_valid_meta_kernels'),
+        pytest.param([], id='empty_meta_kernel_list')])
+    def test_accepts_defined_patterns_without_logging(
+            self, tmp_path, caplog, mk) -> None:
+        """Every pattern must occur in the meta-kernel name, and nothing
+        with a dollar may be left once they are removed. A pattern that
+        occurs in the name without its dollar also passes. Nothing is logged
+        and the object is left as it was.
+        """
+
+        # Build a bare setup that only has the meta-kernel configuration.
+        setup = make_setup(tmp_path)
+        setup.mk = mk
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._check_mk_patterns()
+
+        # It finishes quietly, and no attribute was added or changed.
+        assert result is None
+        assert vars(setup) == attributes_before
+        assert caplog.record_tuples == []
+
+    @pytest.mark.parametrize('mk, expected_message', [
+        pytest.param(
+            [{"@name": "m_$A.tm", "name": [{"pattern": mk_pattern("B")}]}],
+            "The meta-kernel pattern B is not provided.",
+            id='pattern_not_in_the_name'),
+        pytest.param(
+            [{"@name": "m_$A_$B.tm", "name": [{"pattern": mk_pattern("A")}]}],
+            "The MK patterns m_$A_$B.tm do not correspond to the present "
+            "MKs.",
+            id='placeholder_without_a_pattern'),
+        pytest.param(
+            [{"@name": "m_$A.tm",
+              "name": [{"pattern": [mk_pattern("A"), mk_pattern("A")]}]}],
+            "The meta-kernel pattern A is not provided.",
+            id='pattern_listed_twice'),
+        pytest.param(
+            [{"@name": "m_$A.tm", "name": [{"pattern": mk_pattern("A")}]},
+             {"@name": "n_$A_$B.tm",
+              "name": [{"pattern": mk_pattern("A")}]}],
+            "The MK patterns n_$A_$B.tm do not correspond to the present "
+            "MKs.",
+            id='second_meta_kernel_is_invalid'),
+        pytest.param(
+            [{"@name": "m_$A_$B.tm",
+              "name": [{"pattern": mk_pattern("A")},
+                       {"pattern": mk_pattern("B")}]}],
+            "The MK patterns m_$A_$B.tm do not correspond to the present "
+            "MKs.",
+            id='single_pattern_name_discards_the_patterns_before_it')])
+    def test_raises_npb_error_with_expected_message(
+            self, tmp_path, mk, expected_message) -> None:
+        """A pattern that is not in the name, or a placeholder left without
+        a pattern, raises an NPBError.
+
+        The last case records the current behaviour, not the intended one:
+        a name with a single pattern replaces the patterns collected from the
+        names before it, so a configuration where each name has one pattern
+        is rejected even though it defines every placeholder.
+        """
+
+        # Build a bare setup that only has the meta-kernel configuration.
+        setup = make_setup(tmp_path)
+        setup.mk = mk
+
+        # Run the check and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._check_mk_patterns()
+
+        # The text must match exactly, since it is what tells the user which
+        # meta-kernel failed.
+        assert str(error.value) == expected_message
+
+    def test_warns_when_there_is_no_meta_kernel_configuration(
+            self, tmp_path, caplog) -> None:
+        """Without an 'mk' attribute there is nothing to check, so it logs
+        one warning and leaves the object as it was.
+        """
+
+        # Build a bare setup with no meta-kernel configuration.
+        setup = make_setup(tmp_path)
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_mk_patterns()
+
+        # Only the warning is logged, and nothing was added.
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.WARNING, self.NO_MK_WARNING)]
+        assert vars(setup) == attributes_before
+
+
+class TestSetupNormalizeCoverageKernels:
+
+    @pytest.mark.parametrize('attributes, expected', [
+        pytest.param({'coverage_kernels': 'a.bsp'},
+                     {'coverage_kernels': ['a.bsp']},
+                     id='single_value_becomes_a_list'),
+        pytest.param({'coverage_kernels': ['a.bsp', 'b.bc']},
+                     {'coverage_kernels': ['a.bsp', 'b.bc']},
+                     id='list_is_left_as_it_is'),
+        pytest.param({}, {}, id='absent_attribute_stays_absent')])
+    def test_wraps_a_single_value_in_a_list(
+            self, tmp_path, attributes, expected) -> None:
+        """A single coverage kernel becomes a one-item list, a list stays
+        the same, and nothing is created when the attribute isn't there.
+        """
+
+        # Create only the attributes this case lists.
+        setup = make_setup(tmp_path)
+        for name, value in attributes.items():
+            setattr(setup, name, value)
+
+        # Run the step.
+        setup._normalize_coverage_kernels()
+
+        # Only the coverage kernels may differ.
+        result = {name: value for name, value in vars(setup).items()
+                  if name == 'coverage_kernels'}
+        assert result == expected
+
+
+class TestSetupCheckReadmeConfig:
+
+    MISSING_INPUT = os.path.join(os.sep, 'not_there', 'readme_input.txt')
+    GENERATED_WARNING = ("Input readme file not present. File will be "
+                         "generated from configuration.")
+    MISSING_ELEMENTS = "Readme elements not present in configuration file."
+
+    @staticmethod
+    def build(tmp_path, pds_version, bundle_files, attributes) -> Setup:
+        """Builds a bare setup with a bundle directory holding the given
+        files, and the given attributes, which are the only things the
+        check looks at.
+        """
+        bundle = tmp_path / 'bundle'
+        bundle.mkdir()
+        for relative_path in bundle_files:
+            (bundle / relative_path).parent.mkdir(parents=True,
+                                                  exist_ok=True)
+            (bundle / relative_path).write_text('readme')
+        setup = make_setup(tmp_path)
+        setup.pds_version = pds_version
+        setup.volume_id = 'VOL_0001'
+        setup.bundle_directory = str(bundle)
+        for name, value in attributes.items():
+            setattr(setup, name, value)
+
+        return setup
+
+    @pytest.mark.parametrize('pds_version, bundle_files, attributes', [
+        pytest.param('4', ['maven_spice/readme.txt'], {},
+                     id='readme_file_already_in_the_bundle'),
+        pytest.param('3', [], {}, id='pds3_needs_no_readme_section'),
+        pytest.param('4', [], {'readme': {'input': __file__}},
+                     id='input_file_exists'),
+        pytest.param('4', [], {'readme': {}},
+                     id='section_without_input_is_not_checked_further'),
+        pytest.param('4', ['maven_spice/readme.txt'],
+                     {'readme': {'input': MISSING_INPUT}},
+                     id='readme_file_in_the_bundle_makes_the_section_moot')])
+    def test_accepts_a_usable_setup_without_logging(
+            self, tmp_path, caplog, pds_version, bundle_files,
+            attributes) -> None:
+        """Nothing is required of the readme section when the bundle already
+        has a readme or the archive is PDS3. Otherwise, a section that names
+        an existing input file passes, and so does one that names no input
+        at all. Nothing is logged and the object is left as it was.
+        """
+
+        # Build a setup with the given bundle files and attributes.
+        setup = self.build(tmp_path, pds_version, bundle_files, attributes)
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._check_readme_config()
+
+        # It finishes quietly, and no attribute was added or changed.
+        assert result is None
+        assert vars(setup) == attributes_before
+        assert caplog.record_tuples == []
+
+    def test_warns_when_the_missing_input_can_be_generated(
+            self, tmp_path, caplog) -> None:
+        """An input file that doesn't exist is acceptable when the section
+        has both a cognisant authority and an overview. One warning says the
+        file will be generated from them.
+        """
+
+        # Build a setup whose readme section can generate the file.
+        readme = {'input': self.MISSING_INPUT,
+                  'cognisant_authority': 'NAIF', 'overview': 'Overview'}
+        setup = self.build(tmp_path, '4', [], {'readme': readme})
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_readme_config()
+
+        # Only the warning is logged.
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.WARNING, self.GENERATED_WARNING)]
+
+    @pytest.mark.parametrize('attributes', [
+        pytest.param({}, id='no_readme_section'),
+        pytest.param({'readme': {'input': MISSING_INPUT,
+                                 'cognisant_authority': 'NAIF'}},
+                     id='missing_input_without_overview'),
+        pytest.param({'readme': {'input': MISSING_INPUT,
+                                 'overview': 'Overview'}},
+                     id='missing_input_without_cognisant_authority')])
+    def test_raises_npb_error_when_no_readme_can_be_produced(
+            self, tmp_path, attributes) -> None:
+        """Without a readme file in the bundle, a PDS4 configuration needs a
+        readme section, and a missing input file needs both a cognisant
+        authority and an overview. Otherwise, it raises an NPBError.
+        """
+
+        # Build a PDS4 setup whose bundle has no readme.
+        setup = self.build(tmp_path, '4', [], attributes)
+
+        # Run the check and catch the NPBError it raises.
+        with pytest.raises(NPBError) as error:
+            setup._check_readme_config()
+
+        # Every failure gives the same text.
+        assert str(error.value) == self.MISSING_ELEMENTS
+
+
+class TestSetupCheckKernelPatternCase:
+
+    HEADLINE = ("-- Kernel list configuration has entries with uppercase "
+                "letters:")
+    FOOTER = ("   Uppercase letters in kernel names are HIGHLY "
+              "discouraged. ")
+
+    @pytest.mark.parametrize('patterns', [
+        pytest.param(['maven_orb.bsp', 'maven_v[0-9]{2}.bc'],
+                     id='all_lowercase'),
+        pytest.param([], id='no_kernel_patterns')])
+    def test_stays_quiet_without_uppercase_patterns(
+            self, tmp_path, caplog, patterns) -> None:
+        """Patterns with no uppercase letter, or no patterns at all, are
+        accepted without logging and without changing the object.
+        """
+
+        # Build a bare setup that only has the kernel list patterns.
+        setup = make_setup(tmp_path)
+        setup.kernel_list_config = {pattern: {} for pattern in patterns}
+        attributes_before = dict(vars(setup))
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            result = setup._check_kernel_pattern_case()
+
+        # It finishes quietly, and nothing was changed.
+        assert result is None
+        assert vars(setup) == attributes_before
+        assert caplog.record_tuples == []
+
+    @pytest.mark.parametrize('patterns, flagged', [
+        pytest.param(['maven_ORB.bsp'], ['maven_ORB.bsp'],
+                     id='one_uppercase_pattern'),
+        pytest.param(['a_orb.bsp', 'B_orb.bsp', 'c_orb.bsp', 'd_ORB.bc'],
+                     ['B_orb.bsp', 'd_ORB.bc'],
+                     id='only_the_uppercase_ones_are_listed_in_order'),
+        pytest.param(['maven_v[A-Z]{2}.bsp'], ['maven_v[A-Z]{2}.bsp'],
+                     id='uppercase_inside_a_regular_expression_counts')])
+    def test_warns_and_lists_the_uppercase_patterns(
+            self, tmp_path, caplog, patterns, flagged) -> None:
+        """Every pattern with an uppercase letter is listed under a
+        headline and followed by a closing sentence. It never raises.
+        """
+
+        # Build a bare setup that only has the kernel list patterns.
+        setup = make_setup(tmp_path)
+        setup.kernel_list_config = {pattern: {} for pattern in patterns}
+
+        # Run the check while capturing what it logs.
+        with caplog.at_level(logging.INFO):
+            setup._check_kernel_pattern_case()
+
+        # The headline comes first, then one indented line per pattern, then
+        # the closing sentence, all as warnings.
+        expected = ([self.HEADLINE] + [f'      {pattern}'
+                                       for pattern in flagged]
+                    + [self.FOOTER])
+        assert [(lvl, msg) for _, lvl, msg in caplog.record_tuples] == [
+            (logging.WARNING, message) for message in expected]
+
+
+class TestSetupCheckConfigurationOrder:
+
+    # The steps in the order they must run. The time checks need the format
+    # of the first one, the directories are compared before they are made
+    # absolute, and the templates, XML tab and readme need what came before.
+    STEPS = ['_check_date_and_eol_format',
+             '_check_endianness',
+             '_check_increment_times',
+             '_check_distinct_directories',
+             '_resolve_directories',
+             '_check_im_coherence',
+             '_resolve_templates',
+             '_detect_xml_tab',
+             '_check_mk_patterns',
+             '_normalize_coverage_kernels',
+             '_check_readme_config',
+             '_check_kernel_pattern_case']
+
+    def test_runs_every_step_in_order_and_hands_on_the_time_format(
+            self, tmp_path) -> None:
+        """The method only calls its steps, one after the other. The time
+        format the first step returns is passed to the increment time
+        check, and no other step is given anything.
+        """
+
+        # Replace every step by a mock, all attached to one parent so it
+        # records the order of the calls across them. The first step returns
+        # a known pair.
+        pattern, time_format = re.compile('pattern'), 'time format'
+        steps = {name: Mock() for name in self.STEPS}
+        steps['_check_date_and_eol_format'].return_value = (pattern,
+                                                            time_format)
+        setup = make_setup(tmp_path)
+        parent = Mock()
+        for name, step in steps.items():
+            setattr(setup, name, step)
+            parent.attach_mock(step, name)
+
+        # Run the method.
+        result = setup.check_configuration()
+
+        # Every step ran once, in order, and only the increment time check
+        # received arguments.
+        assert result is None
+        assert parent.mock_calls == [
+            call._check_date_and_eol_format(),
+            call._check_endianness(),
+            call._check_increment_times(pattern, time_format),
+            call._check_distinct_directories(),
+            call._resolve_directories(),
+            call._check_im_coherence(),
+            call._resolve_templates(),
+            call._detect_xml_tab(),
+            call._check_mk_patterns(),
+            call._normalize_coverage_kernels(),
+            call._check_readme_config(),
+            call._check_kernel_pattern_case()]
+
+
 class TestSetupSetRelease:
     @staticmethod
     def make_release_setup(tmp_path, clear=None, kerlist=None, pds_version="4") -> Setup:

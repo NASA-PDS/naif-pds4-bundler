@@ -305,20 +305,70 @@ class Setup:
         return next((c for c in candidates if os.path.isdir(c)), None)
 
     def check_configuration(self) -> None:
-        """Performs the following checks to the loaded configuration items:
+        """Checks the loaded configuration and resolves what depends on it.
+        The steps run in this order:
 
-        * IM, Line Feed, and Date Time format NAIF recommendations
-        * Archive increment start and finish times
-        * Transform relative to absolute paths
-        * Existence of kernel directories
-        * IM, XML model, and Schema Location coherence
-        * Check existence of templates according to the IM
-        * Meta-kernel configuration
-        * Presence of uppercase characters in the kernel list configuration
+        * NAIF's recommendation for the End-of-Line and the date format,
+          which also gives the timestamp format used by the time checks
+        * The byte order expected of the binary kernels
+        * The mission and increment start and finish times
+        * That the working, staging and bundle directories are different
+        * The existence of the directories, which become absolute paths
+        * The coherence of the information model, the XML model and the
+          schema location
+        * The label templates, chosen according to the information model or
+          taken from the user's directory, and copied to the working
+          directory
+        * The indentation of the XML in the bundle label template
+        * The meta-kernel patterns
+        * The coverage kernels, as a list
+        * The readme section, when the bundle has no readme yet
+        * Uppercase letters in the kernel list configuration
+
+        The order matters. The time checks need the format from the first
+        step, the directories must be compared before they are made
+        absolute, the templates and the readme need the resolved
+        directories, and the XML indentation is read from the templates
+        already copied. Each step is a method that documents what it reads
+        and sets.
+
+        :raises NPBError: any of the checks fails
         """
-        #
-        # Check IM, Line Feed, and Date Time format NAIF recommendations.
-        #
+        pattern, time_format = self._check_date_and_eol_format()
+
+        self._check_endianness()
+
+        self._check_increment_times(pattern, time_format)
+
+        self._check_distinct_directories()
+
+        self._resolve_directories()
+
+        self._check_im_coherence()
+
+        self._resolve_templates()
+
+        self._detect_xml_tab()
+
+        self._check_mk_patterns()
+
+        self._normalize_coverage_kernels()
+
+        self._check_readme_config()
+
+        self._check_kernel_pattern_case()
+
+    def _check_date_and_eol_format(self) -> tuple[re.Pattern, str]:
+        """Checks the End-of-Line against NAIF's recommendation for the date
+        format and returns the timestamp format to validate times with.
+
+        Reads ``date_format`` and ``end_of_line``. Sets nothing on the
+        object. It runs first because ``check_configuration`` hands the
+        result to the increment time check.
+
+        :return: the compiled pattern a timestamp must match, and the
+            human-readable form of that format for error messages
+        """
         if self.date_format == "infomod2":
 
             #
@@ -360,9 +410,16 @@ class Setup:
             )
             time_format = "YYYY-MM-DDThh:mm:ssZ"
 
-        #
-        # Check binary kernels endianness.
-        #
+        return pattern, time_format
+
+    def _check_endianness(self) -> None:
+        """Logs the byte order the binary kernels are expected to have, and
+        warns when that goes against NAIF's recommendation or the machine
+        running NPB.
+
+        Reads ``pds_version``, ``kernel_endianness`` and ``sys.byteorder``.
+        Sets nothing on the object, and nothing later depends on it.
+        """
         if self.pds_version == "4":
             if self.kernel_endianness == "little":
                 logging.info(
@@ -405,10 +462,23 @@ class Setup:
                         "   If binary kernels are present this will result in an error."
                     )
 
-        #
-        # Check Bundle increment start and finish times. For the two accepted
-        # formats.
-        #
+    def _check_increment_times(self, pattern: re.Pattern,
+                               time_format: str) -> None:
+        """Checks that the mission and increment start and finish times, when
+        configured, match the timestamp format, and that the increment start
+        and finish are given together.
+
+        Reads ``mission_start``, ``mission_finish``, ``increment_start`` and
+        ``increment_finish``, any of which may be missing or empty. Sets
+        nothing. ``pattern`` and ``time_format`` come from
+        ``_check_date_and_eol_format``.
+
+        :param pattern: compiled pattern a timestamp must match
+        :param time_format: readable form of that format, used in error
+            messages
+        :raises NPBError: a time does not match the format, or only one of
+            the increment times is given
+        """
         if hasattr(self, "mission_start") and self.mission_start:
             if not pattern.match(self.mission_start):
                 raise NPBError(
@@ -433,8 +503,8 @@ class Setup:
                     f"format: {time_format}."
                 )
         if hasattr(self, "increment_start") and hasattr(self, "increment_finish"):
-            if ((not self.increment_start) and (self.increment_finish)) or (
-                (self.increment_start) and (not self.increment_finish)
+            if (not self.increment_start) and self.increment_finish or (
+                self.increment_start and (not self.increment_finish)
             ):
                 raise NPBError(
                     "If provided via configuration, increment_start and "
@@ -442,9 +512,17 @@ class Setup:
                     "together."
                 )
 
-        #
-        # Check that directories are not the same.
-        #
+    def _check_distinct_directories(self) -> None:
+        """Checks that the working, staging and bundle directories are three
+        different paths.
+
+        Reads ``working_directory``, ``staging_directory`` and
+        ``bundle_directory`` as written in the configuration, so it has to
+        run before ``_resolve_directories`` turns them into absolute paths.
+        Sets nothing.
+
+        :raises NPBError: two of the directories are the same
+        """
         if (
             (self.working_directory == self.staging_directory)
             or (self.bundle_directory == self.staging_directory)
@@ -458,19 +536,34 @@ class Setup:
 
             raise NPBError("Update working, staging, or bundle directory.")
 
-        #
-        # Sort out if directories are provided as relative paths and
-        # if so convert them in absolute for the execution
-        #
+    def _resolve_directories(self) -> None:
+        """Checks that the directories in the configuration exist and turns
+        them into absolute paths.
+
+        Each directory is looked up under the directory NPB was run from
+        and, failing that, under the filesystem root. The staging directory
+        has its own rules, described next to the code, and is created when
+        it does not exist. A missing bundle directory, or a staging
+        directory that cannot be created, is only tolerated for the 'plan',
+        'list' and 'checks' faucets.
+
+        Reads ``working_directory``, ``staging_directory``,
+        ``bundle_directory``, ``kernels_directory``, ``pds_version``,
+        ``mission_acronym``, ``volume_id`` and ``args.faucet``. Sets the
+        first four to their resolved paths (the staging and bundle ones only
+        when they are found) and creates the staging directory on disk when
+        it is missing. The templates and readme checks need the resolved
+        paths, so they run after this one.
+
+        :raises NPBError: a directory is missing, or the staging directory
+            cannot be created
+        """
         cwd = os.getcwd()
 
         #
         # Set the staging directory WRT PDS3 or PDS4
         #
-        if self.pds_version == "4":
-            mission_dir = f"{self.mission_acronym}_spice"
-        else:
-            mission_dir = f"{self.volume_id.lower()}"
+        mission_dir = self._mission_directory_name()
 
         found = self._find_directory(self.working_directory, cwd)
 
@@ -559,10 +652,40 @@ class Setup:
 
             self.kernels_directory[i] = found
 
-        #
-        # Check IM, XML model, and Schema Location coherence (given that is not
-        # checked by the PDS Validate tool.
-        #
+    def _mission_directory_name(self) -> str:
+        """Returns the name of the mission directory inside the bundle and
+        staging directories: '<acronym>_spice' for PDS4, and the lowercase
+        volume id for PDS3.
+
+        Reads ``pds_version``, ``mission_acronym`` and ``volume_id``. Sets
+        nothing.
+        """
+        if self.pds_version == "4":
+            mission_dir = f"{self.mission_acronym}_spice"
+        else:
+            mission_dir = f"{self.volume_id.lower()}"
+
+        return mission_dir
+
+    def _check_im_coherence(self) -> None:
+        """Checks that the information model, the XML model and the schema
+        location of the configuration agree with each other. The PDS Validate
+        tool does not check that.
+
+        The information model becomes the short version used in the PDS4
+        schema file names, where parts of 10 or more are letters (1.15.0.0 is
+        '1F00'). An XML model or schema location that is configured must carry
+        that version. One that is missing or empty is built from it and
+        logged. Nothing is checked when there is no information model.
+
+        Reads ``information_model``, ``xml_model`` and ``schema_location``.
+        Sets ``xml_model`` and ``schema_location`` when they are missing or
+        empty. ``information_model`` is only validated here; the templates
+        step parses it afterwards.
+
+        :raises NPBError: the information model is not four numbers separated
+            by dots, or the XML model or schema location has another version
+        """
         if hasattr(self, "information_model"):
             if re.match(r"\d+[.]\d+[.]\d+[.]\d+", self.information_model):
 
@@ -639,10 +762,26 @@ class Setup:
                     f" format from configuration is incorrect."
                 )
 
-        #
-        # Check existence of templates according to the information_model
-        # or user-defined templates.
-        #
+    def _resolve_templates(self) -> None:
+        """Chooses the label templates and copies them into the working
+        directory.
+
+        For PDS4 without a templates directory, it uses the newest default
+        set that is not newer than the information model, or the oldest set
+        when the model predates all of them, and it logs a warning unless
+        the model matches a set exactly. For PDS4 with a templates directory,
+        it uses the user's templates and fills any that is missing from the
+        default set. For PDS3 it copies the PDS3 set.
+
+        Reads ``pds_version``, ``information_model``, ``root_dir``,
+        ``templates_directory`` and ``working_directory``. Sets
+        ``information_model_float`` (PDS4 only), ``template_files`` and
+        ``templates_directory``, which ends up as the working directory. The
+        XML tab detection reads it after this one.
+
+        :raises NPBError: the templates directory given for PDS4 does not
+            exist
+        """
         if self.pds_version == "4":
 
             config_schema = self.information_model.split(".")
@@ -772,10 +911,17 @@ class Setup:
         self.templates_directory = self.working_directory
         self.template_files = template_files
 
-        #
-        # Extract the XML files line tabs and line spaces for the element added
-        # to the templates. The default for the built-in templates is 2.
-        #
+    def _detect_xml_tab(self) -> None:
+        """Measures how far the ``<Identification_Area>`` element is indented
+        in the bundle label template. The elements added to the templates
+        are indented to match. The default for the built-in templates is 2,
+        and it is also used, with a warning, when the template is missing,
+        unreadable or gives no usable indentation. For PDS3 it is 0.
+
+        Reads ``pds_version`` and ``templates_directory``, which must already
+        point to the working directory where the templates have been copied.
+        Sets ``xml_tab``.
+        """
         xml_tab = 0
         if self.pds_version == "4":
             try:
@@ -804,9 +950,17 @@ class Setup:
 
         self.xml_tab = xml_tab
 
-        #
-        # Check meta-kernel configuration
-        #
+    def _check_mk_patterns(self) -> None:
+        """Checks that the patterns of every meta-kernel name are defined.
+        Each pattern must occur in the meta-kernel name, and no ``$``
+        placeholder may be left once all the patterns are removed. Logs a
+        warning when there is no meta-kernel configuration.
+
+        Reads ``mk``. Sets nothing.
+
+        :raises NPBError: a pattern does not occur in the name, or a
+            placeholder is left without a pattern
+        """
         if hasattr(self, "mk"):
             for metak in self.mk:
 
@@ -847,8 +1001,32 @@ class Setup:
         else:
             logging.warning("-- There is no meta-kernel configuration to check.")
 
+    def _normalize_coverage_kernels(self) -> None:
+        """Wraps ``coverage_kernels`` in a list when it holds a single value.
+
+        Reads and sets ``coverage_kernels``, when it exists.
+        """
         if hasattr(self, "coverage_kernels"):
             self.coverage_kernels = normalize_to_list(self.coverage_kernels)
+
+    def _check_readme_config(self) -> None:
+        """Checks that the readme section of the configuration is usable when
+        the bundle has no readme file yet. Nothing is checked for PDS3 or
+        when ``readme.txt`` is already in the bundle.
+
+        A readme section is required. If it names an input file that does
+        not exist, it also needs a cognisant authority and an overview, and
+        a warning says the file will be generated from them.
+
+        Reads ``bundle_directory``, ``pds_version`` and ``readme``, plus what
+        ``_mission_directory_name`` reads. The bundle directory is the one
+        resolved by ``_resolve_directories`` when it exists, and the
+        configured value otherwise. Sets nothing.
+
+        :raises NPBError: there is no readme section, or the input file is
+            missing and the section cannot generate it
+        """
+        mission_dir = self._mission_directory_name()
 
         #
         # If a readme file is present the readme section of the configuration
@@ -879,10 +1057,12 @@ class Setup:
             else:
                 raise NPBError("Readme elements not present in configuration file.")
 
-        #
-        # Check if there is any uppercase character in the kernel list
-        # configuration section.
-        #
+    def _check_kernel_pattern_case(self) -> None:
+        """Warns about uppercase letters in the kernel list configuration,
+        which NAIF highly discourages. It only logs.
+
+        Reads ``kernel_list_config``. Sets nothing.
+        """
         kernel_pattern_is_upper = False
         kernel_pattern_upper = []
         for kernel_pattern in self.kernel_list_config.keys():
