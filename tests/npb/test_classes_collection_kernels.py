@@ -442,6 +442,113 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
 
 
 # ===========================================================================
+# SpiceKernelsCollection._mk_from_config
+# ===========================================================================
+
+class TestSpiceKernelsCollectionMkFromConfig:
+    """Tests for SpiceKernelsCollection._mk_from_config."""
+
+    @staticmethod
+    def make_obj(faucet="plan", **setup_kwargs):
+        setup = _Setup(
+            pds_version="4",
+            args=MagicMock(faucet=faucet),
+            mission_start="2000-01-01T00:00:00.000Z",
+            mission_finish="2040-01-01T00:00:00.000Z",
+            **setup_kwargs,
+        )
+        with patch(_SET_LID):
+            return SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+
+    @staticmethod
+    def logged(caplog):
+        return [(r.levelno, r.getMessage()) for r in caplog.records]
+
+    @pytest.mark.parametrize("files, on_disk, missing", [
+        pytest.param("a.tm", [False], "a.tm", id="single_path"),
+        pytest.param(["a.tm"], [False], "a.tm", id="one_item_list"),
+        pytest.param(
+            ["a.tm", "b.tm"], [True, False], "b.tm", id="second_of_two"),
+    ])
+    def test_raises_when_file_missing(self, files, on_disk, missing, caplog):
+        """A configured meta-kernel that is not on disk stops the run.
+
+        The error names the missing file, whether the configuration gives one
+        path or a list. Only an empty info line is logged before it, and no
+        file after the missing one is looked up.
+        """
+        # A configuration listing the files; 'on_disk' says which exist.
+        obj = self.make_obj(mk_inputs={"file": files})
+
+        # Ask for the meta-kernels, which raises on the first missing file.
+        with caplog.at_level(logging.INFO):
+            with patch(_EXISTS, side_effect=on_disk) as exists_mock:
+                with pytest.raises(NPBError) as exc_info:
+                    obj._mk_from_config()
+
+        # The error names the missing file, the lookups stopped there and the
+        # empty info line is the only thing logged.
+        assert str(exc_info.value) == (
+            f"Meta-kernel provided via configuration does not exist: {missing}")
+        assert exists_mock.call_count == len(on_disk)
+        assert self.logged(caplog) == [(logging.INFO, "")]
+
+    @pytest.mark.parametrize("files, expected", [
+        pytest.param("a.tm", {"a.tm": True}, id="single_path"),
+        pytest.param(["a.tm"], {"a.tm": True}, id="one_item_list"),
+        pytest.param(
+            ["a.tm", "b.tm"], {"a.tm": True, "b.tm": True}, id="two_files"),
+        pytest.param([], {}, id="empty_list"),
+    ])
+    def test_returns_provided_mks(self, files, expected, caplog):
+        """Existing configured meta-kernels are returned as user-provided.
+
+        Every file goes into the result with value 'True', whether the
+        configuration gives a path or a list. An empty list gives an empty
+        result without any log.
+        """
+        # A configuration whose files all exist.
+        obj = self.make_obj(mk_inputs={"file": files})
+
+        # Ask for the meta-kernels.
+        with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=True):
+            result = obj._mk_from_config()
+
+        # Each file is flagged as provided and nothing is logged.
+        assert result == expected
+        assert self.logged(caplog) == []
+
+    @pytest.mark.parametrize("faucet, setup_kwargs, expected_log", [
+        pytest.param("plan", {}, [], id="no_mk_inputs"),
+        pytest.param(
+            "labels", {"mk_inputs": {"file": "a.tm"}}, [], id="labeling_mode"),
+        pytest.param(
+            "plan", {"mk_inputs": {}},
+            [(logging.WARNING, "-- Configuration item mk_inputs is empty.")],
+            id="mk_inputs_without_file"),
+    ])
+    def test_returns_empty(self, faucet, setup_kwargs, expected_log, caplog):
+        """No meta-kernel is taken when the configuration gives none to use.
+
+        This happens when there is no 'mk_inputs' item, when running in
+        labeling mode even if files are given, and when 'mk_inputs' has no
+        'file' entry (which also logs a warning). No file is looked up in
+        any of them.
+        """
+        # A setup for each of the situations in which nothing can be taken.
+        obj = self.make_obj(faucet=faucet, **setup_kwargs)
+
+        # Ask for the meta-kernels.
+        with caplog.at_level(logging.INFO), patch(_EXISTS) as exists_mock:
+            result = obj._mk_from_config()
+
+        # Nothing is returned or looked up, and only the expected log appears.
+        assert result == {}
+        assert not exists_mock.called
+        assert self.logged(caplog) == expected_log
+
+
+# ===========================================================================
 # SpiceKernelsCollection._assert_mks_absent
 # ===========================================================================
 

@@ -47,30 +47,13 @@ class SpiceKernelsCollection(Collection):
                  user or not.
         :rtype: dictionary.
         """
-        meta_kernels = {}
         #
         # First check if a meta-kernel has been provided via configuration by
         # the user. If so, only the provided meta-kernels will be taken into
         # account (there is no hybrid possibility but NPB provides a warning
         # message if more meta-kernels are expected).
         #
-        if hasattr(self.setup, "mk_inputs") and (self.setup.args.faucet != "labels"):
-            if "file" in self.setup.mk_inputs:
-                mks = self.setup.mk_inputs["file"]
-                if not isinstance(mks, list):
-                    mks = [mks]
-                for mk in mks:
-                    if not os.path.exists(mk):
-                        logging.info("")
-                        raise NPBError(
-                            f"Meta-kernel provided via"
-                            f" configuration"
-                            f" does not exist: {mk}")
-
-                    else:
-                        meta_kernels[mk] = True
-            else:
-                logging.warning("-- Configuration item mk_inputs is empty.")
+        meta_kernels = self._mk_from_config()
 
         #
         # Second we check if meta-kernels are indicated with the kernel list.
@@ -152,6 +135,39 @@ class SpiceKernelsCollection(Collection):
             logging.warning("-- No Meta-kernel will be generated.")
         else:
             self._assert_mks_absent(meta_kernels)
+
+        return meta_kernels
+
+    def _mk_from_config(self) -> dict:
+        """Take the meta-kernels provided via the ``mk_inputs`` configuration.
+
+        When given, only these meta-kernels are used: there is no hybrid with
+        the kernel list. Nothing is taken in labeling mode.
+
+        :return: Provided meta-kernels as keys, all with value ``True``. Empty
+                 if the configuration provides none.
+        :raises NPBError: If a provided meta-kernel file does not exist.
+        """
+        meta_kernels = {}
+        if (not hasattr(self.setup, "mk_inputs")
+                or self.setup.args.faucet == "labels"):
+            return meta_kernels
+
+        if "file" not in self.setup.mk_inputs:
+            logging.warning("-- Configuration item mk_inputs is empty.")
+            return meta_kernels
+
+        mks = self.setup.mk_inputs["file"]
+        if not isinstance(mks, list):
+            mks = [mks]
+        for mk in mks:
+            if not os.path.exists(mk):
+                logging.info("")
+                raise NPBError(
+                    f"Meta-kernel provided via"
+                    f" configuration"
+                    f" does not exist: {mk}")
+            meta_kernels[mk] = True
 
         return meta_kernels
 
