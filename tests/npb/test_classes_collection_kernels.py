@@ -440,6 +440,422 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
             with pytest.raises(NPBError, match=message):
                 obj.determine_meta_kernels()
 
+    @pytest.mark.parametrize('pds_version', [
+        pytest.param('3', id='pds3'),
+        pytest.param('4', id='pds4'),
+    ])
+    def test_kernel_list_ignored_when_config_provides_mks(self, pds_version):
+        """Meta-kernels from the configuration replace those in the kernel list.
+
+        When 'mk_inputs' provides a meta-kernel, the '.tm' entries of the
+        kernel list are not looked up, so only the configured one is returned.
+        """
+        # A configured meta-kernel, and a kernel list with another one.
+        setup = self.make_setup(pds_version=pds_version, files="mk.tm")
+        kernels = make_kernels(["listed_v001.tm"])
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), kernels)
+
+        # Determine the meta-kernels. Two lookups are allowed: the configured
+        # file, then its absence from the archive. A third would fail the test.
+        with patch(_EXISTS, side_effect=[True, False]) as exists_mock:
+            result = obj.determine_meta_kernels()
+
+        # Only the configured meta-kernel is returned, and the kernel list
+        # was never searched.
+        assert result == {"mk.tm": True}
+        assert exists_mock.call_count == 2
+
+
+# ===========================================================================
+# SpiceKernelsCollection._mk_from_config
+# ===========================================================================
+
+class TestSpiceKernelsCollectionMkFromConfig:
+    """Tests for SpiceKernelsCollection._mk_from_config."""
+
+    @staticmethod
+    def make_obj(faucet="plan", **setup_kwargs):
+        setup = _Setup(
+            pds_version="4",
+            args=MagicMock(faucet=faucet),
+            mission_start="2000-01-01T00:00:00.000Z",
+            mission_finish="2040-01-01T00:00:00.000Z",
+            **setup_kwargs,
+        )
+        with patch(_SET_LID):
+            return SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+
+    @staticmethod
+    def logged(caplog):
+        return [(r.levelno, r.getMessage()) for r in caplog.records]
+
+    @pytest.mark.parametrize("files, on_disk, missing", [
+        pytest.param("a.tm", [False], "a.tm", id="single_path"),
+        pytest.param(["a.tm"], [False], "a.tm", id="one_item_list"),
+        pytest.param(
+            ["a.tm", "b.tm"], [True, False], "b.tm", id="second_of_two"),
+    ])
+    def test_raises_when_file_missing(self, files, on_disk, missing, caplog):
+        """A configured meta-kernel that is not on disk stops the run.
+
+        The error names the missing file, whether the configuration gives one
+        path or a list. Only an empty info line is logged before it, and no
+        file after the missing one is looked up.
+        """
+        # A configuration listing the files; 'on_disk' says which exist.
+        obj = self.make_obj(mk_inputs={"file": files})
+
+        # Ask for the meta-kernels, which raises on the first missing file.
+        with caplog.at_level(logging.INFO):
+            with patch(_EXISTS, side_effect=on_disk) as exists_mock:
+                with pytest.raises(NPBError) as exc_info:
+                    obj._mk_from_config()
+
+        # The error names the missing file, the lookups stopped there and the
+        # empty info line is the only thing logged.
+        assert str(exc_info.value) == (
+            f"Meta-kernel provided via configuration does not exist: {missing}")
+        assert exists_mock.call_count == len(on_disk)
+        assert self.logged(caplog) == [(logging.INFO, "")]
+
+    @pytest.mark.parametrize("files, expected", [
+        pytest.param("a.tm", {"a.tm": True}, id="single_path"),
+        pytest.param(["a.tm"], {"a.tm": True}, id="one_item_list"),
+        pytest.param(
+            ["a.tm", "b.tm"], {"a.tm": True, "b.tm": True}, id="two_files"),
+        pytest.param([], {}, id="empty_list"),
+    ])
+    def test_returns_provided_mks(self, files, expected, caplog):
+        """Existing configured meta-kernels are returned as user-provided.
+
+        Every file goes into the result with value 'True', whether the
+        configuration gives a path or a list. An empty list gives an empty
+        result without any log.
+        """
+        # A configuration whose files all exist.
+        obj = self.make_obj(mk_inputs={"file": files})
+
+        # Ask for the meta-kernels.
+        with caplog.at_level(logging.INFO), patch(_EXISTS, return_value=True):
+            result = obj._mk_from_config()
+
+        # Each file is flagged as provided and nothing is logged.
+        assert result == expected
+        assert self.logged(caplog) == []
+
+    @pytest.mark.parametrize("faucet, setup_kwargs, expected_log", [
+        pytest.param("plan", {}, [], id="no_mk_inputs"),
+        pytest.param(
+            "labels", {"mk_inputs": {"file": "a.tm"}}, [], id="labeling_mode"),
+        pytest.param(
+            "plan", {"mk_inputs": {}},
+            [(logging.WARNING, "-- Configuration item mk_inputs is empty.")],
+            id="mk_inputs_without_file"),
+    ])
+    def test_returns_empty(self, faucet, setup_kwargs, expected_log, caplog):
+        """No meta-kernel is taken when the configuration gives none to use.
+
+        This happens when there is no 'mk_inputs' item, when running in
+        labeling mode even if files are given, and when 'mk_inputs' has no
+        'file' entry (which also logs a warning). No file is looked up in
+        any of them.
+        """
+        # A setup for each of the situations in which nothing can be taken.
+        obj = self.make_obj(faucet=faucet, **setup_kwargs)
+
+        # Ask for the meta-kernels.
+        with caplog.at_level(logging.INFO), patch(_EXISTS) as exists_mock:
+            result = obj._mk_from_config()
+
+        # Nothing is returned or looked up, and only the expected log appears.
+        assert result == {}
+        assert not exists_mock.called
+        assert self.logged(caplog) == expected_log
+
+
+# ===========================================================================
+# SpiceKernelsCollection._mk_from_kernel_list
+# ===========================================================================
+
+class TestSpiceKernelsCollectionMkFromKernelList:
+    """Tests for SpiceKernelsCollection._mk_from_kernel_list."""
+
+    @staticmethod
+    def make_obj(kernel_list, kernels_directory):
+        setup = _Setup(
+            pds_version="4",
+            kernels_directory=kernels_directory,
+            mission_start="2000-01-01T00:00:00.000Z",
+            mission_finish="2040-01-01T00:00:00.000Z",
+        )
+        with patch(_SET_LID):
+            return SpiceKernelsCollection(
+                setup, make_bundle(), make_kernels(kernel_list))
+
+    @pytest.mark.parametrize(
+        "kernel_list, kernels_directory, on_disk, expected, expected_log", [
+            pytest.param(
+                ["a.tm"], ["/k1", "/k2"], [True],
+                {"/k1/mk/a.tm": True}, [], id="found_first_dir"),
+            pytest.param(
+                ["a.tm"], ["/k1", "/k2"], [False, True],
+                {"/k2/mk/a.tm": True}, [], id="found_second_dir"),
+            pytest.param(
+                ["a.tm"], ["/k1", "/k2"], [False, False],
+                {"a.tm": False},
+                [(logging.INFO,
+                  "-- a.tm not provided as input in kernels directory.")],
+                id="missing_everywhere"),
+            pytest.param(
+                ["naif.tls"], ["/k1"], [], {}, [], id="non_tm_ignored"),
+            pytest.param(
+                ["naif.tls", "a.tm", "b.tm"], ["/k1"], [True, False],
+                {"/k1/mk/a.tm": True, "b.tm": False},
+                [(logging.INFO,
+                  "-- b.tm not provided as input in kernels directory.")],
+                id="mixed"),
+            pytest.param(
+                ["a.tm"], [], [], {"a.tm": False},
+                [(logging.INFO,
+                  "-- a.tm not provided as input in kernels directory.")],
+                id="no_directories"),
+            pytest.param([], ["/k1"], [], {}, [], id="empty_list"),
+        ])
+    def test_returns_kernel_list_mks(
+            self, kernel_list, kernels_directory, on_disk, expected,
+            expected_log, caplog):
+        """The '.tm' entries of the kernel list are looked up by directory.
+
+        Those found under 'mk' in a kernels directory are returned by path
+        with value 'True', and the search stops at the first directory that
+        has them. Those found nowhere are returned by name with value
+        'False' and an info line. Other kernels are ignored.
+        """
+        # A kernel list and the kernels directories to search it in.
+        obj = self.make_obj(kernel_list, kernels_directory)
+
+        # Look the meta-kernels up; 'on_disk' says which lookups succeed.
+        with caplog.at_level(logging.INFO):
+            with patch(_EXISTS, side_effect=on_disk) as exists_mock:
+                result = obj._mk_from_kernel_list()
+
+        # The result and the log are the expected ones, and no more lookups
+        # were made than needed.
+        assert result == expected
+        assert [(r.levelno, r.getMessage()) for r in caplog.records] == (
+            expected_log)
+        assert exists_mock.call_count == len(on_disk)
+
+
+# ===========================================================================
+# SpiceKernelsCollection._is_single_version_only_mk_template
+# ===========================================================================
+
+def _mk_template(names=None, **overrides):
+    """Build an 'mk' configuration item with one name entry per pattern."""
+    names = names or [
+        {"pattern": {"#text": "VERSION", "@length": "3"}}]
+    return [{"@name": "test_$VERSION.tm", "name": names, **overrides}]
+
+
+class TestSpiceKernelsCollectionIsSingleVersionOnlyMkTemplate:
+    """Tests for SpiceKernelsCollection._is_single_version_only_mk_template."""
+
+    @pytest.mark.parametrize("mk, expected", [
+        pytest.param(_mk_template(), True, id="single_version_pattern"),
+        pytest.param([], False, id="no_mks"),
+        pytest.param(
+            _mk_template() + _mk_template(), False, id="multiple_mks"),
+        pytest.param(
+            _mk_template(names=[
+                {"pattern": {"#text": "VERSION", "@length": "3"}},
+                {"pattern": {"#text": "VERSION", "@length": "2"}}]),
+            False, id="multiple_names"),
+        pytest.param(
+            _mk_template(names=[
+                {"pattern": {"#text": "VERSION", "@length": "3"},
+                 "@extra": "x"}]),
+            False, id="name_with_extra_keys"),
+        pytest.param(
+            _mk_template(names=[
+                {"pattern": [{"#text": "VERSION", "@length": "3"},
+                             {"#text": "YEAR", "@length": "4"}]}]),
+            False, id="two_patterns"),
+        pytest.param(
+            _mk_template(names=[{"pattern": {"#text": "VERSION"}}]),
+            False, id="pattern_without_length"),
+        pytest.param(
+            _mk_template(names=[
+                {"pattern": {"#text": "YEAR", "@length": "4"}}]),
+            False, id="pattern_not_version"),
+    ])
+    def test_detects_single_version_only_template(self, mk, expected):
+        """Only one meta-kernel named with a lone 'VERSION' pattern qualifies.
+
+        Several meta-kernels, several names, extra keys in the name, two
+        patterns, a pattern without length, and a pattern other than
+        'VERSION' are all rejected.
+        """
+        # An 'mk' configuration item with the shape of each case.
+
+        # Ask whether it is a single version-only template.
+        result = SpiceKernelsCollection._is_single_version_only_mk_template(mk)
+
+        # Only the supported shape is accepted.
+        assert result is expected
+
+
+# ===========================================================================
+# SpiceKernelsCollection._mk_synthesized_from_template
+# ===========================================================================
+
+class TestSpiceKernelsCollectionMkSynthesizedFromTemplate:
+    """Tests for SpiceKernelsCollection._mk_synthesized_from_template."""
+
+    @staticmethod
+    def make_obj(faucet="plan", **setup_kwargs):
+        setup = _Setup(
+            pds_version="4",
+            args=MagicMock(faucet=faucet),
+            mission_acronym="test",
+            bundle_directory="/fake/bundle",
+            mission_start="2000-01-01T00:00:00.000Z",
+            mission_finish="2040-01-01T00:00:00.000Z",
+            **setup_kwargs,
+        )
+        with patch(_SET_LID):
+            return SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+
+    @pytest.mark.parametrize(
+        "faucet, setup_kwargs, products, in_bundle, expected, lookups", [
+            pytest.param(
+                "plan", {"mk": _mk_template()}, [MagicMock()], False,
+                {"test_001.tm": False}, 1, id="synthesized"),
+            pytest.param(
+                "plan",
+                {"mk": _mk_template(names=[
+                    {"pattern": {"#text": "VERSION", "@length": "2"}}])},
+                [MagicMock()], False,
+                {"test_01.tm": False}, 1, id="version_length_respected"),
+            pytest.param(
+                "plan", {"mk": _mk_template()}, [MagicMock()], True,
+                {}, 1, id="already_in_bundle"),
+            pytest.param(
+                "plan", {"mk": _mk_template()}, [], False,
+                {}, 0, id="no_products"),
+            pytest.param(
+                "labels", {"mk": _mk_template()}, [MagicMock()], False,
+                {}, 0, id="labeling_mode"),
+            pytest.param(
+                "plan", {}, [MagicMock()], False,
+                {}, 0, id="no_mk_configuration"),
+            pytest.param(
+                "plan",
+                {"mk": _mk_template(names=[
+                    {"pattern": {"#text": "YEAR", "@length": "4"}}])},
+                [MagicMock()], False,
+                {}, 0, id="unsupported_template"),
+        ])
+    def test_synthesizes_mk_from_template(
+            self, faucet, setup_kwargs, products, in_bundle, expected,
+            lookups):
+        """A meta-kernel name is built only from a version-only template.
+
+        With products in the collection and outside labeling mode, the first
+        version of the template is returned with value 'False', padded to the
+        configured length. Nothing is returned when that meta-kernel is
+        already in the bundle, when there are no products, in labeling mode,
+        without an 'mk' configuration or with an unsupported template.
+        """
+        # A collection with the configuration and products of each case.
+        obj = self.make_obj(faucet=faucet, **setup_kwargs)
+        obj.product = products
+
+        # Build the name; 'in_bundle' says if the archive already has it.
+        with patch(_EXISTS, return_value=in_bundle) as exists_mock:
+            result = obj._mk_synthesized_from_template()
+
+        # The expected name, looked up in the bundle only when one is built.
+        assert result == expected
+        assert exists_mock.call_count == lookups
+
+
+# ===========================================================================
+# SpiceKernelsCollection._assert_mks_absent
+# ===========================================================================
+
+class TestSpiceKernelsCollectionAssertMksAbsent:
+    """Tests for SpiceKernelsCollection._assert_mks_absent."""
+
+    @staticmethod
+    def make_obj(pds_version):
+        setup = _Setup(
+            pds_version=pds_version,
+            mission_acronym="test",
+            volume_id="test",
+            bundle_directory="/fake/bundle",
+            mission_start="2000-01-01T00:00:00.000Z",
+            mission_finish="2040-01-01T00:00:00.000Z",
+        )
+        with patch(_SET_LID):
+            return SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+
+    @pytest.mark.parametrize("pds_version, mks, on_disk, archived", [
+        pytest.param(
+            "3", {"mk.tm": True}, ("mk.tm",),
+            "/fake/bundle/test/extras/mk/mk.tm", id="pds3"),
+        pytest.param(
+            "4", {"mk.tm": True}, ("mk.tm",),
+            "/fake/bundle/test_spice/spice_kernels/mk/mk.tm", id="pds4"),
+        # Both exist and 'b.tm' comes first in the dictionary, so only sorting
+        # makes 'a.tm' the one reported.
+        pytest.param(
+            "4", {"b.tm": True, "a.tm": True}, ("a.tm", "b.tm"),
+            "/fake/bundle/test_spice/spice_kernels/mk/a.tm", id="sorted_order"),
+    ])
+    def test_raises_when_mk_exists(self, pds_version, mks, on_disk, archived):
+        """A meta-kernel already in the archive stops the run.
+
+        The error gives the archive path, which is under the PDS3 'extras'
+        or the PDS4 'spice_kernels' directory. When several exist, the first
+        in alphabetical order is the one reported.
+        """
+        # A collection for the PDS version.
+        obj = self.make_obj(pds_version)
+
+        # Check the meta-kernels, where only those in 'on_disk' exist.
+        with patch(_EXISTS, side_effect=lambda path: path.endswith(on_disk)):
+            with pytest.raises(NPBError) as exc_info:
+                obj._assert_mks_absent(mks)
+
+        # The error carries the archive path of the first one by name.
+        message = f"MK already exists in the archive: {archived}"
+        assert str(exc_info.value) == message
+
+    @pytest.mark.parametrize("pds_version", [
+        pytest.param("3", id="pds3"),
+        pytest.param("4", id="pds4"),
+    ])
+    @pytest.mark.parametrize("mks", [
+        pytest.param({}, id="no_mks"),
+        pytest.param({"mk.tm": True, "other.tm": False}, id="two_mks"),
+    ])
+    def test_passes_when_no_mk_exists(self, pds_version, mks):
+        """Nothing is raised when none of the meta-kernels is in the archive.
+
+        Every meta-kernel is looked up, and an empty dictionary looks up none.
+        """
+        # A collection for the PDS version.
+        obj = self.make_obj(pds_version)
+
+        # Check the meta-kernels, none of which exist in the archive.
+        with patch(_EXISTS, return_value=False) as exists_mock:
+            obj._assert_mks_absent(mks)
+
+        # One lookup per meta-kernel, and no error was raised getting here.
+        assert exists_mock.call_count == len(mks)
+
 
 # ===========================================================================
 # SpiceKernelsCollection.set_increment_times.

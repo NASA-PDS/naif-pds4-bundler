@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+from typing import Any
 
 import spiceypy
 from spiceypy.utils.exceptions import SpiceyPyError
@@ -39,69 +40,27 @@ class SpiceKernelsCollection(Collection):
 
         super().__init__(self.type, setup, bundle)
 
-    def determine_meta_kernels(self):
+    def determine_meta_kernels(self) -> dict[str, bool]:
         """Determine the name of the Meta-kernel(s) to be generated.
 
-        :return: Dictionary of meta-kernels to be generated. The keys list the
-                 meta-kernels and the values whether if they are provided by the
-                 user or not.
-        :rtype: dictionary.
+        The meta-kernels come from the first of these sources that provides
+        any: the ``mk_inputs`` configuration, the kernel list (looked up in the
+        kernels directories) or, failing both, a name built from the ``mk``
+        configuration template. The chosen ones must not already be in the
+        archive.
+
+        :return: Dictionary of meta-kernels to be generated, where the keys are
+                 the meta-kernels and the values indicate whether they are
+                 provided by the user or not.
         """
-        meta_kernels = {}
-        #
-        # First check if a meta-kernel has been provided via configuration by
-        # the user. If so, only the provided meta-kernels will be taken into
-        # account (there is no hybrid possibility but NPB provides a warning
-        # message if more meta-kernels are expected).
-        #
-        if hasattr(self.setup, "mk_inputs") and (self.setup.args.faucet != "labels"):
-            if "file" in self.setup.mk_inputs:
-                mks = self.setup.mk_inputs["file"]
-                if not isinstance(mks, list):
-                    mks = [mks]
-                for mk in mks:
-                    if not os.path.exists(mk):
-                        logging.info("")
-                        raise NPBError(
-                            f"Meta-kernel provided via"
-                            f" configuration"
-                            f" does not exist: {mk}")
-
-                    else:
-                        meta_kernels[mk] = True
-            else:
-                logging.warning("-- Configuration item mk_inputs is empty.")
+        # Configured meta-kernels take precedence: meta-kernels from the kernel
+        # list are only used when the configuration provides none.
+        meta_kernels = self._mk_from_config() or self._mk_from_kernel_list()
 
         #
-        # Second we check if meta-kernels are indicated with the kernel list.
-        # Note that if kernels are provided as input, the ones present in the
-        # kernel list are ignored.
-        #
-        # It is assumed that these kernels will be in the kernels_directory,
-        # under the mk subdirectory.
-        #
-        if not meta_kernels:
-            for kernel in self.list.kernel_list:
-                kernel_present = False
-                if ".tm" in kernel:
-                    for kernel_dir in self.setup.kernels_directory:
-                        path = f"{kernel_dir}/mk/{kernel}"
-                        if os.path.exists(path):
-                            meta_kernels[path] = True
-                            kernel_present = True
-                            break
-                    if not kernel_present:
-                        #
-                        # If the kernel is not present we don't provide the path.
-                        #
-                        logging.info(
-                            '-- %s not provided as input in kernels directory.',
-                            kernel)
-
-                        meta_kernels[kernel] = False
-
-        #
-        # If no meta-kernels are provided as inputs or in the kernel list,
+        # If no meta-kernels are provided as inputs or in the kernel list, NPB
+        # will try to determine if a meta-kernel can be generated only using
+        # the information from the configuration file.
         #
         if not meta_kernels:
             if self.setup.args.faucet == "labels":
@@ -113,57 +72,146 @@ class SpiceKernelsCollection(Collection):
                     "-- No meta-kernel provided in the kernel list or via configuration."
                 )
 
-            #
-            # NPB will try to determine if a meta-kernel can be generated
-            # only using the information from the configuration file.
-            # This will only work if the bundle only includes one meta-kernel
-            # and the only pattern in the filename is the VERSION.
-            #
-            # This will happen only if there are kernels in the collection.
-            #
-            # If the kernel already exists, it will not be generated.
-            #
-            if (hasattr(self.setup, "mk")
-                and self.product
-                and self.setup.args.faucet != "labels"
-            ):
-                if (
-                    len(self.setup.mk) == 1
-                    and len(self.setup.mk[0]["name"]) == 1
-                    and len(self.setup.mk[0]["name"][0]) == 1
-                    and len(self.setup.mk[0]["name"][0]["pattern"]) == 2
-                    and not isinstance(self.setup.mk[0]["name"][0]["pattern"], list)
-                ):
-                    if self.setup.mk[0]["name"][0]["pattern"]["#text"] == "VERSION":
-                        version_length = int(
-                            self.setup.mk[0]["name"][0]["pattern"]["@length"]
-                        )
-
-                        version = "1"
-                        meta_kernel = self.setup.mk[0]["@name"].replace(
-                            "$VERSION", version.zfill(version_length)
-                        )
-                        existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
-                        if not os.path.exists(existing_path):
-                            meta_kernels[meta_kernel] = False
+            meta_kernels = self._mk_synthesized_from_template()
 
         if not meta_kernels:
             logging.info("")
             logging.warning("-- No Meta-kernel will be generated.")
         else:
-            #
-            # Check that the meta-kernels are not present. If a meta-kernel is
-            # present stop the execution.
-            #
-            for meta_kernel in sorted(meta_kernels):
-                if self.setup.pds_version == "4":
-                    existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
-                else:
-                    existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
-                if os.path.exists(existing_path):
-                    raise NPBError(f"MK already exists in the archive: {existing_path}")
+            self._assert_mks_absent(meta_kernels)
 
         return meta_kernels
+
+    def _mk_from_config(self) -> dict[str, bool]:
+        """Take the meta-kernels provided via the ``mk_inputs`` configuration.
+
+        When given, only these meta-kernels are used: there is no hybrid with
+        the kernel list. Nothing is taken in labeling mode.
+
+        :return: Provided meta-kernels as keys, all with value ``True``. Empty
+                 if the configuration provides none.
+        :raises NPBError: If a provided meta-kernel file does not exist.
+        """
+        meta_kernels = {}
+        if (not hasattr(self.setup, "mk_inputs")
+                or self.setup.args.faucet == "labels"):
+            return meta_kernels
+
+        if "file" not in self.setup.mk_inputs:
+            logging.warning("-- Configuration item mk_inputs is empty.")
+            return meta_kernels
+
+        mks = self.setup.mk_inputs["file"]
+        if not isinstance(mks, list):
+            mks = [mks]
+        for mk in mks:
+            if not os.path.exists(mk):
+                logging.info("")
+                raise NPBError(
+                    f"Meta-kernel provided via"
+                    f" configuration"
+                    f" does not exist: {mk}")
+            meta_kernels[mk] = True
+
+        return meta_kernels
+
+    def _mk_from_kernel_list(self) -> dict[str, bool]:
+        """Take the meta-kernels listed in the kernel list.
+
+        Those present under ``mk`` in one of the kernels directories are
+        returned by path with value ``True``. The rest are returned by name
+        with value ``False``, to be generated.
+
+        :return: Meta-kernels from the kernel list, empty if it has none.
+        """
+        meta_kernels = {}
+        for kernel in self.list.kernel_list:
+            if ".tm" not in kernel:
+                continue
+
+            for kernel_dir in self.setup.kernels_directory:
+                path = f"{kernel_dir}/mk/{kernel}"
+                if os.path.exists(path):
+                    meta_kernels[path] = True
+                    break
+            # The loop ended without a break: no kernels directory has it.
+            else:
+                logging.info(
+                    '-- %s not provided as input in kernels directory.',
+                    kernel)
+                meta_kernels[kernel] = False
+
+        return meta_kernels
+
+    def _mk_synthesized_from_template(self) -> dict[str, bool]:
+        """Build the meta-kernel name from the ``mk`` configuration template.
+
+        This only works if the bundle has one meta-kernel and the only pattern
+        in its name is ``VERSION``, and only when the collection has products.
+        The first version is used. A meta-kernel already in the bundle is not
+        generated again.
+
+        :return: The meta-kernel name with value ``False`` (to be generated),
+                 or empty if it cannot or need not be generated.
+        """
+        if not (hasattr(self.setup, "mk")
+                and self.product
+                and self.setup.args.faucet != "labels"):
+            return {}
+
+        if not self._is_single_version_only_mk_template(self.setup.mk):
+            return {}
+
+        version_length = int(
+            self.setup.mk[0]["name"][0]["pattern"]["@length"])
+        meta_kernel = self.setup.mk[0]["@name"].replace(
+            "$VERSION", "1".zfill(version_length))
+        existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
+        if os.path.exists(existing_path):
+            return {}
+
+        return {meta_kernel: False}
+
+    @staticmethod
+    def _is_single_version_only_mk_template(mk: list[dict[str, Any]]) -> bool:
+        """Tell if the ``mk`` configuration is a single, version-only template.
+
+        That means one meta-kernel whose name has a single pattern, and that
+        pattern is ``VERSION``. Only then can the meta-kernel name be built
+        from the configuration alone.
+
+        The configuration is parsed from XML, so a single ``pattern`` element
+        is a dictionary with its ``#text`` and ``@length``, which is why
+        ``len(pattern) == 2`` identifies one pattern. Two ``pattern`` elements
+        come as a list, which also has length 2, so the ``isinstance`` check
+        is what rules that case out.
+
+        :param mk: ``mk`` item of the configuration, a list of meta-kernels.
+        :return: ``True`` for a single meta-kernel named with only ``VERSION``.
+        """
+        if not (len(mk) == 1
+                and len(mk[0]["name"]) == 1
+                and len(mk[0]["name"][0]) == 1):
+            return False
+
+        pattern = mk[0]["name"][0]["pattern"]
+        return (len(pattern) == 2
+                and not isinstance(pattern, list)
+                and pattern["#text"] == "VERSION")
+
+    def _assert_mks_absent(self, mks: dict[str, bool]) -> None:
+        """Stop the execution if any of the meta-kernels is already archived.
+
+        :param mks: Meta-kernels to check; only the keys (names) are used.
+        :raises NPBError: If any of them is already in the archive.
+        """
+        for meta_kernel in sorted(mks):
+            if self.setup.pds_version == "4":
+                existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
+            else:
+                existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
+            if os.path.exists(existing_path):
+                raise NPBError(f"MK already exists in the archive: {existing_path}")
 
     def set_increment_times(self) -> None:
         """Determine the archive increment start and finish times.
