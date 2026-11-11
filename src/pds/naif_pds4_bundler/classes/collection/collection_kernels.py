@@ -92,25 +92,18 @@ class SpiceKernelsCollection(Collection):
                 and self.product
                 and self.setup.args.faucet != "labels"
             ):
-                if (
-                    len(self.setup.mk) == 1
-                    and len(self.setup.mk[0]["name"]) == 1
-                    and len(self.setup.mk[0]["name"][0]) == 1
-                    and len(self.setup.mk[0]["name"][0]["pattern"]) == 2
-                    and not isinstance(self.setup.mk[0]["name"][0]["pattern"], list)
-                ):
-                    if self.setup.mk[0]["name"][0]["pattern"]["#text"] == "VERSION":
-                        version_length = int(
-                            self.setup.mk[0]["name"][0]["pattern"]["@length"]
-                        )
+                if self._is_single_version_only_mk_template(self.setup.mk):
+                    version_length = int(
+                        self.setup.mk[0]["name"][0]["pattern"]["@length"]
+                    )
 
-                        version = "1"
-                        meta_kernel = self.setup.mk[0]["@name"].replace(
-                            "$VERSION", version.zfill(version_length)
-                        )
-                        existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
-                        if not os.path.exists(existing_path):
-                            meta_kernels[meta_kernel] = False
+                    version = "1"
+                    meta_kernel = self.setup.mk[0]["@name"].replace(
+                        "$VERSION", version.zfill(version_length)
+                    )
+                    existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
+                    if not os.path.exists(existing_path):
+                        meta_kernels[meta_kernel] = False
 
         if not meta_kernels:
             logging.info("")
@@ -180,6 +173,33 @@ class SpiceKernelsCollection(Collection):
                 meta_kernels[kernel] = False
 
         return meta_kernels
+
+    @staticmethod
+    def _is_single_version_only_mk_template(mk: list) -> bool:
+        """Tell if the ``mk`` configuration is a single, version-only template.
+
+        That means one meta-kernel whose name has a single pattern, and that
+        pattern is ``VERSION``. Only then can the meta-kernel name be built
+        from the configuration alone.
+
+        The configuration is parsed from XML, so a single ``pattern`` element
+        is a dictionary with its ``#text`` and ``@length``, which is why
+        ``len(pattern) == 2`` identifies one pattern. Two ``pattern`` elements
+        come as a list, which also has length 2, so the ``isinstance`` check
+        is what rules that case out.
+
+        :param mk: ``mk`` item of the configuration, a list of meta-kernels.
+        :return: ``True`` for a single meta-kernel named with only ``VERSION``.
+        """
+        if not (len(mk) == 1
+                and len(mk[0]["name"]) == 1
+                and len(mk[0]["name"][0]) == 1):
+            return False
+
+        pattern = mk[0]["name"][0]["pattern"]
+        return (len(pattern) == 2
+                and not isinstance(pattern, list)
+                and pattern["#text"] == "VERSION")
 
     def _assert_mks_absent(self, mks: dict) -> None:
         """Stop the execution if any of the meta-kernels is already archived.

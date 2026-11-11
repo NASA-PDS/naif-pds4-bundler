@@ -649,6 +649,64 @@ class TestSpiceKernelsCollectionMkFromKernelList:
 
 
 # ===========================================================================
+# SpiceKernelsCollection._is_single_version_only_mk_template
+# ===========================================================================
+
+def _mk_template(names=None, **overrides):
+    """Build an 'mk' configuration item with one name entry per pattern."""
+    names = names or [
+        {"pattern": {"#text": "VERSION", "@length": "3"}}]
+    return [{"@name": "test_$VERSION.tm", "name": names, **overrides}]
+
+
+class TestSpiceKernelsCollectionIsSingleVersionOnlyMkTemplate:
+    """Tests for SpiceKernelsCollection._is_single_version_only_mk_template."""
+
+    @pytest.mark.parametrize("mk, expected", [
+        pytest.param(_mk_template(), True, id="single_version_pattern"),
+        pytest.param([], False, id="no_mks"),
+        pytest.param(
+            _mk_template() + _mk_template(), False, id="multiple_mks"),
+        pytest.param(
+            _mk_template(names=[
+                {"pattern": {"#text": "VERSION", "@length": "3"}},
+                {"pattern": {"#text": "VERSION", "@length": "2"}}]),
+            False, id="multiple_names"),
+        pytest.param(
+            _mk_template(names=[
+                {"pattern": {"#text": "VERSION", "@length": "3"},
+                 "@extra": "x"}]),
+            False, id="name_with_extra_keys"),
+        pytest.param(
+            _mk_template(names=[
+                {"pattern": [{"#text": "VERSION", "@length": "3"},
+                             {"#text": "YEAR", "@length": "4"}]}]),
+            False, id="two_patterns"),
+        pytest.param(
+            _mk_template(names=[{"pattern": {"#text": "VERSION"}}]),
+            False, id="pattern_without_length"),
+        pytest.param(
+            _mk_template(names=[
+                {"pattern": {"#text": "YEAR", "@length": "4"}}]),
+            False, id="pattern_not_version"),
+    ])
+    def test_detects_single_version_only_template(self, mk, expected):
+        """Only one meta-kernel named with a lone 'VERSION' pattern qualifies.
+
+        Several meta-kernels, several names, extra keys in the name, two
+        patterns, a pattern without length, and a pattern other than
+        'VERSION' are all rejected.
+        """
+        # An 'mk' configuration item with the shape of each case.
+
+        # Ask whether it is a single version-only template.
+        result = SpiceKernelsCollection._is_single_version_only_mk_template(mk)
+
+        # Only the supported shape is accepted.
+        assert result is expected
+
+
+# ===========================================================================
 # SpiceKernelsCollection._assert_mks_absent
 # ===========================================================================
 
