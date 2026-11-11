@@ -63,25 +63,7 @@ class SpiceKernelsCollection(Collection):
         # It is assumed that these kernels will be in the kernels_directory,
         # under the mk subdirectory.
         #
-        if not meta_kernels:
-            for kernel in self.list.kernel_list:
-                kernel_present = False
-                if ".tm" in kernel:
-                    for kernel_dir in self.setup.kernels_directory:
-                        path = f"{kernel_dir}/mk/{kernel}"
-                        if os.path.exists(path):
-                            meta_kernels[path] = True
-                            kernel_present = True
-                            break
-                    if not kernel_present:
-                        #
-                        # If the kernel is not present we don't provide the path.
-                        #
-                        logging.info(
-                            '-- %s not provided as input in kernels directory.',
-                            kernel)
-
-                        meta_kernels[kernel] = False
+        meta_kernels = meta_kernels or self._mk_from_kernel_list()
 
         #
         # If no meta-kernels are provided as inputs or in the kernel list,
@@ -168,6 +150,34 @@ class SpiceKernelsCollection(Collection):
                     f" configuration"
                     f" does not exist: {mk}")
             meta_kernels[mk] = True
+
+        return meta_kernels
+
+    def _mk_from_kernel_list(self) -> dict:
+        """Take the meta-kernels listed in the kernel list.
+
+        Those present under ``mk`` in one of the kernels directories are
+        returned by path with value ``True``. The rest are returned by name
+        with value ``False``, to be generated.
+
+        :return: Meta-kernels from the kernel list, empty if it has none.
+        """
+        meta_kernels = {}
+        for kernel in self.list.kernel_list:
+            if ".tm" not in kernel:
+                continue
+
+            for kernel_dir in self.setup.kernels_directory:
+                path = f"{kernel_dir}/mk/{kernel}"
+                if os.path.exists(path):
+                    meta_kernels[path] = True
+                    break
+            # The loop ended without a break: no kernels directory has it.
+            else:
+                logging.info(
+                    '-- %s not provided as input in kernels directory.',
+                    kernel)
+                meta_kernels[kernel] = False
 
         return meta_kernels
 

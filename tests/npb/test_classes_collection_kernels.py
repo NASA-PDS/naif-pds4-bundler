@@ -440,6 +440,32 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
             with pytest.raises(NPBError, match=message):
                 obj.determine_meta_kernels()
 
+    @pytest.mark.parametrize('pds_version', [
+        pytest.param('3', id='pds3'),
+        pytest.param('4', id='pds4'),
+    ])
+    def test_kernel_list_ignored_when_config_provides_mks(self, pds_version):
+        """Meta-kernels from the configuration replace those in the kernel list.
+
+        When 'mk_inputs' provides a meta-kernel, the '.tm' entries of the
+        kernel list are not looked up, so only the configured one is returned.
+        """
+        # A configured meta-kernel, and a kernel list with another one.
+        setup = self.make_setup(pds_version=pds_version, files="mk.tm")
+        kernels = make_kernels(["listed_v001.tm"])
+        with patch(_SET_LID):
+            obj = SpiceKernelsCollection(setup, make_bundle(), kernels)
+
+        # Determine the meta-kernels. Two lookups are allowed: the configured
+        # file, then its absence from the archive. A third would fail the test.
+        with patch(_EXISTS, side_effect=[True, False]) as exists_mock:
+            result = obj.determine_meta_kernels()
+
+        # Only the configured meta-kernel is returned, and the kernel list
+        # was never searched.
+        assert result == {"mk.tm": True}
+        assert exists_mock.call_count == 2
+
 
 # ===========================================================================
 # SpiceKernelsCollection._mk_from_config
@@ -546,6 +572,80 @@ class TestSpiceKernelsCollectionMkFromConfig:
         assert result == {}
         assert not exists_mock.called
         assert self.logged(caplog) == expected_log
+
+
+# ===========================================================================
+# SpiceKernelsCollection._mk_from_kernel_list
+# ===========================================================================
+
+class TestSpiceKernelsCollectionMkFromKernelList:
+    """Tests for SpiceKernelsCollection._mk_from_kernel_list."""
+
+    @staticmethod
+    def make_obj(kernel_list, kernels_directory):
+        setup = _Setup(
+            pds_version="4",
+            kernels_directory=kernels_directory,
+            mission_start="2000-01-01T00:00:00.000Z",
+            mission_finish="2040-01-01T00:00:00.000Z",
+        )
+        with patch(_SET_LID):
+            return SpiceKernelsCollection(
+                setup, make_bundle(), make_kernels(kernel_list))
+
+    @pytest.mark.parametrize(
+        "kernel_list, kernels_directory, on_disk, expected, expected_log", [
+            pytest.param(
+                ["a.tm"], ["/k1", "/k2"], [True],
+                {"/k1/mk/a.tm": True}, [], id="found_first_dir"),
+            pytest.param(
+                ["a.tm"], ["/k1", "/k2"], [False, True],
+                {"/k2/mk/a.tm": True}, [], id="found_second_dir"),
+            pytest.param(
+                ["a.tm"], ["/k1", "/k2"], [False, False],
+                {"a.tm": False},
+                [(logging.INFO,
+                  "-- a.tm not provided as input in kernels directory.")],
+                id="missing_everywhere"),
+            pytest.param(
+                ["naif.tls"], ["/k1"], [], {}, [], id="non_tm_ignored"),
+            pytest.param(
+                ["naif.tls", "a.tm", "b.tm"], ["/k1"], [True, False],
+                {"/k1/mk/a.tm": True, "b.tm": False},
+                [(logging.INFO,
+                  "-- b.tm not provided as input in kernels directory.")],
+                id="mixed"),
+            pytest.param(
+                ["a.tm"], [], [], {"a.tm": False},
+                [(logging.INFO,
+                  "-- a.tm not provided as input in kernels directory.")],
+                id="no_directories"),
+            pytest.param([], ["/k1"], [], {}, [], id="empty_list"),
+        ])
+    def test_returns_kernel_list_mks(
+            self, kernel_list, kernels_directory, on_disk, expected,
+            expected_log, caplog):
+        """The '.tm' entries of the kernel list are looked up by directory.
+
+        Those found under 'mk' in a kernels directory are returned by path
+        with value 'True', and the search stops at the first directory that
+        has them. Those found nowhere are returned by name with value
+        'False' and an info line. Other kernels are ignored.
+        """
+        # A kernel list and the kernels directories to search it in.
+        obj = self.make_obj(kernel_list, kernels_directory)
+
+        # Look the meta-kernels up; 'on_disk' says which lookups succeed.
+        with caplog.at_level(logging.INFO):
+            with patch(_EXISTS, side_effect=on_disk) as exists_mock:
+                result = obj._mk_from_kernel_list()
+
+        # The result and the log are the expected ones, and no more lookups
+        # were made than needed.
+        assert result == expected
+        assert [(r.levelno, r.getMessage()) for r in caplog.records] == (
+            expected_log)
+        assert exists_mock.call_count == len(on_disk)
 
 
 # ===========================================================================
