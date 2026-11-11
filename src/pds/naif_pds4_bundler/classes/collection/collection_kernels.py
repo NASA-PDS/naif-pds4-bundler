@@ -42,6 +42,12 @@ class SpiceKernelsCollection(Collection):
     def determine_meta_kernels(self):
         """Determine the name of the Meta-kernel(s) to be generated.
 
+        The meta-kernels come from the first of these sources that provides
+        any: the ``mk_inputs`` configuration, the kernel list (looked up in the
+        kernels directories) or, failing both, a name built from the ``mk``
+        configuration template. The chosen ones must not already be in the
+        archive.
+
         :return: Dictionary of meta-kernels to be generated. The keys list the
                  meta-kernels and the values whether if they are provided by the
                  user or not.
@@ -53,9 +59,6 @@ class SpiceKernelsCollection(Collection):
         # account (there is no hybrid possibility but NPB provides a warning
         # message if more meta-kernels are expected).
         #
-        meta_kernels = self._mk_from_config()
-
-        #
         # Second we check if meta-kernels are indicated with the kernel list.
         # Note that if kernels are provided as input, the ones present in the
         # kernel list are ignored.
@@ -63,10 +66,12 @@ class SpiceKernelsCollection(Collection):
         # It is assumed that these kernels will be in the kernels_directory,
         # under the mk subdirectory.
         #
-        meta_kernels = meta_kernels or self._mk_from_kernel_list()
+        meta_kernels = self._mk_from_config() or self._mk_from_kernel_list()
 
         #
-        # If no meta-kernels are provided as inputs or in the kernel list,
+        # If no meta-kernels are provided as inputs or in the kernel list, NPB
+        # will try to determine if a meta-kernel can be generated only using
+        # the information from the configuration file.
         #
         if not meta_kernels:
             if self.setup.args.faucet == "labels":
@@ -78,10 +83,6 @@ class SpiceKernelsCollection(Collection):
                     "-- No meta-kernel provided in the kernel list or via configuration."
                 )
 
-            #
-            # NPB will try to determine if a meta-kernel can be generated
-            # only using the information from the configuration file.
-            #
             meta_kernels = self._mk_synthesized_from_template()
 
         if not meta_kernels:
