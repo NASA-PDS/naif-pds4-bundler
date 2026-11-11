@@ -461,27 +461,60 @@ class TestSpiceKernelsCollectionAssertMksAbsent:
         with patch(_SET_LID):
             return SpiceKernelsCollection(setup, make_bundle(), make_kernels())
 
-    @pytest.mark.parametrize("pds_version, mks, message", [
-        ("3", {"mk.tm": True},
-         "MK already exists in the archive: /fake/bundle/test/extras/mk/mk.tm"),
-        ("4", {"mk.tm": True},
-         "MK already exists in the archive: /fake/bundle/test_spice/spice_kernels/mk/mk.tm"),
-        # Names are checked in sorted order, so only "a.tm" can be reported.
-        ("4", {"b.tm": False, "a.tm": True},
-         "MK already exists in the archive: /fake/bundle/test_spice/spice_kernels/mk/a.tm"),
+    @pytest.mark.parametrize("pds_version, mks, on_disk, archived", [
+        pytest.param(
+            "3", {"mk.tm": True}, ("mk.tm",),
+            "/fake/bundle/test/extras/mk/mk.tm", id="pds3"),
+        pytest.param(
+            "4", {"mk.tm": True}, ("mk.tm",),
+            "/fake/bundle/test_spice/spice_kernels/mk/mk.tm", id="pds4"),
+        # Both exist and 'b.tm' comes first in the dictionary, so only sorting
+        # makes 'a.tm' the one reported.
+        pytest.param(
+            "4", {"b.tm": True, "a.tm": True}, ("a.tm", "b.tm"),
+            "/fake/bundle/test_spice/spice_kernels/mk/a.tm", id="sorted_order"),
     ])
-    def test_raises_when_mk_exists(self, pds_version, mks, message):
+    def test_raises_when_mk_exists(self, pds_version, mks, on_disk, archived):
+        """A meta-kernel already in the archive stops the run.
+
+        The error gives the archive path, which is under the PDS3 'extras'
+        or the PDS4 'spice_kernels' directory. When several exist, the first
+        in alphabetical order is the one reported.
+        """
+        # A collection for the PDS version.
         obj = self.make_obj(pds_version)
-        with patch(_EXISTS, side_effect=lambda path: path.endswith("mk.tm") or path.endswith("a.tm")):
-            with pytest.raises(NPBError, match=message):
+
+        # Check the meta-kernels, where only those in 'on_disk' exist.
+        with patch(_EXISTS, side_effect=lambda path: path.endswith(on_disk)):
+            with pytest.raises(NPBError) as exc_info:
                 obj._assert_mks_absent(mks)
 
-    @pytest.mark.parametrize("pds_version", ["3", "4"])
-    @pytest.mark.parametrize("mks", [{}, {"mk.tm": True, "other.tm": False}])
+        # The error carries the archive path of the first one by name.
+        message = f"MK already exists in the archive: {archived}"
+        assert str(exc_info.value) == message
+
+    @pytest.mark.parametrize("pds_version", [
+        pytest.param("3", id="pds3"),
+        pytest.param("4", id="pds4"),
+    ])
+    @pytest.mark.parametrize("mks", [
+        pytest.param({}, id="no_mks"),
+        pytest.param({"mk.tm": True, "other.tm": False}, id="two_mks"),
+    ])
     def test_passes_when_no_mk_exists(self, pds_version, mks):
+        """Nothing is raised when none of the meta-kernels is in the archive.
+
+        Every meta-kernel is looked up, and an empty dictionary looks up none.
+        """
+        # A collection for the PDS version.
         obj = self.make_obj(pds_version)
-        with patch(_EXISTS, return_value=False):
-            assert obj._assert_mks_absent(mks) is None
+
+        # Check the meta-kernels, none of which exist in the archive.
+        with patch(_EXISTS, return_value=False) as exists_mock:
+            obj._assert_mks_absent(mks)
+
+        # One lookup per meta-kernel, and no error was raised getting here.
+        assert exists_mock.call_count == len(mks)
 
 
 # ===========================================================================
