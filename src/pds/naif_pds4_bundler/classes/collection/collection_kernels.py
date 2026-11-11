@@ -151,19 +151,23 @@ class SpiceKernelsCollection(Collection):
             logging.info("")
             logging.warning("-- No Meta-kernel will be generated.")
         else:
-            #
-            # Check that the meta-kernels are not present. If a meta-kernel is
-            # present stop the execution.
-            #
-            for meta_kernel in sorted(meta_kernels):
-                if self.setup.pds_version == "4":
-                    existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
-                else:
-                    existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
-                if os.path.exists(existing_path):
-                    raise NPBError(f"MK already exists in the archive: {existing_path}")
+            self._assert_mks_absent(meta_kernels)
 
         return meta_kernels
+
+    def _assert_mks_absent(self, mks: dict) -> None:
+        """Stop the execution if any of the meta-kernels is already archived.
+
+        :param mks: Meta-kernels to check; only the keys (names) are used.
+        :raises NPBError: If any of them is already in the archive.
+        """
+        for meta_kernel in sorted(mks):
+            if self.setup.pds_version == "4":
+                existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
+            else:
+                existing_path = f"{self.setup.bundle_directory}/{self.setup.volume_id}/extras/mk/{meta_kernel}"
+            if os.path.exists(existing_path):
+                raise NPBError(f"MK already exists in the archive: {existing_path}")
 
     def set_increment_times(self) -> None:
         """Determine the archive increment start and finish times.

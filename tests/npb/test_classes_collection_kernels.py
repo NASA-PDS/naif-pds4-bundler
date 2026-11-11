@@ -442,6 +442,49 @@ class TestSpiceKernelsCollectionDetermineMetaKernels:
 
 
 # ===========================================================================
+# SpiceKernelsCollection._assert_mks_absent
+# ===========================================================================
+
+class TestSpiceKernelsCollectionAssertMksAbsent:
+    """Tests for SpiceKernelsCollection._assert_mks_absent."""
+
+    @staticmethod
+    def make_obj(pds_version):
+        setup = _Setup(
+            pds_version=pds_version,
+            mission_acronym="test",
+            volume_id="test",
+            bundle_directory="/fake/bundle",
+            mission_start="2000-01-01T00:00:00.000Z",
+            mission_finish="2040-01-01T00:00:00.000Z",
+        )
+        with patch(_SET_LID):
+            return SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+
+    @pytest.mark.parametrize("pds_version, mks, message", [
+        ("3", {"mk.tm": True},
+         "MK already exists in the archive: /fake/bundle/test/extras/mk/mk.tm"),
+        ("4", {"mk.tm": True},
+         "MK already exists in the archive: /fake/bundle/test_spice/spice_kernels/mk/mk.tm"),
+        # Names are checked in sorted order, so only "a.tm" can be reported.
+        ("4", {"b.tm": False, "a.tm": True},
+         "MK already exists in the archive: /fake/bundle/test_spice/spice_kernels/mk/a.tm"),
+    ])
+    def test_raises_when_mk_exists(self, pds_version, mks, message):
+        obj = self.make_obj(pds_version)
+        with patch(_EXISTS, side_effect=lambda path: path.endswith("mk.tm") or path.endswith("a.tm")):
+            with pytest.raises(NPBError, match=message):
+                obj._assert_mks_absent(mks)
+
+    @pytest.mark.parametrize("pds_version", ["3", "4"])
+    @pytest.mark.parametrize("mks", [{}, {"mk.tm": True, "other.tm": False}])
+    def test_passes_when_no_mk_exists(self, pds_version, mks):
+        obj = self.make_obj(pds_version)
+        with patch(_EXISTS, return_value=False):
+            assert obj._assert_mks_absent(mks) is None
+
+
+# ===========================================================================
 # SpiceKernelsCollection.set_increment_times.
 # ===========================================================================
 
