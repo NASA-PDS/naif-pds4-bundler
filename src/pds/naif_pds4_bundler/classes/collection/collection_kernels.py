@@ -3,6 +3,7 @@ from __future__ import annotations
 import glob
 import logging
 import os
+from typing import Any
 
 import spiceypy
 from spiceypy.utils.exceptions import SpiceyPyError
@@ -39,7 +40,7 @@ class SpiceKernelsCollection(Collection):
 
         super().__init__(self.type, setup, bundle)
 
-    def determine_meta_kernels(self):
+    def determine_meta_kernels(self) -> dict[str, bool]:
         """Determine the name of the Meta-kernel(s) to be generated.
 
         The meta-kernels come from the first of these sources that provides
@@ -48,24 +49,12 @@ class SpiceKernelsCollection(Collection):
         configuration template. The chosen ones must not already be in the
         archive.
 
-        :return: Dictionary of meta-kernels to be generated. The keys list the
-                 meta-kernels and the values whether if they are provided by the
-                 user or not.
-        :rtype: dictionary.
+        :return: Dictionary of meta-kernels to be generated, where the keys are
+                 the meta-kernels and the values indicate whether they are
+                 provided by the user or not.
         """
-        #
-        # First check if a meta-kernel has been provided via configuration by
-        # the user. If so, only the provided meta-kernels will be taken into
-        # account (there is no hybrid possibility but NPB provides a warning
-        # message if more meta-kernels are expected).
-        #
-        # Second we check if meta-kernels are indicated with the kernel list.
-        # Note that if kernels are provided as input, the ones present in the
-        # kernel list are ignored.
-        #
-        # It is assumed that these kernels will be in the kernels_directory,
-        # under the mk subdirectory.
-        #
+        # Configured meta-kernels take precedence: meta-kernels from the kernel
+        # list are only used when the configuration provides none.
         meta_kernels = self._mk_from_config() or self._mk_from_kernel_list()
 
         #
@@ -93,7 +82,7 @@ class SpiceKernelsCollection(Collection):
 
         return meta_kernels
 
-    def _mk_from_config(self) -> dict:
+    def _mk_from_config(self) -> dict[str, bool]:
         """Take the meta-kernels provided via the ``mk_inputs`` configuration.
 
         When given, only these meta-kernels are used: there is no hybrid with
@@ -126,7 +115,7 @@ class SpiceKernelsCollection(Collection):
 
         return meta_kernels
 
-    def _mk_from_kernel_list(self) -> dict:
+    def _mk_from_kernel_list(self) -> dict[str, bool]:
         """Take the meta-kernels listed in the kernel list.
 
         Those present under ``mk`` in one of the kernels directories are
@@ -154,7 +143,7 @@ class SpiceKernelsCollection(Collection):
 
         return meta_kernels
 
-    def _mk_synthesized_from_template(self) -> dict:
+    def _mk_synthesized_from_template(self) -> dict[str, bool]:
         """Build the meta-kernel name from the ``mk`` configuration template.
 
         This only works if the bundle has one meta-kernel and the only pattern
@@ -184,7 +173,7 @@ class SpiceKernelsCollection(Collection):
         return {meta_kernel: False}
 
     @staticmethod
-    def _is_single_version_only_mk_template(mk: list) -> bool:
+    def _is_single_version_only_mk_template(mk: list[dict[str, Any]]) -> bool:
         """Tell if the ``mk`` configuration is a single, version-only template.
 
         That means one meta-kernel whose name has a single pattern, and that
@@ -210,7 +199,7 @@ class SpiceKernelsCollection(Collection):
                 and not isinstance(pattern, list)
                 and pattern["#text"] == "VERSION")
 
-    def _assert_mks_absent(self, mks: dict) -> None:
+    def _assert_mks_absent(self, mks: dict[str, bool]) -> None:
         """Stop the execution if any of the meta-kernels is already archived.
 
         :param mks: Meta-kernels to check; only the keys (names) are used.
