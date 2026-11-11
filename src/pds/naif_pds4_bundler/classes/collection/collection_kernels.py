@@ -81,29 +81,8 @@ class SpiceKernelsCollection(Collection):
             #
             # NPB will try to determine if a meta-kernel can be generated
             # only using the information from the configuration file.
-            # This will only work if the bundle only includes one meta-kernel
-            # and the only pattern in the filename is the VERSION.
             #
-            # This will happen only if there are kernels in the collection.
-            #
-            # If the kernel already exists, it will not be generated.
-            #
-            if (hasattr(self.setup, "mk")
-                and self.product
-                and self.setup.args.faucet != "labels"
-            ):
-                if self._is_single_version_only_mk_template(self.setup.mk):
-                    version_length = int(
-                        self.setup.mk[0]["name"][0]["pattern"]["@length"]
-                    )
-
-                    version = "1"
-                    meta_kernel = self.setup.mk[0]["@name"].replace(
-                        "$VERSION", version.zfill(version_length)
-                    )
-                    existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
-                    if not os.path.exists(existing_path):
-                        meta_kernels[meta_kernel] = False
+            meta_kernels = self._mk_synthesized_from_template()
 
         if not meta_kernels:
             logging.info("")
@@ -173,6 +152,35 @@ class SpiceKernelsCollection(Collection):
                 meta_kernels[kernel] = False
 
         return meta_kernels
+
+    def _mk_synthesized_from_template(self) -> dict:
+        """Build the meta-kernel name from the ``mk`` configuration template.
+
+        This only works if the bundle has one meta-kernel and the only pattern
+        in its name is ``VERSION``, and only when the collection has products.
+        The first version is used. A meta-kernel already in the bundle is not
+        generated again.
+
+        :return: The meta-kernel name with value ``False`` (to be generated),
+                 or empty if it cannot or need not be generated.
+        """
+        if not (hasattr(self.setup, "mk")
+                and self.product
+                and self.setup.args.faucet != "labels"):
+            return {}
+
+        if not self._is_single_version_only_mk_template(self.setup.mk):
+            return {}
+
+        version_length = int(
+            self.setup.mk[0]["name"][0]["pattern"]["@length"])
+        meta_kernel = self.setup.mk[0]["@name"].replace(
+            "$VERSION", "1".zfill(version_length))
+        existing_path = f"{self.setup.bundle_directory}/{self.setup.mission_acronym}_spice/spice_kernels/mk/{meta_kernel}"
+        if os.path.exists(existing_path):
+            return {}
+
+        return {meta_kernel: False}
 
     @staticmethod
     def _is_single_version_only_mk_template(mk: list) -> bool:

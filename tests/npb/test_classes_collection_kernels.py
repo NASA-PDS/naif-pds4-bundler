@@ -707,6 +707,81 @@ class TestSpiceKernelsCollectionIsSingleVersionOnlyMkTemplate:
 
 
 # ===========================================================================
+# SpiceKernelsCollection._mk_synthesized_from_template
+# ===========================================================================
+
+class TestSpiceKernelsCollectionMkSynthesizedFromTemplate:
+    """Tests for SpiceKernelsCollection._mk_synthesized_from_template."""
+
+    @staticmethod
+    def make_obj(faucet="plan", **setup_kwargs):
+        setup = _Setup(
+            pds_version="4",
+            args=MagicMock(faucet=faucet),
+            mission_acronym="test",
+            bundle_directory="/fake/bundle",
+            mission_start="2000-01-01T00:00:00.000Z",
+            mission_finish="2040-01-01T00:00:00.000Z",
+            **setup_kwargs,
+        )
+        with patch(_SET_LID):
+            return SpiceKernelsCollection(setup, make_bundle(), make_kernels())
+
+    @pytest.mark.parametrize(
+        "faucet, setup_kwargs, products, in_bundle, expected, lookups", [
+            pytest.param(
+                "plan", {"mk": _mk_template()}, [MagicMock()], False,
+                {"test_001.tm": False}, 1, id="synthesized"),
+            pytest.param(
+                "plan",
+                {"mk": _mk_template(names=[
+                    {"pattern": {"#text": "VERSION", "@length": "2"}}])},
+                [MagicMock()], False,
+                {"test_01.tm": False}, 1, id="version_length_respected"),
+            pytest.param(
+                "plan", {"mk": _mk_template()}, [MagicMock()], True,
+                {}, 1, id="already_in_bundle"),
+            pytest.param(
+                "plan", {"mk": _mk_template()}, [], False,
+                {}, 0, id="no_products"),
+            pytest.param(
+                "labels", {"mk": _mk_template()}, [MagicMock()], False,
+                {}, 0, id="labeling_mode"),
+            pytest.param(
+                "plan", {}, [MagicMock()], False,
+                {}, 0, id="no_mk_configuration"),
+            pytest.param(
+                "plan",
+                {"mk": _mk_template(names=[
+                    {"pattern": {"#text": "YEAR", "@length": "4"}}])},
+                [MagicMock()], False,
+                {}, 0, id="unsupported_template"),
+        ])
+    def test_synthesizes_mk_from_template(
+            self, faucet, setup_kwargs, products, in_bundle, expected,
+            lookups):
+        """A meta-kernel name is built only from a version-only template.
+
+        With products in the collection and outside labeling mode, the first
+        version of the template is returned with value 'False', padded to the
+        configured length. Nothing is returned when that meta-kernel is
+        already in the bundle, when there are no products, in labeling mode,
+        without an 'mk' configuration or with an unsupported template.
+        """
+        # A collection with the configuration and products of each case.
+        obj = self.make_obj(faucet=faucet, **setup_kwargs)
+        obj.product = products
+
+        # Build the name; 'in_bundle' says if the archive already has it.
+        with patch(_EXISTS, return_value=in_bundle) as exists_mock:
+            result = obj._mk_synthesized_from_template()
+
+        # The expected name, looked up in the bundle only when one is built.
+        assert result == expected
+        assert exists_mock.call_count == lookups
+
+
+# ===========================================================================
 # SpiceKernelsCollection._assert_mks_absent
 # ===========================================================================
 
