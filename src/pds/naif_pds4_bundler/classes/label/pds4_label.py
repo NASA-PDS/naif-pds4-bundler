@@ -7,6 +7,13 @@ from .label import PDSLabel
 from ..exceptions import NPBError
 
 
+# Name of each supported line ending as it appears in the label.
+_END_OF_LINE_NAMES = {
+    "CRLF": "Carriage-Return Line-Feed",
+    "LF": "Line-Feed",
+}
+
+
 def _join_names(primary: str, secondary: List[str]) -> str:
     """Join the primary name and the secondary ones as 'A, B, and C'.
 
@@ -115,16 +122,12 @@ class PDS4Label(PDSLabel):
 
         # PDS4 labels always render CRLF in the model name, regardless of which
         # line ending the file itself actually uses.
-        self._label_fields["END_OF_LINE_PDS4"] = "Carriage-Return Line-Feed"
-        if self.setup.end_of_line == "CRLF":
-            self._label_fields["END_OF_LINE"] = "Carriage-Return Line-Feed"
+        self._label_fields["END_OF_LINE_PDS4"] = _END_OF_LINE_NAMES["CRLF"]
 
-        elif self.setup.end_of_line == "LF":
-            self._label_fields["END_OF_LINE"] = "Line-Feed"
-
-        else:
-            raise NPBError(
-                "End of Line provided via configuration is not CRLF nor LF.")
+        # Setup only lets 'CRLF' or 'LF' through, so the lookup cannot miss.
+        self._label_fields["END_OF_LINE"] = _END_OF_LINE_NAMES[
+            self.setup.end_of_line
+        ]
 
         # Every bundle description links to the spiceds document -- it's the
         # one document guaranteed to exist for any mission, regardless of

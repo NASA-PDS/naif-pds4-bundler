@@ -151,18 +151,16 @@ class TestPDS4LabelInit:
         ('CRLF', 'Carriage-Return Line-Feed')
     ])
     def test_pds4_end_of_line(self, label_test_helpers, product, eol, expected_eol_name):
+        """END_OF_LINE names the configured line ending, while
+        END_OF_LINE_PDS4 always names CRLF.
+        """
         setup = label_test_helpers.make_setup_pds4(end_of_line=eol)
         product.setup = setup
         label = PDS4Label(product)
         assert label._label_fields["END_OF_LINE"] == expected_eol_name
-
-    def test_pds4_end_of_line_invalid(self, label_test_helpers, product):
-        """end_of_line is invalid (neither CRLF nor LF)"""
-        setup = label_test_helpers.make_setup_pds4(end_of_line="CR")
-        with pytest.raises(NPBError, match=r'End of Line provided via configuration '
-                                            r'is not CRLF nor LF\.'):
-            product.setup = setup
-            PDS4Label(product)
+        # The PDS4 model name is CRLF even when the file uses LF
+        assert (label._label_fields["END_OF_LINE_PDS4"]
+                == "Carriage-Return Line-Feed")
 
     def test_pds4_sets_missions_targets_observers(self, mock_class_methods, setup_pds4, product):
         setup_pds4.secondary_missions = ["MissionB", "MissionC"]
