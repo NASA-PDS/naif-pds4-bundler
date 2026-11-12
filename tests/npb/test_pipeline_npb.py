@@ -1109,6 +1109,27 @@ class TestPhase9PDS4DocumentMiscChecksum:
         run_pipeline(_args())
         mocks.ChecksumProduct.return_value.generate.assert_called()
 
+    def test_current_checksum_added_to_miscellaneous_collection_once(
+            self, mocks: SimpleNamespace) -> None:
+        """Check the current checksum is added to the collection once.
+
+        In a default PDS4 run the miscellaneous collection receives the
+        release's checksum product exactly one time, so the bundle lists
+        its file and label a single time.
+        """
+        # The mocks hand back one collection and one checksum object, so
+        # the collection's 'add' calls can be checked against that object.
+        misc = mocks.MiscellaneousCollection.return_value
+        checksum = mocks.ChecksumProduct.return_value
+
+        # Run the whole PDS4 pipeline with the default mocks.
+        run_pipeline(_args())
+
+        # Each 'add' call has one positional argument: the added product.
+        # Count how many of those are the checksum.
+        added = [c[0][0] for c in misc.add.call_args_list]
+        assert added.count(checksum) == 1
+
     def test_checksum_labeled_with_pds4_label(self, mocks):
         # generate() no longer builds the label itself -- npb.py must build it
         # right after generate() returns and assign it back onto the product,
