@@ -10,14 +10,19 @@ test_classes_label_pds3.py for the (currently much thinner) PDS3Label
 coverage.
 """
 
+import re
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, Callable, Sequence, Type
 from unittest.mock import MagicMock
 
 import pytest
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds4_label import PDS4Label
+from pds.naif_pds4_bundler.classes.label.pds4_orbnum_file import (
+    OrbnumFilePDS4Label,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -557,6 +562,229 @@ class TestPDS4LabelGetTargets:
 
     def test_trailing_eol_appended(self, label_for):
         assert label_for(["TestTarget"]).get_targets().endswith("\r\n")
+
+
+# ===========================================================================
+# PDS4Label.get_missions/get_observers/get_targets: pinned output
+# ===========================================================================
+
+def _context_product(name: str, type_: str, lid: str) -> dict:
+    """Build a context product entry as the label expects to find it."""
+    return {"name": [name], "type": [type_], "lidvid": f"{lid}::1.0"}
+
+
+# Rendered blocks for the default context products, in the label's PDS4 EOL
+# and indentation (xml_tab = 2).
+MISSION_BLOCK = (
+    "    <Investigation_Area>\r\n"
+    "      <name>TestMission</name>\r\n"
+    "      <type>Mission</type>\r\n"
+    "      <Internal_Reference>\r\n"
+    "        <lid_reference>urn:nasa:pds:testmission</lid_reference>\r\n"
+    "        <reference_type>data_to_investigation</reference_type>\r\n"
+    "      </Internal_Reference>\r\n"
+    "    </Investigation_Area>\r\n"
+)
+OTHER_MISSION_BLOCK = (
+    "    <Investigation_Area>\r\n"
+    "      <name>OtherMission</name>\r\n"
+    "      <type>Other Investigation</type>\r\n"
+    "      <Internal_Reference>\r\n"
+    "        <lid_reference>urn:nasa:pds:othermission</lid_reference>\r\n"
+    "        <reference_type>data_to_investigation</reference_type>\r\n"
+    "      </Internal_Reference>\r\n"
+    "    </Investigation_Area>\r\n"
+)
+OBSERVER_BLOCK = (
+    "      <Observing_System_Component>\r\n"
+    "        <name>TestObserver</name>\r\n"
+    "        <type>Spacecraft</type>\r\n"
+    "        <Internal_Reference>\r\n"
+    "          <lid_reference>urn:nasa:pds:testobserver</lid_reference>\r\n"
+    "          <reference_type>is_instrument_host</reference_type>\r\n"
+    "        </Internal_Reference>\r\n"
+    "      </Observing_System_Component>\r\n"
+)
+OTHER_OBSERVER_BLOCK = (
+    "      <Observing_System_Component>\r\n"
+    "        <name>OtherObserver</name>\r\n"
+    "        <type>Rover</type>\r\n"
+    "        <Internal_Reference>\r\n"
+    "          <lid_reference>urn:nasa:pds:otherobserver</lid_reference>\r\n"
+    "          <reference_type>is_instrument_host</reference_type>\r\n"
+    "        </Internal_Reference>\r\n"
+    "      </Observing_System_Component>\r\n"
+)
+TARGET_BLOCK = (
+    "    <Target_Identification>\r\n"
+    "      <name>TestTarget</name>\r\n"
+    "      <type>Planet</type>\r\n"
+    "      <Internal_Reference>\r\n"
+    "        <lid_reference>urn:nasa:pds:testtarget</lid_reference>\r\n"
+    "        <reference_type>data_to_target</reference_type>\r\n"
+    "      </Internal_Reference>\r\n"
+    "    </Target_Identification>\r\n"
+)
+LOWERCASE_TARGET_BLOCK = (
+    "    <Target_Identification>\r\n"
+    "      <name>testtarget</name>\r\n"
+    "      <type>Planet</type>\r\n"
+    "      <Internal_Reference>\r\n"
+    "        <lid_reference>urn:nasa:pds:testtarget</lid_reference>\r\n"
+    "        <reference_type>data_to_target</reference_type>\r\n"
+    "      </Internal_Reference>\r\n"
+    "    </Target_Identification>\r\n"
+)
+DWARF_TARGET_BLOCK = (
+    "    <Target_Identification>\r\n"
+    "      <name>Ceres</name>\r\n"
+    "      <type>Dwarf planet</type>\r\n"
+    "      <Internal_Reference>\r\n"
+    "        <lid_reference>urn:nasa:pds:ceres</lid_reference>\r\n"
+    "        <reference_type>data_to_target</reference_type>\r\n"
+    "      </Internal_Reference>\r\n"
+    "    </Target_Identification>\r\n"
+)
+EXTRA_CONTEXT = [
+    _context_product("OtherMission", "Other Investigation",
+                     "urn:nasa:pds:othermission"),
+    _context_product("OtherObserver", "Rover", "urn:nasa:pds:otherobserver"),
+    _context_product("Ceres", "Dwarf Planet", "urn:nasa:pds:ceres"),
+]
+
+
+class TestPDS4LabelContextRenderingPinned:
+    """Pins the exact output and errors of get_missions/observers/targets.
+
+    Every expectation is a whole-string comparison, so a change in
+    whitespace, ordering, type handling or reference type shows up.
+    """
+
+    @pytest.fixture
+    def label_for(
+            self,
+            label_test_helpers: SimpleNamespace) -> Callable[..., PDS4Label]:
+        """Build a label without running ``__init__`` and set one attribute.
+
+        The context products are the shared defaults plus any extra ones, so
+        a test can match more than one mission, observer or target.
+        """
+        def _build(attr: str, entries: Any, extra_context: Sequence[dict] = (),
+                   cls: Type[PDS4Label] = PDS4Label) -> PDS4Label:
+            label = cls.__new__(cls)
+            label.setup = label_test_helpers.make_setup_pds4()
+            label.product = label_test_helpers.make_product()
+            label._context_products = (
+                label_test_helpers.make_context_products() + list(extra_context)
+            )
+            setattr(label, attr, entries)
+            return label
+        return _build
+
+    @pytest.mark.parametrize("method, attr, entries, expected", [
+        ("get_missions", "missions", "TestMission", MISSION_BLOCK),
+        ("get_missions", "missions", ["TestMission"], MISSION_BLOCK),
+        ("get_missions", "missions", ["", "TestMission", None], MISSION_BLOCK),
+        ("get_missions", "missions", ["TestMission", "OtherMission"],
+         MISSION_BLOCK + OTHER_MISSION_BLOCK),
+        ("get_observers", "observers", "TestObserver", OBSERVER_BLOCK),
+        ("get_observers", "observers", ["TestObserver"], OBSERVER_BLOCK),
+        ("get_observers", "observers", ["", "TestObserver", None],
+         OBSERVER_BLOCK),
+        # The text after the comma is dropped before matching and rendering.
+        ("get_observers", "observers", ["TestObserver, extra text"],
+         OBSERVER_BLOCK),
+        ("get_observers", "observers", ["TestObserver", "OtherObserver"],
+         OBSERVER_BLOCK + OTHER_OBSERVER_BLOCK),
+        ("get_targets", "targets", "TestTarget", TARGET_BLOCK),
+        ("get_targets", "targets", ["TestTarget"], TARGET_BLOCK),
+        ("get_targets", "targets", ["", "TestTarget", None], TARGET_BLOCK),
+        # Matched by case only: the name is rendered as typed, the type
+        # comes from the context product.
+        ("get_targets", "targets", ["testtarget"], LOWERCASE_TARGET_BLOCK),
+        # capitalize() lowercases everything after the first letter, so
+        # 'Dwarf Planet' is rendered as 'Dwarf planet'.
+        ("get_targets", "targets", ["Ceres"], DWARF_TARGET_BLOCK),
+        ("get_targets", "targets", ["TestTarget", "testtarget"],
+         TARGET_BLOCK + LOWERCASE_TARGET_BLOCK),
+    ])
+    def test_output_is_pinned(self, label_for: Callable[..., PDS4Label],
+                              method: str, attr: str, entries: Any,
+                              expected: str) -> None:
+        """Rendered XML matches byte for byte scalars, lists and gaps.
+
+        Covers a single value, a list, empty entries mixed with real ones,
+        several entries in order, an observer with trailing text, a target
+        matched by case only and a multi-word target type.
+        """
+        # Label that knows the default context products plus the extra ones
+        label = label_for(attr, entries, EXTRA_CONTEXT)
+
+        # Render the block through the method under test
+        result = getattr(label, method)()
+
+        # Exactly the expected XML, ending in a single end of line
+        assert result == expected
+
+    @pytest.mark.parametrize("method, attr, entries, expected_reference", [
+        ("get_missions", "missions", ["TestMission"],
+         "ancillary_to_investigation"),
+        ("get_targets", "targets", ["TestTarget"], "ancillary_to_target"),
+        # Observers always use the same reference type, whatever the subclass.
+        ("get_observers", "observers", ["TestObserver"],
+         "is_instrument_host"),
+    ])
+    def test_subclass_reference_type(self, label_for: Callable[..., PDS4Label],
+                                     method: str, attr: str, entries: Any,
+                                     expected_reference: str) -> None:
+        """A subclass that overrides a reference type changes the XML.
+
+        The orbnum label overrides the mission and target reference types.
+        The rendered block must use them, and the observer type must stay
+        'is_instrument_host'.
+        """
+        # Label of the subclass that overrides the reference types
+        label = label_for(attr, entries, cls=OrbnumFilePDS4Label)
+
+        # Render the block through the method under test
+        result = getattr(label, method)()
+
+        # The reference type comes from the subclass, not from PDS4Label
+        assert f"<reference_type>{expected_reference}</reference_type>" in result
+
+    @pytest.mark.parametrize("method, attr, entries, message", [
+        ("get_missions", "missions", ["Nope"],
+         "LID has not been obtained for mission Nope."),
+        # A target is in the context products, but it is not a valid mission.
+        ("get_missions", "missions", ["TestTarget"],
+         "LID has not been obtained for mission TestTarget."),
+        # The error quotes the whole entry, not just the part before the comma.
+        ("get_observers", "observers", ["Nope, extra text"],
+         "LID has not been obtained for observer Nope, extra text."),
+        ("get_targets", "targets", ["Nope"],
+         "LID has not been obtained for target Nope."),
+        ("get_missions", "missions", ["", None],
+         "test_kernel.bc missions not defined."),
+        ("get_observers", "observers", [""],
+         "test_kernel.bc observers not defined."),
+        ("get_targets", "targets", [""],
+         "test_kernel.bc targets not defined."),
+    ])
+    def test_error_messages(self, label_for: Callable[..., PDS4Label],
+                            method: str, attr: str, entries: Any,
+                            message: str) -> None:
+        """Unmatched and empty entries raise an NPBError with this message.
+
+        An entry with no matching context product names the entry in the
+        error. A list with only empty entries reports that nothing is
+        defined for the product.
+        """
+        # Label whose entries cannot be matched, or are all empty
+        label = label_for(attr, entries)
+
+        # Rendering has to stop with the error, matching the whole message
+        with pytest.raises(NPBError, match=f"^{re.escape(message)}$"):
+            getattr(label, method)()
 
 
 # ===========================================================================
