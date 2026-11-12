@@ -58,7 +58,7 @@ _OBSERVER = _ContextKind(
     name_before_comma=True,
 )
 # No type filter: unlike missions/observers, which are restricted to a fixed
-# vocabulary of context-product types, a target can be anybody type (planet,
+# vocabulary of context-product types, a target can be any body type (planet,
 # satellite, ring, ...), so any type is accepted.
 _TARGET = _ContextKind(
     "target", "targets", "Target_Identification", 2,
