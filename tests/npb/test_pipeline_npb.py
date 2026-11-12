@@ -1130,6 +1130,29 @@ class TestPhase9PDS4DocumentMiscChecksum:
         added = [c[0][0] for c in misc.add.call_args_list]
         assert added.count(checksum) == 1
 
+    def test_checksum_in_collection_when_inventory_is_built(
+            self, mocks: SimpleNamespace) -> None:
+        """Check the checksum is already in the collection for the inventory.
+
+        The miscellaneous inventory lists the products of the collection, so
+        the checksum has to be added before the inventory product is built.
+        """
+        # Let 'add' really store the product in the collection list, and
+        # take a copy of that list at the moment the inventory is built.
+        misc = mocks.MiscellaneousCollection.return_value
+        checksum = mocks.ChecksumProduct.return_value
+        misc.add.side_effect = misc.product.append
+        products_seen = []
+        mocks.InventoryPDS4Product.side_effect = (
+            lambda _setup, collection: products_seen.extend(collection.product)
+            or MagicMock())
+
+        # Run the whole PDS4 pipeline with the default mocks.
+        run_pipeline(_args())
+
+        # The checksum must be among the products the inventory could see.
+        assert checksum in products_seen
+
     def test_checksum_labeled_with_pds4_label(self, mocks):
         # generate() no longer builds the label itself -- npb.py must build it
         # right after generate() returns and assign it back onto the product,
