@@ -18,7 +18,9 @@ def _join_names(primary: str, secondary: List[str]) -> str:
     """Join the primary name and the secondary ones as 'A, B, and C'.
 
     :param primary: Name that goes first
-    :param secondary: Names that follow it
+    :param secondary: Names that follow it. Each must be a non-empty
+        string; empty names are invalid configuration but are not
+        rejected yet, so they are joined as they are.
     :return: ``primary`` alone, 'A and B' for one secondary name, or the
         comma-separated list with 'and' before the last name
     """

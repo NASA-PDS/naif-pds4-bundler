@@ -189,7 +189,9 @@ class TestJoinNames:
         (["B"], "Primary and B"),
         (["B", "C"], "Primary, B, and C"),
         (["B", "C", "D"], "Primary, B, C, and D"),
-        # An empty XML element reaches the label as an empty name.
+        # Not a valid name: a whitespace-only element in the configuration
+        # reaches the label as "". It is not rejected yet, so this pins the
+        # current output, not an intended one.
         ([""], "Primary and "),
     ])
     def test_join_names(self, secondary: List[str], expected: str) -> None:
