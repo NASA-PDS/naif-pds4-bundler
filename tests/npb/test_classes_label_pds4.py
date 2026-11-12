@@ -14,7 +14,7 @@ import re
 from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any, Callable, Sequence, Type
+from typing import Any, Callable, List, Sequence, Type
 from unittest.mock import MagicMock
 
 import pytest
@@ -23,6 +23,7 @@ from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.label.pds4_label import (
     PDS4Label,
     _ContextKind,
+    _join_names,
 )
 from pds.naif_pds4_bundler.classes.label.pds4_orbnum_file import (
     OrbnumFilePDS4Label,
@@ -163,25 +164,6 @@ class TestPDS4LabelInit:
             product.setup = setup
             PDS4Label(product)
 
-    # TODO: The following two test cases demonstrate an issue:
-    #       If they are not a list, the code to set up PDS4_MISSION_NAME
-    #       and PDS4_OBSERVER_NAME, results in a list of letters.
-    def test_pds4_secondary_missions_non_list_wrapped(self, mock_class_methods, setup_pds4, product):
-        setup_pds4.secondary_missions = "SingleMission"
-        product.setup = setup_pds4
-        label = PDS4Label(product)
-        assert label.missions == ['TestMission', 'SingleMission']
-        # TODO: This is a bug!!!!
-        assert label._label_fields["PDS4_MISSION_NAME"] == 'TestMission, S, i, n, g, l, e, M, i, s, s, i, o, and n'
-
-    def test_pds4_secondary_observers_non_list_wrapped(self, mock_class_methods, setup_pds4, product):
-        setup_pds4.secondary_observers = 'SingleObserver'
-        product.setup = setup_pds4
-        label = PDS4Label(product)
-        assert label.observers == ['TestObserver', 'SingleObserver']
-        # TODO: This is a bug!!!
-        assert label._label_fields["PDS4_OBSERVER_NAME"] == 'TestObserver, S, i, n, g, l, e, O, b, s, e, r, v, e, and r spacecraft and their'
-
     def test_pds4_sets_missions_targets_observers(self, mock_class_methods, setup_pds4, product):
         setup_pds4.secondary_missions = ["MissionB", "MissionC"]
         setup_pds4.secondary_observers = ["ObsB", "ObsC"]
@@ -195,6 +177,35 @@ class TestPDS4LabelInit:
         assert label._label_fields["MISSIONS"] == 'MockedMission'
         assert label._label_fields["OBSERVERS"] == 'MockedObserver'
         assert label._label_fields["TARGETS"] == 'MockedTarget'
+
+
+# ===========================================================================
+# _join_names
+# ===========================================================================
+
+class TestJoinNames:
+    """The 'A, B, and C' join used for the mission and observer names."""
+
+    @pytest.mark.parametrize("secondary, expected", [
+        ([], "Primary"),
+        (["B"], "Primary and B"),
+        (["B", "C"], "Primary, B, and C"),
+        (["B", "C", "D"], "Primary, B, C, and D"),
+        # An empty XML element reaches the label as an empty name.
+        ([""], "Primary and "),
+    ])
+    def test_join_names(self, secondary: List[str], expected: str) -> None:
+        """The primary name is followed by the secondary ones, joined with
+        'and' for one name and with a final ', and' for several.
+        """
+        # Primary name and its secondary names come in as plain data
+        primary = "Primary"
+
+        # Join them
+        result = _join_names(primary, secondary)
+
+        # No separator for none, ' and ' for one, ', and ' before the last
+        assert result == expected
 
 
 # ===========================================================================

@@ -1,10 +1,27 @@
 """PDS4 version-specific base class for PDS labels."""
 
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 from .label import PDSLabel
 from ..exceptions import NPBError
+
+
+def _join_names(primary: str, secondary: List[str]) -> str:
+    """Join the primary name and the secondary ones as 'A, B, and C'.
+
+    :param primary: Name that goes first
+    :param secondary: Names that follow it
+    :return: ``primary`` alone, 'A and B' for one secondary name, or the
+        comma-separated list with 'and' before the last name
+    """
+    names = [primary] + list(secondary)
+
+    if len(names) <= 2:
+        return " and ".join(names)
+
+    # Oxford comma: the last name is introduced by ', and'.
+    return ", ".join(names[:-1]) + ", and " + names[-1]
 
 
 @dataclass(frozen=True)
@@ -82,57 +99,19 @@ class PDS4Label(PDSLabel):
         self._label_fields["SCHEMA_LOCATION"] = self.setup.schema_location
         self._label_fields["INFORMATION_MODEL_VERSION"] = self.setup.information_model
 
-        #
-        # Needs to be built for several Missions.
-        #
-        # Render the mission name as a single value, or as a comma-separated
-        # "and"-joined list when secondary missions are configured.
-        if hasattr(self.setup, "secondary_missions"):
-            if len(self.setup.secondary_missions) == 1:
-                missions_text = (
-                    f"{self.setup.mission_name} and "
-                    f"{self.setup.secondary_missions[0]}")
+        # The names are rendered as a single value, or as an "and"-joined
+        # list when secondary missions and observers are configured.
+        secondary_missions = getattr(self.setup, "secondary_missions", [])
+        self._label_fields["PDS4_MISSION_NAME"] = _join_names(
+            self.setup.mission_name, secondary_missions
+        )
 
-            else:
-                missions_text = f"{self.setup.mission_name}, "
-
-                for i, sm_name in enumerate(self.setup.secondary_missions):
-                    if i == len(self.setup.secondary_missions) - 1:
-                        missions_text += f"and {sm_name}"
-
-                    else:
-                        missions_text += f"{sm_name}, "
-
-            self._label_fields["PDS4_MISSION_NAME"] = f"{missions_text}"
-
-        else:
-            self._label_fields["PDS4_MISSION_NAME"] = f"{self.setup.mission_name}"
-
-        #
-        # Needs to be built for several observers.
-        #
-        # Same "and"-joined rendering as missions above, but for observers.
-        if hasattr(self.setup, "secondary_observers"):
-
-            if len(self.setup.secondary_observers) == 1:
-                observers_text = (
-                    f"{self.setup.observer} and "
-                    f"{self.setup.secondary_observers[0]}")
-
-            else:
-                observers_text = f"{self.setup.observer}, "
-
-                for i, so_name in enumerate(self.setup.secondary_observers):
-                    if i == len(self.setup.secondary_observers) - 1:
-                        observers_text += f"and {so_name}"
-
-                    else:
-                        observers_text += f"{so_name}, "
-
-            self._label_fields["PDS4_OBSERVER_NAME"] = f"{observers_text} spacecraft and their"
-
-        else:
-            self._label_fields["PDS4_OBSERVER_NAME"] = f"{self.setup.observer} spacecraft and its"
+        secondary_observers = getattr(self.setup, "secondary_observers", [])
+        observers_text = _join_names(self.setup.observer, secondary_observers)
+        pronoun = "their" if secondary_observers else "its"
+        self._label_fields["PDS4_OBSERVER_NAME"] = (
+            f"{observers_text} spacecraft and {pronoun}"
+        )
 
         # PDS4 labels always render CRLF in the model name, regardless of which
         # line ending the file itself actually uses.
