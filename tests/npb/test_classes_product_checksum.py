@@ -606,6 +606,54 @@ class TestChecksumProductWriteProduct:
 
         self._run_write_product_warning_test(obj, caplog)
 
+    @pytest.mark.parametrize(
+        "pds_version, archive_dir, set_coverage",
+        [
+            pytest.param("4", "em16_spice", True, id="pds4-coverage-pass"),
+            pytest.param("4", "em16_spice", False, id="pds4-writing-pass"),
+            pytest.param("3", "em16_spice_1000", True,
+                         id="pds3-coverage-pass"),
+            pytest.param("3", "em16_spice_1000", False,
+                         id="pds3-writing-pass"),
+        ])
+    def test_write_product_own_file_without_label_logs_no_warning(
+            self, caplog, pds_version, archive_dir, set_coverage):
+        """Check the checksum does not warn about its own missing label.
+
+        The checksum being generated is already in the collection when
+        ``write_product()`` walks the products, and its label is only written
+        later. Its file must not log 'does not have a label', in either PDS
+        version and in both the coverage pass and the writing pass, and the
+        checksum table must be the same as without it in the collection.
+        """
+        own_path = (f"/staging/{archive_dir}/miscellaneous/"
+                    "checksum/checksum_v001.tab")
+        own_name = "miscellaneous/checksum/checksum_v001.tab"
+
+        # Two identical bundles; the second one also holds the checksum
+        # itself as a product, with no label yet, like the pipeline does.
+        baseline = self._obj_with_products(pds_version)
+        obj = self._obj_with_products(pds_version)
+        obj.path = own_path
+        obj.collection.bundle.collections[0].product.append(obj)
+
+        # Write both checksums, keeping the log of the whole run.
+        with patch(PATCHES["md5"], return_value="c" * 32), \
+             patch(PATCHES["os_walk"], return_value=[]), \
+             patch(PATCHES["os_path_isfile"], return_value=False), \
+             patch("builtins.open", mock_open()), \
+             caplog.at_level(logging.INFO):
+
+            baseline.write_product(history=None, set_coverage=set_coverage)
+            obj.write_product(history=None, set_coverage=set_coverage)
+
+        # No missing-label warning names the checksum's own file, and having
+        # it in the collection left the table untouched.
+        warnings = [r.getMessage() for r in caplog.records
+                    if "does not have a label" in r.getMessage()]
+        assert not any(own_name in message for message in warnings)
+        assert obj.md5_dict == baseline.md5_dict
+
     # TODO: This test will not be necessary when refactoring is completed.
     def test_write_product_duplicate_md5_debug_mode_logs_debug(self, caplog):
         obj = self._obj_with_products()
