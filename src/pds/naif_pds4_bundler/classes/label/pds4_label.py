@@ -1,9 +1,72 @@
 """PDS4 version-specific base class for PDS labels."""
 
-from typing import Optional, Tuple
+from dataclasses import dataclass
+from typing import Any, List, Optional, Tuple
 
 from .label import PDSLabel
 from ..exceptions import NPBError
+
+
+# Name of each supported line ending as it appears in the label.
+_END_OF_LINE_NAMES = {
+    "CRLF": "Carriage-Return Line-Feed",
+    "LF": "Line-Feed",
+}
+
+
+def _join_names(primary: str, secondary: List[str]) -> str:
+    """Join the primary name and the secondary ones as 'A, B, and C'.
+
+    :param primary: Name that goes first
+    :param secondary: Names that follow it. Each must be a non-empty
+        string; empty names are invalid configuration but are not
+        rejected yet, so they are joined as they are.
+    :return: ``primary`` alone, 'A and B' for one secondary name, or the
+        comma-separated list with 'and' before the last name
+    """
+    names = [primary] + list(secondary)
+
+    if len(names) <= 2:
+        return " and ".join(names)
+
+    # Oxford comma: the last name is introduced by ', and'.
+    return ", ".join(names[:-1]) + ", and " + names[-1]
+
+
+@dataclass(frozen=True)
+class _ContextKind:
+    """What sets missions, observers and targets apart when rendering."""
+
+    # Used in the "LID has not been obtained for ..." error.
+    singular: str
+    # Used in the "... not defined." error.
+    plural: str
+    # XML element that wraps each entry.
+    tag: str
+    indent: int
+    valid_types: Optional[Tuple[str, ...]] = None
+    case_insensitive: bool = False
+    capitalize_type: bool = False
+    name_before_comma: bool = False
+
+
+_MISSION = _ContextKind(
+    "mission", "missions", "Investigation_Area", 2,
+    valid_types=("Mission", "Other Investigation"),
+)
+_OBSERVER = _ContextKind(
+    "observer", "observers", "Observing_System_Component", 3,
+    valid_types=("Spacecraft", "Rover", "Lander", "Host"),
+    name_before_comma=True,
+)
+# No type filter: unlike missions/observers, which are restricted to a fixed
+# vocabulary of context-product types, a target can be any body type (planet,
+# satellite, ring, ...), so any type is accepted.
+_TARGET = _ContextKind(
+    "target", "targets", "Target_Identification", 2,
+    case_insensitive=True,
+    capitalize_type=True,
+)
 
 
 class PDS4Label(PDSLabel):
@@ -45,70 +108,28 @@ class PDS4Label(PDSLabel):
         self._label_fields["SCHEMA_LOCATION"] = self.setup.schema_location
         self._label_fields["INFORMATION_MODEL_VERSION"] = self.setup.information_model
 
-        #
-        # Needs to be built for several Missions.
-        #
-        # Render the mission name as a single value, or as a comma-separated
-        # "and"-joined list when secondary missions are configured.
-        if hasattr(self.setup, "secondary_missions"):
-            if len(self.setup.secondary_missions) == 1:
-                missions_text = (
-                    f"{self.setup.mission_name} and "
-                    f"{self.setup.secondary_missions[0]}")
+        # The names are rendered as a single value, or as an "and"-joined
+        # list when secondary missions and observers are configured.
+        secondary_missions = getattr(self.setup, "secondary_missions", [])
+        self._label_fields["PDS4_MISSION_NAME"] = _join_names(
+            self.setup.mission_name, secondary_missions
+        )
 
-            else:
-                missions_text = f"{self.setup.mission_name}, "
-
-                for i, sm_name in enumerate(self.setup.secondary_missions):
-                    if i == len(self.setup.secondary_missions) - 1:
-                        missions_text += f"and {sm_name}"
-
-                    else:
-                        missions_text += f"{sm_name}, "
-
-            self._label_fields["PDS4_MISSION_NAME"] = f"{missions_text}"
-
-        else:
-            self._label_fields["PDS4_MISSION_NAME"] = f"{self.setup.mission_name}"
-
-        #
-        # Needs to be built for several observers.
-        #
-        # Same "and"-joined rendering as missions above, but for observers.
-        if hasattr(self.setup, "secondary_observers"):
-
-            if len(self.setup.secondary_observers) == 1:
-                observers_text = (
-                    f"{self.setup.observer} and "
-                    f"{self.setup.secondary_observers[0]}")
-
-            else:
-                observers_text = f"{self.setup.observer}, "
-
-                for i, so_name in enumerate(self.setup.secondary_observers):
-                    if i == len(self.setup.secondary_observers) - 1:
-                        observers_text += f"and {so_name}"
-
-                    else:
-                        observers_text += f"{so_name}, "
-
-            self._label_fields["PDS4_OBSERVER_NAME"] = f"{observers_text} spacecraft and their"
-
-        else:
-            self._label_fields["PDS4_OBSERVER_NAME"] = f"{self.setup.observer} spacecraft and its"
+        secondary_observers = getattr(self.setup, "secondary_observers", [])
+        observers_text = _join_names(self.setup.observer, secondary_observers)
+        pronoun = "their" if secondary_observers else "its"
+        self._label_fields["PDS4_OBSERVER_NAME"] = (
+            f"{observers_text} spacecraft and {pronoun}"
+        )
 
         # PDS4 labels always render CRLF in the model name, regardless of which
         # line ending the file itself actually uses.
-        self._label_fields["END_OF_LINE_PDS4"] = "Carriage-Return Line-Feed"
-        if self.setup.end_of_line == "CRLF":
-            self._label_fields["END_OF_LINE"] = "Carriage-Return Line-Feed"
+        self._label_fields["END_OF_LINE_PDS4"] = _END_OF_LINE_NAMES["CRLF"]
 
-        elif self.setup.end_of_line == "LF":
-            self._label_fields["END_OF_LINE"] = "Line-Feed"
-
-        else:
-            raise NPBError(
-                "End of Line provided via configuration is not CRLF nor LF.")
+        # Setup only lets 'CRLF' or 'LF' through, so the lookup cannot miss.
+        self._label_fields["END_OF_LINE"] = _END_OF_LINE_NAMES[
+            self.setup.end_of_line
+        ]
 
         # Every bundle description links to the spiceds document -- it's the
         # one document guaranteed to exist for any mission, regardless of
@@ -191,118 +212,81 @@ class PDS4Label(PDSLabel):
             f"{' ' * indent * tab}</{tag}>{eol}"
         )
 
+    def _render_context_kind(
+        self, kind: _ContextKind, entries: Any, reference_type: str
+    ) -> str:
+        """Render every entry of one kind (missions, observers or targets).
+
+        :param kind: Differences for the kind being rendered
+        :param entries: One entry or a list of entries from the label
+        :param reference_type: Value of the ``reference_type`` element
+        :return: The XML blocks, ending in exactly one end of line
+        :raises NPBError: If an entry has no matching context product, or
+            if nothing was rendered
+        """
+        if not isinstance(entries, list):
+            entries = [entries]
+
+        blocks = ""
+
+        for entry in entries:
+            if not entry:
+                continue
+
+            # Observers may carry extra text after a comma; only the first
+            # part is the name, but the error below quotes the whole entry.
+            name = entry.split(",")[0] if kind.name_before_comma else entry
+            lid, type_ = self._match_context_entry(
+                name, kind.valid_types, kind.case_insensitive
+            )
+
+            # Handle the case where no LID was found: without this check,
+            # the label would be built with "None" as the value, instead of
+            # stopping with a clear error.
+            if not lid:
+                raise NPBError(
+                    f"LID has not been obtained for {kind.singular} {entry}."
+                )
+
+            # If we got here we already have a real match, so there's always
+            # a type to capitalize.
+            if kind.capitalize_type:
+                type_ = type_.capitalize()
+
+            blocks += self._render_context_entry(
+                kind.tag, kind.indent, name, type_, lid, reference_type
+            )
+
+        if not blocks:
+            raise NPBError(f"{self.product.name} {kind.plural} not defined.")
+
+        # Strip trailing whitespace from the last rendered entry, then
+        # append exactly one EOL.
+        return blocks.rstrip() + self._eol
+
     def get_missions(self) -> str:
         """Get the label mission from the context products.
 
         :return: List of missions to be included in the label
         """
-        miss = self.missions
-
-        if not isinstance(miss, list):
-            miss = [miss]
-
-        mis_list_for_label = ""
-
-        for mis in miss:
-            if mis:
-                mission_lid, mission_type = self._match_context_entry(
-                    mis, valid_types=("Mission", "Other Investigation")
-                )
-
-                if not mission_lid:
-                    raise NPBError(
-                        f"LID has not been obtained for mission {mis}."
-                    )
-
-                mis_list_for_label += self._render_context_entry(
-                    "Investigation_Area", 2,
-                    mis, mission_type, mission_lid, self._mission_reference_type,
-                )
-        if not mis_list_for_label:
-            raise NPBError(f"{self.product.name} missions not defined.")
-
-        # Strip trailing whitespace from the last rendered entry, then
-        # append exactly one EOL.
-        return mis_list_for_label.rstrip() + self._eol
+        return self._render_context_kind(
+            _MISSION, self.missions, self._mission_reference_type
+        )
 
     def get_observers(self) -> str:
         """Get the label observers from the context products.
 
         :return: List of Observers to be included in the label
         """
-        obs = self.observers
-        if not isinstance(obs, list):
-            obs = [obs]
-
-        obs_list_for_label = ""
-
-        for ob in obs:
-            if ob:
-                ob_name = ob.split(",")[0]
-                ob_lid, ob_type = self._match_context_entry(
-                    ob_name,
-                    valid_types=("Spacecraft", "Rover", "Lander", "Host"),
-                )
-
-                if not ob_lid:
-                    raise NPBError(
-                        f"LID has not been obtained for observer {ob}."
-                    )
-
-                obs_list_for_label += self._render_context_entry(
-                    "Observing_System_Component", 3,
-                    ob_name, ob_type, ob_lid, "is_instrument_host",
-                )
-
-        if not obs_list_for_label:
-            raise NPBError(f"{self.product.name} observers not defined.")
-
-        # Strip trailing whitespace from the last rendered entry, then
-        # append exactly one EOL.
-        return obs_list_for_label.rstrip() + self._eol
+        return self._render_context_kind(
+            _OBSERVER, self.observers, "is_instrument_host"
+        )
 
     def get_targets(self) -> str:
         """Get the label targets from the context products.
 
         :return: List of Targets to be included in the label
         """
-        tars = self.targets
-        if not isinstance(tars, list):
-            tars = [tars]
-
-        tar_list_for_label = ""
-
-        for tar in tars:
-            if tar:
-                target_name = tar
-                # No type filter: unlike missions/observers, which are
-                # restricted to a fixed vocabulary of context-product types,
-                # a target can be any body type (planet, satellite, ring,
-                # ...), so any type is accepted.
-                target_lid, target_type = self._match_context_entry(
-                    target_name, case_insensitive=True
-                )
-
-                # Handle the case where no target LID was found: without this
-                # check, the label would be built with "None" as the value,
-                # instead of stopping with a clear error.
-                if not target_lid:
-                    raise NPBError(
-                        f"LID has not been obtained for target {tar}."
-                    )
-
-                # If we got here we already have a real match, so there's always
-                # a type to capitalize.
-                target_type = target_type.capitalize()
-
-                tar_list_for_label += self._render_context_entry(
-                    "Target_Identification", 2,
-                    target_name, target_type, target_lid, self._target_reference_type,
-                )
-
-        if not tar_list_for_label:
-            raise NPBError(f"{self.product.name} targets not defined.")
-
-        # Strip trailing whitespace from the last rendered entry, then
-        # append exactly one EOL.
-        return tar_list_for_label.rstrip() + self._eol
+        return self._render_context_kind(
+            _TARGET, self.targets, self._target_reference_type
+        )
