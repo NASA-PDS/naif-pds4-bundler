@@ -324,7 +324,9 @@ class ChecksumProduct(Product):
                             label_checksum
                         )
 
-                    else:
+                    # The checksum being generated is already in its own
+                    # collection, and its label is only written afterwards.
+                    elif product is not self:
                         logging.warning('-- %s does not have a label.', product_name)
                         logging.info('')
 
