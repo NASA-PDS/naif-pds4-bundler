@@ -607,8 +607,6 @@ def run_pipeline(args: PipelineArgs) -> None:
             logging.info('-- Labeling %s...', checksum.name)
             _write_label(run_state, checksum, ChecksumPDS4Label)
 
-            miscellaneous_collection.add(checksum)
-
         else:  # if setup.pds_version == "3":
 
             document_collection = DocumentCollection(setup, bundle)
