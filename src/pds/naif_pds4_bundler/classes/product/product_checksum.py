@@ -278,6 +278,12 @@ class ChecksumProduct(Product):
             #
             for collection in self.collection.bundle.collections:
                 for product in collection.product:
+
+                    # The checksum being generated is in its own collection,
+                    # but it is never an entry in its own table.
+                    if product is self:
+                        continue
+
                     if self.setup.pds_version == "4":
                         archive_dir = f"/{msn_acr}_spice/"
                     else:
@@ -308,12 +314,6 @@ class ChecksumProduct(Product):
                             else:
                                 logging.debug(msg)
                         self.md5_dict[product_name] = product.checksum
-                    else:
-                        #
-                        # For the current checksum product that does not have
-                        # a checksum.
-                        #
-                        pass
                     #
                     # Generate the MD5 checksum of the label.
                     #
