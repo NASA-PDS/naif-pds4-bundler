@@ -1081,3 +1081,67 @@ def test_pds4_table_bytes(tmp_path: Path, eol: str) -> None:
     # Compare the file with the expected bytes, line ending included.
     expected = "".join(line + eol for line in PDS4_TABLE_LINES).encode()
     assert Path(checksum.path).read_bytes() == expected
+
+
+# Names that differ only by '_' and '.', plus mixed case and digits. A plain
+# sort would order them a.b, a1, aB, a_b, a_b_c, ab.
+PDS3_ENTRIES = {
+    "ab.tab": "4" * 32,
+    "a_b_c.tab": "6" * 32,
+    "a.b.tab": "5" * 32,
+    "aB.tab": "3" * 32,
+    "a_b.tab": "2" * 32,
+    "a1.tab": "1" * 32,
+}
+
+# The order of the original mkpdssum.pl script, with trailing spaces so every
+# name takes as many characters as the longest one (9).
+PDS3_TABLE_LINES = [
+    f"{'1' * 32}  a1.tab   ",
+    f"{'3' * 32}  aB.tab   ",
+    f"{'4' * 32}  ab.tab   ",
+    f"{'5' * 32}  a.b.tab  ",
+    f"{'2' * 32}  a_b.tab  ",
+    f"{'6' * 32}  a_b_c.tab",
+]
+
+
+@pytest.mark.parametrize("eol", ["\n", "\r\n"])
+def test_pds3_table_bytes_and_counts(tmp_path: Path, eol: str) -> None:
+    """Check the bytes and the size attributes of a PDS3 checksum table.
+
+    The entries are sorted like mkpdssum.pl does, not like Python does, and
+    each name is padded with spaces to the longest one. The product reports
+    the longest name length as 'bytes', the length of a record, and the
+    number of records.
+    """
+    # Create the PDS3 setup and an empty previous checksum file, because the
+    # product always opens it, even when it has nothing to add.
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    setup = _make_setup(pds_version="3", increment=False)
+    setup.staging_directory = str(staging)
+    setup.bundle_directory = str(tmp_path / "bundle")
+    setup.eol = eol
+    previous = tmp_path / "bundle" / setup.volume_id / "index" / "checksum.tab"
+    previous.parent.mkdir(parents=True)
+    previous.write_bytes(b"")
+
+    # Build a bundle with no products, so the table only holds the entries
+    # added below.
+    collection = _make_collection()
+    collection.bundle = SimpleNamespace(collections=[])
+    checksum = ChecksumProduct(
+        setup, collection, add_previous_checksum=False)
+    checksum.md5_dict.update(PDS3_ENTRIES)
+
+    # Write the table to disk.
+    checksum.write_product()
+
+    # Compare the file with the expected bytes, then check the size
+    # attributes: 9 is the longest name and 45 is 32 + 4 + 9.
+    expected = "".join(line + eol for line in PDS3_TABLE_LINES).encode()
+    assert Path(checksum.path).read_bytes() == expected
+    assert checksum.bytes == 9
+    assert checksum.record_bytes == 45
+    assert checksum.file_records == 6
