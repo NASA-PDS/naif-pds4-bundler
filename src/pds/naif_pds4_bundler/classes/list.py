@@ -447,72 +447,8 @@ class KernelList:
         self._check_entry_counts(entries)
         self._check_kernels_in_plan(ker_in_list)
         self._check_list_duplicates(ker_in_list)
-
-        #
-        # Check that all files listed are available in OPS area;
-        # This does not raise an error but only a warning.
-        #
-        logging.info("-- Checking that kernels are present in: ")
-
-        for work_dir in self.setup.kernels_directory:
-            logging.info('   %s', work_dir)
-
-        # TODO: BUG, 'present' is initialised outside the loop and is never
-        #       reset by the kernel, if an existing kernel is found, all
-        #       kernels processed afterwards—even if they do not exist—will
-        #       be listed anyway and will not trigger any WARNING. In other
-        #       words, the behaviour depends on the order in which the
-        #       kernels are processed.
-        present = False
-        all_present = True
-        for ker in ker_in_list:
-            for work_dir in self.setup.kernels_directory:
-                #
-                # We cannot assume that the file is under a certain
-                # directory, it can be in any sub-directory.
-                #
-                file = [
-                    os.path.join(root, name)
-                    for root, dirs, files in os.walk(work_dir)
-                    for name in files
-                    if name == ker
-                ]
-                if file:
-                    present = True
-            if not present:
-                if ".tm" in ker:
-                    logging.info('     %s not present as expected.', ker)
-
-                else:
-                    logging.warning(
-                        '     %s not present. Kernel might be mapped.', ker)
-
-                    all_present = False
-        if all_present:
-            logging.info("     All kernels present.")
-        logging.info("")
-
-        #
-        # Check that no file is in the final area.
-        #
-        present = False
-
-        logging.info('-- Checking that kernels are present in %s: ',
-                     self.setup.bundle_directory)
-
-        for ker in ker_in_list:
-            if os.path.isfile(
-                self.setup.bundle_directory
-                + f"/{self.setup.mission_acronym}_spice/"
-                f"spice_kernels/" + extension_to_type(ker) + os.sep + ker
-            ):
-                present = True
-
-                logging.warning('     %s present.', ker)
-
-        if not present:
-            logging.info("     No kernels present in final area.")
-        logging.info("")
+        self._check_kernels_present(ker_in_list)
+        self._check_kernels_not_in_bundle(ker_in_list)
 
         #
         # IF you generate a PDS23 data set, display all the MAKLABL_OPTIONS
@@ -669,6 +605,77 @@ class KernelList:
         """
         if check_list_duplicates(kernels):
             raise NPBError("List contains duplicates.")
+
+    def _check_kernels_present(self, kernels: list[str]) -> None:
+        """Warn about listed kernels missing from the kernels directories.
+
+        This does not raise an error but only a warning.
+
+        :param kernels: Kernels of the list
+        """
+        logging.info("-- Checking that kernels are present in: ")
+
+        for work_dir in self.setup.kernels_directory:
+            logging.info('   %s', work_dir)
+
+        # TODO: BUG, 'present' is initialised outside the loop and is never
+        #       reset by the kernel, if an existing kernel is found, all
+        #       kernels processed afterwards—even if they do not exist—will
+        #       be listed anyway and will not trigger any WARNING. In other
+        #       words, the behaviour depends on the order in which the
+        #       kernels are processed.
+        present = False
+        all_present = True
+        for ker in kernels:
+            for work_dir in self.setup.kernels_directory:
+                #
+                # We cannot assume that the file is under a certain
+                # directory, it can be in any sub-directory.
+                #
+                file = [
+                    os.path.join(root, name)
+                    for root, dirs, files in os.walk(work_dir)
+                    for name in files
+                    if name == ker
+                ]
+                if file:
+                    present = True
+            if not present:
+                if ".tm" in ker:
+                    logging.info('     %s not present as expected.', ker)
+
+                else:
+                    logging.warning(
+                        '     %s not present. Kernel might be mapped.', ker)
+
+                    all_present = False
+        if all_present:
+            logging.info("     All kernels present.")
+        logging.info("")
+
+    def _check_kernels_not_in_bundle(self, kernels: list[str]) -> None:
+        """Warn about listed kernels that are already in the bundle area.
+
+        :param kernels: Kernels of the list
+        """
+        present = False
+
+        logging.info('-- Checking that kernels are present in %s: ',
+                     self.setup.bundle_directory)
+
+        for ker in kernels:
+            if os.path.isfile(
+                self.setup.bundle_directory
+                + f"/{self.setup.mission_acronym}_spice/"
+                f"spice_kernels/" + extension_to_type(ker) + os.sep + ker
+            ):
+                present = True
+
+                logging.warning('     %s present.', ker)
+
+        if not present:
+            logging.info("     No kernels present in final area.")
+        logging.info("")
 
     def validate_complete(self):
         """Validation of the complete Kernel List.

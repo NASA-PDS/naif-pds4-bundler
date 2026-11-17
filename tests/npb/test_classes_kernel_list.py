@@ -1585,10 +1585,15 @@ class TestKernelListValidateChecks:
     @pytest.fixture
     def kernel_list(self, caplog, tmp_path) -> KernelList:
         # A real KernelList with a plan of two kernels; the checks only need
-        # the plan, the mission name and the formatted list configuration.
+        # the plan, the mission, the formatted list configuration and the
+        # directories (two for the kernels, one for the bundle).
         caplog.set_level(logging.INFO)
 
-        setup = make_kernel_list_setup(tmp_path, mission_name='MAVEN')
+        setup = make_kernel_list_setup(
+            tmp_path, mission_name='MAVEN', mission_acronym='maven',
+            kernels_directory=[str(tmp_path / 'kernels_1'),
+                               str(tmp_path / 'kernels_2')],
+            bundle_directory=str(tmp_path / 'bundle'))
 
         kernel_list = KernelList(setup)
         kernel_list.kernel_list = ['a.bsp', 'b.bsp']
@@ -1671,6 +1676,76 @@ class TestKernelListValidateChecks:
                                    expectation) -> None:
         with expectation:
             kernel_list._check_list_duplicates(kernels)
+
+    @pytest.mark.parametrize(['kernels', 'files', 'expected'], [
+        # Present in a sub-directory of the first kernels directory.
+        (['a.bsp'], ['kernels_1/sub/a.bsp'],
+         [('INFO', '     All kernels present.'), ('INFO', '')]),
+        # Present only in the second kernels directory.
+        (['a.bsp'], ['kernels_2/a.bsp'],
+         [('INFO', '     All kernels present.'), ('INFO', '')]),
+        (['a.bsp'], [],
+         [('WARNING', '     a.bsp not present. Kernel might be mapped.'),
+          ('INFO', '')]),
+        # A missing meta-kernel is expected and does not count as missing.
+        (['m.tm'], [],
+         [('INFO', '     m.tm not present as expected.'),
+          ('INFO', '     All kernels present.'),
+          ('INFO', '')]),
+        # Known defect: the 'present' flag is never reset, so the outcome
+        # depends on the order of the kernels. Absent kernel first: warns.
+        (['b.bsp', 'a.bsp'], ['kernels_1/a.bsp'],
+         [('WARNING', '     b.bsp not present. Kernel might be mapped.'),
+          ('INFO', '')]),
+        # Known defect: present kernel first, so the absent one is silent and
+        # the log claims that all kernels are present.
+        (['a.bsp', 'b.bsp'], ['kernels_1/a.bsp'],
+         [('INFO', '     All kernels present.'), ('INFO', '')]),
+        ([], [],
+         [('INFO', '     All kernels present.'), ('INFO', '')])])
+    def test_check_kernels_present(self, caplog, tmp_path, kernel_list,
+                                   kernels, files, expected) -> None:
+        for file in files:
+            (tmp_path / file).parent.mkdir(parents=True, exist_ok=True)
+            (tmp_path / file).write_text('x', encoding='utf-8')
+        header = [('INFO', '-- Checking that kernels are present in: '),
+                  ('INFO', f'   {tmp_path / "kernels_1"}'),
+                  ('INFO', f'   {tmp_path / "kernels_2"}')]
+
+        kernel_list._check_kernels_present(kernels)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == header + expected
+
+    @pytest.mark.parametrize(['kernels', 'files', 'expected'], [
+        (['a.bsp'], [],
+         [('INFO', '     No kernels present in final area.'), ('INFO', '')]),
+        (['a.bsp', 'b.bsp'], ['bundle/maven_spice/spice_kernels/spk/a.bsp'],
+         [('WARNING', '     a.bsp present.'), ('INFO', '')]),
+        (['a.bsp', 'b.bsp'],
+         ['bundle/maven_spice/spice_kernels/spk/a.bsp',
+          'bundle/maven_spice/spice_kernels/spk/b.bsp'],
+         [('WARNING', '     a.bsp present.'),
+          ('WARNING', '     b.bsp present.'),
+          ('INFO', '')]),
+        # A kernel under the directory of another kernel type is not a match.
+        (['a.bsp'], ['bundle/maven_spice/spice_kernels/ck/a.bsp'],
+         [('INFO', '     No kernels present in final area.'), ('INFO', '')]),
+        ([], [],
+         [('INFO', '     No kernels present in final area.'),
+          ('INFO', '')])])
+    def test_check_kernels_not_in_bundle(self, caplog, tmp_path, kernel_list,
+                                         kernels, files, expected) -> None:
+        for file in files:
+            (tmp_path / file).parent.mkdir(parents=True, exist_ok=True)
+            (tmp_path / file).write_text('x', encoding='utf-8')
+        header = [('INFO', f'-- Checking that kernels are present in '
+                           f'{tmp_path / "bundle"}: ')]
+
+        kernel_list._check_kernels_not_in_bundle(kernels)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == header + expected
 
 
 class TestKernelListWriteCompleteList:
