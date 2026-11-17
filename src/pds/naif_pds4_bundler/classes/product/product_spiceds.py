@@ -23,7 +23,7 @@ class SpicedsProduct(Product):
 
     def __init__(self, setup, collection) -> None:
         """Constructor."""
-        self.setup = setup
+        super().__init__(setup)
         self.collection = collection
 
         try:
@@ -35,6 +35,9 @@ class SpicedsProduct(Product):
 
         if not spiceds:
             logging.info("-- No spiceds file provided.")
+
+        # True when the previous increment's file is reused as it is.
+        reuse_previous = False
 
         if self.setup.increment:
 
@@ -50,17 +53,19 @@ class SpicedsProduct(Product):
             if latest_version is not None:
                 self.latest_spiceds = latest_spiceds
                 self.latest_version = latest_version
-                self.version = latest_version + 1
 
                 if not spiceds:
 
                     # No new spiceds was supplied in the configuration, so the
                     # previous increment's file is reused as-is: nothing to
-                    # stage, no version bump beyond what was just derived.
+                    # stage and the version stays the same.
                     logging.info('-- Previous spiceds found: %s', latest_spiceds)
 
-                    self.generated = False
-                    return
+                    reuse_previous = True
+                    self.version = latest_version
+
+                else:
+                    self.version = latest_version + 1
 
             else:
                 logging.warning("-- No previous version of spiceds_v*.html file found.")
@@ -85,52 +90,64 @@ class SpicedsProduct(Product):
                     "spiceds not provided and not available from previous releases."
                 )
 
-        #
-        # Compare the previous SPICEDS file and the provided one. A user might
-        # not remove a previously provided SPICEDS file from the configuration
-        # file, if so, the user must be warned.
-        #
-        self.name = f'spiceds_v{self.version:0=3d}.html'
-        self.path = (
-            setup.staging_directory + os.sep + collection.name + os.sep + self.name
-        )
-        self.mission = setup
-
         self.set_product_lid()
         self.set_product_vid()
 
-        logging.info(
-            '-- spiceds file provided as input moved to staging area as %s',
-            self.name)
+        if reuse_previous:
 
-        #
-        # The provided spiceds file is moved to the staging area.
-        #
-        shutil.copy2(spiceds, self.path)
+            # The existing file is neither staged nor registered, so it has
+            # no file attributes to derive.
+            self.name = latest_spiceds.name
+            self.path = str(latest_spiceds)
+            self.new_product = False
+            self.generated = False
 
-        #
-        # The appropriate line endings are provided to the spiceds file,
-        # If line endings did not have Carriage Return (CR), they are
-        # added and the file timestamp is updated. Note that if the file
-        # already had CRs the original timestamp is preserved.
-        #
-        self._check_cr()
+        else:
 
-        super().__init__(setup)
-        self.derive_file_attributes()
+            #
+            # Compare the previous SPICEDS file and the provided one. A user
+            # might not remove a previously provided SPICEDS file from the
+            # configuration file, if so, the user must be warned.
+            #
+            self.name = f'spiceds_v{self.version:0=3d}.html'
+            self.path = (
+                setup.staging_directory + os.sep + collection.name + os.sep
+                + self.name
+            )
+            self.mission = setup
 
-        #
-        # Check if the spiceds has not changed.
-        #
-        self.generated = self._check_product()
+            logging.info(
+                '-- spiceds file provided as input moved to staging area as %s',
+                self.name)
 
-        #
-        # Validate the product by comparing it. Labeling used to happen here
-        # too, under this same self.generated check; it's built in the pipeline
-        # now, which reads self.generated to decide whether to.
-        #
-        if self.generated and self.setup.args.diff:
-            self._compare()
+            #
+            # The provided spiceds file is moved to the staging area.
+            #
+            shutil.copy2(spiceds, self.path)
+
+            #
+            # The appropriate line endings are provided to the spiceds file,
+            # If line endings did not have Carriage Return (CR), they are
+            # added and the file timestamp is updated. Note that if the file
+            # already had CRs the original timestamp is preserved.
+            #
+            self._check_cr()
+
+            self.derive_file_attributes()
+
+            #
+            # Check if the spiceds has not changed.
+            #
+            self.generated = self._check_product()
+
+            #
+            # Validate the product by comparing it. Labeling used to happen
+            # here too, under this same self.generated check; it's built in
+            # the pipeline now, which reads self.generated to decide whether
+            # to.
+            #
+            if self.generated and self.setup.args.diff:
+                self._compare()
 
     def set_product_lid(self) -> None:
         """Set the Product LID."""
