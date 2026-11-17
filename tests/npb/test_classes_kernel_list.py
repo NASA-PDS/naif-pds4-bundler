@@ -34,6 +34,13 @@ _CHECK_FATAL_MESSAGE = 'Products listed above require work.'
 # Message logged at INFO and printed to stdout when all checks pass.
 _CHECK_SUCCESS_MESSAGE = '-- All products checks have succeeded.'
 
+# Records that frame the PDS3 option display and the template check, and a
+# mission template that accepts two options.
+_PDS3_DISPLAY_HEADER = ('INFO', '-- Display all the MAKLABEL_OPTIONS:')
+_PDS3_CHECK_HEADER = ('INFO', '-- Check that all template tags used in the '
+                              'list are present in template:')
+_PDS3_TEMPLATE = {'maklabel_options': {'OPT_A': 1, 'OPT_B': 2}}
+
 
 def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
     # Create a minimal setup object to instance KernelList.
@@ -1746,6 +1753,68 @@ class TestKernelListValidateChecks:
 
         assert [(r.levelname, r.getMessage())
                 for r in caplog.records] == header + expected
+
+
+    @pytest.mark.parametrize(
+        ['pds_version', 'options', 'template', 'expectation', 'expected'], [
+            # PDS4 does no check: the template is not even read.
+            ('4', ['OPT_A'], {}, nullcontext(), []),
+            ('3', ['OPT_B', 'OPT_A', 'OPT_B'], _PDS3_TEMPLATE, nullcontext(),
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     OPT_A'),
+              ('INFO', '     OPT_B'),
+              ('INFO', ''),
+              _PDS3_CHECK_HEADER,
+              ('INFO', '     OPT_A is present.'),
+              ('INFO', '     OPT_B is present.'),
+              ('INFO', '')]),
+            # The 'None' tokens are not options.
+            ('3', ['None', 'OPT_A'], _PDS3_TEMPLATE, nullcontext(),
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     OPT_A'),
+              ('INFO', ''),
+              _PDS3_CHECK_HEADER,
+              ('INFO', '     OPT_A is present.'),
+              ('INFO', '')]),
+            ('3', [], _PDS3_TEMPLATE, nullcontext(),
+             [_PDS3_DISPLAY_HEADER, ('INFO', ''),
+              _PDS3_CHECK_HEADER, ('INFO', '')]),
+            # 'N/A' is displayed but is neither checked nor reported.
+            ('3', ['N/A'], _PDS3_TEMPLATE, nullcontext(),
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     N/A'),
+              ('INFO', ''),
+              _PDS3_CHECK_HEADER,
+              ('INFO', '')]),
+            # The options are sorted, so the order of the input does not
+            # change which options are reported before the failure.
+            *[('3', options, _PDS3_TEMPLATE,
+               pytest.raises(NPBError, match='^OPT_Z not in configuration.$'),
+               [_PDS3_DISPLAY_HEADER,
+                ('INFO', '     OPT_A'),
+                ('INFO', '     OPT_Z'),
+                ('INFO', ''),
+                _PDS3_CHECK_HEADER,
+                ('INFO', '     OPT_A is present.')])
+              for options in (['OPT_A', 'OPT_Z'], ['OPT_Z', 'OPT_A'])],
+            # A template without the options table fails after the headers.
+            ('3', ['OPT_A'], {},
+             pytest.raises(KeyError, match='maklabel_options'),
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     OPT_A'),
+              ('INFO', ''),
+              _PDS3_CHECK_HEADER])])
+    def test_check_pds3_options(self, caplog, kernel_list, pds_version,
+                                options, template, expectation,
+                                expected) -> None:
+        kernel_list.setup.pds_version = pds_version
+        kernel_list.setup.pds3_mission_template = template
+
+        with expectation:
+            kernel_list._check_pds3_options(options)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
 
 
 class TestKernelListWriteCompleteList:

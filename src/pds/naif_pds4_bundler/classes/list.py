@@ -438,54 +438,12 @@ class KernelList:
         #
         ker_in_list = entries.files
 
-        #
-        # We add options to display and compare to template. The parser
-        # also returns the 'None' tokens, which are not options.
-        #
-        opt_in_list = [opt for opt in entries.options if opt != "None"]
-
         self._check_entry_counts(entries)
         self._check_kernels_in_plan(ker_in_list)
         self._check_list_duplicates(ker_in_list)
         self._check_kernels_present(ker_in_list)
         self._check_kernels_not_in_bundle(ker_in_list)
-
-        #
-        # IF you generate a PDS23 data set, display all the MAKLABL_OPTIONS
-        # used
-        #
-        if self.setup.pds_version == "3":
-            opt_in_list = list(dict.fromkeys(opt_in_list))
-            opt_in_list.sort()
-            logging.info("-- Display all the MAKLABEL_OPTIONS:")
-
-            for option in opt_in_list:
-                logging.info('     %s', option)
-
-            logging.info('')
-
-        #
-        # The PDS Mission Template file is not required for PDS4
-        #
-        if self.setup.pds_version == "3":
-            logging.info(
-                "-- Check that all template tags used in the list are present in template:"
-            )
-
-            maklabel_options = self.setup.pds3_mission_template[
-                "maklabel_options"
-            ].keys()
-
-            for option in opt_in_list:
-
-                if option in maklabel_options:
-                    logging.info('     %s is present.', option)
-
-                else:
-                    if option != "N/A":
-                        raise NPBError(f"{option} not in configuration.")
-
-            logging.info('')
+        self._check_pds3_options(entries.options)
 
         #
         # Check complete list for duplicate entries
@@ -676,6 +634,49 @@ class KernelList:
         if not present:
             logging.info("     No kernels present in final area.")
         logging.info("")
+
+    def _check_pds3_options(self, options: list[str]) -> None:
+        """Display the MAKLABEL_OPTIONS used and check them in the template.
+
+        The PDS Mission Template file is not required for PDS4, so nothing
+        is done for it.
+
+        :param options: Option tokens of the list. The ``None`` tokens are
+                        not options and are ignored.
+        :raises NPBError: if an option is not in the template
+        """
+        if self.setup.pds_version != "3":
+            return
+
+        options = [opt for opt in options if opt != "None"]
+        options = list(dict.fromkeys(options))
+        options.sort()
+        logging.info("-- Display all the MAKLABEL_OPTIONS:")
+
+        for option in options:
+            logging.info('     %s', option)
+
+        logging.info('')
+
+        logging.info(
+            "-- Check that all template tags used in the list are present"
+            " in template:"
+        )
+
+        maklabel_options = self.setup.pds3_mission_template[
+            "maklabel_options"
+        ].keys()
+
+        for option in options:
+
+            if option in maklabel_options:
+                logging.info('     %s is present.', option)
+
+            else:
+                if option != "N/A":
+                    raise NPBError(f"{option} not in configuration.")
+
+        logging.info('')
 
     def validate_complete(self):
         """Validation of the complete Kernel List.
