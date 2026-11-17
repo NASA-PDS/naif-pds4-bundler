@@ -4,6 +4,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -1014,3 +1015,69 @@ class TestChecksumProductComputeChecksum:
 
         assert product.checksum == "fresh-md5"
         m_reg.assert_not_called()
+
+
+# ===========================================================================
+# Golden output of the checksum table
+# ===========================================================================
+
+# The entries are given out of order on purpose. Their names also check the
+# plain ASCII sort: 'B' goes before 'a', and '.' goes before '_'.
+PDS4_ENTRIES = {
+    "spice_kernels/ck/b.bc": "b" * 32,
+    "readme.txt": "e" * 32,
+    "spice_kernels/ck/a_b.bc": "d" * 32,
+    "spice_kernels/ck/B.bc": "a" * 32,
+    "spice_kernels/ck/a.bc": "c" * 32,
+}
+
+# MD5 of the bundle label that the test writes ('bundle label' plus a line
+# break). It comes from md5sum, not from the code under test.
+BUNDLE_LABEL_MD5 = "4716ac8418e52ca2304202c1af6c13b5"
+
+PDS4_TABLE_LINES = [
+    f"{'e' * 32}  readme.txt",
+    f"{BUNDLE_LABEL_MD5}  readme.xml",
+    f"{'a' * 32}  spice_kernels/ck/B.bc",
+    f"{'c' * 32}  spice_kernels/ck/a.bc",
+    f"{'d' * 32}  spice_kernels/ck/a_b.bc",
+    f"{'b' * 32}  spice_kernels/ck/b.bc",
+]
+
+
+@pytest.mark.parametrize("eol", ["\n", "\r\n"])
+def test_pds4_table_bytes(tmp_path: Path, eol: str) -> None:
+    """Check the bytes of a PDS4 checksum table built from fixed entries.
+
+    The file lists the entries and the bundle label sorted by name, with two
+    spaces between the MD5 and the name, and every line ends with the EOL of
+    the setup (LF or CRLF).
+    """
+    # Write a real bundle label and the miscellaneous folder, which has to
+    # exist before the product is created because its checksum folder is made
+    # with a non-recursive mkdir.
+    staging = tmp_path / "staging"
+    bundle_label = staging / "em16_spice" / "readme.xml"
+    bundle_label.parent.mkdir(parents=True)
+    bundle_label.write_bytes(b"bundle label\n")
+    (staging / "miscellaneous").mkdir()
+
+    # Build a bundle with no products and no readme checksum, so the table
+    # only holds the entries added below plus the bundle label.
+    setup = _make_setup(pds_version="4", increment=False)
+    setup.staging_directory = str(staging)
+    setup.bundle_directory = str(tmp_path / "bundle")
+    setup.eol = eol
+    collection = _make_collection()
+    collection.bundle = SimpleNamespace(
+        collections=[],
+        readme=SimpleNamespace(label=SimpleNamespace(name=str(bundle_label))))
+    checksum = ChecksumProduct(setup, collection)
+    checksum.md5_dict.update(PDS4_ENTRIES)
+
+    # Write the table to disk.
+    checksum.write_product()
+
+    # Compare the file with the expected bytes, line ending included.
+    expected = "".join(line + eol for line in PDS4_TABLE_LINES).encode()
+    assert Path(checksum.path).read_bytes() == expected
