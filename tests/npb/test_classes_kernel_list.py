@@ -1,4 +1,5 @@
 """Tests for KernelList class."""
+from contextlib import nullcontext
 import os.path
 import shutil
 import sys
@@ -13,6 +14,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.list import KernelList
+from pds.naif_pds4_bundler.classes.list import KernelListEntries
 
 # Get the directory where the test kernels are located.
 KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
@@ -1576,6 +1578,99 @@ class TestKernelListValidate:
 
         with pytest.raises(TypeError, match="boom"):
             kernel_list.validate()
+
+
+class TestKernelListValidateChecks:
+
+    @pytest.fixture
+    def kernel_list(self, caplog, tmp_path) -> KernelList:
+        # A real KernelList with a plan of two kernels; the checks only need
+        # the plan, the mission name and the formatted list configuration.
+        caplog.set_level(logging.INFO)
+
+        setup = make_kernel_list_setup(tmp_path, mission_name='MAVEN')
+
+        kernel_list = KernelList(setup)
+        kernel_list.kernel_list = ['a.bsp', 'b.bsp']
+        kernel_list.json_formatted_lst = ['{', '}']
+
+        return kernel_list
+
+    @pytest.mark.parametrize(['errors', 'expected'], [
+        ([], []),
+        (['NON-ASCII character(s) in line 3:', 'DESCRIPTION = caf\u00e9',
+          '^'],
+         [('ERROR', '   NON-ASCII character(s) in line 3:'),
+          ('ERROR', '   DESCRIPTION = caf\u00e9'),
+          ('ERROR', '   ^')])])
+    def test_check_badchar_in_list(self, mocker, caplog, kernel_list, errors,
+                                   expected) -> None:
+        badchar = mocker.patch.object(KernelList, '_check_badchar',
+                                      return_value=errors)
+
+        kernel_list._check_badchar_in_list('/work/list.kernel_list')
+
+        badchar.assert_called_once_with('/work/list.kernel_list')
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
+
+    @pytest.mark.parametrize(
+        ['counts', 'expectation', 'expected'],
+        [((2, 2, 2), nullcontext(), []),
+         *[(counts, pytest.raises(Exception, match='same number of entries'),
+            [('ERROR', 'List does not have the same number of entries for:'),
+             ('ERROR', f'   FILE             ({counts[0]})'),
+             ('ERROR', f'   MAKLABEL_OPTIONS ({counts[1]})'),
+             ('ERROR', f'   DESCRIPTION      ({counts[2]})'),
+             ('ERROR', ''),
+             ('ERROR', '-- Display MAVEN kernel list configuration file to'
+                       ' double-check.'),
+             ('INFO', '{'),
+             ('INFO', '}'),
+             ('ERROR', '')])
+           for counts in [(3, 2, 2), (2, 3, 2), (2, 2, 3), (1, 2, 3)]]])
+    def test_check_entry_counts(self, caplog, kernel_list, counts,
+                                expectation, expected) -> None:
+        entries = KernelListEntries([], [], *counts)
+
+        with expectation:
+            kernel_list._check_entry_counts(entries)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
+
+    def test_check_entry_counts_raises_bare_exception(
+            self, kernel_list) -> None:
+        # pytest.raises(Exception) also accepts NPBError, so the exact type
+        # is pinned in its own test.
+        with pytest.raises(Exception) as exc_info:
+            kernel_list._check_entry_counts(KernelListEntries([], [], 1, 2, 3))
+
+        assert exc_info.type is Exception
+
+    @pytest.mark.parametrize(['kernels', 'expectation'], [
+        (['a.bsp', 'b.bsp'], nullcontext()),
+        ([], nullcontext()),
+        (['c.bsp', 'a.bsp'],
+         pytest.raises(NPBError, match='^   c.bsp not in list.$')),
+        (['a.bsp', 'c.bsp'],
+         pytest.raises(NPBError, match='^   c.bsp not in list.$'))])
+    def test_check_kernels_in_plan(self, kernel_list, kernels,
+                                   expectation) -> None:
+        with expectation:
+            kernel_list._check_kernels_in_plan(kernels)
+
+    @pytest.mark.parametrize(['kernels', 'expectation'], [
+        (['a.bsp', 'b.bsp'], nullcontext()),
+        ([], nullcontext()),
+        (['a.bsp', 'a.bsp'],
+         pytest.raises(NPBError, match='^List contains duplicates.$')),
+        (['a.bsp', 'b.bsp', 'a.bsp'],
+         pytest.raises(NPBError, match='^List contains duplicates.$'))])
+    def test_check_list_duplicates(self, kernel_list, kernels,
+                                   expectation) -> None:
+        with expectation:
+            kernel_list._check_list_duplicates(kernels)
 
 
 class TestKernelListWriteCompleteList:

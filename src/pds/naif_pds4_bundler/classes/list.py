@@ -427,26 +427,10 @@ class KernelList:
         """
         list_path = self.setup.working_directory + os.sep + self.list_name
 
-        #
-        # Check that the list has no bad characters.
-        # This does not raise an error message but does not stop NPB.
-        #
-        errors = self._check_badchar(list_path)
-        if errors:
-
-            for err in errors:
-                logging.error('   %s', err)
+        self._check_badchar_in_list(list_path)
 
         with open(list_path, "r", encoding='utf-8') as lst:
             entries = self._parse_entries(lst)
-
-        #
-        # Check that the list has the same number of FILE,
-        # MAKLABEL_OPTIONS, and DESCRIPTION entries
-        #
-        num_file = entries.num_file
-        num_opti = entries.num_opti
-        num_desc = entries.num_desc
 
         #
         # We add kernels to compare plan and list and to look
@@ -460,38 +444,9 @@ class KernelList:
         #
         opt_in_list = [opt for opt in entries.options if opt != "None"]
 
-        if (num_file != num_opti) or (num_opti != num_desc):
-
-            error = "List does not have the same number of entries"
-
-            logging.error('%s for:', error)
-            logging.error('   FILE             (%d)', num_file)
-            logging.error('   MAKLABEL_OPTIONS (%d)', num_opti)
-            logging.error('   DESCRIPTION      (%d)', num_desc)
-            logging.error('')
-
-            logging.error(
-                '-- Display %s kernel list configuration file to'
-                ' double-check.', self.setup.mission_name)
-
-            for line in self.json_formatted_lst:
-                logging.info(line)
-            logging.error("")
-
-            raise Exception(error)
-
-        #
-        # Check list against plan.
-        #
-        for ker in ker_in_list:
-            if ker not in self.kernel_list:
-                raise NPBError(f"   {ker} not in list.")
-
-        #
-        # Check list for duplicate entries.
-        #
-        if check_list_duplicates(ker_in_list):
-            raise NPBError("List contains duplicates.")
+        self._check_entry_counts(entries)
+        self._check_kernels_in_plan(ker_in_list)
+        self._check_list_duplicates(ker_in_list)
 
         #
         # Check that all files listed are available in OPS area;
@@ -654,6 +609,66 @@ class KernelList:
                 # OSError/UnicodeDecodeError on a bad file.
                 except (IndexError, *FILE_READ_ERRORS):
                     logging.error("-- Previous list not available.")
+
+    def _check_badchar_in_list(self, list_path: str) -> None:
+        """Log the non-ASCII characters of the list.
+
+        This does not raise an error but does not stop NPB either.
+
+        :param list_path: Path to the kernel list
+        """
+        for err in self._check_badchar(list_path):
+            logging.error('   %s', err)
+
+    def _check_entry_counts(self, entries: KernelListEntries) -> None:
+        """Check that the list has as many entries of each kind.
+
+        The ``FILE``, ``MAKLABEL_OPTIONS`` and ``DESCRIPTION`` counts must
+        match.
+
+        :param entries: Entries parsed from the list
+        :raises Exception: if the counts differ
+        """
+        if (entries.num_file != entries.num_opti
+                or entries.num_opti != entries.num_desc):
+
+            error = "List does not have the same number of entries"
+
+            logging.error('%s for:', error)
+            logging.error('   FILE             (%d)', entries.num_file)
+            logging.error('   MAKLABEL_OPTIONS (%d)', entries.num_opti)
+            logging.error('   DESCRIPTION      (%d)', entries.num_desc)
+            logging.error('')
+
+            logging.error(
+                '-- Display %s kernel list configuration file to'
+                ' double-check.', self.setup.mission_name)
+
+            for line in self.json_formatted_lst:
+                logging.info(line)
+            logging.error("")
+
+            raise Exception(error)
+
+    def _check_kernels_in_plan(self, kernels: list[str]) -> None:
+        """Check that every listed kernel is in the plan.
+
+        :param kernels: Kernels of the list
+        :raises NPBError: if a kernel is not in the plan
+        """
+        for ker in kernels:
+            if ker not in self.kernel_list:
+                raise NPBError(f"   {ker} not in list.")
+
+    @staticmethod
+    def _check_list_duplicates(kernels: list[str]) -> None:
+        """Check that the list does not repeat a kernel.
+
+        :param kernels: Kernels of the list
+        :raises NPBError: if a kernel is repeated
+        """
+        if check_list_duplicates(kernels):
+            raise NPBError("List contains duplicates.")
 
     def validate_complete(self):
         """Validation of the complete Kernel List.
