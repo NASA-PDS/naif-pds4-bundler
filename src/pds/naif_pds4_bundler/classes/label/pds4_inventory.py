@@ -78,4 +78,4 @@ class InventoryPDS4Label(PDS4Label):
         # Count number of lines in the inventory file
         #
         with open(self.product.path, 'r', encoding='utf-8') as f:
-            self._label_fields["N_RECORDS"] = str(len(f.readlines()))
+            self._label_fields["N_RECORDS"] = str(sum(1 for _ in f))

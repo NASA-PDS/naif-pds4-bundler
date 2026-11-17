@@ -275,6 +275,41 @@ class TestInventoryPDS4Label:
 
         assert label._label_fields["N_RECORDS"] == expected
 
+    @pytest.mark.parametrize('content, expected', [
+        pytest.param(b'', '0', id='empty'),
+        pytest.param(b'a\nb\n', '2', id='lf'),
+        pytest.param(b'a\r\nb\r\n', '2', id='crlf'),
+        pytest.param(b'a\nb', '2', id='lf-no-final-terminator'),
+        pytest.param(b'a\r\nb', '2', id='crlf-no-final-terminator'),
+        pytest.param(b'a\n\nb\n', '3', id='blank-line-in-the-middle'),
+    ])
+    def test_n_records_for_line_ending_variants(
+            self, tmp_path: Path, helpers: SimpleNamespace,
+            content: bytes, expected: str) -> None:
+        """N_RECORDS counts one record per physical line of the inventory.
+
+        An empty file has no records, LF and CRLF endings count the same,
+        a last line without a terminator still counts, and a blank line
+        in the middle is a record too.
+        """
+        # Build the label inputs, then replace the fixture's LF-only file
+        # with the exact bytes of the case. Bytes are written as they are,
+        # so CRLF reaches the disk untouched on any platform.
+        setup = helpers.make_setup()
+        staging = tmp_path / 'staging'
+        inventory = helpers.make_inventory(staging)
+        collection = helpers.make_collection()
+        Path(inventory.path).write_bytes(content)
+        inventory.setup = setup
+        helpers.attach_collection(inventory, collection)
+
+        # The constructor reads the file when it is built, so it has to
+        # come after the overwrite above.
+        label = InventoryPDS4Label(inventory)
+
+        # The count is stored as a string, like every other label field.
+        assert label._label_fields["N_RECORDS"] == expected
+
     def test_constructor_raises_when_inventory_file_missing(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # The constructor opens self.product.path for reading; a missing file
