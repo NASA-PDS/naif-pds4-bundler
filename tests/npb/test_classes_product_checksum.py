@@ -1021,6 +1021,16 @@ class TestChecksumProductComputeChecksum:
 # Golden output of the checksum table
 # ===========================================================================
 
+def written_as(text: str) -> bytes:
+    """Return the bytes that the checksum writer leaves on disk for ``text``.
+
+    The table is written in text mode, so on Windows every line feed becomes
+    a carriage return and a line feed, and a CRLF line ending ends up as
+    CR CR LF.
+    """
+    return text.replace("\n", os.linesep).encode()
+
+
 # The entries are given out of order on purpose. Their names also check the
 # plain ASCII sort: 'B' goes before 'a', and '.' goes before '_'.
 PDS4_ENTRIES = {
@@ -1069,9 +1079,12 @@ def test_pds4_table_bytes(tmp_path: Path, eol: str) -> None:
     setup.bundle_directory = str(tmp_path / "bundle")
     setup.eol = eol
     collection = _make_collection()
+    # The checksum cuts the names at '/em16_spice/', so they are given with
+    # forward slashes, whatever the platform.
+    readme_label = SimpleNamespace(name=bundle_label.as_posix())
     collection.bundle = SimpleNamespace(
         collections=[],
-        readme=SimpleNamespace(label=SimpleNamespace(name=str(bundle_label))))
+        readme=SimpleNamespace(label=readme_label))
     checksum = ChecksumProduct(setup, collection)
     checksum.md5_dict.update(PDS4_ENTRIES)
 
@@ -1079,7 +1092,7 @@ def test_pds4_table_bytes(tmp_path: Path, eol: str) -> None:
     checksum.write_product()
 
     # Compare the file with the expected bytes, line ending included.
-    expected = "".join(line + eol for line in PDS4_TABLE_LINES).encode()
+    expected = written_as("".join(line + eol for line in PDS4_TABLE_LINES))
     assert Path(checksum.path).read_bytes() == expected
 
 
@@ -1140,7 +1153,7 @@ def test_pds3_table_bytes_and_counts(tmp_path: Path, eol: str) -> None:
 
     # Compare the file with the expected bytes, then check the size
     # attributes: 9 is the longest name and 45 is 32 + 4 + 9.
-    expected = "".join(line + eol for line in PDS3_TABLE_LINES).encode()
+    expected = written_as("".join(line + eol for line in PDS3_TABLE_LINES))
     assert Path(checksum.path).read_bytes() == expected
     assert checksum.bytes == 9
     assert checksum.record_bytes == 45
@@ -1288,10 +1301,13 @@ def test_duplicate_md5_is_warned_and_does_not_raise(
     bundle_label.write_bytes(b"bundle label\n")
     product_label.write_bytes(b"product label\n")
     (staging / "miscellaneous").mkdir()
+    # The checksum cuts the names at '/em16_spice/', so they are given with
+    # forward slashes, whatever the platform.
     product = SimpleNamespace(
-        path=str(staging / "em16_spice" / "spice_kernels" / "ck" / "a.bc"),
+        path=product_label.with_suffix(".bc").as_posix(),
         checksum=SHARED_MD5,
-        label=SimpleNamespace(name=str(product_label)))
+        label=SimpleNamespace(name=product_label.as_posix()))
+    readme_label = SimpleNamespace(name=bundle_label.as_posix())
     setup = _make_setup(pds_version="4", increment=False)
     setup.staging_directory = str(staging)
     setup.bundle_directory = str(tmp_path / "bundle")
@@ -1299,7 +1315,7 @@ def test_duplicate_md5_is_warned_and_does_not_raise(
     collection = _make_collection()
     collection.bundle = SimpleNamespace(
         collections=[SimpleNamespace(product=[product])],
-        readme=SimpleNamespace(label=SimpleNamespace(name=str(bundle_label))))
+        readme=SimpleNamespace(label=readme_label))
 
     # Create the product, add the file that shares the MD5, and write the
     # table.
@@ -1309,6 +1325,6 @@ def test_duplicate_md5_is_warned_and_does_not_raise(
         checksum.write_product()
 
     # Both files are in the table and the warnings name them.
-    expected = "".join(line + setup.eol for line in DUPLICATE_MD5_TABLE_LINES)
-    assert Path(checksum.path).read_bytes() == expected.encode()
+    table = "".join(line + setup.eol for line in DUPLICATE_MD5_TABLE_LINES)
+    assert Path(checksum.path).read_bytes() == written_as(table)
     assert [r.getMessage() for r in caplog.records] == DUPLICATE_MD5_WARNINGS

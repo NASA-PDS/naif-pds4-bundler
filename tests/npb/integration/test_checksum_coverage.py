@@ -53,12 +53,15 @@ def build_checksum(setup: Setup, labels: list[Path]) -> ChecksumProduct:
     bundle_label = write_label(staging / "readme.xml", WIDE_START, WIDE_STOP)
 
     # A product only needs a path and a label for the checksum to list them.
-    products = [SimpleNamespace(path=str(label.with_suffix(".bc")),
-                                label=SimpleNamespace(name=str(label)))
+    # The checksum cuts the names at '/maven_spice/', so they are given with
+    # forward slashes, whatever the platform.
+    products = [SimpleNamespace(path=label.with_suffix(".bc").as_posix(),
+                                label=SimpleNamespace(name=label.as_posix()))
                 for label in labels]
+    readme_label = SimpleNamespace(name=bundle_label.as_posix())
     bundle = SimpleNamespace(
         collections=[SimpleNamespace(product=products)],
-        readme=SimpleNamespace(label=SimpleNamespace(name=str(bundle_label))),
+        readme=SimpleNamespace(label=readme_label),
         checksum="e" * 32)
     collection = SimpleNamespace(name="miscellaneous", bundle=bundle)
 
