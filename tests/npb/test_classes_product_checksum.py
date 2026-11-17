@@ -1236,3 +1236,79 @@ def test_corrupted_previous_checksum_file_raises(
 
     # The message names the file and, for a bad MD5, quotes the line.
     assert str(error.value) == message.format(path=previous, line=line)
+
+
+# ===========================================================================
+# Duplicate MD5 sums
+# ===========================================================================
+
+SHARED_MD5 = "f" * 32
+
+# MD5 of the product label that the test writes ('product label' plus a
+# line break). It comes from md5sum, not from the code under test.
+PRODUCT_LABEL_MD5 = "e9dd7768c0a27c878861ef20a6856acd"
+
+DUPLICATE_MD5_TABLE_LINES = [
+    f"{SHARED_MD5}  other/different_name.tab",
+    f"{BUNDLE_LABEL_MD5}  readme.xml",
+    f"{SHARED_MD5}  spice_kernels/ck/a.bc",
+    f"{PRODUCT_LABEL_MD5}  spice_kernels/ck/a.xml",
+]
+
+DUPLICATE_MD5_WARNINGS = [
+    '-- Default to version 1.',
+    '-- Make sure this is the first release of the archive.',
+    '',
+    '-- The following products have the same MD5 sum:',
+    f'   {SHARED_MD5}',
+    '      other/different_name.tab',
+    '      spice_kernels/ck/a.bc',
+    '-- Start time set to mission start time: 2016-01-01T00:00:00Z',
+    '-- Stop time set to mission finish time: 2023-12-31T23:59:59Z',
+]
+
+
+@pytest.mark.parametrize("debug", [False, True])
+def test_duplicate_md5_is_warned_and_does_not_raise(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture,
+        debug: bool) -> None:
+    """Check what happens when two files have the same MD5 sum.
+
+    The table is written with both files, and the warnings list the MD5 with
+    the names that share it. The check that looks for duplicates while the
+    products are added does not raise, whether the run is in debug mode or
+    not.
+    """
+    # Write the real labels, and a product whose MD5 is the same as the one
+    # of a file that is already in the table under another name.
+    staging = tmp_path / "staging"
+    bundle_label = staging / "em16_spice" / "readme.xml"
+    product_label = staging / "em16_spice" / "spice_kernels" / "ck" / "a.xml"
+    product_label.parent.mkdir(parents=True)
+    bundle_label.write_bytes(b"bundle label\n")
+    product_label.write_bytes(b"product label\n")
+    (staging / "miscellaneous").mkdir()
+    product = SimpleNamespace(
+        path=str(staging / "em16_spice" / "spice_kernels" / "ck" / "a.bc"),
+        checksum=SHARED_MD5,
+        label=SimpleNamespace(name=str(product_label)))
+    setup = _make_setup(pds_version="4", increment=False)
+    setup.staging_directory = str(staging)
+    setup.bundle_directory = str(tmp_path / "bundle")
+    setup.args.debug = debug
+    collection = _make_collection()
+    collection.bundle = SimpleNamespace(
+        collections=[SimpleNamespace(product=[product])],
+        readme=SimpleNamespace(label=SimpleNamespace(name=str(bundle_label))))
+
+    # Create the product, add the file that shares the MD5, and write the
+    # table.
+    with caplog.at_level(logging.WARNING):
+        checksum = ChecksumProduct(setup, collection)
+        checksum.md5_dict["other/different_name.tab"] = SHARED_MD5
+        checksum.write_product()
+
+    # Both files are in the table and the warnings name them.
+    expected = "".join(line + setup.eol for line in DUPLICATE_MD5_TABLE_LINES)
+    assert Path(checksum.path).read_bytes() == expected.encode()
+    assert [r.getMessage() for r in caplog.records] == DUPLICATE_MD5_WARNINGS
