@@ -167,6 +167,65 @@ def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     m.isdir.return_value = True
 
 
+def _record_events(
+        mocks: SimpleNamespace, checksums: dict, inventories: dict,
+        collections: dict) -> list[str]:
+    """Record what the pipeline does with checksums and inventories.
+
+    A short text is added to the list every time the pipeline generates a
+    checksum, registers or labels a checksum or an inventory, adds one of
+    them to a collection, or sets the VID of a collection. The texts keep the
+    order in which things happen. Products that are not passed in, such as
+    the kernels, leave no text.
+
+    :param mocks: Patched collaborators of the pipeline.
+    :param checksums: Checksum mocks, by the name used in the texts.
+    :param inventories: Inventory mocks, by the name used in the texts.
+    :param collections: Collection mocks, by the name used in the texts.
+    :return: The list of texts, which fills up while the pipeline runs.
+    """
+    events = []
+    products = {**checksums, **inventories}
+    names = {id(mock): name
+             for name, mock in {**products, **collections}.items()}
+
+    def record_product(action: str):
+        def record(product) -> None:
+            if id(product) in names:
+                events.append(f'{action} {names[id(product)]}')
+        return record
+
+    def record_add(collection_name: str):
+        def record(product) -> None:
+            if id(product) in names:
+                events.append(f'add {names[id(product)]} to {collection_name}')
+        return record
+
+    def record_label(product) -> MagicMock:
+        record_product('label')(product)
+        return MagicMock()
+
+    mocks.RunState.return_value.register_product.side_effect = (
+        record_product('register'))
+
+    for label_class in (mocks.ChecksumPDS3Label, mocks.ChecksumPDS4Label,
+                        mocks.InventoryPDS3Label, mocks.InventoryPDS4Label):
+        label_class.side_effect = record_label
+
+    # The default arguments bind the name of each loop turn; a plain closure
+    # would see the last name of the loop in every callback.
+    for name, checksum in checksums.items():
+        checksum.generate.side_effect = (
+            lambda *args, name=name, **kwargs: events.append(f'generate {name}'))
+
+    for name, collection in collections.items():
+        collection.add.side_effect = record_add(name)
+        collection.set_collection_vid.side_effect = (
+            lambda name=name: events.append(f'set_collection_vid {name}'))
+
+    return events
+
+
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
@@ -1303,6 +1362,98 @@ class TestPhase9PDS4DocumentMiscChecksum:
 
         assert calls == ['generated', 'registered', 'labeled'] * 3
 
+    def test_current_release_checksum_sequence(self, mocks):
+        """Check what the pipeline does with the checksum of this release.
+
+        The checksum is added once to the miscellaneous collection, before the
+        VID of the collection is set. The inventory is added after it, and the
+        checksum is generated, registered and labeled last, in that order.
+        """
+        # Follow the checksum, the inventory and the miscellaneous collection.
+        events = _record_events(
+            mocks, {'checksum': mocks.ChecksumProduct.return_value},
+            {'inventory': mocks.InventoryPDS4Product.return_value},
+            {'misc': mocks.MiscellaneousCollection.return_value})
+
+        # Run the pipeline for a first release, with no previous releases.
+        run_pipeline(_args())
+
+        assert events == [
+            'add checksum to misc',
+            'set_collection_vid misc',
+            'register inventory',
+            'label inventory',
+            'add inventory to misc',
+            'generate checksum',
+            'register checksum',
+            'label checksum']
+
+    def test_previous_release_checksums_sequence(self, mocks):
+        """Check what the pipeline does with the checksums of past releases.
+
+        Each past release gets its own checksum and inventory, and each one is
+        added to the miscellaneous collection of that release and to the
+        current miscellaneous collection. The VID of the current collection is
+        set after all the past releases, and then the checksum of this release
+        goes through the same steps as in a first release.
+        """
+        # Make the pipeline rebuild the checksums of two past releases.
+        mocks.Setup.return_value.increment = True
+        mocks.isdir.return_value = False
+        mocks.Bundle.return_value.history = {
+            'release_01': ('data', 'label'), 'release_02': ('data2', 'label2')}
+
+        # Give every checksum, inventory and collection its own mock, in the
+        # order the pipeline builds them. The first collection is the current
+        # miscellaneous one, which the default mocks already configure.
+        checksums = {name: MagicMock() for name in (
+            'checksum_1', 'checksum_2', 'checksum')}
+        inventories = {name: MagicMock() for name in (
+            'inventory_1', 'inventory_2', 'inventory')}
+        collections = {
+            'misc': mocks.MiscellaneousCollection.return_value,
+            'misc_1': MagicMock(), 'misc_2': MagicMock()}
+        mocks.ChecksumProduct.side_effect = list(checksums.values())
+        mocks.InventoryPDS4Product.side_effect = list(inventories.values())
+        mocks.MiscellaneousCollection.side_effect = list(collections.values())
+        events = _record_events(mocks, checksums, inventories, collections)
+
+        run_pipeline(_args())
+
+        assert events == [
+            # First past release.
+            'generate checksum_1',
+            'register checksum_1',
+            'label checksum_1',
+            'add checksum_1 to misc_1',
+            'add checksum_1 to misc',
+            'set_collection_vid misc_1',
+            'register inventory_1',
+            'label inventory_1',
+            'add inventory_1 to misc_1',
+            'add inventory_1 to misc',
+            # Second past release.
+            'generate checksum_2',
+            'register checksum_2',
+            'label checksum_2',
+            'add checksum_2 to misc_2',
+            'add checksum_2 to misc',
+            'set_collection_vid misc_2',
+            'register inventory_2',
+            'label inventory_2',
+            'add inventory_2 to misc_2',
+            'add inventory_2 to misc',
+            # Current release.
+            'set_collection_vid misc',
+            'add checksum to misc',
+            'set_collection_vid misc',
+            'register inventory',
+            'label inventory',
+            'add inventory to misc',
+            'generate checksum',
+            'register checksum',
+            'label checksum']
+
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
         run_pipeline(_args())
@@ -1516,6 +1667,25 @@ class TestPhase10PDS3Path:
         run_pipeline(_args())
 
         assert calls == ['generated', 'registered', 'labeled']
+
+    def test_pds3_checksum_sequence(self, mocks):
+        """Check what the pipeline does with the PDS3 checksum.
+
+        The checksum is generated, registered and labeled, and only then is
+        it added, once, to the miscellaneous collection.
+        """
+        # Follow the checksum and the miscellaneous collection.
+        events = _record_events(
+            mocks, {'checksum': mocks.ChecksumProduct.return_value}, {},
+            {'misc': mocks.MiscellaneousCollection.return_value})
+
+        run_pipeline(_args())
+
+        assert events == [
+            'generate checksum',
+            'register checksum',
+            'label checksum',
+            'add checksum to misc']
 
     def test_checksum_labeled_with_pds3_label(self, mocks):
         # This test class runs under pds_version="3" (set by the set_pds3
