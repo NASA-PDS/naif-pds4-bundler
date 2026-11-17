@@ -8,6 +8,7 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_spiceds import SpicedsProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
@@ -229,6 +230,31 @@ class TestSpicedsProductInit:
         # Early return happened before the staging tail.
         assert not hasattr(product, 'name')
         assert not hasattr(product, 'lid')
+
+    def test_reused_previous_spiceds_is_not_registered(self):
+        """A reused previous spiceds adds nothing to the run records.
+
+        With an increment, a previous spiceds on disk and no new spiceds in
+        the configuration, the product is not generated and registering it
+        leaves both the File List and the Checksum Registry empty.
+        """
+        # A previous spiceds exists, the configuration provides no new one,
+        # and the run records start empty.
+        previous = ['/bundle/insight_spice/document/spiceds_v005.html']
+        setup = make_setup(increment=True, spiceds='')
+        collection = make_collection()
+        run_state = RunState()
+
+        # Build the product (the glob is patched so that it finds the
+        # previous file) and hand it over the way the pipeline does.
+        with patch(_GLOB_GLOB, return_value=previous):
+            product = SpicedsProduct(setup, collection)
+        run_state.register_product(product)
+
+        # The previous file is reused as it is, so there is nothing to record.
+        assert product.generated is False
+        assert run_state.file_list == []
+        assert run_state.checksum_registry == []
 
     def test_init_increment_no_previous_with_spiceds_provided(
             self, fake_product_init):
