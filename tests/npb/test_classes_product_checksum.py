@@ -1145,3 +1145,94 @@ def test_pds3_table_bytes_and_counts(tmp_path: Path, eol: str) -> None:
     assert checksum.bytes == 9
     assert checksum.record_bytes == 45
     assert checksum.file_records == 6
+
+
+# ===========================================================================
+# Loading the previous checksum file from disk
+# ===========================================================================
+
+# Entries of the previous checksum file. The PDS3 files pad the names with
+# trailing spaces, so the second line carries some on purpose.
+PREVIOUS_LINES = [
+    f"{'a' * 32}  spice_kernels/ck/a.bc",
+    f"{'b' * 32}  spice_kernels/ck/b.bc   ",
+]
+
+PREVIOUS_ENTRIES = {
+    "spice_kernels/ck/a.bc": "a" * 32,
+    "spice_kernels/ck/b.bc": "b" * 32,
+}
+
+
+@pytest.mark.parametrize("eol", ["\n", "\r\n"])
+@pytest.mark.parametrize("pds_version, previous_path", [
+    pytest.param("4", "em16_spice/miscellaneous/checksum/checksum_v001.tab",
+                 id="pds4"),
+    pytest.param("3", "em16_spice_1000/index/checksum.tab", id="pds3"),
+])
+def test_previous_checksum_file_is_loaded(
+        tmp_path: Path, pds_version: str, previous_path: str,
+        eol: str) -> None:
+    """Check that the entries of a previous checksum file are loaded.
+
+    Each line holds an MD5 and a file name separated by spaces. The line
+    ending (LF or CRLF) and the padding after the name do not end up in the
+    name, in PDS4 and in PDS3.
+    """
+    # Write a previous checksum file where the product looks for it.
+    previous = tmp_path / "bundle" / previous_path
+    previous.parent.mkdir(parents=True)
+    previous.write_bytes("".join(line + eol for line in PREVIOUS_LINES)
+                         .encode())
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    setup = _make_setup(pds_version=pds_version, increment=True)
+    setup.staging_directory = str(staging)
+    setup.bundle_directory = str(tmp_path / "bundle")
+
+    # Create the product, which reads the file.
+    checksum = ChecksumProduct(
+        setup, _make_collection(), add_previous_checksum=False)
+
+    # Only the two entries of the file are loaded.
+    assert checksum.md5_dict == PREVIOUS_ENTRIES
+
+
+CORRUPTED_LINE = "Checksum file {path} is corrupted."
+CORRUPTED_ENTRY = "Checksum file {path} corrupted entry: {line}."
+
+
+@pytest.mark.parametrize("line, message", [
+    pytest.param("some/file.tab\n", CORRUPTED_LINE, id="one-field"),
+    pytest.param(f"{'a' * 32}  some/file.tab extra\n", CORRUPTED_LINE,
+                 id="three-fields"),
+    pytest.param("\n", CORRUPTED_LINE, id="blank-line"),
+    pytest.param(f"{'a' * 31}  some/file.tab\n", CORRUPTED_ENTRY,
+                 id="md5-too-short"),
+    pytest.param(f"{'a' * 33}  some/file.tab\n", CORRUPTED_ENTRY,
+                 id="md5-too-long"),
+])
+def test_corrupted_previous_checksum_file_raises(
+        tmp_path: Path, line: str, message: str) -> None:
+    """Check that a corrupted previous checksum file stops the run.
+
+    A line that does not have exactly two fields, blank lines included,
+    raises an NPBError saying the file is corrupted. A line whose MD5 does
+    not have 32 characters raises an NPBError that also quotes the line.
+    """
+    # Write a previous checksum file that starts with a valid entry and
+    # then has the corrupted line.
+    previous = (tmp_path / "bundle" / "em16_spice" / "miscellaneous"
+                / "checksum" / "checksum_v001.tab")
+    previous.parent.mkdir(parents=True)
+    previous.write_text(f"{'a' * 32}  some/other.tab\n" + line)
+    setup = _make_setup(pds_version="4", increment=True)
+    setup.staging_directory = str(tmp_path / "staging")
+    setup.bundle_directory = str(tmp_path / "bundle")
+
+    # Create the product, which reads the file.
+    with pytest.raises(NPBError) as error:
+        ChecksumProduct(setup, _make_collection(), add_previous_checksum=False)
+
+    # The message names the file and, for a bad MD5, quotes the line.
+    assert str(error.value) == message.format(path=previous, line=line)
