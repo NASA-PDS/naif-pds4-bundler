@@ -8,12 +8,15 @@ import pytest
 
 from pds.naif_pds4_bundler.classes.product.product_spiceds import SpicedsProduct
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 
 # Module path used as the anchor for every patch target.
 _MODULE = 'pds.naif_pds4_bundler.classes.product.product_spiceds'
 # find_latest_versioned_file globs candidates itself now via Path.glob, so
 # that's what's patched here instead of anything in this module.
 _GLOB_GLOB = 'pathlib.Path.glob'
+# Previous spiceds that the glob finds in the tests that reuse it.
+_PREVIOUS_SPICEDS = '/bundle/insight_spice/document/spiceds_v005.html'
 
 
 # ---------------------------------------------------------------------------
@@ -209,26 +212,77 @@ class TestSpicedsProductInit:
         assert product.vid == '4.0'
         copy2.assert_called_once()
 
-    def test_init_increment_previous_version_no_new_spiceds_early_returns(self):
-        # Increment + previous version + NO new spiceds. The constructor sets
-        # generated = False and returns before deriving name/path/lid, so those
-        # attributes must be absent.
+    @pytest.mark.parametrize('attribute, expected', [
+        pytest.param('generated', False, id='generated'),
+        pytest.param('new_product', False, id='new_product'),
+        pytest.param('name', 'spiceds_v005.html', id='name'),
+        pytest.param('path', str(Path(_PREVIOUS_SPICEDS)), id='path'),
+        pytest.param('version', 5, id='version'),
+        pytest.param('latest_version', 5, id='latest_version'),
+        pytest.param('vid', '5.0', id='vid'),
+        pytest.param('lid', 'urn:nasa:pds:insight_spice:document:spiceds',
+                     id='lid'),
+    ])
+    def test_init_reuses_previous_spiceds_as_it_is(self, attribute, expected):
+        """With an increment, a previous spiceds and no new one, the product
+        describes the existing file: same name, path and version, nothing
+        generated and not a new product."""
+        # An increment whose configuration provides no new spiceds.
         setup = make_setup(increment=True, spiceds='')
         collection = make_collection()
 
-        with patch(_GLOB_GLOB,
-                   return_value=['/bundle/insight_spice/document/spiceds_v005.html']):
+        # Build the product with the glob finding the previous v005 file.
+        with patch(_GLOB_GLOB, return_value=[_PREVIOUS_SPICEDS]):
             product = SpicedsProduct(setup, collection)
 
-        assert product.version == 6
-        # latest_version is now an int (parsed by find_latest_versioned_file)
-        # rather than the raw zero-padded string.
-        assert product.latest_version == 5
-        assert product.generated is False
+        # The attribute describes the previous file, not a new v006 one.
+        assert getattr(product, attribute) == expected
 
-        # Early return happened before the staging tail.
-        assert not hasattr(product, 'name')
-        assert not hasattr(product, 'lid')
+    def test_init_reuse_runs_base_init_without_deriving_file_attributes(
+            self, fake_product_init):
+        """Reusing the previous spiceds still runs the base constructor, but
+        never derives file attributes: there is no staged file to hash."""
+        # An increment whose configuration provides no new spiceds.
+        setup = make_setup(increment=True, spiceds='')
+        collection = make_collection()
+
+        # Build the product with the base constructor replaced by a fake and
+        # the derivation of file attributes by a mock, so both calls can be
+        # inspected.
+        with patch(_GLOB_GLOB, return_value=[_PREVIOUS_SPICEDS]), \
+                patch(f'{_MODULE}.Product.__init__', autospec=True,
+                      side_effect=fake_product_init) as base_init, \
+                patch(f'{_MODULE}.Product.derive_file_attributes') as derive:
+            product = SpicedsProduct(setup, collection)
+
+        # The base constructor ran once for this product and nothing was
+        # derived from a file.
+        base_init.assert_called_once_with(product, setup)
+        derive.assert_not_called()
+
+    def test_reused_previous_spiceds_is_not_registered(self):
+        """A reused previous spiceds adds nothing to the run records.
+
+        With an increment, a previous spiceds on disk and no new spiceds in
+        the configuration, the product is not generated and registering it
+        leaves both the File List and the Checksum Registry empty.
+        """
+        # A previous spiceds exists, the configuration provides no new one,
+        # and the run records start empty.
+        setup = make_setup(increment=True, spiceds='')
+        collection = make_collection()
+        run_state = RunState()
+
+        # Build the product (the glob is patched so that it finds the
+        # previous file) and hand it over the way the pipeline does.
+        with patch(_GLOB_GLOB, return_value=[_PREVIOUS_SPICEDS]):
+            product = SpicedsProduct(setup, collection)
+        run_state.register_product(product)
+
+        # The previous file is reused as it is, so there is nothing to record.
+        assert product.generated is False
+        assert run_state.file_list == []
+        assert run_state.checksum_registry == []
 
     def test_init_increment_no_previous_with_spiceds_provided(
             self, fake_product_init):

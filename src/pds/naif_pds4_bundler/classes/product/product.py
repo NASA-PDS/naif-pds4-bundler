@@ -21,10 +21,10 @@ class Product:
 
     # Whether the product is new in this run. Subclasses that can find their
     # file already in place override it to False. It stays a class attribute
-    # because ChecksumProduct, and SpicedsProduct when it returns early, never
-    # reach Product.__init__ and still need it for is_registrable.
-    # TODO: (product-split) assign it in Product.__init__ once both always
-    #       reach it.
+    # because ChecksumProduct never reaches Product.__init__ and still needs
+    # it for is_registrable.
+    # TODO: (product-split) assign it in Product.__init__ once ChecksumProduct
+    #       always reaches it.
     new_product = True
 
     # ChecksumProduct never calls Product.__init__, so it relies on this
@@ -86,7 +86,7 @@ class Product:
 
         Only new products are registered, and only once their file
         attributes were derived. The path stays None for a product that
-        returns before deriving them, so there is nothing to register.
+        never derives them, so there is nothing to register.
         """
         return self.new_product and self._registered_path is not None
 

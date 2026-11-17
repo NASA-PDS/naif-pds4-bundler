@@ -36,11 +36,13 @@ import pytest
 
 from pds.naif_pds4_bundler.pipeline.npb import _write_label, run_pipeline
 from pds.naif_pds4_bundler.classes.exceptions import NPBError, NPBInternalError
+from pds.naif_pds4_bundler.classes.run_state import RunState
 from pds.naif_pds4_bundler.utils import files
 from pds.naif_pds4_bundler.utils.types.datatypes import PipelineArgs
 
 # Imported to create specified mocks that pass isinstance checks in Phase 12.
 from pds.naif_pds4_bundler.classes.product.product_metakernel import MetaKernelProduct
+from pds.naif_pds4_bundler.classes.product.product_spiceds import SpicedsProduct
 
 class _StubChecksum:
     # Standalone test double for ChecksumProduct (lines 443-444 coverage).
@@ -1062,6 +1064,60 @@ class TestPhase9PDS4DocumentMiscChecksum:
         mocks.SpicedsProduct.return_value.generated = False
         run_pipeline(_args())
         doc_col = mocks.DocumentCollection.return_value
+        inventory_calls_for_doc = [
+            c for c in mocks.InventoryPDS4Product.call_args_list
+            if c[0][1] is doc_col
+        ]
+        assert inventory_calls_for_doc == []
+
+    def test_reused_previous_spiceds_is_not_published(self, mocks):
+        """With an increment, a previous spiceds and no new one, the spiceds
+        is not generated: it is not labelled, not added to the document
+        collection, has no inventory and has nothing to record in the run.
+        """
+        # SpicedsProduct and RunState are the real classes here. The patched
+        # names build them and keep each instance in 'built', so the test can
+        # inspect them after the run.
+        built = {}
+
+        def real_run_state():
+            built['run_state'] = RunState()
+            return built['run_state']
+
+        def real_spiceds(setup, collection):
+            built['spiceds'] = SpicedsProduct(setup, collection)
+            return built['spiceds']
+
+        mocks.RunState.side_effect = real_run_state
+        mocks.SpicedsProduct.side_effect = real_spiceds
+
+        # An increment whose configuration provides no new spiceds. The
+        # collection name is part of the directory searched for the previous
+        # one.
+        setup = mocks.Setup.return_value
+        setup.increment = True
+        setup.spiceds = ''
+        doc_col = mocks.DocumentCollection.return_value
+        doc_col.name = 'document'
+        previous = Path('/fake/bundle/maven_spice/document/spiceds_v005.html')
+
+        # Run the pipeline with the search for the previous spiceds finding
+        # the v005 file.
+        with patch('pathlib.Path.glob', return_value=[previous]):
+            run_pipeline(_args())
+
+        # The product itself reports that it was not generated and that it
+        # has no file to register.
+        assert built['spiceds'].generated is False
+        assert built['spiceds'].is_registrable is False
+
+        # So the pipeline did not label it nor add it to the document
+        # collection.
+        mocks.DocumentPDS4Label.assert_not_called()
+        doc_col.add.assert_not_called()
+
+        # No inventory was built for the document collection (the first
+        # argument of each InventoryPDS4Product call is its collection).
         inventory_calls_for_doc = [
             c for c in mocks.InventoryPDS4Product.call_args_list
             if c[0][1] is doc_col
