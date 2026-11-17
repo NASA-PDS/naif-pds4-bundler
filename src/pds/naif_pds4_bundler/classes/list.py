@@ -410,20 +410,27 @@ class KernelList:
     def validate(self):
         """Validation of the Kernel List.
 
-        The validation of the Kernel List performs the following checks:
+        The validation of the Kernel List performs the following checks, in
+        this order:
 
-         * check that the list has the same number of ``FILE``, ``MAKLABEL_OPTIONS``,
-           and ``DESCRIPTION`` entries.
-         * check list against plan
-         * check that list for duplicate files
-         * check that all files listed in the list are on the ``kernels_directory``
-         * check that the files are not in the ``bundle_directory``
-         * display all the ``MAKLABL_OPTIONS`` used
-         * check that all the ``MAKLBL_OPTIONS`` are in the template for PDS3
-         * check that the list has no duplicates
-         * check that the list has no bad characters
-         * if the ``-d DIFF --diff DIFF`` argument is used, compare the kernel
-           list with the kernel list of the previous release -if avaialble.
+         * check that the list has no bad characters. They are logged but do
+           not stop NPB.
+         * check that the list has the same number of ``FILE``,
+           ``MAKLABEL_OPTIONS``, and ``DESCRIPTION`` entries.
+         * check list against plan.
+         * check the list for duplicate files.
+         * check that all files listed in the list are on the
+           ``kernels_directory``. Missing files only raise a warning.
+         * check that the files are not in the ``bundle_directory``. Files
+           that are only raise a warning.
+         * for PDS3, display all the ``MAKLABEL_OPTIONS`` used.
+         * for PDS3, check that all the ``MAKLABEL_OPTIONS`` are in the
+           template.
+         * check that no kernel is repeated across the release kernel lists
+           of the working directory.
+         * if the ``-d DIFF --diff DIFF`` argument is used on an increment,
+           compare the kernel list with the kernel list of the previous
+           release -if available.
         """
         list_path = self.setup.working_directory + os.sep + self.list_name
 
