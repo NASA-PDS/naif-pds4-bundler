@@ -1242,10 +1242,11 @@ def test_corrupted_previous_checksum_file_raises(
     setup = _make_setup(pds_version="4", increment=True)
     setup.staging_directory = str(tmp_path / "staging")
     setup.bundle_directory = str(tmp_path / "bundle")
+    collection = _make_collection()
 
     # Create the product, which reads the file.
     with pytest.raises(NPBError) as error:
-        ChecksumProduct(setup, _make_collection(), add_previous_checksum=False)
+        ChecksumProduct(setup, collection, add_previous_checksum=False)
 
     # The message names the file and, for a bad MD5, quotes the line.
     assert str(error.value) == message.format(path=previous, line=line)

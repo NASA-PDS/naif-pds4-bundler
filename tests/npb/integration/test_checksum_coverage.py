@@ -146,14 +146,14 @@ def test_generate_keeps_the_times_of_set_coverage(real_setup: Setup) -> None:
         "2014-01-01T00:00:00Z", "2015-01-01T00:00:00Z")
     checksum = build_checksum(real_setup, [label])
     checksum.set_coverage()
-    times_before = (checksum.start_time, checksum.stop_time)
+    times = ("2014-01-01T00:00:00Z", "2015-01-01T00:00:00Z")
+    assert (checksum.start_time, checksum.stop_time) == times
 
     # Write the checksum file.
     checksum.generate()
 
     # The times are the same, and not the ones of the bundle label.
-    assert times_before == ("2014-01-01T00:00:00Z", "2015-01-01T00:00:00Z")
-    assert (checksum.start_time, checksum.stop_time) == times_before
+    assert (checksum.start_time, checksum.stop_time) == times
 
 
 def test_mission_times_are_used_without_coverage_labels(
