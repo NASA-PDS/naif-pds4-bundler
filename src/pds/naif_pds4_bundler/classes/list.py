@@ -445,64 +445,8 @@ class KernelList:
         self._check_kernels_not_in_bundle(ker_in_list)
         self._check_pds3_options(entries.options)
 
-        #
-        # Check complete list for duplicate entries
-        #
-        logging.info("-- Checking for duplicates in complete kernel list:")
-
-        kernel_lists = glob.glob(
-            self.setup.working_directory
-            + os.sep
-            + f"{self.setup.mission_acronym}_release*"
-            f".kernel_list"
-        )
-        kernel_lists.sort()
-
-        ker_in_list = []
-        for kernel_list in kernel_lists:
-
-            with open(kernel_list, "r", encoding='utf-8') as lst:
-
-                #
-                # Check that the list has the same number of FILE,
-                # MAKLABEL_OPTIONS, and DESCRIPTION entries
-                #
-                logging.info('     Adding %s in check.', kernel_list)
-
-                ker_in_list.extend(self._parse_entries(lst).files)
-
-        if check_list_duplicates(ker_in_list):
-            raise NPBError("List contains duplicates.")
-        else:
-            logging.info("     List contains no duplicates.")
-        logging.info("")
-
-        if self.setup.args.diff and self.setup.increment:
-            #
-            # Compare list with previous list
-            #
-            logging.info("-- Comparing current list with previous list:")
-
-            logging.info("")
-
-            # An empty glob means the current list itself is missing; a single
-            # entry means there is just no previous list to compare it with.
-            if not kernel_lists:
-                logging.error("-- Current list not available.")
-
-            else:
-                fromfile = kernel_lists[-1]
-
-                try:
-                    tofile = kernel_lists[-2]
-                    work_dir = self.setup.working_directory
-                    compare_files(fromfile, tofile, work_dir,
-                                  self.setup.args.diff)
-
-                # kernel_lists[-2] raises IndexError; compare_files() raises
-                # OSError/UnicodeDecodeError on a bad file.
-                except (IndexError, *FILE_READ_ERRORS):
-                    logging.error("-- Previous list not available.")
+        kernel_lists = self._check_release_history()
+        self._compare_with_previous_list(kernel_lists)
 
     def _check_badchar_in_list(self, list_path: str) -> None:
         """Log the non-ASCII characters of the list.
@@ -677,6 +621,77 @@ class KernelList:
                     raise NPBError(f"{option} not in configuration.")
 
         logging.info('')
+
+    def _check_release_history(self) -> list[str]:
+        """Check that no kernel is repeated across the release kernel lists.
+
+        :return: Sorted paths of the release kernel lists in the working
+                 directory
+        :raises NPBError: if a kernel is repeated
+        """
+        logging.info("-- Checking for duplicates in complete kernel list:")
+
+        kernel_lists = glob.glob(
+            self.setup.working_directory
+            + os.sep
+            + f"{self.setup.mission_acronym}_release*"
+            f".kernel_list"
+        )
+        kernel_lists.sort()
+
+        ker_in_list = []
+        for kernel_list in kernel_lists:
+
+            with open(kernel_list, "r", encoding='utf-8') as lst:
+
+                logging.info('     Adding %s in check.', kernel_list)
+
+                ker_in_list.extend(self._parse_entries(lst).files)
+
+        if check_list_duplicates(ker_in_list):
+            raise NPBError("List contains duplicates.")
+        else:
+            logging.info("     List contains no duplicates.")
+        logging.info("")
+
+        return kernel_lists
+
+    def _compare_with_previous_list(self, kernel_lists: list[str]) -> None:
+        """Compare the current release list with the previous one.
+
+        This is only done with the ``-d DIFF --diff DIFF`` argument on an
+        increment.
+
+        :param kernel_lists: Sorted paths of the release kernel lists
+        """
+        if not (self.setup.args.diff and self.setup.increment):
+            return
+
+        #
+        # Compare list with previous list
+        #
+        logging.info("-- Comparing current list with previous list:")
+
+        logging.info("")
+
+        # An empty glob means the current list itself is missing; a single
+        # entry means there is just no previous list to compare it with.
+        if not kernel_lists:
+            logging.error("-- Current list not available.")
+
+        else:
+            fromfile = kernel_lists[-1]
+
+            try:
+                tofile = kernel_lists[-2]
+                work_dir = self.setup.working_directory
+                compare_files(fromfile, tofile, work_dir,
+                              self.setup.args.diff)
+
+            # kernel_lists[-2] raises IndexError; compare_files() raises
+            # OSError/UnicodeDecodeError on a bad file.
+            except (IndexError, *FILE_READ_ERRORS):
+                logging.error("-- Previous list not available.")
 
     def validate_complete(self):
         """Validation of the complete Kernel List.

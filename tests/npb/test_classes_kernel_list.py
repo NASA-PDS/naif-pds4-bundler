@@ -41,6 +41,16 @@ _PDS3_CHECK_HEADER = ('INFO', '-- Check that all template tags used in the '
                               'list are present in template:')
 _PDS3_TEMPLATE = {'maklabel_options': {'OPT_A': 1, 'OPT_B': 2}}
 
+# Release kernel lists with a single kernel each (the parser only needs the
+# FILE line), and one that is not valid UTF-8.
+_LIST_WITH_A = b'FILE = /ops/a.bsp\n'
+_LIST_WITH_B = b'FILE = /ops/b.bsp\n'
+_LIST_NOT_UTF8 = b'FILE = \xff\n'
+
+# Records that open the comparison with the previous release list.
+_COMPARE_HEADER = [('INFO', '-- Comparing current list with previous list:'),
+                   ('INFO', '')]
+
 
 def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
     # Create a minimal setup object to instance KernelList.
@@ -1593,14 +1603,17 @@ class TestKernelListValidateChecks:
     def kernel_list(self, caplog, tmp_path) -> KernelList:
         # A real KernelList with a plan of two kernels; the checks only need
         # the plan, the mission, the formatted list configuration and the
-        # directories (two for the kernels, one for the bundle).
+        # directories (two for the kernels, one for the bundle and the
+        # working one).
         caplog.set_level(logging.INFO)
 
         setup = make_kernel_list_setup(
             tmp_path, mission_name='MAVEN', mission_acronym='maven',
             kernels_directory=[str(tmp_path / 'kernels_1'),
                                str(tmp_path / 'kernels_2')],
-            bundle_directory=str(tmp_path / 'bundle'))
+            bundle_directory=str(tmp_path / 'bundle'),
+            working_directory=str(tmp_path / 'working'))
+        (tmp_path / 'working').mkdir()
 
         kernel_list = KernelList(setup)
         kernel_list.kernel_list = ['a.bsp', 'b.bsp']
@@ -1754,7 +1767,6 @@ class TestKernelListValidateChecks:
         assert [(r.levelname, r.getMessage())
                 for r in caplog.records] == header + expected
 
-
     @pytest.mark.parametrize(
         ['pds_version', 'options', 'template', 'expectation', 'expected'], [
             # PDS4 does no check: the template is not even read.
@@ -1815,6 +1827,127 @@ class TestKernelListValidateChecks:
 
         assert [(r.levelname, r.getMessage())
                 for r in caplog.records] == expected
+
+    @pytest.mark.parametrize(['files', 'expectation', 'expected', 'names'], [
+        ({}, nullcontext(),
+         [('INFO', '     List contains no duplicates.'), ('INFO', '')], []),
+        ({'maven_release_03.kernel_list': _LIST_WITH_A}, nullcontext(),
+         [('INFO', '     Adding {working}/maven_release_03.kernel_list'
+                   ' in check.'),
+          ('INFO', '     List contains no duplicates.'),
+          ('INFO', '')],
+         ['maven_release_03.kernel_list']),
+        # Created in reverse order: the lists are checked and returned sorted.
+        ({'maven_release_03.kernel_list': _LIST_WITH_B,
+          'maven_release_02.kernel_list': _LIST_WITH_A}, nullcontext(),
+         [('INFO', '     Adding {working}/maven_release_02.kernel_list'
+                   ' in check.'),
+          ('INFO', '     Adding {working}/maven_release_03.kernel_list'
+                   ' in check.'),
+          ('INFO', '     List contains no duplicates.'),
+          ('INFO', '')],
+         ['maven_release_02.kernel_list', 'maven_release_03.kernel_list']),
+        ({'maven_release_02.kernel_list': _LIST_WITH_A,
+          'maven_release_03.kernel_list': _LIST_WITH_A},
+         pytest.raises(NPBError, match='^List contains duplicates.$'),
+         [('INFO', '     Adding {working}/maven_release_02.kernel_list'
+                   ' in check.'),
+          ('INFO', '     Adding {working}/maven_release_03.kernel_list'
+                   ' in check.')],
+         None),
+        # Known defect: the name pattern does not match every list name, so
+        # this list is neither checked nor returned.
+        ({'maven_labels_03.kernel_list': _LIST_WITH_A}, nullcontext(),
+         [('INFO', '     List contains no duplicates.'), ('INFO', '')], []),
+        ({'maven_release_03.kernel_list': _LIST_NOT_UTF8},
+         pytest.raises(UnicodeDecodeError),
+         [('INFO', '     Adding {working}/maven_release_03.kernel_list'
+                   ' in check.')],
+         None)])
+    def test_check_release_history(self, caplog, tmp_path, kernel_list, files,
+                                   expectation, expected, names) -> None:
+        for name, content in files.items():
+            (tmp_path / 'working' / name).write_bytes(content)
+        header = [('INFO', '-- Checking for duplicates in complete kernel'
+                           ' list:')]
+        working = str(tmp_path / 'working')
+        result = None
+
+        with expectation:
+            result = kernel_list._check_release_history()
+
+        assert [(r.levelname, r.getMessage()) for r in caplog.records] == (
+            header + [(level, message.format(working=working))
+                      for level, message in expected])
+        assert result == (names and [f'{working}/{name}' for name in names])
+
+    def test_check_release_history_sorts_the_lists(
+            self, mocker, caplog, tmp_path, kernel_list) -> None:
+        # The order glob returns depends on the file system, so it is fixed
+        # here to be the opposite of the sorted one.
+        working = tmp_path / 'working'
+        later = working / 'maven_release_03.kernel_list'
+        earlier = working / 'maven_release_02.kernel_list'
+        later.write_bytes(_LIST_WITH_B)
+        earlier.write_bytes(_LIST_WITH_A)
+        mocker.patch('pds.naif_pds4_bundler.classes.list.glob.glob',
+                     return_value=[str(later), str(earlier)])
+
+        result = kernel_list._check_release_history()
+
+        assert result == [str(earlier), str(later)]
+        assert [r.getMessage() for r in caplog.records
+                if 'Adding' in r.getMessage()] == [
+            f'     Adding {earlier} in check.', f'     Adding {later} in check.']
+
+    @pytest.mark.parametrize(
+        ['diff', 'increment', 'lists', 'effect', 'expectation', 'expected',
+         'calls'], [
+            # Both the argument and an increment are needed to compare.
+            (None, True, ['r02', 'r03'], None, nullcontext(), [], []),
+            ('log', False, ['r02', 'r03'], None, nullcontext(), [], []),
+            ('log', True, [], None, nullcontext(),
+             _COMPARE_HEADER + [('ERROR', '-- Current list not available.')],
+             []),
+            ('log', True, ['r03'], None, nullcontext(),
+             _COMPARE_HEADER + [('ERROR', '-- Previous list not available.')],
+             []),
+            ('log', True, ['r02', 'r03'], None, nullcontext(),
+             _COMPARE_HEADER, [('r03', 'r02', 'log')]),
+            # The last two lists are compared, whatever came before.
+            ('files', True, ['r01', 'r02', 'r03'], None, nullcontext(),
+             _COMPARE_HEADER, [('r03', 'r02', 'files')]),
+            # A read error and an index error are reported the same way.
+            ('log', True, ['r02', 'r03'], OSError('unreadable'),
+             nullcontext(),
+             _COMPARE_HEADER + [('ERROR', '-- Previous list not available.')],
+             [('r03', 'r02', 'log')]),
+            ('log', True, ['r02', 'r03'],
+             UnicodeDecodeError('utf-8', b'\xff', 0, 1, 'invalid start byte'),
+             nullcontext(),
+             _COMPARE_HEADER + [('ERROR', '-- Previous list not available.')],
+             [('r03', 'r02', 'log')]),
+            ('log', True, ['r02', 'r03'], RuntimeError('unrelated'),
+             pytest.raises(RuntimeError, match='^unrelated$'),
+             _COMPARE_HEADER, [('r03', 'r02', 'log')])])
+    def test_compare_with_previous_list(self, mocker, caplog, kernel_list,
+                                        diff, increment, lists, effect,
+                                        expectation, expected,
+                                        calls) -> None:
+        compare_files = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.compare_files',
+            side_effect=effect)
+        kernel_list.setup.args.diff = diff
+        kernel_list.setup.increment = increment
+
+        with expectation:
+            kernel_list._compare_with_previous_list(lists)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
+        assert [call.args for call in compare_files.call_args_list] == [
+            (fromfile, tofile, kernel_list.setup.working_directory, display)
+            for fromfile, tofile, display in calls]
 
 
 class TestKernelListWriteCompleteList:
