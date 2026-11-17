@@ -242,11 +242,13 @@ class TestSpicedsProductInit:
             self, fake_product_init):
         """Reusing the previous spiceds still runs the base constructor, but
         never derives file attributes: there is no staged file to hash."""
-        # Same increment as above, with the base constructor and the file
-        # attributes step replaced by mocks.
+        # An increment whose configuration provides no new spiceds.
         setup = make_setup(increment=True, spiceds='')
         collection = make_collection()
 
+        # Build the product with the base constructor replaced by a fake and
+        # the derivation of file attributes by a mock, so both calls can be
+        # inspected.
         with patch(_GLOB_GLOB, return_value=[_PREVIOUS_SPICEDS]), \
                 patch(f'{_MODULE}.Product.__init__', autospec=True,
                       side_effect=fake_product_init) as base_init, \
