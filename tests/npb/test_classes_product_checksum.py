@@ -4,6 +4,7 @@ import logging
 import os
 import re
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -1014,3 +1015,317 @@ class TestChecksumProductComputeChecksum:
 
         assert product.checksum == "fresh-md5"
         m_reg.assert_not_called()
+
+
+# ===========================================================================
+# Golden output of the checksum table
+# ===========================================================================
+
+def written_as(text: str) -> bytes:
+    """Return the bytes that the checksum writer leaves on disk for ``text``.
+
+    The table is written in text mode, so on Windows every line feed becomes
+    a carriage return and a line feed, and a CRLF line ending ends up as
+    CR CR LF.
+    """
+    return text.replace("\n", os.linesep).encode()
+
+
+# The entries are given out of order on purpose. Their names also check the
+# plain ASCII sort: 'B' goes before 'a', and '.' goes before '_'.
+PDS4_ENTRIES = {
+    "spice_kernels/ck/b.bc": "b" * 32,
+    "readme.txt": "e" * 32,
+    "spice_kernels/ck/a_b.bc": "d" * 32,
+    "spice_kernels/ck/B.bc": "a" * 32,
+    "spice_kernels/ck/a.bc": "c" * 32,
+}
+
+# MD5 of the bundle label that the test writes ('bundle label' plus a line
+# break). It comes from md5sum, not from the code under test.
+BUNDLE_LABEL_MD5 = "4716ac8418e52ca2304202c1af6c13b5"
+
+PDS4_TABLE_LINES = [
+    f"{'e' * 32}  readme.txt",
+    f"{BUNDLE_LABEL_MD5}  readme.xml",
+    f"{'a' * 32}  spice_kernels/ck/B.bc",
+    f"{'c' * 32}  spice_kernels/ck/a.bc",
+    f"{'d' * 32}  spice_kernels/ck/a_b.bc",
+    f"{'b' * 32}  spice_kernels/ck/b.bc",
+]
+
+
+@pytest.mark.parametrize("eol", ["\n", "\r\n"])
+def test_pds4_table_bytes(tmp_path: Path, eol: str) -> None:
+    """Check the bytes of a PDS4 checksum table built from fixed entries.
+
+    The file lists the entries and the bundle label sorted by name, with two
+    spaces between the MD5 and the name, and every line ends with the EOL of
+    the setup (LF or CRLF).
+    """
+    # Write a real bundle label and the miscellaneous folder, which has to
+    # exist before the product is created because its checksum folder is made
+    # with a non-recursive mkdir.
+    staging = tmp_path / "staging"
+    bundle_label = staging / "em16_spice" / "readme.xml"
+    bundle_label.parent.mkdir(parents=True)
+    bundle_label.write_bytes(b"bundle label\n")
+    (staging / "miscellaneous").mkdir()
+
+    # Build a bundle with no products and no readme checksum, so the table
+    # only holds the entries added below plus the bundle label.
+    setup = _make_setup(pds_version="4", increment=False)
+    setup.staging_directory = str(staging)
+    setup.bundle_directory = str(tmp_path / "bundle")
+    setup.eol = eol
+    collection = _make_collection()
+    # The checksum cuts the names at '/em16_spice/', so they are given with
+    # forward slashes, whatever the platform.
+    readme_label = SimpleNamespace(name=bundle_label.as_posix())
+    collection.bundle = SimpleNamespace(
+        collections=[],
+        readme=SimpleNamespace(label=readme_label))
+    checksum = ChecksumProduct(setup, collection)
+    checksum.md5_dict.update(PDS4_ENTRIES)
+
+    # Write the table to disk.
+    checksum.write_product()
+
+    # Compare the file with the expected bytes, line ending included.
+    expected = written_as("".join(line + eol for line in PDS4_TABLE_LINES))
+    assert Path(checksum.path).read_bytes() == expected
+
+
+# Names that differ only by '_' and '.', plus mixed case and digits. A plain
+# sort would order them a.b, a1, aB, a_b, a_b_c, ab.
+PDS3_ENTRIES = {
+    "ab.tab": "4" * 32,
+    "a_b_c.tab": "6" * 32,
+    "a.b.tab": "5" * 32,
+    "aB.tab": "3" * 32,
+    "a_b.tab": "2" * 32,
+    "a1.tab": "1" * 32,
+}
+
+# The order of the original mkpdssum.pl script, with trailing spaces so every
+# name takes as many characters as the longest one (9).
+PDS3_TABLE_LINES = [
+    f"{'1' * 32}  a1.tab   ",
+    f"{'3' * 32}  aB.tab   ",
+    f"{'4' * 32}  ab.tab   ",
+    f"{'5' * 32}  a.b.tab  ",
+    f"{'2' * 32}  a_b.tab  ",
+    f"{'6' * 32}  a_b_c.tab",
+]
+
+
+@pytest.mark.parametrize("eol", ["\n", "\r\n"])
+def test_pds3_table_bytes_and_counts(tmp_path: Path, eol: str) -> None:
+    """Check the bytes and the size attributes of a PDS3 checksum table.
+
+    The entries are sorted like mkpdssum.pl does, not like Python does, and
+    each name is padded with spaces to the longest one. The product reports
+    the longest name length as 'bytes', the length of a record, and the
+    number of records.
+    """
+    # Create the PDS3 setup and an empty previous checksum file, because the
+    # product always opens it, even when it has nothing to add.
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    setup = _make_setup(pds_version="3", increment=False)
+    setup.staging_directory = str(staging)
+    setup.bundle_directory = str(tmp_path / "bundle")
+    setup.eol = eol
+    previous = tmp_path / "bundle" / setup.volume_id / "index" / "checksum.tab"
+    previous.parent.mkdir(parents=True)
+    previous.write_bytes(b"")
+
+    # Build a bundle with no products, so the table only holds the entries
+    # added below.
+    collection = _make_collection()
+    collection.bundle = SimpleNamespace(collections=[])
+    checksum = ChecksumProduct(
+        setup, collection, add_previous_checksum=False)
+    checksum.md5_dict.update(PDS3_ENTRIES)
+
+    # Write the table to disk.
+    checksum.write_product()
+
+    # Compare the file with the expected bytes, then check the size
+    # attributes: 9 is the longest name and 45 is 32 + 4 + 9.
+    expected = written_as("".join(line + eol for line in PDS3_TABLE_LINES))
+    assert Path(checksum.path).read_bytes() == expected
+    assert checksum.bytes == 9
+    assert checksum.record_bytes == 45
+    assert checksum.file_records == 6
+
+
+# ===========================================================================
+# Loading the previous checksum file from disk
+# ===========================================================================
+
+# Entries of the previous checksum file. The PDS3 files pad the names with
+# trailing spaces, so the second line carries some on purpose.
+PREVIOUS_LINES = [
+    f"{'a' * 32}  spice_kernels/ck/a.bc",
+    f"{'b' * 32}  spice_kernels/ck/b.bc   ",
+]
+
+PREVIOUS_ENTRIES = {
+    "spice_kernels/ck/a.bc": "a" * 32,
+    "spice_kernels/ck/b.bc": "b" * 32,
+}
+
+
+@pytest.mark.parametrize("eol", ["\n", "\r\n"])
+@pytest.mark.parametrize("pds_version, previous_path", [
+    pytest.param("4", "em16_spice/miscellaneous/checksum/checksum_v001.tab",
+                 id="pds4"),
+    pytest.param("3", "em16_spice_1000/index/checksum.tab", id="pds3"),
+])
+def test_previous_checksum_file_is_loaded(
+        tmp_path: Path, pds_version: str, previous_path: str,
+        eol: str) -> None:
+    """Check that the entries of a previous checksum file are loaded.
+
+    Each line holds an MD5 and a file name separated by spaces. The line
+    ending (LF or CRLF) and the padding after the name do not end up in the
+    name, in PDS4 and in PDS3.
+    """
+    # Write a previous checksum file where the product looks for it.
+    previous = tmp_path / "bundle" / previous_path
+    previous.parent.mkdir(parents=True)
+    previous.write_bytes("".join(line + eol for line in PREVIOUS_LINES)
+                         .encode())
+    staging = tmp_path / "staging"
+    staging.mkdir()
+    setup = _make_setup(pds_version=pds_version, increment=True)
+    setup.staging_directory = str(staging)
+    setup.bundle_directory = str(tmp_path / "bundle")
+
+    # Create the product, which reads the file.
+    checksum = ChecksumProduct(
+        setup, _make_collection(), add_previous_checksum=False)
+
+    # Only the two entries of the file are loaded.
+    assert checksum.md5_dict == PREVIOUS_ENTRIES
+
+
+CORRUPTED_LINE = "Checksum file {path} is corrupted."
+CORRUPTED_ENTRY = "Checksum file {path} corrupted entry: {line}."
+
+
+@pytest.mark.parametrize("line, message", [
+    pytest.param("some/file.tab\n", CORRUPTED_LINE, id="one-field"),
+    pytest.param(f"{'a' * 32}  some/file.tab extra\n", CORRUPTED_LINE,
+                 id="three-fields"),
+    pytest.param("\n", CORRUPTED_LINE, id="blank-line"),
+    pytest.param(f"{'a' * 31}  some/file.tab\n", CORRUPTED_ENTRY,
+                 id="md5-too-short"),
+    pytest.param(f"{'a' * 33}  some/file.tab\n", CORRUPTED_ENTRY,
+                 id="md5-too-long"),
+])
+def test_corrupted_previous_checksum_file_raises(
+        tmp_path: Path, line: str, message: str) -> None:
+    """Check that a corrupted previous checksum file stops the run.
+
+    A line that does not have exactly two fields, blank lines included,
+    raises an NPBError saying the file is corrupted. A line whose MD5 does
+    not have 32 characters raises an NPBError that also quotes the line.
+    """
+    # Write a previous checksum file that starts with a valid entry and
+    # then has the corrupted line.
+    previous = (tmp_path / "bundle" / "em16_spice" / "miscellaneous"
+                / "checksum" / "checksum_v001.tab")
+    previous.parent.mkdir(parents=True)
+    previous.write_text(f"{'a' * 32}  some/other.tab\n" + line)
+    setup = _make_setup(pds_version="4", increment=True)
+    setup.staging_directory = str(tmp_path / "staging")
+    setup.bundle_directory = str(tmp_path / "bundle")
+    collection = _make_collection()
+
+    # Create the product, which reads the file.
+    with pytest.raises(NPBError) as error:
+        ChecksumProduct(setup, collection, add_previous_checksum=False)
+
+    # The message names the file and, for a bad MD5, quotes the line.
+    assert str(error.value) == message.format(path=previous, line=line)
+
+
+# ===========================================================================
+# Duplicate MD5 sums
+# ===========================================================================
+
+SHARED_MD5 = "f" * 32
+
+# MD5 of the product label that the test writes ('product label' plus a
+# line break). It comes from md5sum, not from the code under test.
+PRODUCT_LABEL_MD5 = "e9dd7768c0a27c878861ef20a6856acd"
+
+DUPLICATE_MD5_TABLE_LINES = [
+    f"{SHARED_MD5}  other/different_name.tab",
+    f"{BUNDLE_LABEL_MD5}  readme.xml",
+    f"{SHARED_MD5}  spice_kernels/ck/a.bc",
+    f"{PRODUCT_LABEL_MD5}  spice_kernels/ck/a.xml",
+]
+
+DUPLICATE_MD5_WARNINGS = [
+    '-- Default to version 1.',
+    '-- Make sure this is the first release of the archive.',
+    '',
+    '-- The following products have the same MD5 sum:',
+    f'   {SHARED_MD5}',
+    '      other/different_name.tab',
+    '      spice_kernels/ck/a.bc',
+    '-- Start time set to mission start time: 2016-01-01T00:00:00Z',
+    '-- Stop time set to mission finish time: 2023-12-31T23:59:59Z',
+]
+
+
+@pytest.mark.parametrize("debug", [False, True])
+def test_duplicate_md5_is_warned_and_does_not_raise(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture,
+        debug: bool) -> None:
+    """Check what happens when two files have the same MD5 sum.
+
+    The table is written with both files, and the warnings list the MD5 with
+    the names that share it. The check that looks for duplicates while the
+    products are added does not raise, whether the run is in debug mode or
+    not.
+    """
+    # Write the real labels, and a product whose MD5 is the same as the one
+    # of a file that is already in the table under another name.
+    staging = tmp_path / "staging"
+    bundle_label = staging / "em16_spice" / "readme.xml"
+    product_label = staging / "em16_spice" / "spice_kernels" / "ck" / "a.xml"
+    product_label.parent.mkdir(parents=True)
+    bundle_label.write_bytes(b"bundle label\n")
+    product_label.write_bytes(b"product label\n")
+    (staging / "miscellaneous").mkdir()
+    # The checksum cuts the names at '/em16_spice/', so they are given with
+    # forward slashes, whatever the platform.
+    product = SimpleNamespace(
+        path=product_label.with_suffix(".bc").as_posix(),
+        checksum=SHARED_MD5,
+        label=SimpleNamespace(name=product_label.as_posix()))
+    readme_label = SimpleNamespace(name=bundle_label.as_posix())
+    setup = _make_setup(pds_version="4", increment=False)
+    setup.staging_directory = str(staging)
+    setup.bundle_directory = str(tmp_path / "bundle")
+    setup.args.debug = debug
+    collection = _make_collection()
+    collection.bundle = SimpleNamespace(
+        collections=[SimpleNamespace(product=[product])],
+        readme=SimpleNamespace(label=readme_label))
+
+    # Create the product, add the file that shares the MD5, and write the
+    # table.
+    with caplog.at_level(logging.WARNING):
+        checksum = ChecksumProduct(setup, collection)
+        checksum.md5_dict["other/different_name.tab"] = SHARED_MD5
+        checksum.write_product()
+
+    # Both files are in the table and the warnings name them.
+    table = "".join(line + setup.eol for line in DUPLICATE_MD5_TABLE_LINES)
+    assert Path(checksum.path).read_bytes() == written_as(table)
+    assert [r.getMessage() for r in caplog.records] == DUPLICATE_MD5_WARNINGS

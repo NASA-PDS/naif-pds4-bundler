@@ -30,7 +30,7 @@ from contextlib import ExitStack
 import logging
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import DEFAULT, MagicMock, call, patch
 
 import pytest
 
@@ -165,6 +165,55 @@ def _configure_pds4_defaults(m: SimpleNamespace) -> None:
     bundle.history = {}
 
     m.isdir.return_value = True
+
+
+def _forward(source: MagicMock, target: MagicMock,
+             products: list | None = None) -> None:
+    """Make ``source`` report each of its calls to ``target`` as well.
+
+    With ``products``, only the calls whose first argument is one of them are
+    reported. The mock still returns its own ``return_value``.
+    """
+    def report(*args, **kwargs):
+        if products is None or args[0] in products:
+            target(*args, **kwargs)
+        return DEFAULT
+
+    source.side_effect = report
+
+
+def _record_checksum_sequence(mocks: SimpleNamespace, checksums: dict,
+                              collections: dict, label: MagicMock) -> MagicMock:
+    """Record the calls that build and add the checksums in one ordered list.
+
+    Returns a parent mock whose ``mock_calls`` keeps the order of the
+    'generate' and 'set_coverage' calls of the checksums, of the 'add' and
+    'set_collection_vid' calls of the collections, and of 'register_product'
+    and the label class. Only the calls made with a checksum are kept, so the
+    inventories and the readme do not show up.
+
+    :param mocks: Pipeline mocks.
+    :param checksums: Checksum mocks, by the name they are recorded under.
+    :param collections: Collection mocks, by the name they are recorded under.
+    :param label: Label class mock that labels the checksums.
+    """
+    parent = MagicMock()
+    products = list(checksums.values())
+
+    for name, checksum in checksums.items():
+        _forward(checksum.generate, getattr(parent, name).generate)
+        _forward(checksum.set_coverage, getattr(parent, name).set_coverage)
+
+    for name, collection in collections.items():
+        _forward(collection.add, getattr(parent, name).add, products)
+        _forward(collection.set_collection_vid,
+                 getattr(parent, name).set_collection_vid)
+
+    _forward(mocks.RunState.return_value.register_product,
+             parent.register_product, products)
+    _forward(label, parent.label, products)
+
+    return parent
 
 
 # ---------------------------------------------------------------------------
@@ -1303,6 +1352,173 @@ class TestPhase9PDS4DocumentMiscChecksum:
 
         assert calls == ['generated', 'registered', 'labeled'] * 3
 
+    @pytest.fixture
+    def past_releases(self, mocks):
+        """Make the pipeline rebuild the checksums of two past releases.
+
+        Every checksum, inventory and miscellaneous collection that the
+        pipeline builds gets its own mock, in the order it builds them.
+        """
+        mocks.Setup.return_value.increment = True
+        mocks.isdir.return_value = False
+        mocks.Bundle.return_value.history = {
+            'release_01': ('data', 'label'),
+            'release_02': ('data2', 'label2')}
+
+        # The first collection the pipeline builds is the current one, which
+        # the default mocks already configure.
+        checksums = [MagicMock(name=name) for name in (
+            'checksum_1', 'checksum_2', 'checksum')]
+        inventories = [MagicMock(name=name) for name in (
+            'inventory_1', 'inventory_2', 'inventory')]
+        misc = mocks.MiscellaneousCollection.return_value
+        past_misc = [MagicMock(name='misc_1'), MagicMock(name='misc_2')]
+        mocks.ChecksumProduct.side_effect = checksums
+        mocks.InventoryPDS4Product.side_effect = inventories
+        mocks.MiscellaneousCollection.side_effect = [misc, *past_misc]
+
+        return SimpleNamespace(checksums=checksums, inventories=inventories,
+                               misc=misc, past_misc=past_misc)
+
+    def test_current_checksum_added_before_collection_vid(self, mocks):
+        """Check when the checksum of this release is added to its collection.
+
+        The checksum is added once to the miscellaneous collection, before the
+        VID of the collection is set, and the inventory is added after it.
+        """
+        checksum = mocks.ChecksumProduct.return_value
+        inventory = mocks.InventoryPDS4Product.return_value
+
+        run_pipeline(_args())
+
+        # The collection mock keeps the order of the calls it received.
+        assert mocks.MiscellaneousCollection.return_value.mock_calls == [
+            call.add(checksum),
+            call.set_collection_vid(),
+            call.add(inventory)]
+
+    def test_past_release_products_added_to_both_collections(
+            self, mocks, past_releases):
+        """Check where the pipeline adds the checksums of the past releases.
+
+        The checksum and the inventory of each past release are added once to
+        the miscellaneous collection of that release and once to the current
+        one. The VID of the current collection is set after the past releases,
+        and then the checksum and the inventory of this release are added.
+        """
+        checksum_1, checksum_2, checksum = past_releases.checksums
+        inventory_1, inventory_2, inventory = past_releases.inventories
+        misc_1, misc_2 = past_releases.past_misc
+
+        run_pipeline(_args())
+
+        # Each past release collection receives its own two products and
+        # sets its VID between them.
+        assert misc_1.mock_calls == [
+            call.add(checksum_1),
+            call.set_collection_vid(),
+            call.add(inventory_1)]
+        assert misc_2.mock_calls == [
+            call.add(checksum_2),
+            call.set_collection_vid(),
+            call.add(inventory_2)]
+
+        # The current collection receives the products of both releases and
+        # then those of this release; its VID is set twice in an increment.
+        assert past_releases.misc.mock_calls == [
+            call.add(checksum_1),
+            call.add(inventory_1),
+            call.add(checksum_2),
+            call.add(inventory_2),
+            call.set_collection_vid(),
+            call.add(checksum),
+            call.set_collection_vid(),
+            call.add(inventory)]
+
+        # Each past checksum is generated from the history of its release.
+        assert checksum_1.generate.call_args_list == [
+            call(history=('release_01', ('data', 'label')))]
+        assert checksum_2.generate.call_args_list == [
+            call(history=('release_02', ('data2', 'label2')))]
+
+    def test_current_checksum_calls_in_order(self, mocks):
+        """Check the order of the checksum calls for this release.
+
+        The checksum is added to its collection and the collection VID and
+        the coverage are set before the checksum is generated, registered
+        and labeled.
+        """
+        checksum = mocks.ChecksumProduct.return_value
+
+        # Send the calls of the checksum, its collection and its label to one
+        # parent mock, which keeps them in the order they happen.
+        parent = _record_checksum_sequence(
+            mocks, {'checksum': checksum},
+            {'misc': mocks.MiscellaneousCollection.return_value},
+            mocks.ChecksumPDS4Label)
+
+        run_pipeline(_args())
+
+        # The checksum goes into the collection and the VID and coverage are
+        # set first; the file is generated after that, then registered and
+        # labeled.
+        assert parent.mock_calls == [
+            call.misc.add(checksum),
+            call.misc.set_collection_vid(),
+            call.checksum.set_coverage(),
+            call.checksum.generate(),
+            call.register_product(checksum),
+            call.label(checksum)]
+
+    def test_past_release_checksum_calls_in_order(
+            self, mocks, past_releases):
+        """Check the order of the checksum calls across the past releases.
+
+        Each past checksum is generated, registered and labeled, and then
+        added to its release collection and to the current one, before the
+        VID of that release collection is set. The checksum of this release
+        follows once every past release is done.
+        """
+        checksum_1, checksum_2, checksum = past_releases.checksums
+        misc_1, misc_2 = past_releases.past_misc
+
+        # Send the calls of every checksum and collection to one parent mock.
+        # 'misc' is the current collection; 'misc_1' and 'misc_2' belong to
+        # the past releases.
+        parent = _record_checksum_sequence(
+            mocks,
+            {'checksum_1': checksum_1, 'checksum_2': checksum_2,
+             'checksum': checksum},
+            {'misc': past_releases.misc, 'misc_1': misc_1, 'misc_2': misc_2},
+            mocks.ChecksumPDS4Label)
+
+        run_pipeline(_args())
+
+        # Each past release is complete before the next one starts, and the
+        # current collection gets its VID once all of them are added. The
+        # checksum of this release comes last.
+        assert parent.mock_calls == [
+            call.checksum_1.generate(history=('release_01', ('data', 'label'))),
+            call.register_product(checksum_1),
+            call.label(checksum_1),
+            call.misc_1.add(checksum_1),
+            call.misc.add(checksum_1),
+            call.misc_1.set_collection_vid(),
+            call.checksum_2.generate(
+                history=('release_02', ('data2', 'label2'))),
+            call.register_product(checksum_2),
+            call.label(checksum_2),
+            call.misc_2.add(checksum_2),
+            call.misc.add(checksum_2),
+            call.misc_2.set_collection_vid(),
+            call.misc.set_collection_vid(),
+            call.misc.add(checksum),
+            call.misc.set_collection_vid(),
+            call.checksum.set_coverage(),
+            call.checksum.generate(),
+            call.register_product(checksum),
+            call.label(checksum)]
+
     def test_misc_collection_vid_set(self, mocks):
         # The miscellaneous collection version ID is updated after its products are finalized.
         run_pipeline(_args())
@@ -1516,6 +1732,40 @@ class TestPhase10PDS3Path:
         run_pipeline(_args())
 
         assert calls == ['generated', 'registered', 'labeled']
+
+    def test_pds3_checksum_added_once_to_collection(self, mocks):
+        """Check that the PDS3 checksum is added once to its collection."""
+        checksum = mocks.ChecksumProduct.return_value
+
+        run_pipeline(_args())
+
+        assert mocks.MiscellaneousCollection.return_value.mock_calls == [
+            call.add(checksum)]
+
+    def test_pds3_checksum_calls_in_order(self, mocks):
+        """Check the order of the PDS3 checksum calls.
+
+        The checksum is generated, registered and labeled before it is added
+        to its collection.
+        """
+        checksum = mocks.ChecksumProduct.return_value
+
+        # Send the calls of the checksum, its collection and its label to one
+        # parent mock, which keeps them in the order they happen.
+        parent = _record_checksum_sequence(
+            mocks, {'checksum': checksum},
+            {'misc': mocks.MiscellaneousCollection.return_value},
+            mocks.ChecksumPDS3Label)
+
+        run_pipeline(_args())
+
+        # Unlike PDS4, the checksum is only added to the collection after it
+        # has been generated, registered and labeled.
+        assert parent.mock_calls == [
+            call.checksum.generate(),
+            call.register_product(checksum),
+            call.label(checksum),
+            call.misc.add(checksum)]
 
     def test_checksum_labeled_with_pds3_label(self, mocks):
         # This test class runs under pds_version="3" (set by the set_pds3
