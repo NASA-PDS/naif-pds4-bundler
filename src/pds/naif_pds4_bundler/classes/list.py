@@ -439,17 +439,11 @@ class KernelList:
         with open(list_path, "r", encoding='utf-8') as lst:
             entries = self._parse_entries(lst)
 
-        #
-        # We add kernels to compare plan and list and to look
-        # for duplicates.
-        #
-        ker_in_list = entries.files
-
         self._check_entry_counts(entries)
-        self._check_kernels_in_plan(ker_in_list)
-        self._check_list_duplicates(ker_in_list)
-        self._check_kernels_present(ker_in_list)
-        self._check_kernels_not_in_bundle(ker_in_list)
+        self._check_kernels_in_plan(entries.files)
+        self._check_list_duplicates(entries.files)
+        self._check_kernels_present(entries.files)
+        self._check_kernels_not_in_bundle(entries.files)
         self._check_pds3_options(entries.options)
 
         kernel_lists = self._check_release_history()
