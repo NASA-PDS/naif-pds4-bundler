@@ -353,6 +353,20 @@ class SpiceKernelsCollection(Collection):
         except (IndexError, TypeError, *FILE_READ_ERRORS):
             logging.warning("-- Previous bundle not found.")
 
+        (increment_start, increment_finish) = self._normalise_increment_times(
+            increment_start, increment_finish)
+
+        self.increment_finish = increment_finish
+        self.increment_start = increment_start
+
+    def _normalise_increment_times(
+            self, increment_start: str, increment_finish: str
+    ) -> tuple[str, str]:
+        """Convert the increment times to the configured date format.
+
+        Without a loaded LSK the times are returned as they came in. The
+        resulting interval is logged either way.
+        """
         #
         # Check the format of the previous bundle and correct it. The 'Z' is
         # removed from the UTC string since it is not supported until the
@@ -376,8 +390,7 @@ class SpiceKernelsCollection(Collection):
         logging.info('   %s - %s', increment_start, increment_finish)
         logging.info('')
 
-        self.increment_finish = increment_finish
-        self.increment_start = increment_start
+        return increment_start, increment_finish
 
     def validate(self) -> None:
         """Validate the SPICE Kernels collection.
