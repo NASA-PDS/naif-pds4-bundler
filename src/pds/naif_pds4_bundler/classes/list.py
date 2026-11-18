@@ -410,250 +410,280 @@ class KernelList:
     def validate(self):
         """Validation of the Kernel List.
 
-        The validation of the Kernel List performs the following checks:
+        The validation of the Kernel List performs the following checks, in
+        this order:
 
-         * check that the list has the same number of ``FILE``, ``MAKLABEL_OPTIONS``,
-           and ``DESCRIPTION`` entries.
-         * check list against plan
-         * check that list for duplicate files
-         * check that all files listed in the list are on the ``kernels_directory``
-         * check that the files are not in the ``bundle_directory``
-         * display all the ``MAKLABL_OPTIONS`` used
-         * check that all the ``MAKLBL_OPTIONS`` are in the template for PDS3
-         * check that the list has no duplicates
-         * check that the list has no bad characters
-         * if the ``-d DIFF --diff DIFF`` argument is used, compare the kernel
-           list with the kernel list of the previous release -if avaialble.
+         * check that the list has no bad characters. They are logged but do
+           not stop NPB.
+         * check that the list has the same number of ``FILE``,
+           ``MAKLABEL_OPTIONS``, and ``DESCRIPTION`` entries.
+         * check list against plan.
+         * check the list for duplicate files.
+         * check that all files listed in the list are on the
+           ``kernels_directory``. Missing files only raise a warning.
+         * check that the files are not in the ``bundle_directory``. Files
+           that are in the bundle directory only raise a warning.
+         * for PDS3, display all the ``MAKLABEL_OPTIONS`` used.
+         * for PDS3, check that all the ``MAKLABEL_OPTIONS`` are in the
+           template.
+         * check that no kernel is repeated across the release kernel lists
+           of the working directory.
+         * if the ``-d DIFF --diff DIFF`` argument is used on an increment,
+           compare the kernel list with the kernel list of the previous
+           release -if available.
         """
         list_path = self.setup.working_directory + os.sep + self.list_name
 
-        #
-        # Check that the list has no bad characters.
-        # This does not raise an error message but does not stop NPB.
-        #
-        errors = self._check_badchar(list_path)
-        if errors:
-
-            for err in errors:
-                logging.error('   %s', err)
+        for err in self._check_badchar(list_path):
+            logging.error('   %s', err)
 
         with open(list_path, "r", encoding='utf-8') as lst:
-
-            #
-            # Check that the list has the same number of FILE,
-            # MAKLABEL_OPTIONS, and DESCRIPTION entries
-            #
             entries = self._parse_entries(lst)
-            num_file = entries.num_file
-            num_opti = entries.num_opti
-            num_desc = entries.num_desc
 
-            #
-            # We add kernels to compare plan and list and to look
-            # for duplicates.
-            #
-            ker_in_list = entries.files
+        self._check_entry_counts(entries)
+        self._check_kernels_in_plan(entries.files)
+        self._check_list_duplicates(entries.files)
+        self._check_kernels_present(entries.files)
+        self._check_kernels_not_in_bundle(entries.files)
+        self._check_pds3_options(entries.options)
 
-            #
-            # We add options to display and compare to template. The parser
-            # also returns the 'None' tokens, which are not options.
-            #
-            opt_in_list = [opt for opt in entries.options if opt != "None"]
+        kernel_lists = self._check_release_history()
+        self._compare_with_previous_list(kernel_lists)
 
-            if (num_file != num_opti) or (num_opti != num_desc):
+    def _check_entry_counts(self, entries: KernelListEntries) -> None:
+        """Check that the list has as many entries of each kind.
 
-                error = "List does not have the same number of entries"
+        The ``FILE``, ``MAKLABEL_OPTIONS`` and ``DESCRIPTION`` counts must
+        match.
 
-                logging.error('%s for:', error)
-                logging.error('   FILE             (%d)', num_file)
-                logging.error('   MAKLABEL_OPTIONS (%d)', num_opti)
-                logging.error('   DESCRIPTION      (%d)', num_desc)
-                logging.error('')
+        :param entries: Entries parsed from the list
+        :raises Exception: if the counts differ
+        """
+        if (entries.num_file != entries.num_opti
+                or entries.num_opti != entries.num_desc):
 
-                logging.error(
-                    '-- Display %s kernel list configuration file to'
-                    ' double-check.', self.setup.mission_name)
+            error = "List does not have the same number of entries"
 
-                for line in self.json_formatted_lst:
-                    logging.info(line)
-                logging.error("")
+            logging.error('%s for:', error)
+            logging.error('   FILE             (%d)', entries.num_file)
+            logging.error('   MAKLABEL_OPTIONS (%d)', entries.num_opti)
+            logging.error('   DESCRIPTION      (%d)', entries.num_desc)
+            logging.error('')
 
-                raise Exception(error)
+            logging.error(
+                '-- Display %s kernel list configuration file to'
+                ' double-check.', self.setup.mission_name)
 
-            #
-            # Check list against plan.
-            #
-            for ker in ker_in_list:
-                if ker not in self.kernel_list:
-                    raise NPBError(f"   {ker} not in list.")
+            for line in self.json_formatted_lst:
+                logging.info(line)
+            logging.error("")
 
-            #
-            # Check list for duplicate entries.
-            #
-            if check_list_duplicates(ker_in_list):
-                raise NPBError("List contains duplicates.")
+            raise Exception(error)
 
-            #
-            # Check that all files listed are available in OPS area;
-            # This does not raise an error but only a warning.
-            #
-            logging.info("-- Checking that kernels are present in: ")
+    def _check_kernels_in_plan(self, kernels: list[str]) -> None:
+        """Check that every listed kernel is in the plan.
 
+        :param kernels: Kernels of the list
+        :raises NPBError: if a kernel is not in the plan
+        """
+        for ker in kernels:
+            if ker not in self.kernel_list:
+                raise NPBError(f"   {ker} not in list.")
+
+    @staticmethod
+    def _check_list_duplicates(kernels: list[str]) -> None:
+        """Check that the list does not repeat a kernel.
+
+        :param kernels: Kernels of the list
+        :raises NPBError: if a kernel is repeated
+        """
+        if check_list_duplicates(kernels):
+            raise NPBError("List contains duplicates.")
+
+    def _check_kernels_present(self, kernels: list[str]) -> None:
+        """Warn about listed kernels missing from the kernels directories.
+
+        This does not raise an error but only a warning.
+
+        :param kernels: Kernels of the list
+        """
+        logging.info("-- Checking that kernels are present in: ")
+
+        for work_dir in self.setup.kernels_directory:
+            logging.info('   %s', work_dir)
+
+        # TODO: BUG, 'present' is initialised outside the loop and is never
+        #       reset by the kernel, if an existing kernel is found, all
+        #       kernels processed afterwards—even if they do not exist—will
+        #       be listed anyway and will not trigger any WARNING. In other
+        #       words, the behaviour depends on the order in which the
+        #       kernels are processed.
+        present = False
+        all_present = True
+        for ker in kernels:
             for work_dir in self.setup.kernels_directory:
-                logging.info('   %s', work_dir)
-
-            # TODO: BUG, 'present' is initialised outside the loop and is never
-            #       reset by the kernel, if an existing kernel is found, all
-            #       kernels processed afterwards—even if they do not exist—will
-            #       be listed anyway and will not trigger any WARNING. In other
-            #       words, the behaviour depends on the order in which the
-            #       kernels are processed.
-            present = False
-            all_present = True
-            for ker in ker_in_list:
-                for work_dir in self.setup.kernels_directory:
-                    #
-                    # We cannot assume that the file is under a certain
-                    # directory, it can be in any sub-directory.
-                    #
-                    file = [
-                        os.path.join(root, name)
-                        for root, dirs, files in os.walk(work_dir)
-                        for name in files
-                        if name == ker
-                    ]
-                    if file:
-                        present = True
-                if not present:
-                    if ".tm" in ker:
-                        logging.info('     %s not present as expected.', ker)
-
-                    else:
-                        logging.warning(
-                            '     %s not present. Kernel might be mapped.', ker)
-
-                        all_present = False
-            if all_present:
-                logging.info("     All kernels present.")
-            logging.info("")
-
-            #
-            # Check that no file is in the final area.
-            #
-            present = False
-
-            logging.info('-- Checking that kernels are present in %s: ',
-                         self.setup.bundle_directory)
-
-            for ker in ker_in_list:
-                if os.path.isfile(
-                    self.setup.bundle_directory
-                    + f"/{self.setup.mission_acronym}_spice/"
-                    f"spice_kernels/" + extension_to_type(ker) + os.sep + ker
-                ):
+                #
+                # We cannot assume that the file is under a certain
+                # directory, it can be in any sub-directory.
+                #
+                file = [
+                    os.path.join(root, name)
+                    for root, dirs, files in os.walk(work_dir)
+                    for name in files
+                    if name == ker
+                ]
+                if file:
                     present = True
-
-                    logging.warning('     %s present.', ker)
-
             if not present:
-                logging.info("     No kernels present in final area.")
-            logging.info("")
+                if ".tm" in ker:
+                    logging.info('     %s not present as expected.', ker)
 
-            #
-            # IF you generate a PDS23 data set, display all the MAKLABL_OPTIONS
-            # used
-            #
-            if self.setup.pds_version == "3":
-                opt_in_list = list(dict.fromkeys(opt_in_list))
-                opt_in_list.sort()
-                logging.info("-- Display all the MAKLABEL_OPTIONS:")
+                else:
+                    logging.warning(
+                        '     %s not present. Kernel might be mapped.', ker)
 
-                for option in opt_in_list:
-                    logging.info('     %s', option)
+                    all_present = False
+        if all_present:
+            logging.info("     All kernels present.")
+        logging.info("")
 
-                logging.info('')
+    def _check_kernels_not_in_bundle(self, kernels: list[str]) -> None:
+        """Warn about listed kernels that are already in the bundle area.
 
-            #
-            # The PDS Mission Template file is not required for PDS4
-            #
-            if self.setup.pds_version == "3":
-                logging.info(
-                    "-- Check that all template tags used in the list are present in template:"
-                )
+        :param kernels: Kernels of the list
+        """
+        present = False
 
-                maklabel_options = self.setup.pds3_mission_template[
-                    "maklabel_options"
-                ].keys()
+        logging.info('-- Checking that kernels are present in %s: ',
+                     self.setup.bundle_directory)
 
-                for option in opt_in_list:
+        for ker in kernels:
+            if os.path.isfile(
+                self.setup.bundle_directory
+                + f"/{self.setup.mission_acronym}_spice/"
+                f"spice_kernels/" + extension_to_type(ker) + os.sep + ker
+            ):
+                present = True
 
-                    if option in maklabel_options:
-                        logging.info('     %s is present.', option)
+                logging.warning('     %s present.', ker)
 
-                    else:
-                        if option != "N/A":
-                            raise NPBError(f"{option} not in configuration.")
+        if not present:
+            logging.info("     No kernels present in final area.")
+        logging.info("")
 
-                logging.info('')
+    def _check_pds3_options(self, options: list[str]) -> None:
+        """Display the MAKLABEL_OPTIONS used and check them in the template.
 
-            #
-            # Check complete list for duplicate entries
-            #
-            logging.info("-- Checking for duplicates in complete kernel list:")
+        The PDS Mission Template file is not required for PDS4, so nothing
+        is done for it.
 
-            kernel_lists = glob.glob(
-                self.setup.working_directory
-                + os.sep
-                + f"{self.setup.mission_acronym}_release*"
-                f".kernel_list"
-            )
-            kernel_lists.sort()
+        :param options: Option tokens of the list. The ``None`` tokens are
+                        not options and are ignored.
+        :raises NPBError: if an option is not in the template
+        """
+        if self.setup.pds_version != "3":
+            return
 
-            ker_in_list = []
-            for kernel_list in kernel_lists:
+        options = [opt for opt in options if opt != "None"]
+        options = list(dict.fromkeys(options))
+        options.sort()
+        logging.info("-- Display all the MAKLABEL_OPTIONS:")
 
-                with open(kernel_list, "r", encoding='utf-8') as lst:
+        for option in options:
+            logging.info('     %s', option)
 
-                    #
-                    # Check that the list has the same number of FILE,
-                    # MAKLABEL_OPTIONS, and DESCRIPTION entries
-                    #
-                    logging.info('     Adding %s in check.', kernel_list)
+        logging.info('')
 
-                    ker_in_list.extend(self._parse_entries(lst).files)
+        logging.info(
+            "-- Check that all template tags used in the list are present"
+            " in template:"
+        )
 
-            if check_list_duplicates(ker_in_list):
-                raise NPBError("List contains duplicates.")
-            else:
-                logging.info("     List contains no duplicates.")
-            logging.info("")
+        maklabel_options = self.setup.pds3_mission_template[
+            "maklabel_options"
+        ].keys()
 
-        if self.setup.args.diff and self.setup.increment:
-            #
-            # Compare list with previous list
-            #
-            logging.info("-- Comparing current list with previous list:")
+        for option in options:
 
-            logging.info("")
-
-            # An empty glob means the current list itself is missing; a single
-            # entry means there is just no previous list to compare it with.
-            if not kernel_lists:
-                logging.error("-- Current list not available.")
+            if option in maklabel_options:
+                logging.info('     %s is present.', option)
 
             else:
-                fromfile = kernel_lists[-1]
+                if option != "N/A":
+                    raise NPBError(f"{option} not in configuration.")
 
-                try:
-                    tofile = kernel_lists[-2]
-                    work_dir = self.setup.working_directory
-                    compare_files(fromfile, tofile, work_dir,
-                                  self.setup.args.diff)
+        logging.info('')
 
-                # kernel_lists[-2] raises IndexError; compare_files() raises
-                # OSError/UnicodeDecodeError on a bad file.
-                except (IndexError, *FILE_READ_ERRORS):
-                    logging.error("-- Previous list not available.")
+    def _check_release_history(self) -> list[str]:
+        """Check that no kernel is repeated across the release kernel lists.
+
+        :return: Sorted paths of the release kernel lists in the working
+                 directory
+        :raises NPBError: if a kernel is repeated
+        """
+        logging.info("-- Checking for duplicates in complete kernel list:")
+
+        kernel_lists = glob.glob(
+            self.setup.working_directory
+            + os.sep
+            + f"{self.setup.mission_acronym}_release*"
+            f".kernel_list"
+        )
+        kernel_lists.sort()
+
+        ker_in_list = []
+        for kernel_list in kernel_lists:
+
+            with open(kernel_list, "r", encoding='utf-8') as lst:
+
+                logging.info('     Adding %s in check.', kernel_list)
+
+                ker_in_list.extend(self._parse_entries(lst).files)
+
+        if check_list_duplicates(ker_in_list):
+            raise NPBError("List contains duplicates.")
+        else:
+            logging.info("     List contains no duplicates.")
+        logging.info("")
+
+        return kernel_lists
+
+    def _compare_with_previous_list(self, kernel_lists: list[str]) -> None:
+        """Compare the current release list with the previous one.
+
+        This is only done with the ``-d DIFF --diff DIFF`` argument on an
+        increment.
+
+        :param kernel_lists: Sorted paths of the release kernel lists
+        """
+        if not (self.setup.args.diff and self.setup.increment):
+            return
+
+        #
+        # Compare list with previous list
+        #
+        logging.info("-- Comparing current list with previous list:")
+
+        logging.info("")
+
+        # An empty glob means the current list itself is missing; a single
+        # entry means there is just no previous list to compare it with.
+        if not kernel_lists:
+            logging.error("-- Current list not available.")
+
+        else:
+            fromfile = kernel_lists[-1]
+
+            try:
+                tofile = kernel_lists[-2]
+                work_dir = self.setup.working_directory
+                compare_files(fromfile, tofile, work_dir,
+                              self.setup.args.diff)
+
+            # kernel_lists[-2] raises IndexError; compare_files() raises
+            # OSError/UnicodeDecodeError on a bad file.
+            except (IndexError, *FILE_READ_ERRORS):
+                logging.error("-- Previous list not available.")
 
     def validate_complete(self):
         """Validation of the complete Kernel List.

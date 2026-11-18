@@ -1,4 +1,5 @@
 """Tests for KernelList class."""
+from contextlib import nullcontext
 import os.path
 import shutil
 import sys
@@ -13,6 +14,7 @@ from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
 from pds.naif_pds4_bundler.classes.list import KernelList
+from pds.naif_pds4_bundler.classes.list import KernelListEntries
 
 # Get the directory where the test kernels are located.
 KERNELS = Path(__file__).parent.parent / "naif_pds4_bundler" / "data" / "kernels"
@@ -31,6 +33,31 @@ _CHECK_FATAL_MESSAGE = 'Products listed above require work.'
 
 # Message logged at INFO and printed to stdout when all checks pass.
 _CHECK_SUCCESS_MESSAGE = '-- All products checks have succeeded.'
+
+# Records that frame the PDS3 option display and the template check, and a
+# mission template that accepts two options.
+_PDS3_DISPLAY_HEADER = ('INFO', '-- Display all the MAKLABEL_OPTIONS:')
+_PDS3_CHECK_HEADER = ('INFO', '-- Check that all template tags used in the '
+                              'list are present in template:')
+_PDS3_TEMPLATE = {'maklabel_options': {'OPT_A': 1, 'OPT_B': 2}}
+
+# Release kernel lists with a single kernel each (the parser only needs the
+# FILE line), and one that is not valid UTF-8.
+_LIST_WITH_A = b'FILE = /ops/a.bsp\n'
+_LIST_WITH_B = b'FILE = /ops/b.bsp\n'
+_LIST_NOT_UTF8 = b'FILE = \xff\n'
+
+# Records that open the comparison with the previous release list.
+_COMPARE_HEADER = [('INFO', '-- Comparing current list with previous list:'),
+                   ('INFO', '')]
+
+
+def release_history_logs(working, names) -> list:
+    # The records of a release history check that has read the lists called
+    # ``names`` in the ``working`` directory.
+    return ([('INFO', '-- Checking for duplicates in complete kernel list:')]
+            + [('INFO', f'     Adding {working / name} in check.')
+               for name in names])
 
 
 def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
@@ -1576,6 +1603,332 @@ class TestKernelListValidate:
 
         with pytest.raises(TypeError, match="boom"):
             kernel_list.validate()
+
+
+class TestKernelListValidateChecks:
+
+    @pytest.fixture
+    def kernel_list(self, caplog, tmp_path) -> KernelList:
+        # A real KernelList with a plan of two kernels; the checks only need
+        # the plan, the mission, the formatted list configuration and the
+        # directories (two for the kernels, one for the bundle and the
+        # working one).
+        caplog.set_level(logging.INFO)
+
+        setup = make_kernel_list_setup(
+            tmp_path, mission_name='MAVEN', mission_acronym='maven',
+            kernels_directory=[str(tmp_path / 'kernels_1'),
+                               str(tmp_path / 'kernels_2')],
+            bundle_directory=str(tmp_path / 'bundle'),
+            working_directory=str(tmp_path / 'working'))
+        (tmp_path / 'working').mkdir()
+
+        kernel_list = KernelList(setup)
+        kernel_list.kernel_list = ['a.bsp', 'b.bsp']
+        kernel_list.json_formatted_lst = ['{', '}']
+
+        return kernel_list
+
+    @pytest.mark.parametrize(
+        ['counts', 'expectation', 'expected'],
+        [((2, 2, 2), nullcontext(), []),
+         *[(counts, pytest.raises(Exception, match='same number of entries'),
+            [('ERROR', 'List does not have the same number of entries for:'),
+             ('ERROR', f'   FILE             ({counts[0]})'),
+             ('ERROR', f'   MAKLABEL_OPTIONS ({counts[1]})'),
+             ('ERROR', f'   DESCRIPTION      ({counts[2]})'),
+             ('ERROR', ''),
+             ('ERROR', '-- Display MAVEN kernel list configuration file to'
+                       ' double-check.'),
+             ('INFO', '{'),
+             ('INFO', '}'),
+             ('ERROR', '')])
+           for counts in [(3, 2, 2), (2, 3, 2), (2, 2, 3), (1, 2, 3)]]])
+    def test_check_entry_counts(self, caplog, kernel_list, counts,
+                                expectation, expected) -> None:
+        entries = KernelListEntries([], [], *counts)
+
+        with expectation:
+            kernel_list._check_entry_counts(entries)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
+
+    def test_check_entry_counts_raises_bare_exception(
+            self, kernel_list) -> None:
+        # pytest.raises(Exception) also accepts NPBError, so the exact type
+        # is pinned in its own test.
+        with pytest.raises(Exception) as exc_info:
+            kernel_list._check_entry_counts(KernelListEntries([], [], 1, 2, 3))
+
+        assert exc_info.type is Exception
+
+    @pytest.mark.parametrize(['kernels', 'expectation'], [
+        (['a.bsp', 'b.bsp'], nullcontext()),
+        ([], nullcontext()),
+        (['c.bsp', 'a.bsp'],
+         pytest.raises(NPBError, match='^   c.bsp not in list.$')),
+        (['a.bsp', 'c.bsp'],
+         pytest.raises(NPBError, match='^   c.bsp not in list.$'))])
+    def test_check_kernels_in_plan(self, kernel_list, kernels,
+                                   expectation) -> None:
+        with expectation:
+            kernel_list._check_kernels_in_plan(kernels)
+
+    @pytest.mark.parametrize(['kernels', 'expectation'], [
+        (['a.bsp', 'b.bsp'], nullcontext()),
+        ([], nullcontext()),
+        (['a.bsp', 'a.bsp'],
+         pytest.raises(NPBError, match='^List contains duplicates.$')),
+        (['a.bsp', 'b.bsp', 'a.bsp'],
+         pytest.raises(NPBError, match='^List contains duplicates.$'))])
+    def test_check_list_duplicates(self, kernel_list, kernels,
+                                   expectation) -> None:
+        with expectation:
+            kernel_list._check_list_duplicates(kernels)
+
+    @pytest.mark.parametrize(['kernels', 'files', 'expected'], [
+        # Present in a sub-directory of the first kernels directory.
+        (['a.bsp'], ['kernels_1/sub/a.bsp'],
+         [('INFO', '     All kernels present.'), ('INFO', '')]),
+        # Present only in the second kernels directory.
+        (['a.bsp'], ['kernels_2/a.bsp'],
+         [('INFO', '     All kernels present.'), ('INFO', '')]),
+        (['a.bsp'], [],
+         [('WARNING', '     a.bsp not present. Kernel might be mapped.'),
+          ('INFO', '')]),
+        # A missing meta-kernel is expected and does not count as missing.
+        (['m.tm'], [],
+         [('INFO', '     m.tm not present as expected.'),
+          ('INFO', '     All kernels present.'),
+          ('INFO', '')]),
+        # Known defect: the 'present' flag is never reset, so the outcome
+        # depends on the order of the kernels. Absent kernel first: warns.
+        (['b.bsp', 'a.bsp'], ['kernels_1/a.bsp'],
+         [('WARNING', '     b.bsp not present. Kernel might be mapped.'),
+          ('INFO', '')]),
+        # Known defect: present kernel first, so the absent one is silent and
+        # the log claims that all kernels are present.
+        (['a.bsp', 'b.bsp'], ['kernels_1/a.bsp'],
+         [('INFO', '     All kernels present.'), ('INFO', '')]),
+        ([], [],
+         [('INFO', '     All kernels present.'), ('INFO', '')])])
+    def test_check_kernels_present(self, caplog, tmp_path, kernel_list,
+                                   kernels, files, expected) -> None:
+        for file in files:
+            (tmp_path / file).parent.mkdir(parents=True, exist_ok=True)
+            (tmp_path / file).write_text('x', encoding='utf-8')
+        header = [('INFO', '-- Checking that kernels are present in: '),
+                  ('INFO', f'   {tmp_path / "kernels_1"}'),
+                  ('INFO', f'   {tmp_path / "kernels_2"}')]
+
+        kernel_list._check_kernels_present(kernels)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == header + expected
+
+    @pytest.mark.parametrize(['kernels', 'files', 'expected'], [
+        (['a.bsp'], [],
+         [('INFO', '     No kernels present in final area.'), ('INFO', '')]),
+        (['a.bsp', 'b.bsp'], ['bundle/maven_spice/spice_kernels/spk/a.bsp'],
+         [('WARNING', '     a.bsp present.'), ('INFO', '')]),
+        (['a.bsp', 'b.bsp'],
+         ['bundle/maven_spice/spice_kernels/spk/a.bsp',
+          'bundle/maven_spice/spice_kernels/spk/b.bsp'],
+         [('WARNING', '     a.bsp present.'),
+          ('WARNING', '     b.bsp present.'),
+          ('INFO', '')]),
+        # A kernel under the directory of another kernel type is not a match.
+        (['a.bsp'], ['bundle/maven_spice/spice_kernels/ck/a.bsp'],
+         [('INFO', '     No kernels present in final area.'), ('INFO', '')]),
+        ([], [],
+         [('INFO', '     No kernels present in final area.'),
+          ('INFO', '')])])
+    def test_check_kernels_not_in_bundle(self, caplog, tmp_path, kernel_list,
+                                         kernels, files, expected) -> None:
+        for file in files:
+            (tmp_path / file).parent.mkdir(parents=True, exist_ok=True)
+            (tmp_path / file).write_text('x', encoding='utf-8')
+        header = [('INFO', f'-- Checking that kernels are present in '
+                           f'{tmp_path / "bundle"}: ')]
+
+        kernel_list._check_kernels_not_in_bundle(kernels)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == header + expected
+
+    @pytest.mark.parametrize(
+        ['pds_version', 'options', 'template', 'expectation', 'expected'], [
+            # PDS4 does no check: the template is not even read.
+            ('4', ['OPT_A'], {}, nullcontext(), []),
+            ('3', ['OPT_B', 'OPT_A', 'OPT_B'], _PDS3_TEMPLATE, nullcontext(),
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     OPT_A'),
+              ('INFO', '     OPT_B'),
+              ('INFO', ''),
+              _PDS3_CHECK_HEADER,
+              ('INFO', '     OPT_A is present.'),
+              ('INFO', '     OPT_B is present.'),
+              ('INFO', '')]),
+            # The 'None' tokens are not options.
+            ('3', ['None', 'OPT_A'], _PDS3_TEMPLATE, nullcontext(),
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     OPT_A'),
+              ('INFO', ''),
+              _PDS3_CHECK_HEADER,
+              ('INFO', '     OPT_A is present.'),
+              ('INFO', '')]),
+            ('3', [], _PDS3_TEMPLATE, nullcontext(),
+             [_PDS3_DISPLAY_HEADER, ('INFO', ''),
+              _PDS3_CHECK_HEADER, ('INFO', '')]),
+            # 'N/A' is displayed but is neither checked nor reported.
+            ('3', ['N/A'], _PDS3_TEMPLATE, nullcontext(),
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     N/A'),
+              ('INFO', ''),
+              _PDS3_CHECK_HEADER,
+              ('INFO', '')]),
+            # The options are sorted, so the order of the input does not
+            # change which options are reported before the failure.
+            *[('3', options, _PDS3_TEMPLATE,
+               pytest.raises(NPBError, match='^OPT_Z not in configuration.$'),
+               [_PDS3_DISPLAY_HEADER,
+                ('INFO', '     OPT_A'),
+                ('INFO', '     OPT_Z'),
+                ('INFO', ''),
+                _PDS3_CHECK_HEADER,
+                ('INFO', '     OPT_A is present.')])
+              for options in (['OPT_A', 'OPT_Z'], ['OPT_Z', 'OPT_A'])],
+            # A template without the options table fails after the headers.
+            ('3', ['OPT_A'], {},
+             pytest.raises(KeyError, match='maklabel_options'),
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     OPT_A'),
+              ('INFO', ''),
+              _PDS3_CHECK_HEADER])])
+    def test_check_pds3_options(self, caplog, kernel_list, pds_version,
+                                options, template, expectation,
+                                expected) -> None:
+        kernel_list.setup.pds_version = pds_version
+        kernel_list.setup.pds3_mission_template = template
+
+        with expectation:
+            kernel_list._check_pds3_options(options)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
+
+    @pytest.mark.parametrize(['files', 'names'], [
+        ({}, []),
+        ({'maven_release_03.kernel_list': _LIST_WITH_A},
+         ['maven_release_03.kernel_list']),
+        # Created in reverse order: the lists are checked and returned
+        # sorted.
+        ({'maven_release_03.kernel_list': _LIST_WITH_B,
+          'maven_release_02.kernel_list': _LIST_WITH_A},
+         ['maven_release_02.kernel_list', 'maven_release_03.kernel_list']),
+        # Known defect: the name pattern does not match every list name, so
+        # this list is neither checked nor returned.
+        ({'maven_labels_03.kernel_list': _LIST_WITH_A}, [])])
+    def test_check_release_history(self, caplog, tmp_path, kernel_list, files,
+                                   names) -> None:
+        working = tmp_path / 'working'
+        for name, content in files.items():
+            (working / name).write_bytes(content)
+
+        result = kernel_list._check_release_history()
+
+        assert result == [str(working / name) for name in names]
+        assert [(r.levelname, r.getMessage()) for r in caplog.records] == (
+            release_history_logs(working, names)
+            + [('INFO', '     List contains no duplicates.'), ('INFO', '')])
+
+    @pytest.mark.parametrize(['files', 'expectation', 'names'], [
+        ({'maven_release_02.kernel_list': _LIST_WITH_A,
+          'maven_release_03.kernel_list': _LIST_WITH_A},
+         pytest.raises(NPBError, match='^List contains duplicates.$'),
+         ['maven_release_02.kernel_list', 'maven_release_03.kernel_list']),
+        ({'maven_release_03.kernel_list': _LIST_NOT_UTF8},
+         pytest.raises(UnicodeDecodeError), ['maven_release_03.kernel_list'])])
+    def test_check_release_history_raises(self, caplog, tmp_path, kernel_list,
+                                          files, expectation, names) -> None:
+        working = tmp_path / 'working'
+        for name, content in files.items():
+            (working / name).write_bytes(content)
+
+        with expectation:
+            kernel_list._check_release_history()
+
+        assert [(r.levelname, r.getMessage()) for r in caplog.records] == (
+            release_history_logs(working, names))
+
+    def test_check_release_history_sorts_the_lists(
+            self, mocker, caplog, tmp_path, kernel_list) -> None:
+        # The order glob returns depends on the file system, so it is fixed
+        # here to be the opposite of the sorted one.
+        working = tmp_path / 'working'
+        later = working / 'maven_release_03.kernel_list'
+        earlier = working / 'maven_release_02.kernel_list'
+        later.write_bytes(_LIST_WITH_B)
+        earlier.write_bytes(_LIST_WITH_A)
+        mocker.patch('pds.naif_pds4_bundler.classes.list.glob.glob',
+                     return_value=[str(later), str(earlier)])
+
+        result = kernel_list._check_release_history()
+
+        assert result == [str(earlier), str(later)]
+        assert [r.getMessage() for r in caplog.records
+                if 'Adding' in r.getMessage()] == [
+            f'     Adding {earlier} in check.', f'     Adding {later} in check.']
+
+    @pytest.mark.parametrize(
+        ['diff', 'increment', 'lists', 'effect', 'expectation', 'expected',
+         'calls'], [
+            # Both the argument and an increment are needed to compare.
+            (None, True, ['r02', 'r03'], None, nullcontext(), [], []),
+            ('log', False, ['r02', 'r03'], None, nullcontext(), [], []),
+            ('log', True, [], None, nullcontext(),
+             _COMPARE_HEADER + [('ERROR', '-- Current list not available.')],
+             []),
+            ('log', True, ['r03'], None, nullcontext(),
+             _COMPARE_HEADER + [('ERROR', '-- Previous list not available.')],
+             []),
+            ('log', True, ['r02', 'r03'], None, nullcontext(),
+             _COMPARE_HEADER, [('r03', 'r02', 'log')]),
+            # The last two lists are compared, whatever came before.
+            ('files', True, ['r01', 'r02', 'r03'], None, nullcontext(),
+             _COMPARE_HEADER, [('r03', 'r02', 'files')]),
+            # A read error and an index error are reported the same way.
+            ('log', True, ['r02', 'r03'], OSError('unreadable'),
+             nullcontext(),
+             _COMPARE_HEADER + [('ERROR', '-- Previous list not available.')],
+             [('r03', 'r02', 'log')]),
+            ('log', True, ['r02', 'r03'],
+             UnicodeDecodeError('utf-8', b'\xff', 0, 1, 'invalid start byte'),
+             nullcontext(),
+             _COMPARE_HEADER + [('ERROR', '-- Previous list not available.')],
+             [('r03', 'r02', 'log')]),
+            ('log', True, ['r02', 'r03'], RuntimeError('unrelated'),
+             pytest.raises(RuntimeError, match='^unrelated$'),
+             _COMPARE_HEADER, [('r03', 'r02', 'log')])])
+    def test_compare_with_previous_list(self, mocker, caplog, kernel_list,
+                                        diff, increment, lists, effect,
+                                        expectation, expected,
+                                        calls) -> None:
+        compare_files = mocker.patch(
+            'pds.naif_pds4_bundler.classes.list.compare_files',
+            side_effect=effect)
+        kernel_list.setup.args.diff = diff
+        kernel_list.setup.increment = increment
+
+        with expectation:
+            kernel_list._compare_with_previous_list(lists)
+
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
+        assert [call.args for call in compare_files.call_args_list] == [
+            (fromfile, tofile, kernel_list.setup.working_directory, display)
+            for fromfile, tofile, display in calls]
 
 
 class TestKernelListWriteCompleteList:
