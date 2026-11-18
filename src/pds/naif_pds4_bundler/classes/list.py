@@ -422,7 +422,7 @@ class KernelList:
          * check that all files listed in the list are on the
            ``kernels_directory``. Missing files only raise a warning.
          * check that the files are not in the ``bundle_directory``. Files
-           that are only raise a warning.
+           that are in the bundle directory only raise a warning.
          * for PDS3, display all the ``MAKLABEL_OPTIONS`` used.
          * for PDS3, check that all the ``MAKLABEL_OPTIONS`` are in the
            template.
