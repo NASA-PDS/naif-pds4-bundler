@@ -221,6 +221,25 @@ class SpiceKernelsCollection(Collection):
         execution. The determined times are stored in ``increment_start`` and
         ``increment_finish``.
         """
+        (increment_start, increment_finish) = self._initial_increment_times()
+
+        (increment_start, increment_finish) = self._correct_from_previous_bundle(
+            increment_start, increment_finish)
+
+        (increment_start, increment_finish) = self._normalise_increment_times(
+            increment_start, increment_finish)
+
+        self.increment_finish = increment_finish
+        self.increment_start = increment_start
+
+    def _initial_increment_times(self) -> tuple[str, str]:
+        """Pick the first increment start and finish times.
+
+        They come from the meta-kernels that set the coverage, then from the
+        configuration, and finally from the mission start and finish times.
+        If the meta-kernels fail halfway, a start already taken from them is
+        kept while the finish falls back.
+        """
         increment_start = ""
         increment_finish = ""
         #
@@ -295,14 +314,7 @@ class SpiceKernelsCollection(Collection):
                     'Mission stop time will be used:')
                 logging.warning('   %s', increment_finish)
 
-        (increment_start, increment_finish) = self._correct_from_previous_bundle(
-            increment_start, increment_finish)
-
-        (increment_start, increment_finish) = self._normalise_increment_times(
-            increment_start, increment_finish)
-
-        self.increment_finish = increment_finish
-        self.increment_start = increment_start
+        return increment_start, increment_finish
 
     def _correct_from_previous_bundle(
             self, increment_start: str, increment_finish: str
