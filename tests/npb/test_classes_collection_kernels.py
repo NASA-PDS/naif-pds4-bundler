@@ -1262,35 +1262,43 @@ def _make_increment_collection(**setup_extra: str) -> SpiceKernelsCollection:
             _Setup(**attrs), make_bundle(), make_kernels())
 
 
-def _assert_logged(
-        caplog: pytest.LogCaptureFixture,
-        expected_log: list[tuple[str, str]]) -> None:
-    """Check the log levels in order and that every message holds the
-    fragment expected for it."""
-    logged = [(rec.levelname, rec.getMessage()) for rec in caplog.records]
-    assert [level for level, _ in logged] == [
-        level for level, _ in expected_log]
-    assert all(
-        fragment in message
-        for (_, fragment), (_, message) in zip(expected_log, logged))
+def _logged(caplog: pytest.LogCaptureFixture) -> list[tuple[str, str]]:
+    """Return the (level, message) pairs logged so far, in order."""
+    return [(rec.levelname, rec.getMessage()) for rec in caplog.records]
 
 
 # ===========================================================================
 # SpiceKernelsCollection._initial_increment_times
 # ===========================================================================
 
-_MK_LINE = ("INFO", "Using MK")
-_NO_MK_LINE = ("WARNING", "No Meta-kernels found")
-_CONFIG_LINE = ("INFO", "as provided from configuration file")
+_NO_MK = ("WARNING", "-- No Meta-kernels found to determine increment times.")
+
+
+def _using_mk(name: str) -> tuple[str, str]:
+    return ("INFO", f"-- Using MK: {name} to determine increment coverage.")
+
+
+def _config_start(time: str) -> tuple[str, str]:
+    # The code logs the word 'stop' for the configured start time.
+    return ("INFO", f"   Increment stop time set to: {time} "
+                    "as provided from configuration file")
+
+
+def _config_finish(time: str) -> tuple[str, str]:
+    return ("INFO", f"   Increment finish time set to: {time} "
+                    "as provided from configuration file")
+
 
 # The mission times of _make_increment_collection are the 2000 and 2040 ones.
 _START_FALLBACK = [
-    ("WARNING", "No increment start time provided"),
-    ("WARNING", _t(2000)),
+    ("WARNING", "-- No increment start time provided via configuration. "
+                "Mission start time will be used:"),
+    ("WARNING", f"   {_t(2000)}"),
 ]
 _FINISH_FALLBACK = [
-    ("WARNING", "No increment finish time provided"),
-    ("WARNING", _t(2040)),
+    ("WARNING", "-- No increment finish time provided via configuration. "
+                "Mission stop time will be used:"),
+    ("WARNING", f"   {_t(2040)}"),
 ]
 
 
@@ -1308,67 +1316,68 @@ class TestSpiceKernelsCollectionInitialIncrementTimes:
             pytest.param(
                 [_mk("a.tm", _t(2012), _t(2018)),
                  _mk("b.tm", _t(2010), _t(2020))],
-                {}, (_t(2010), _t(2020)), [_MK_LINE, _MK_LINE],
+                {}, (_t(2010), _t(2020)), [_using_mk("a.tm"), _using_mk("b.tm")],
                 id="meta-kernels-earliest-start-latest-stop"),
             pytest.param(
                 [_mk("a.tm", _t(2010), _t(2020)),
                  {"name": "b.tm", "mk_sets_coverage": False,
                   "start_time": _t(2005), "stop_time": _t(2030)}],
-                {}, (_t(2010), _t(2020)), [_MK_LINE],
+                {}, (_t(2010), _t(2020)), [_using_mk("a.tm")],
                 id="meta-kernel-with-coverage-false-is-ignored"),
             pytest.param(
                 [_mk("a.tm", _t(2010), _t(2020)),
                  {"name": "b.tm",
                   "start_time": _t(2005), "stop_time": _t(2030)}],
-                {}, (_t(2010), _t(2020)), [_MK_LINE],
+                {}, (_t(2010), _t(2020)), [_using_mk("a.tm")],
                 id="meta-kernel-without-coverage-attribute-is-ignored"),
             pytest.param(
                 [], {}, (_t(2000), _t(2040)),
-                [_NO_MK_LINE] + _START_FALLBACK + _FINISH_FALLBACK,
+                [_NO_MK] + _START_FALLBACK + _FINISH_FALLBACK,
                 id="no-meta-kernel-no-configuration"),
             pytest.param(
                 [], {"increment_start": _t(2005)},
                 (_t(2005), _t(2040)),
-                [_NO_MK_LINE, _CONFIG_LINE] + _FINISH_FALLBACK,
+                [_NO_MK, _config_start(_t(2005))] + _FINISH_FALLBACK,
                 id="no-meta-kernel-configuration-start-only"),
             pytest.param(
                 [], {"increment_finish": _t(2025)},
                 (_t(2000), _t(2025)),
-                [_NO_MK_LINE, _CONFIG_LINE] + _START_FALLBACK,
+                [_NO_MK, _config_finish(_t(2025))] + _START_FALLBACK,
                 id="no-meta-kernel-configuration-finish-only"),
             pytest.param(
                 [], {"increment_start": "", "increment_finish": ""},
                 (_t(2000), _t(2040)),
-                [_NO_MK_LINE, _CONFIG_LINE, _CONFIG_LINE]
+                [_NO_MK, _config_start(""), _config_finish("")]
                 + _START_FALLBACK + _FINISH_FALLBACK,
                 id="no-meta-kernel-empty-configuration"),
             pytest.param(
                 [_mk("a.tm", _t(2010), _t(2020)),
                  {"name": "b.tm", "mk_sets_coverage": True}],
                 {}, (_t(2000), _t(2040)),
-                [_MK_LINE, _NO_MK_LINE]
+                [_using_mk("a.tm"), _NO_MK]
                 + _START_FALLBACK + _FINISH_FALLBACK,
                 id="meta-kernel-without-times"),
             pytest.param(
                 [_mk("a.tm", _t(2010), _t(2020)),
                  _mk("b.tm", None, _t(2021))],
                 {}, (_t(2000), _t(2040)),
-                [_MK_LINE, _MK_LINE, _NO_MK_LINE]
+                [_using_mk("a.tm"), _using_mk("b.tm"), _NO_MK]
                 + _START_FALLBACK + _FINISH_FALLBACK,
                 id="meta-kernel-with-none-start"),
             pytest.param(
                 [_mk("a.tm", _t(2010), _t(2020)),
                  _mk("b.tm", _t(2012), None)],
                 {}, (_t(2010), _t(2040)),
-                [_MK_LINE, _MK_LINE, _NO_MK_LINE] + _FINISH_FALLBACK,
+                [_using_mk("a.tm"), _using_mk("b.tm"), _NO_MK]
+                + _FINISH_FALLBACK,
                 id="meta-kernel-with-none-stop-keeps-start"),
             pytest.param(
                 [_mk("a.tm", _t(2010), _t(2020)),
                  _mk("b.tm", _t(2012), None)],
                 {"increment_start": _t(2005)},
                 (_t(2005), _t(2040)),
-                [_MK_LINE, _MK_LINE, _NO_MK_LINE, _CONFIG_LINE]
-                + _FINISH_FALLBACK,
+                [_using_mk("a.tm"), _using_mk("b.tm"), _NO_MK,
+                 _config_start(_t(2005))] + _FINISH_FALLBACK,
                 id="meta-kernel-with-none-stop-configuration-start"),
         ])
     def test_initial_times(
@@ -1384,9 +1393,9 @@ class TestSpiceKernelsCollectionInitialIncrementTimes:
         with caplog.at_level(logging.INFO):
             times = obj._initial_increment_times()
 
-        # The times and the log lines, in the order they were written
+        # The times and the complete log, in the order it was written
         assert times == expected_times
-        _assert_logged(caplog, expected_log)
+        assert _logged(caplog) == expected_log
 
 
 # ===========================================================================
@@ -1394,8 +1403,20 @@ class TestSpiceKernelsCollectionInitialIncrementTimes:
 # ===========================================================================
 
 _LABEL_PATH = ["/fake/bundle/test_spice/bundle_test_spice_v001.xml"]
-_PREVIOUS_LINE = ("INFO", "Previous bundle increment interval")
-_NOT_FOUND = ("WARNING", "Previous bundle not found")
+_PREVIOUS_LINE = ("INFO", "-- Previous bundle increment interval is:")
+_START_CORRECTED = (
+    "INFO", "-- Increment start corrected from previous bundle.")
+_START_NOT_USED = (
+    "WARNING", "-- Increment start from previous bundle not used.")
+# The finish message is logged with 'form' instead of 'from'.
+_FINISH_CORRECTED = (
+    "WARNING", "-- Increment finish corrected form previous bundle.")
+_NOT_FOUND = ("WARNING", "-- Previous bundle not found.")
+
+
+def _previous_interval(
+        start: Optional[str], finish: Optional[str]) -> tuple[str, str]:
+    return ("INFO", f"   {start} - {finish}")
 
 
 def _label(start: Optional[str] = None, stop: Optional[str] = None) -> str:
@@ -1413,32 +1434,31 @@ class TestSpiceKernelsCollectionCorrectFromPreviousBundle:
             pytest.param(
                 _label(_t(2005), _t(2015)), None, _LABEL_PATH,
                 (_t(2005), _t(2020)),
-                [_PREVIOUS_LINE, ("INFO", f"{_t(2005)} - {_t(2015)}"),
-                 ("INFO", "Increment start corrected")],
+                [_PREVIOUS_LINE, _previous_interval(_t(2005), _t(2015)),
+                 _START_CORRECTED],
                 id="previous-start-earlier"),
             pytest.param(
                 _label(_t(2012), _t(2015)), None, _LABEL_PATH,
                 (_t(2010), _t(2020)),
-                [_PREVIOUS_LINE, ("INFO", f"{_t(2012)} - {_t(2015)}"),
-                 ("WARNING", "Increment start from previous bundle not")],
+                [_PREVIOUS_LINE, _previous_interval(_t(2012), _t(2015)),
+                 _START_NOT_USED],
                 id="previous-start-later"),
             pytest.param(
                 _label(_t(2010), _t(2020)), None, _LABEL_PATH,
                 (_t(2010), _t(2020)),
-                [_PREVIOUS_LINE, ("INFO", f"{_t(2010)} - {_t(2020)}")],
+                [_PREVIOUS_LINE, _previous_interval(_t(2010), _t(2020))],
                 id="previous-interval-equal"),
             pytest.param(
                 _label(_t(2010), _t(2030)), None, _LABEL_PATH,
                 (_t(2010), _t(2030)),
-                [_PREVIOUS_LINE, ("INFO", f"{_t(2010)} - {_t(2030)}"),
-                 ("WARNING", "Increment finish corrected")],
+                [_PREVIOUS_LINE, _previous_interval(_t(2010), _t(2030)),
+                 _FINISH_CORRECTED],
                 id="previous-finish-later"),
             pytest.param(
                 _label(_t(2005), _t(2030)), None, _LABEL_PATH,
                 (_t(2005), _t(2030)),
-                [_PREVIOUS_LINE, ("INFO", f"{_t(2005)} - {_t(2030)}"),
-                 ("INFO", "Increment start corrected"),
-                 ("WARNING", "Increment finish corrected")],
+                [_PREVIOUS_LINE, _previous_interval(_t(2005), _t(2030)),
+                 _START_CORRECTED, _FINISH_CORRECTED],
                 id="previous-interval-wider-both-ends"),
             pytest.param(
                 "", None, [],
@@ -1456,13 +1476,13 @@ class TestSpiceKernelsCollectionCorrectFromPreviousBundle:
             pytest.param(
                 _label(start=_t(2005)), None, _LABEL_PATH,
                 (_t(2005), _t(2020)),
-                [_PREVIOUS_LINE, ("INFO", f"{_t(2005)} - None"),
-                 ("INFO", "Increment start corrected"), _NOT_FOUND],
+                [_PREVIOUS_LINE, _previous_interval(_t(2005), None),
+                 _START_CORRECTED, _NOT_FOUND],
                 id="label-with-start-only-keeps-corrected-start"),
             pytest.param(
                 _label(stop=_t(2030)), None, _LABEL_PATH,
                 (_t(2010), _t(2020)),
-                [_PREVIOUS_LINE, ("INFO", f"None - {_t(2030)}"), _NOT_FOUND],
+                [_PREVIOUS_LINE, _previous_interval(None, _t(2030)), _NOT_FOUND],
                 id="label-with-stop-only-changes-nothing"),
         ])
     def test_correct_from_previous_bundle(
@@ -1482,9 +1502,9 @@ class TestSpiceKernelsCollectionCorrectFromPreviousBundle:
              patch(_OPEN, opened):
             times = obj._correct_from_previous_bundle(_t(2010), _t(2020))
 
-        # The times that came back and the log lines, in order
+        # The times that came back and the complete log, in order
         assert times == expected_times
-        _assert_logged(caplog, expected_log)
+        assert _logged(caplog) == expected_log
 
     def test_looks_for_labels_in_the_mission_bundle_directory(self):
         """The previous labels are searched as bundle_<acronym>_spice_v* in
@@ -1507,7 +1527,11 @@ class TestSpiceKernelsCollectionCorrectFromPreviousBundle:
 # SpiceKernelsCollection._normalise_increment_times
 # ===========================================================================
 
-_INTERVAL_LINE = ("INFO", "Increment interval for collection and bundle")
+_INTERVAL_LINE = (
+    "INFO", "-- Increment interval for collection and bundle set to:")
+_LSK_WARNING = (
+    "WARNING", "-- A leapseconds kernel (LSK) has not been loaded. "
+              "Increment start/finish times will not be corrected.")
 
 
 class TestSpiceKernelsCollectionNormaliseIncrementTimes:
@@ -1519,22 +1543,22 @@ class TestSpiceKernelsCollectionNormaliseIncrementTimes:
                 "maklabel", None,
                 ("2010-01-01T00:00:00Z", "2020-01-01T00:00:00Z"),
                 [_INTERVAL_LINE,
-                 ("INFO", "2010-01-01T00:00:00Z - 2020-01-01T00:00:00Z"),
+                 ("INFO", "   2010-01-01T00:00:00Z - 2020-01-01T00:00:00Z"),
                  ("INFO", "")],
                 id="maklabel-format"),
             pytest.param(
                 "infomod2", None,
                 ("2010-01-01T00:00:00.000Z", "2020-01-01T00:00:00.000Z"),
                 [_INTERVAL_LINE,
-                 ("INFO", "2010-01-01T00:00:00.000Z - "
+                 ("INFO", "   2010-01-01T00:00:00.000Z - "
                           "2020-01-01T00:00:00.000Z"),
                  ("INFO", "")],
                 id="infomod2-format"),
             pytest.param(
                 "maklabel", SpiceyPyError("SPICE(NOLEAPSECONDS)"),
                 (_t(2010), _t(2020)),
-                [("WARNING", "leapseconds kernel"), _INTERVAL_LINE,
-                 ("INFO", f"{_t(2010)} - {_t(2020)}"),
+                [_LSK_WARNING, _INTERVAL_LINE,
+                 ("INFO", f"   {_t(2010)} - {_t(2020)}"),
                  ("INFO", "")],
                 id="no-lsk-keeps-times-unconverted"),
         ])
@@ -1555,9 +1579,9 @@ class TestSpiceKernelsCollectionNormaliseIncrementTimes:
                    wraps=spiceypy.utc2et):
             times = obj._normalise_increment_times(_t(2010), _t(2020))
 
-        # The converted (or untouched) times and the log lines, in order
+        # The converted (or untouched) times and the complete log, in order
         assert times == expected_times
-        _assert_logged(caplog, expected_log)
+        assert _logged(caplog) == expected_log
 
 
 # ===========================================================================

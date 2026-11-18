@@ -216,10 +216,11 @@ class SpiceKernelsCollection(Collection):
     def set_increment_times(self) -> None:
         """Determine the archive increment start and finish times.
 
-        This is done based on the identification of the coverage of a given
-        SPK or CK kernel. Alternatively it can be provided as a parameter of the
-        execution. The determined times are stored in ``increment_start`` and
-        ``increment_finish``.
+        The initial times come from the meta-kernels that set the coverage,
+        then from the configuration, and finally from the mission times. They
+        are widened with the interval of the previous bundle when it is wider,
+        and converted to the configured date format. The determined times are
+        stored in ``increment_start`` and ``increment_finish``.
         """
         (increment_start, increment_finish) = self._initial_increment_times()
 
@@ -239,6 +240,8 @@ class SpiceKernelsCollection(Collection):
         configuration, and finally from the mission start and finish times.
         If the meta-kernels fail halfway, a start already taken from them is
         kept while the finish falls back.
+
+        :return: Increment start and finish times.
         """
         increment_start = ""
         increment_finish = ""
@@ -324,6 +327,11 @@ class SpiceKernelsCollection(Collection):
         When the previous label is missing, unreadable or lacks a start or
         stop tag, a warning is logged and the times are returned as they
         are at that point, so a start corrected before the failure is kept.
+
+        :param increment_start: Increment start time to be widened.
+        :param increment_finish: Increment finish time to be widened.
+        :return: Increment start and finish times, as received when the
+                 previous bundle does not widen them or cannot be used.
         """
         #
         # We check the coverage with the previous increment.
@@ -392,6 +400,11 @@ class SpiceKernelsCollection(Collection):
 
         Without a loaded LSK the times are returned as they came in. The
         resulting interval is logged either way.
+
+        :param increment_start: Increment start time to be converted.
+        :param increment_finish: Increment finish time to be converted.
+        :return: Increment start and finish times in the configured date
+                 format, or as received when no LSK is loaded.
         """
         #
         # Check the format of the previous bundle and correct it. The 'Z' is
