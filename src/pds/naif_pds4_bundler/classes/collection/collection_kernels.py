@@ -295,6 +295,24 @@ class SpiceKernelsCollection(Collection):
                     'Mission stop time will be used:')
                 logging.warning('   %s', increment_finish)
 
+        (increment_start, increment_finish) = self._correct_from_previous_bundle(
+            increment_start, increment_finish)
+
+        (increment_start, increment_finish) = self._normalise_increment_times(
+            increment_start, increment_finish)
+
+        self.increment_finish = increment_finish
+        self.increment_start = increment_start
+
+    def _correct_from_previous_bundle(
+            self, increment_start: str, increment_finish: str
+    ) -> tuple[str, str]:
+        """Widen the increment times with the previous bundle's interval.
+
+        When the previous label is missing, unreadable or lacks a start or
+        stop tag, a warning is logged and the times are returned as they
+        are at that point, so a start corrected before the failure is kept.
+        """
         #
         # We check the coverage with the previous increment.
         #
@@ -353,11 +371,7 @@ class SpiceKernelsCollection(Collection):
         except (IndexError, TypeError, *FILE_READ_ERRORS):
             logging.warning("-- Previous bundle not found.")
 
-        (increment_start, increment_finish) = self._normalise_increment_times(
-            increment_start, increment_finish)
-
-        self.increment_finish = increment_finish
-        self.increment_start = increment_start
+        return increment_start, increment_finish
 
     def _normalise_increment_times(
             self, increment_start: str, increment_finish: str
