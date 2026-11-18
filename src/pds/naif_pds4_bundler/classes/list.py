@@ -434,7 +434,8 @@ class KernelList:
         """
         list_path = self.setup.working_directory + os.sep + self.list_name
 
-        self._check_badchar_in_list(list_path)
+        for err in self._check_badchar(list_path):
+            logging.error('   %s', err)
 
         with open(list_path, "r", encoding='utf-8') as lst:
             entries = self._parse_entries(lst)
@@ -448,16 +449,6 @@ class KernelList:
 
         kernel_lists = self._check_release_history()
         self._compare_with_previous_list(kernel_lists)
-
-    def _check_badchar_in_list(self, list_path: str) -> None:
-        """Log the non-ASCII characters of the list.
-
-        This does not raise an error but does not stop NPB either.
-
-        :param list_path: Path to the kernel list
-        """
-        for err in self._check_badchar(list_path):
-            logging.error('   %s', err)
 
     def _check_entry_counts(self, entries: KernelListEntries) -> None:
         """Check that the list has as many entries of each kind.

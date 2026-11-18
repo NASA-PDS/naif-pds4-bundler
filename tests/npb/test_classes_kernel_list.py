@@ -1621,24 +1621,6 @@ class TestKernelListValidateChecks:
 
         return kernel_list
 
-    @pytest.mark.parametrize(['errors', 'expected'], [
-        ([], []),
-        (['NON-ASCII character(s) in line 3:', 'DESCRIPTION = caf\u00e9',
-          '^'],
-         [('ERROR', '   NON-ASCII character(s) in line 3:'),
-          ('ERROR', '   DESCRIPTION = caf\u00e9'),
-          ('ERROR', '   ^')])])
-    def test_check_badchar_in_list(self, mocker, caplog, kernel_list, errors,
-                                   expected) -> None:
-        badchar = mocker.patch.object(KernelList, '_check_badchar',
-                                      return_value=errors)
-
-        kernel_list._check_badchar_in_list('/work/list.kernel_list')
-
-        badchar.assert_called_once_with('/work/list.kernel_list')
-        assert [(r.levelname, r.getMessage())
-                for r in caplog.records] == expected
-
     @pytest.mark.parametrize(
         ['counts', 'expectation', 'expected'],
         [((2, 2, 2), nullcontext(), []),
