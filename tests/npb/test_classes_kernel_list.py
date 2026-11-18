@@ -52,6 +52,14 @@ _COMPARE_HEADER = [('INFO', '-- Comparing current list with previous list:'),
                    ('INFO', '')]
 
 
+def release_history_logs(working, names) -> list:
+    # The records of a release history check that has read the lists called
+    # ``names`` in the ``working`` directory.
+    return ([('INFO', '-- Checking for duplicates in complete kernel list:')]
+            + [('INFO', f'     Adding {working / name} in check.')
+               for name in names])
+
+
 def make_kernel_list_setup(tmp_path, **overrides) -> SimpleNamespace:
     # Create a minimal setup object to instance KernelList.
     setup = SimpleNamespace()
@@ -1810,50 +1818,49 @@ class TestKernelListValidateChecks:
         assert [(r.levelname, r.getMessage())
                 for r in caplog.records] == expected
 
-    @pytest.mark.parametrize(
-        ['files', 'expectation', 'added', 'tail', 'names'], [
-            ({}, nullcontext(), [],
-             [('INFO', '     List contains no duplicates.'), ('INFO', '')], []),
-            ({'maven_release_03.kernel_list': _LIST_WITH_A}, nullcontext(),
-             ['maven_release_03.kernel_list'],
-             [('INFO', '     List contains no duplicates.'), ('INFO', '')],
-             ['maven_release_03.kernel_list']),
-            # Created in reverse order: the lists are checked and returned
-            # sorted.
-            ({'maven_release_03.kernel_list': _LIST_WITH_B,
-              'maven_release_02.kernel_list': _LIST_WITH_A}, nullcontext(),
-             ['maven_release_02.kernel_list', 'maven_release_03.kernel_list'],
-             [('INFO', '     List contains no duplicates.'), ('INFO', '')],
-             ['maven_release_02.kernel_list', 'maven_release_03.kernel_list']),
-            ({'maven_release_02.kernel_list': _LIST_WITH_A,
-              'maven_release_03.kernel_list': _LIST_WITH_A},
-             pytest.raises(NPBError, match='^List contains duplicates.$'),
-             ['maven_release_02.kernel_list', 'maven_release_03.kernel_list'],
-             [], None),
-            # Known defect: the name pattern does not match every list name, so
-            # this list is neither checked nor returned.
-            ({'maven_labels_03.kernel_list': _LIST_WITH_A}, nullcontext(), [],
-             [('INFO', '     List contains no duplicates.'), ('INFO', '')], []),
-            ({'maven_release_03.kernel_list': _LIST_NOT_UTF8},
-             pytest.raises(UnicodeDecodeError),
-             ['maven_release_03.kernel_list'], [], None)])
+    @pytest.mark.parametrize(['files', 'names'], [
+        ({}, []),
+        ({'maven_release_03.kernel_list': _LIST_WITH_A},
+         ['maven_release_03.kernel_list']),
+        # Created in reverse order: the lists are checked and returned
+        # sorted.
+        ({'maven_release_03.kernel_list': _LIST_WITH_B,
+          'maven_release_02.kernel_list': _LIST_WITH_A},
+         ['maven_release_02.kernel_list', 'maven_release_03.kernel_list']),
+        # Known defect: the name pattern does not match every list name, so
+        # this list is neither checked nor returned.
+        ({'maven_labels_03.kernel_list': _LIST_WITH_A}, [])])
     def test_check_release_history(self, caplog, tmp_path, kernel_list, files,
-                                   expectation, added, tail, names) -> None:
+                                   names) -> None:
         working = tmp_path / 'working'
         for name, content in files.items():
             (working / name).write_bytes(content)
-        header = [('INFO', '-- Checking for duplicates in complete kernel'
-                           ' list:')]
-        result = None
+
+        result = kernel_list._check_release_history()
+
+        assert result == [str(working / name) for name in names]
+        assert [(r.levelname, r.getMessage()) for r in caplog.records] == (
+            release_history_logs(working, names)
+            + [('INFO', '     List contains no duplicates.'), ('INFO', '')])
+
+    @pytest.mark.parametrize(['files', 'expectation', 'names'], [
+        ({'maven_release_02.kernel_list': _LIST_WITH_A,
+          'maven_release_03.kernel_list': _LIST_WITH_A},
+         pytest.raises(NPBError, match='^List contains duplicates.$'),
+         ['maven_release_02.kernel_list', 'maven_release_03.kernel_list']),
+        ({'maven_release_03.kernel_list': _LIST_NOT_UTF8},
+         pytest.raises(UnicodeDecodeError), ['maven_release_03.kernel_list'])])
+    def test_check_release_history_raises(self, caplog, tmp_path, kernel_list,
+                                          files, expectation, names) -> None:
+        working = tmp_path / 'working'
+        for name, content in files.items():
+            (working / name).write_bytes(content)
 
         with expectation:
-            result = kernel_list._check_release_history()
+            kernel_list._check_release_history()
 
-        adding = [('INFO', f'     Adding {working / name} in check.')
-                  for name in added]
-        assert [(r.levelname, r.getMessage())
-                for r in caplog.records] == header + adding + tail
-        assert result == (names and [str(working / name) for name in names])
+        assert [(r.levelname, r.getMessage()) for r in caplog.records] == (
+            release_history_logs(working, names))
 
     def test_check_release_history_sorts_the_lists(
             self, mocker, caplog, tmp_path, kernel_list) -> None:
