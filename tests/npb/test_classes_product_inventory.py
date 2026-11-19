@@ -211,6 +211,44 @@ class TestInventoryProductCompare:
         assert messages == expected
 
 
+class TestInventoryProductCompareFormats:
+    """Tests for the sample inventory that compare() falls back to."""
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="compare() falls back to the InSight sample, a PDS4 CSV, "
+               "without checking that it has the same format as the "
+               "inventory, so a PDS3 index is diffed against it")
+    def test_compare_does_not_use_a_sample_of_another_format(
+            self, inventory_helpers):
+        """A PDS3 index is not compared with the PDS4 CSV sample."""
+        # TODO: This is a known bug. The sample is a PDS4 CSV and nothing
+        #       checks that it has the same format as the inventory, so any
+        #       inventory that reaches the fallback gets diffed against it.
+        #       InventoryPDS3Product avoids it by overriding compare(). Fix
+        #       the fallback in the base class and remove the xfail marker.
+
+        # A PDS3 index with no previous index, and a sample that exists
+        obj = InventoryPDS3Product.__new__(InventoryPDS3Product)
+        obj.setup = inventory_helpers.make_setup(pds_version="3", diff=True)
+        obj.name = "index.tab"
+        obj.path = "staging/index/index.tab"
+        obj.path_current = ""
+        obj.collection = inventory_helpers.make_collection()
+        sample_files = [
+            "/root/data/insight_spice/spice_kernels/"
+            "collection_spice_kernels_inventory_v001.csv"
+        ]
+
+        # Run the comparison the base class defines, not the PDS3 override
+        with patch(f"{MODULE}.glob.glob", return_value=sample_files), \
+             patch(f"{MODULE}.compare_files") as mock_cf:
+            InventoryProduct.compare(obj)
+
+        # The sample, which is a PDS4 file, was not used
+        assert not mock_cf.called
+
+
 # ---------------------------------------------------------------------------
 # Inventory subclasses
 # ---------------------------------------------------------------------------

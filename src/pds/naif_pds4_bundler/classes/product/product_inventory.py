@@ -92,6 +92,11 @@ class InventoryProduct(Product):
 
         else:
 
+            # TODO: The sample is a PDS4 CSV and nothing checks that it has
+            #       the same format as this inventory. Any inventory that
+            #       reaches this branch gets diffed against it, which is why
+            #       InventoryPDS3Product overrides compare(). A test for this
+            #       is marked xfail in test_classes_product_inventory.py.
             logging.warning("-- Comparing with InSight test inventory product.")
             fromfiles = glob.glob(
                 f"{self.setup.root_dir}data/insight_spice/{self.collection.name}/"
