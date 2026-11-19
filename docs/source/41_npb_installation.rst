@@ -7,7 +7,7 @@ Prerequisites
 In order to run the NAIF PDS4 Bundler (NPB), the following software must be
 present on the users's computer:
 
-   * Python 3.10 (or higher)
+   * Python 3.11 (or higher)
    * A NAIF supported C compiler (`See link to NAIF CSPICE page <https://naif.jpl.nasa.gov/naif/toolkit_C.html>`_)
 
 .. warning::

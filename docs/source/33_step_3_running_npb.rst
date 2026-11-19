@@ -49,7 +49,7 @@ Interactive step for Meta-kernels
 ---------------------------------
 
 If the Meta-kernel(s) are being generated automatically, which means that
-you have provided a a ``<mk>`` section in the configuration file and that you
+you have provided a ``<mk>`` section in the configuration file and that you
 have set the nested element ``<interrupt_to_update>`` to ``True``, NPB will pause
 its execution for each generated MK, before the MK is labelled and will give you
 the opportunity to edit the MK at your will. NPB will either let you use
@@ -138,7 +138,7 @@ labeled products in the staging area are adequate.
 Until you get it right
 ----------------------
 
-It is hard to get NPB to work on the first try, especially for the first
+It can be hard to get NPB to work on the first try, especially for the first
 release of the archive or after a major update of the configuration file. Most
 likely you will need to try several times before you get it right. That is why
 we do not recommend you to set the ``bundle_directory`` to the final destination

@@ -486,12 +486,12 @@ must be followed:
        number file labels
 
     *  for kernels for which time boundaries can be determined from the
-       data (SPKs, CKs, binary PCKs, and DSKs) ``start_date_time`` and
-       ``stop_date_time`` are set to those boundaries
+       data (SPKs, CKs, binary PCKs, binary EKs, and DSKs) ``start_date_time``
+       and ``stop_date_time`` are set to those boundaries
 
     *  for kernels for which time boundaries cannot be determined from the
-       data (LSKs, SCLKs, text PCKs, FKs and IKs) ``start_date_time`` and
-       ``stop_date_time`` are set to the default mission time range (from
+       data (LSKs, SCLKs, text PCKs, text EKs, FKs and IKs) ``start_date_time``
+       and ``stop_date_time`` are set to the default mission time range (from
        launch to an arbitrary date many decades into the future, e.g.
        ``2050-01-01``)
 
@@ -561,7 +561,7 @@ label.
 Bundles with multiple missions and/or observers and/or targets
 --------------------------------------------------------------
 
-NPB incorporates the possibility to have mutliple missions, spacecrafts, and
+NPB incorporates the possibility to have multiple missions, spacecrafts, and
 targets in a Bundle. This is provided via configuration. If so, the default
 mission will be the primary mission, the default spacecraft will be the
 primary spacecraft, and the default target will be the primary target which is

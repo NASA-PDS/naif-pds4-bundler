@@ -84,9 +84,8 @@ parentheses is briefly explained below:
            +-- spice_kernels   contains kernel type subdirectories
              |
              |-- ck            contains binary Camera-Matrix kernels (CKs)
-             |-- dbk*          contains binary database kernels (DKBs)
              |-- dsk*          contains binary digital shape kernels (DSKs)
-             |-- ek*           contains text event kernels (EKs)
+             |-- ek*           contains text and/or binary event kernels (EKs)
              |-- fk            contains text frame kernels (FKs)
              |-- ik            contains text instrument kernels (IKs)
              |-- lsk           contains text leapseconds kernels (IKs)
