@@ -20,6 +20,17 @@ class InventoryPDS3Product(InventoryProduct, PDS3Product):
         self.path = f"{self.setup.staging_directory}/index/index.tab"
         self.name = "index.tab"
 
+    def compare(self) -> None:
+        """Skip the comparison: PDS3 has no previous-index comparison.
+
+        The base class would fall back to the InSight sample inventory,
+        which is a PDS4 CSV, and diff it against this PDS3 index.
+        """
+        logging.info(
+            '-- No previous-index comparison is available for PDS3, '
+            'skipping the comparison of %s.', self.name)
+        logging.info("")
+
     def generate_dsindex_files(self) -> None:
         """Copy the PDS3 index file and its label to dsindex.tab/.lbl.
 
