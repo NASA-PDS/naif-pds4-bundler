@@ -24,6 +24,7 @@ class RecordingInventory(InventoryProduct):
     def _set_location(self) -> None:
         self.path = "staging/collection_inventory_v001.csv"
         self.time_in_set_location = self.creation_time
+        self.path_current_in_set_location = self.path_current
 
     def write_product(self) -> None:
         self.time_in_write_product = self.creation_time
@@ -54,6 +55,25 @@ class TestInventoryProductInit:
         # Both hooks read the creation time while the inventory was built
         assert obj.time_in_set_location == "2026-05-27T10:20:30Z"
         assert obj.time_in_write_product == "2026-05-27T10:20:30Z"
+
+    def test_path_current_is_empty_before_the_hooks_run(
+            self, inventory_helpers):
+        """Without a previous inventory, path_current is empty.
+
+        It is already there when the location hook runs, which is where a
+        version-specific class looks for the previous inventory.
+        """
+        # A setup and a collection, and no previous inventory anywhere
+        setup = inventory_helpers.make_setup()
+        collection = inventory_helpers.make_collection()
+
+        # Build the inventory without touching a file on disk
+        with patch.object(Product, "derive_file_attributes"):
+            obj = RecordingInventory(setup, collection)
+
+        # The hook saw it empty, and it is still empty afterwards
+        assert obj.path_current_in_set_location == ""
+        assert obj.path_current == ""
 
 
 # ---------------------------------------------------------------------------
@@ -189,6 +209,44 @@ class TestInventoryProductCompare:
 
         messages = [(r[1], r[2]) for r in caplog.record_tuples]
         assert messages == expected
+
+
+class TestInventoryProductCompareFormats:
+    """Tests for the sample inventory that compare() falls back to."""
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason="compare() falls back to the InSight sample, a PDS4 CSV, "
+               "without checking that it has the same format as the "
+               "inventory, so a PDS3 index is diffed against it")
+    def test_compare_does_not_use_a_sample_of_another_format(
+            self, inventory_helpers):
+        """A PDS3 index is not compared with the PDS4 CSV sample."""
+        # TODO: This is a known bug. The sample is a PDS4 CSV and nothing
+        #       checks that it has the same format as the inventory, so any
+        #       inventory that reaches the fallback gets diffed against it.
+        #       InventoryPDS3Product avoids it by overriding compare(). Fix
+        #       the fallback in the base class and remove the xfail marker.
+
+        # A PDS3 index with no previous index, and a sample that exists
+        obj = InventoryPDS3Product.__new__(InventoryPDS3Product)
+        obj.setup = inventory_helpers.make_setup(pds_version="3", diff=True)
+        obj.name = "index.tab"
+        obj.path = "staging/index/index.tab"
+        obj.path_current = ""
+        obj.collection = inventory_helpers.make_collection()
+        sample_files = [
+            "/root/data/insight_spice/spice_kernels/"
+            "collection_spice_kernels_inventory_v001.csv"
+        ]
+
+        # Run the comparison the base class defines, not the PDS3 override
+        with patch(f"{MODULE}.glob.glob", return_value=sample_files), \
+             patch(f"{MODULE}.compare_files") as mock_cf:
+            InventoryProduct.compare(obj)
+
+        # The sample, which is a PDS4 file, was not used
+        assert not mock_cf.called
 
 
 # ---------------------------------------------------------------------------
