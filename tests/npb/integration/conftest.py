@@ -26,6 +26,9 @@ KERNELS = TESTS_DATA / "data" / "kernels"
 # rewritten; its kernel list patterns are used as they are.
 BASE_CONFIG = TESTS_DATA / "config" / "maven.xml"
 
+# Configuration of the PDS3 archive, built the same way.
+PDS3_CONFIG = TESTS_DATA / "config" / "mro.xml"
+
 TEMPLATES = (Path(__file__).parents[3] / "src" / "pds" / "naif_pds4_bundler"
              / "templates" / "1.5.0.0")
 
@@ -79,10 +82,49 @@ def install_kernel(sandbox: SimpleNamespace) -> Callable[..., Path]:
     return _install_kernel
 
 
+def build_setup(sandbox: SimpleNamespace, base_config: Path,
+                tags: dict[str, str], diff: str | None = None) -> Setup:
+    """Build a real Setup the way the pipeline does, rooted in the sandbox.
+
+    :param sandbox: sandbox directories
+    :param base_config: configuration the Setup is built from
+    :param tags: configuration tags whose value is replaced, with the new
+        value
+    :param diff: diff scope of the run, as in the ``--diff`` argument
+    :return: Setup with its configuration checked and its release set
+    """
+    config = base_config.read_text(encoding="utf-8")
+    for tag, path in tags.items():
+        element = f"<{tag}>{path}</{tag}>"
+        # A function is used as the replacement because re would read the
+        # backslashes of a Windows path (such as '\Users') as escapes.
+        config, count = re.subn(rf"<{tag}>[^<]*</{tag}>",
+                                lambda _match: element, config)
+        assert count == 1, f"{tag} not found in {base_config}"
+
+    config_path = sandbox.root / "config.xml"
+    config_path.write_text(config, encoding="utf-8")
+
+    args = PipelineArgs(config=str(config_path), silent=True, verbose=False,
+                        log=False, diff=diff)
+
+    setup = Setup(args, __version__)
+    setup.check_configuration()
+    setup.set_release()
+
+    return setup
+
+
+def sandbox_tags(sandbox: SimpleNamespace) -> dict[str, str]:
+    """Map each directory tag of the configuration to its sandbox path."""
+    return {tag: str(getattr(sandbox, name))
+            for tag, name in SANDBOX_DIRECTORIES.items()}
+
+
 @pytest.fixture
 def real_setup(sandbox: SimpleNamespace,
                monkeypatch: pytest.MonkeyPatch) -> Setup:
-    """Build a real Setup the way the pipeline does, rooted in the sandbox.
+    """Build a real PDS4 Setup rooted in the sandbox.
 
     :param sandbox: sandbox directories
     :param monkeypatch: pytest monkeypatch, used to restore the working
@@ -93,29 +135,10 @@ def real_setup(sandbox: SimpleNamespace,
     # does not restore it; monkeypatch puts it back when the test ends.
     monkeypatch.chdir(sandbox.root)
 
-    config = BASE_CONFIG.read_text(encoding="utf-8")
-    replacements = {tag: str(getattr(sandbox, name))
-                    for tag, name in SANDBOX_DIRECTORIES.items()}
-    replacements["templates_directory"] = str(TEMPLATES)
-    for tag, path in replacements.items():
-        # A function is used as the replacement because re would read the
-        # backslashes of a Windows path (such as '\Users') as escapes.
-        element = f"<{tag}>{path}</{tag}>"
-        config, count = re.subn(rf"<{tag}>[^<]*</{tag}>",
-                                lambda _match: element, config)
-        assert count == 1, f"{tag} not found in {BASE_CONFIG}"
+    tags = sandbox_tags(sandbox)
+    tags["templates_directory"] = str(TEMPLATES)
 
-    config_path = sandbox.root / "config.xml"
-    config_path.write_text(config, encoding="utf-8")
-
-    args = PipelineArgs(config=str(config_path), silent=True, verbose=False,
-                        log=False)
-
-    setup = Setup(args, __version__)
-    setup.check_configuration()
-    setup.set_release()
-
-    return setup
+    return build_setup(sandbox, BASE_CONFIG, tags)
 
 
 @pytest.fixture
