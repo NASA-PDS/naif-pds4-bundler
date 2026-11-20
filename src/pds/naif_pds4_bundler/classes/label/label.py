@@ -120,6 +120,14 @@ class PDSLabel:
             self.observers = product.observers
             self.targets = product.targets
 
+    def _resolve_template(self, template_name: str) -> str:
+        """Locate a label template inside the templates' directory.
+
+        :param template_name: File name of the template, without a directory.
+        :return: Path of the template in ``setup.templates_directory``.
+        """
+        return str(Path(self.setup.templates_directory) / template_name)
+
     def _derive_name(self) -> str:
         """Derive the destination path for this label's file.
 

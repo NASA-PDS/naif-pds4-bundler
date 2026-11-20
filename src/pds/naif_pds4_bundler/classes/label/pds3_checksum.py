@@ -1,7 +1,5 @@
 """Implementation of the PDS3 version of a label for Checksum files.
 """
-from pathlib import Path
-
 from .pds3_label import PDS3Label
 
 
@@ -18,8 +16,8 @@ class ChecksumPDS3Label(PDS3Label):
 
         # Template path now reads templates_directory via self.setup instead
         # of a separate setup argument.
-        self._template = str(Path(self.setup.templates_directory)
-                             / "template_product_checksum_table.lbl")
+        self._template = self._resolve_template(
+            "template_product_checksum_table.lbl")
 
         self._label_fields["VOLUME_ID"] = self.setup.volume_id.upper()
         self._label_fields["PRODUCT_CREATION_TIME"] = product.creation_time

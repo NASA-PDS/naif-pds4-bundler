@@ -1,8 +1,6 @@
 """Implementation of the PDS4 version of a label for Collection Inventory
 files.
 """
-from pathlib import Path
-
 from .pds4_label import PDS4Label
 from ..exceptions import NPBInternalError
 
@@ -23,8 +21,8 @@ class InventoryPDS4Label(PDS4Label):
 
         self.collection = product.collection
 
-        self._template = str(Path(self.setup.templates_directory)
-                             / f"template_collection_{self.collection.type}.xml")
+        self._template = self._resolve_template(
+            f"template_collection_{self.collection.type}.xml")
 
         self._label_fields["COLLECTION_LID"] = self.collection.lid
         self._label_fields["COLLECTION_VID"] = self.collection.vid

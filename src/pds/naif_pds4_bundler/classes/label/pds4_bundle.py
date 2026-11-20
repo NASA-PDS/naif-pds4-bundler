@@ -1,7 +1,5 @@
 """Implementation of the PDS4 version of a label for Bundles.
 """
-from pathlib import Path
-
 from .pds4_label import PDS4Label
 from ..exceptions import NPBInternalError
 
@@ -23,8 +21,8 @@ class BundlePDS4Label(PDS4Label):
         # already refers to the same object.
         super().__init__(product)
 
-        self._template = str(Path(self.setup.templates_directory)
-                             / "template_bundle.xml")
+        self._template = self._resolve_template(
+            "template_bundle.xml")
 
         self._label_fields["BUNDLE_LID"] = self.product.bundle.lid
         self._label_fields["BUNDLE_VID"] = self.product.bundle.vid

@@ -44,6 +44,7 @@ def _make_setup(tmp_path: Path) -> MagicMock:
     setup.observer = "Voyager 1"
     setup.target = "Jupiter"
     setup.root_dir = str(tmp_path)
+    setup.templates_directory = str(tmp_path / "templates" / "pds3")
     setup.staging_directory = str(tmp_path / "staging")
     setup.working_directory = str(tmp_path / "work")
     setup.eol_pds3 = "\r\n"
@@ -240,9 +241,9 @@ class TestInventoryPDS3LabelUnit:
 
         mock_write.assert_not_called()
 
-        # Template path must embed root_dir and collection.type.
+        # Template path must embed templates_directory and collection.type.
         assert label._template == f"{tmp_path}/{expected_path}"
-        assert label.collection ==  collection
+        assert label.collection == collection
         assert label.collection.type == collection_type
 
     def test_zero_rows(self, tmp_path):

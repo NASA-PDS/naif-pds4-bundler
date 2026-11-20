@@ -204,6 +204,43 @@ class TestPDSLabelInit:
 
 
 # ===========================================================================
+# PDSLabel._resolve_template
+# ===========================================================================
+
+class TestPDSLabelResolveTemplate:
+    """Covers PDSLabel._resolve_template."""
+
+    @pytest.mark.parametrize("templates_directory, template_name, expected", [
+        pytest.param("/work/templates", "template_bundle.xml",
+                     "/work/templates/template_bundle.xml",
+                     id="plain-directory"),
+        pytest.param("/work/templates/", "template_bundle.xml",
+                     "/work/templates/template_bundle.xml",
+                     id="directory-with-trailing-slash"),
+        pytest.param("/work/templates", "template_collection_misc.lbl",
+                     "/work/templates/template_collection_misc.lbl",
+                     id="other-template-name"),
+    ])
+    def test_template_is_joined_to_templates_directory(
+            self, setup_pds4, templates_directory: str, template_name: str,
+            expected: str) -> None:
+        """The template name is looked up inside 'templates_directory' of
+        the setup, and the full path comes back as a string, with a single
+        slash between the directory and the name."""
+        # A label that only knows its setup, since nothing else is needed to
+        # locate a template.
+        setup_pds4.templates_directory = templates_directory
+        label = object.__new__(PDSLabel)
+        label.setup = setup_pds4
+
+        # Resolve the template.
+        template = label._resolve_template(template_name)
+
+        # The result is a plain string, not a Path.
+        assert template == expected
+
+
+# ===========================================================================
 # PDSLabel.write_label
 # ===========================================================================
 

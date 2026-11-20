@@ -1,7 +1,5 @@
 """Implementation of the PDS4 version of a label for Metakernel files.
 """
-from pathlib import Path
-
 from .pds4_label import PDS4Label
 from ...utils import extension_to_type
 
@@ -22,8 +20,8 @@ class MetaKernelPDS4Label(PDS4Label):
 
         # Template path now reads templates_directory via self.setup instead
         # of a separate setup argument.
-        self._template = str(Path(self.setup.templates_directory)
-                             / "template_product_spice_kernel_mk.xml")
+        self._template = self._resolve_template(
+            "template_product_spice_kernel_mk.xml")
 
         #
         # Fields from Kernels

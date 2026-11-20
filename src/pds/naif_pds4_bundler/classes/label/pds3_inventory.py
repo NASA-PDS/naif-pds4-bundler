@@ -16,9 +16,8 @@ class InventoryPDS3Label(PDS3Label):
 
         self.collection = product.collection
 
-        # TODO: Check why this template path is not following the approach of all
-        #       other labels.
-        self._template = f'{self.root_dir}/templates/pds3/template_collection_{self.collection.type}.lbl'
+        self._template = self._resolve_template(
+            f"template_collection_{self.collection.type}.lbl")
 
         self._label_fields["VOLUME_ID"] = self.setup.volume_id
         self._label_fields["ROW_BYTES"] = str(self.product.row_bytes)
