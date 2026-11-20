@@ -268,7 +268,7 @@ class TestInventoryPDS3LabelUnit:
         mock_write.assert_not_called()
 
         # Template path must embed templates_directory and collection.type.
-        assert label._template == f"{tmp_path}/{expected_path}"
+        assert label._template == str(tmp_path / expected_path)
         assert label.collection == collection
         assert label.collection.type == collection_type
 

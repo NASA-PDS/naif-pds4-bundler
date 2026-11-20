@@ -226,7 +226,7 @@ class TestPDSLabelResolveTemplate:
             expected: str) -> None:
         """The template name is looked up inside 'templates_directory' of
         the setup, and the full path comes back as a string, with a single
-        slash between the directory and the name."""
+        separator between the directory and the name."""
         # A label that only knows its setup, since nothing else is needed to
         # locate a template.
         setup_pds4.templates_directory = templates_directory
@@ -236,8 +236,9 @@ class TestPDSLabelResolveTemplate:
         # Resolve the template.
         template = label._resolve_template(template_name)
 
-        # The result is a plain string, not a Path.
-        assert template == expected
+        # The result is a plain string, not a Path. The expected value goes
+        # through Path so that it uses the separator of the platform.
+        assert template == str(Path(expected))
 
 
 # ===========================================================================
