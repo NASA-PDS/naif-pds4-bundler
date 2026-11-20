@@ -16,9 +16,8 @@ class InventoryPDS3Label(PDS3Label):
 
         self.collection = product.collection
 
-        # TODO: Check why this template path is not following the approach of all
-        #       other labels.
-        self._template = f'{self.root_dir}/templates/pds3/template_collection_{self.collection.type}.lbl'
+        self._template = self._resolve_template(
+            f"template_collection_{self.collection.type}.lbl")
 
         self._label_fields["VOLUME_ID"] = self.setup.volume_id
         self._label_fields["ROW_BYTES"] = str(self.product.row_bytes)
@@ -33,19 +32,31 @@ class InventoryPDS3Label(PDS3Label):
 
             self._label_fields[f"BYTES_{i + 1:02d}"] = str(byt)
 
-        file_types = self.product.file_types
+        # The file types of the product come from a set, so their order
+        # changes from run to run; sorted() fixes it without touching the
+        # product's own list.
+        file_types = sorted(self.product.file_types)
         if len(file_types) == 1:
             indexed_file_name = f"*.{file_types[0]}"
         else:
-            file_types.sort()
-            indexed_file_name = "{" + self.setup.eol_pds3
-            for file_type in file_types:
-                indexed_file_name += (
-                    f'{29 * " "}  "*.{file_type}",{self.setup.eol_pds3}'
-                )
+            eol = self.setup.eol_pds3
+            entries = [
+                f'{29 * " "}  "*.{file_type}"' for file_type in file_types
+            ]
 
+            # The comma goes between the entries, so the last one has none.
             indexed_file_name = (
-                indexed_file_name[:-3] + self.setup.eol_pds3 + 29 * " " + "}\n"
+                "{" + eol + ("," + eol).join(entries) + eol + 29 * " " + "}\n"
             )
 
         self._label_fields["INDEXED_FILE_NAME"] = indexed_file_name
+
+    def _derive_name(self) -> str:
+        """Derive the destination path of the label, without 'inventory_'.
+
+        The label describes the collection, so its name leaves out the
+        'inventory_' token of the inventory product.
+
+        :return: Destination path for the label file.
+        """
+        return super()._derive_name().replace("inventory_", "")

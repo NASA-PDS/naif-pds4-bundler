@@ -44,6 +44,7 @@ def _make_setup(tmp_path: Path) -> MagicMock:
     setup.observer = "Voyager 1"
     setup.target = "Jupiter"
     setup.root_dir = str(tmp_path)
+    setup.templates_directory = str(tmp_path / "templates" / "pds3")
     setup.staging_directory = str(tmp_path / "staging")
     setup.working_directory = str(tmp_path / "work")
     setup.eol_pds3 = "\r\n"
@@ -153,6 +154,89 @@ class TestInventoryPDS3LabelUnit:
                                                  '                               "*.tf"\r\n'
                                                  '                             }\n')
 
+    @pytest.mark.parametrize("file_types", [
+        pytest.param(["tf", "bc", "ck"], id="unsorted"),
+        pytest.param(["bc", "ck", "tf"], id="already-sorted"),
+    ])
+    def test_indexed_file_name_three_types_sorted_and_comma_separated(
+            self, tmp_path: Path, file_types: list[str]) -> None:
+        """Three file types give a braced list in alphabetical order. Every
+        entry but the last ends with a comma, and the value ends with a line
+        end."""
+        # An index product that covers three file types.
+        setup = _make_setup(tmp_path)
+        staging = tmp_path / "staging"
+        staging.mkdir(parents=True, exist_ok=True)
+        product = _make_product(staging)
+        product.file_types = file_types
+        product.setup = setup
+        product.collection = _make_collection()
+
+        # Build the label.
+        label = InventoryPDS3Label(product)
+
+        # Every entry is on its own line, ending in CRLF, but the closing
+        # brace ends in a bare LF.
+        assert label._label_fields["INDEXED_FILE_NAME"] == (
+            '{\r\n'
+            '                               "*.bc",\r\n'
+            '                               "*.ck",\r\n'
+            '                               "*.tf"\r\n'
+            '                             }\n')
+
+    @pytest.mark.parametrize("file_types", [
+        pytest.param(["tf", "bc", "ck"], id="unsorted"),
+        pytest.param(["bc", "ck", "tf"], id="already-sorted"),
+        pytest.param(["bc"], id="single-type"),
+    ])
+    def test_building_the_label_leaves_file_types_unchanged(
+            self, tmp_path: Path, file_types: list[str]) -> None:
+        """Building the label reads the file types of the index product but
+        does not reorder or change its list."""
+        # An index product, and a copy of its list of file types to compare
+        # with once the label is built.
+        setup = _make_setup(tmp_path)
+        staging = tmp_path / "staging"
+        staging.mkdir(parents=True, exist_ok=True)
+        product = _make_product(staging)
+        product.file_types = file_types
+        product.setup = setup
+        product.collection = _make_collection()
+        original_file_types = list(file_types)
+
+        # Build the label.
+        InventoryPDS3Label(product)
+
+        # The product keeps its list in the order it had.
+        assert product.file_types == original_file_types
+
+    @pytest.mark.parametrize("product_file, extension, expected_file", [
+        pytest.param("INDEX.TAB", "TAB", "INDEX.lbl", id="real-index-name"),
+        pytest.param("inventory_index.tab", "tab", "index.lbl",
+                     id="inventory-prefix"),
+    ])
+    def test_label_name_drops_inventory_token(
+            self, tmp_path: Path, product_file: str, extension: str,
+            expected_file: str) -> None:
+        """The label takes the product's name with the label extension and
+        without any 'inventory_' token, so 'inventory_index.tab' is labelled
+        'index.lbl' and 'INDEX.TAB' is labelled 'INDEX.lbl'."""
+        # An index product whose file name is the one under test.
+        setup = _make_setup(tmp_path)
+        staging = tmp_path / "staging"
+        staging.mkdir(parents=True, exist_ok=True)
+        product = _make_product(staging)
+        product.path = str(staging / product_file)
+        product.extension = extension
+        product.setup = setup
+        product.collection = _make_collection()
+
+        # Build the label, which works out its own file name.
+        label = InventoryPDS3Label(product)
+
+        # The label sits next to the product in the staging directory.
+        assert label.name == str(staging / expected_file)
+
     def test_is_instance_of_pds_label(self, label):
         """InventoryPDS3Label must be a subclass of PDSLabel."""
         from pds.naif_pds4_bundler.classes.label.label import PDSLabel
@@ -183,9 +267,9 @@ class TestInventoryPDS3LabelUnit:
 
         mock_write.assert_not_called()
 
-        # Template path must embed root_dir and collection.type.
-        assert label._template == f"{tmp_path}/{expected_path}"
-        assert label.collection ==  collection
+        # Template path must embed templates_directory and collection.type.
+        assert label._template == str(tmp_path / expected_path)
+        assert label.collection == collection
         assert label.collection.type == collection_type
 
     def test_zero_rows(self, tmp_path):

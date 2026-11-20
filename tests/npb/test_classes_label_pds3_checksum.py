@@ -391,3 +391,40 @@ class TestChecksumPDS3LabelIntegration:
         written_path = ChecksumPDS3Label(product).write_label()
 
         assert written_path == "checksum.lbl"
+
+    # ------------------------------------------------------------------
+    # 8. Line padding to the checksum table's record length
+    # ------------------------------------------------------------------
+
+    @pytest.mark.parametrize("template_line, record_bytes, expected", [
+        pytest.param("AB", 10, "AB" + " " * 6 + "\r\n",
+                     id="shorter-than-record"),
+        pytest.param("A" * 8, 10, "A" * 8 + "\r\n",
+                     id="exactly-padded-width"),
+        pytest.param("A" * 12, 10, "A" * 12 + "\r\n",
+                     id="longer-than-record"),
+        pytest.param("", 10, " " * 8 + "\r\n",
+                     id="blank-line"),
+        pytest.param("RECORD_TYPE = FIXED_LENGTH", 80,
+                     "RECORD_TYPE = FIXED_LENGTH" + " " * 52 + "\r\n",
+                     id="realistic-record-length"),
+    ])
+    def test_write_label_pads_each_line_to_record_width(
+            self, env: dict, template_line: str, record_bytes: int,
+            expected: str) -> None:
+        """Each line of the checksum label is padded with spaces up to the
+        record length minus 2, and then gets its CRLF. A line already that
+        wide, or wider, is written as it is."""
+        # A one-line template, and a checksum table whose rows are
+        # 'record_bytes' long.
+        template = env["templates_dir"] / "template_product_checksum_table.lbl"
+        template.write_text(template_line + "\n", encoding="utf-8")
+        env["product"].record_bytes = record_bytes
+        env["product"].setup = env["setup"]
+
+        # Write the label.
+        ChecksumPDS3Label(env["product"]).write_label()
+
+        # The padded text plus the CRLF fills one row of the table. Bytes are
+        # compared so the line ending is checked as well.
+        assert env["label_path"].read_bytes() == expected.encode("utf-8")

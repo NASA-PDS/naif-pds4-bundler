@@ -1,8 +1,6 @@
 """Implementation of the PDS4 version of a label for Collection Inventory
 files.
 """
-from pathlib import Path
-
 from .pds4_label import PDS4Label
 from ..exceptions import NPBInternalError
 
@@ -23,8 +21,8 @@ class InventoryPDS4Label(PDS4Label):
 
         self.collection = product.collection
 
-        self._template = str(Path(self.setup.templates_directory)
-                             / f"template_collection_{self.collection.type}.xml")
+        self._template = self._resolve_template(
+            f"template_collection_{self.collection.type}.xml")
 
         self._label_fields["COLLECTION_LID"] = self.collection.lid
         self._label_fields["COLLECTION_VID"] = self.collection.vid
@@ -79,3 +77,13 @@ class InventoryPDS4Label(PDS4Label):
         #
         with open(self.product.path, 'r', encoding='utf-8') as f:
             self._label_fields["N_RECORDS"] = str(sum(1 for _ in f))
+
+    def _derive_name(self) -> str:
+        """Derive the destination path of the label, without 'inventory_'.
+
+        The label describes the collection, so its name leaves out the
+        'inventory_' token of the inventory product.
+
+        :return: Destination path for the label file.
+        """
+        return super()._derive_name().replace("inventory_", "")
