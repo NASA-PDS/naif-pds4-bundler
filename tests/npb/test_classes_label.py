@@ -454,15 +454,69 @@ class TestPDSLabelWriteLabel:
         mock_open_fn.assert_any_call(
             "/staging/custom_name.xml", "w+", encoding='utf-8', newline='')
 
-    def test_checksum_lbl_pads_line_to_record_bytes(self, label_for, mocker):
-        """checksum.lbl lines must be padded to record_bytes - 2."""
-        label = label_for(pds_version="3", is_checksum=True)
-        label.name = f"/staging{os.sep}checksum.lbl"
-        mocker.patch("builtins.open", mock_open(read_data="short\n"))
-        mock_cr = mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
+    @pytest.mark.parametrize("line", [
+        pytest.param("text", id="plain-text"),
+        pytest.param("", id="empty-line"),
+        pytest.param("  indented", id="leading-spaces"),
+        pytest.param("with $KEY", id="unreplaced-key"),
+    ])
+    def test_format_line_leaves_the_line_unchanged(self, line: str) -> None:
+        """A generic label has nothing to add to a line, so the hook that
+        runs on every line before its line end is added returns it as it
+        is."""
+        # A label that needs no setup, since the hook does not read any.
+        label = object.__new__(PDSLabel)
+
+        # Run the hook.
+        formatted = label._format_line(line)
+
+        # Not even the spaces at the ends were touched.
+        assert formatted == line
+
+    def test_write_label_runs_format_line_on_every_line(
+            self, label_for, mocker):
+        """Each line of the template goes through the hook of the label,
+        and what the hook returns is what is written."""
+        # A label whose hook wraps the line in brackets.
+        label = label_for()
+        label.__class__ = type(
+            "BracketedLabel", (type(label),),
+            {"_format_line": lambda self, line: f"[{line}]"})
+        mock_file = mocker.patch(
+            "builtins.open", mock_open(read_data="one\ntwo\n"))
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("c"))
+
+        # Write the label.
         label.write_label()
-        mock_cr.assert_called()
+
+        # Both lines were bracketed before being written.
+        written = [c.args[0] for c in mock_file().write.call_args_list]
+        assert written == ["[one]\n", "[two]\n"]
+
+    @pytest.mark.parametrize("template_line", [
+        pytest.param("short", id="short-line"),
+        pytest.param("", id="empty-line"),
+    ])
+    def test_write_label_does_not_pad_by_file_name(
+            self, label_for, mocker, template_line: str) -> None:
+        """A generic label is not padded, even when its file is called
+        'checksum.lbl' and its product has a record length; the padding
+        belongs to the PDS3 checksum label."""
+        # A generic label named 'checksum.lbl', whose product has a record
+        # length of 80.
+        label = label_for(pds_version="3", is_checksum=True)
+        mock_file = mocker.patch(
+            "builtins.open", mock_open(read_data=template_line + "\n"))
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
+        mocker.patch.object(Path, "relative_to", return_value=Path("c"))
+
+        # Write the label.
+        label.write_label()
+
+        # The line was written as it came from the template.
+        written = [c.args[0] for c in mock_file().write.call_args_list]
+        assert written == [template_line + "\n"]
 
     def test_diff_true_calls_compare(self, label_for, mocker):
         label = label_for(diff=True)
