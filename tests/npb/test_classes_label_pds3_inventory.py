@@ -184,6 +184,32 @@ class TestInventoryPDS3LabelUnit:
             '                               "*.tf"\r\n'
             '                             }\n')
 
+    @pytest.mark.parametrize("file_types", [
+        pytest.param(["tf", "bc", "ck"], id="unsorted"),
+        pytest.param(["bc", "ck", "tf"], id="already-sorted"),
+        pytest.param(["bc"], id="single-type"),
+    ])
+    def test_building_the_label_leaves_file_types_unchanged(
+            self, tmp_path: Path, file_types: list[str]) -> None:
+        """Building the label reads the file types of the index product but
+        does not reorder or change its list."""
+        # An index product, and a copy of its list of file types to compare
+        # with once the label is built.
+        setup = _make_setup(tmp_path)
+        staging = tmp_path / "staging"
+        staging.mkdir(parents=True, exist_ok=True)
+        product = _make_product(staging)
+        product.file_types = file_types
+        product.setup = setup
+        product.collection = _make_collection()
+        original_file_types = list(file_types)
+
+        # Build the label.
+        InventoryPDS3Label(product)
+
+        # The product keeps its list in the order it had.
+        assert product.file_types == original_file_types
+
     @pytest.mark.parametrize("product_file, extension, expected_file", [
         pytest.param("INDEX.TAB", "TAB", "INDEX.lbl", id="real-index-name"),
         pytest.param("inventory_index.tab", "tab", "index.lbl",
