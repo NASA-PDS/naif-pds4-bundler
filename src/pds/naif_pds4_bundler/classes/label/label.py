@@ -131,17 +131,19 @@ class PDSLabel:
     def _derive_name(self) -> str:
         """Derive the destination path for this label's file.
 
-        Extension is swapped from the product's own extension to this
-        label's (.lbl/.xml); a product path that already carries the label
+        The file suffix of the product path is swapped for this label's
+        extension (.lbl/.xml); a product path that already ends in the label
         extension (the bundle label) passes through unchanged.
 
         :return: Destination path for the label file.
         """
-        if self._label_extension not in self.product.path:
-            label_name = (
-                self.product.path.split(f".{self.product.extension}")[0]
-                + self._label_extension
-            )
+        # splitext only looks at the last dot of the file name, so dots in
+        # the directories are left alone; unlike pathlib, it does not touch
+        # the rest of the string.
+        path_without_suffix, suffix = os.path.splitext(self.product.path)
+
+        if suffix != self._label_extension:
+            label_name = path_without_suffix + self._label_extension
         else:
             #
             # This accounts for the bundle label, that doest not come

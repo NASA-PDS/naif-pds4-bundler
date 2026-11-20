@@ -241,6 +241,61 @@ class TestPDSLabelResolveTemplate:
 
 
 # ===========================================================================
+# PDSLabel._derive_name
+# ===========================================================================
+
+class TestPDSLabelDeriveName:
+    """Covers how PDSLabel._derive_name builds the label name from the
+    product path."""
+
+    @pytest.mark.parametrize(
+        "product_path, extension, label_extension, expected", [
+            pytest.param("/staging/maven_v001.bc", "bc", ".xml",
+                         "/staging/maven_v001.xml",
+                         id="pds4-label"),
+            pytest.param("/staging/maven_v001.bc", "bc", ".lbl",
+                         "/staging/maven_v001.lbl",
+                         id="pds3-label"),
+            pytest.param("/staging/v1.2/maven.v1.bc", "bc", ".xml",
+                         "/staging/v1.2/maven.v1.xml",
+                         id="dots-in-directory-and-name"),
+            pytest.param("/staging//maven_v001.bc", "bc", ".xml",
+                         "/staging//maven_v001.xml",
+                         id="double-slash-kept"),
+            pytest.param("/x/a.bc.dir/f.bc", "bc", ".xml",
+                         "/x/a.bc.dir/f.xml",
+                         id="product-extension-in-directory"),
+            pytest.param("/x/a.xml.dir/f.bc", "bc", ".xml",
+                         "/x/a.xml.dir/f.xml",
+                         id="label-extension-in-directory"),
+            pytest.param("/staging/bundle.xml", "xml", ".xml",
+                         "/staging/bundle.xml",
+                         id="bundle-label-unchanged"),
+        ])
+    def test_name_is_built_from_the_file_suffix(
+            self, label_test_helpers, product_path: str, extension: str,
+            label_extension: str, expected: str) -> None:
+        """The label name is the product path with its file suffix swapped
+        for the label extension. Dots elsewhere in the path do not matter,
+        and a path that already ends in the label extension, as the bundle
+        label's does, is kept as it is."""
+        # A label that only knows its product and its own extension, since
+        # nothing else is needed to work out the name.
+        product = label_test_helpers.make_product()
+        product.path = product_path
+        product.extension = extension
+        label = object.__new__(PDSLabel)
+        label.product = product
+        label._label_extension = label_extension
+
+        # Work out the name.
+        name = label._derive_name()
+
+        # Only the suffix of the file name was touched.
+        assert name == expected
+
+
+# ===========================================================================
 # PDSLabel.write_label
 # ===========================================================================
 
