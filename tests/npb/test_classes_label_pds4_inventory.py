@@ -310,6 +310,37 @@ class TestInventoryPDS4Label:
         # The count is stored as a string, like every other label field.
         assert label._label_fields["N_RECORDS"] == expected
 
+    @pytest.mark.parametrize('inventory_name, expected_label_name', [
+        pytest.param('collection_spice_kernels_inventory_v001.csv',
+                     'collection_spice_kernels_v001.xml',
+                     id='spice-kernels'),
+        pytest.param('collection_miscellaneous_inventory_v001.csv',
+                     'collection_miscellaneous_v001.xml',
+                     id='miscellaneous'),
+        pytest.param('collection_document_inventory_v001.csv',
+                     'collection_document_v001.xml',
+                     id='document'),
+    ])
+    def test_label_name_drops_inventory_token(
+            self, tmp_path: Path, helpers: SimpleNamespace,
+            inventory_name: str, expected_label_name: str) -> None:
+        """The collection label takes the inventory file name with the XML
+        extension and without the 'inventory_' token, so
+        'collection_document_inventory_v001.csv' is labelled
+        'collection_document_v001.xml'."""
+        # An inventory file with the name under test, wired to its collection.
+        setup = helpers.make_setup()
+        staging = tmp_path / 'staging'
+        inventory = helpers.make_inventory(staging, name=inventory_name)
+        inventory.setup = setup
+        helpers.attach_collection(inventory, helpers.make_collection())
+
+        # Build the label, which works out its own file name.
+        label = InventoryPDS4Label(inventory)
+
+        # The label sits next to the inventory in the staging directory.
+        assert label.name == str(staging / expected_label_name)
+
     def test_constructor_raises_when_inventory_file_missing(
             self, tmp_path: Path, helpers: SimpleNamespace) -> None:
         # The constructor opens self.product.path for reading; a missing file
