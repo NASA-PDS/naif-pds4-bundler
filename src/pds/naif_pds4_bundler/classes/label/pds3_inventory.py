@@ -48,3 +48,13 @@ class InventoryPDS3Label(PDS3Label):
             )
 
         self._label_fields["INDEXED_FILE_NAME"] = indexed_file_name
+
+    def _derive_name(self) -> str:
+        """Derive the destination path of the label, without 'inventory_'.
+
+        The label describes the collection, so its name leaves out the
+        'inventory_' token of the inventory product.
+
+        :return: Destination path for the label file.
+        """
+        return super()._derive_name().replace("inventory_", "")

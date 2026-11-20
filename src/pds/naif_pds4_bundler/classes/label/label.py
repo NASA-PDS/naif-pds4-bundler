@@ -151,9 +151,6 @@ class PDSLabel:
             #
             label_name = self.product.path
 
-        if "inventory" in label_name:
-            label_name = label_name.replace("inventory_", "")
-
         return label_name
 
     def write_label(self) -> str:

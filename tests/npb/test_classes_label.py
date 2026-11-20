@@ -421,18 +421,17 @@ class TestPDSLabelWriteLabel:
         # The original path came through untouched.
         assert "bundle" in derived_name
 
-    def test_derive_name_strips_inventory_prefix(self, label_for):
-        """A path that contains 'inventory' has the 'inventory_' token
-        removed, since the label file is named after the collection, not
-        the inventory product it describes."""
+    def test_derive_name_keeps_inventory_prefix(self, label_for):
+        """A generic label keeps the 'inventory_' token of the product path;
+        only the inventory labels drop it, in their own classes."""
         # A product path containing 'inventory_'.
         label = label_for(has_inventory=True)
 
         # Work out the destination filename.
         derived_name = label._derive_name()
 
-        # The 'inventory_' token is gone.
-        assert "inventory_" not in derived_name
+        # The 'inventory_' token is still there.
+        assert derived_name == "/staging/inventory_collection.xml"
 
     def test_write_label_uses_self_name_verbatim(self, label_for, mocker):
         """write_label() must open self.name as given, not recompute it --
