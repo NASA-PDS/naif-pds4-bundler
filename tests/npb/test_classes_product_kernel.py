@@ -48,19 +48,25 @@ def make_setup(
     return setup
 
 
-def make_collection(missions=None, observers=None, targets=None):
+def make_collection():
     """Return a minimal mock collection object."""
-    collection = MagicMock()
-    collection.get_mission_and_observer_and_target.return_value = (
-        missions or ["TEST_MISSION"],
-        observers or ["SPACECRAFT"],
-        targets or ["MARS"],
-    )
-    return collection
+    return MagicMock()
 
 
 # Patch targets used throughout
 _MODULE = "pds.naif_pds4_bundler.classes.product.product_kernel"
+
+
+@pytest.fixture(autouse=True)
+def mock_mission_observer_target():
+    """Replace the configuration lookup of missions, observers and targets."""
+    # Every product built in this module runs the lookup, so it is replaced
+    # for all the tests and not one by one
+    with patch(
+        f"{_MODULE}.get_mission_and_observer_and_target",
+        return_value=(["TEST_MISSION"], ["SPACECRAFT"], ["MARS"]),
+    ) as lookup:
+        yield lookup
 
 
 # ---------------------------------------------------------------------------
@@ -331,6 +337,27 @@ class TestSpiceKernelProductInit:
         assert product.missions == ["TEST_MISSION"]
         assert product.observers == ["SPACECRAFT"]
         assert product.targets == ["MARS"]
+
+    def test_init_looks_up_missions_observers_targets_with_own_setup(
+            self, tmp_env, fake_product_init, mock_mission_observer_target):
+        """The lookup gets the kernel list configuration and the mission
+        defaults of the product's own setup, plus the kernel name.
+        """
+        # The same kernel name is used to build the product and in the call
+        # that is expected
+        name = "test.bsp"
+
+        # Build the product, the lookup is the one replaced by the fixture
+        _, setup, _ = build_product(tmp_env, fake_product_init, name=name)
+
+        # The lookup was called once, with the values from the product's setup
+        mock_mission_observer_target.assert_called_once_with(
+            setup.kernel_list_config,
+            name,
+            mission_name=setup.mission_name,
+            observer=setup.observer,
+            target=setup.target,
+        )
 
     def test_pds3_reads_maklabel_options(self, tmp_env, fake_product_init):
         # Labeling itself moved to the pipeline, but PDS3 labeling reads

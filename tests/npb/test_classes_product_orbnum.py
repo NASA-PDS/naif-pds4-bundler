@@ -54,9 +54,19 @@ def mock_setup(tmp_path):
 
 @pytest.fixture
 def mock_collection():
-    collection = MagicMock()
-    collection.get_mission_and_observer_and_target.return_value = (["mission1"], ["obs1"], ["target1"])
-    return collection
+    return MagicMock()
+
+
+@pytest.fixture(autouse=True)
+def mock_mission_observer_target():
+    """Replace the configuration lookup of missions, observers and targets."""
+    # Every product built in this module runs the lookup, so it is replaced
+    # for all the tests and not one by one
+    with patch(
+        f"{MOD}.get_mission_and_observer_and_target",
+        return_value=(["mission1"], ["obs1"], ["target1"]),
+    ) as lookup:
+        yield lookup
 
 
 @pytest.fixture
@@ -180,7 +190,7 @@ class TestOrbnumFileProductInit:
         pds4_init_mocks,
         mock_setup, mock_collection, mock_kernels_collection,
     ):
-        """When check_eol is False, add_crs_to_file is skipped; and missing mission/observer/target keys fall back to the collection values."""
+        """When check_eol is False, add_crs_to_file is skipped; and missing mission/observer/target keys fall back to the configuration lookup."""
         del mock_setup.orbnum[0]["mission_name"]
         del mock_setup.orbnum[0]["observer"]
         del mock_setup.orbnum[0]["target"]
@@ -192,6 +202,41 @@ class TestOrbnumFileProductInit:
         assert obj.missions == ["mission1"]
         assert obj.observers == ["obs1"]
         assert obj.targets == ["target1"]
+
+    @patch.object(Product, "derive_file_attributes")
+    @patch(f"{MOD}.safe_make_directory")
+    @patch(f"{MOD}.shutil.copy2")
+    @patch(f"{MOD}.os.path.isfile", return_value=False)
+    @patch(f"{MOD}.check_eol", return_value=True)
+    def test_init_pds4_looks_up_missions_observers_targets_with_own_setup(
+        self,
+        _mock_check_eol, _mock_isfile, _mock_copy2, _mock_safe_mkdir,
+        _mock_derive, pds4_init_mocks,
+        mock_setup, mock_collection, mock_kernels_collection,
+        mock_mission_observer_target,
+    ):
+        """The lookup gets the kernel list configuration and the mission
+        defaults of the product's own setup, plus the ORBNUM file name.
+        """
+        # Give the setup values that are easy to recognise in the call
+        mock_setup.kernel_list_config = {"pattern": {"@pattern": "pattern"}}
+        mock_setup.mission_name = "Setup Mission"
+        mock_setup.observer = "Setup Observer"
+        mock_setup.target = "Setup Target"
+
+        # Build the product, the lookup is the one replaced by the fixture
+        OrbnumFileProduct(
+            mock_setup, "test_file.orb", mock_collection,
+            mock_kernels_collection)
+
+        # The lookup was called once, with the values from the product's setup
+        mock_mission_observer_target.assert_called_once_with(
+            {"pattern": {"@pattern": "pattern"}},
+            "test_file.orb",
+            mission_name="Setup Mission",
+            observer="Setup Observer",
+            target="Setup Target",
+        )
 
     def test_init_pds4_integration(self, mock_setup, mock_collection, mock_kernels_collection):
         """End-to-end PDS4 init on a realistic ORBNUM file.
