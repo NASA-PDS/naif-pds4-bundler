@@ -37,8 +37,8 @@ def get_mission_and_observer_and_target(
     :param target: Target default.
     :return: Missions, observers and targets, in that order.
     """
-    defaults = [[mission_name], [observer], [target]]
-    values = [[], [], []]
+    defaults: List[ConfigValue] = [[mission_name], [observer], [target]]
+    values: List[ConfigValue] = [[], [], []]
 
     for entry in kernel_list_config.values():
         if re.match(entry["@pattern"], name):
@@ -55,4 +55,5 @@ def get_mission_and_observer_and_target(
         #
         values = defaults
 
-    return tuple(values)
+    # Unpacked, so the result is known to have exactly three items
+    return values[0], values[1], values[2]
