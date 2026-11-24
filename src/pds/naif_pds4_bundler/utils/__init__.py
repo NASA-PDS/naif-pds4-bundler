@@ -2,6 +2,7 @@
 
 The utils module implements general utility capabilities used elsewhere in NPB.
 """
+from .config import get_mission_and_observer_and_target
 from .decorators import spice_exception_handler
 from .files import (
     add_carriage_return,
@@ -66,6 +67,7 @@ __all__ = [
     'format_multiple_values',
     'get_context_products',
     'get_latest_kernel',
+    'get_mission_and_observer_and_target',
     'kernel_name',
     'match_patterns',
     'md5',
