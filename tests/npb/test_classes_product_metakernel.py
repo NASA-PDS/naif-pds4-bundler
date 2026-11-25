@@ -526,7 +526,7 @@ class TestMetaKernelProductInit:
         )
         assert product.collection_metakernel == kernel_list
 
-    def test_missions_observers_targets_stored_from_collection(
+    def test_missions_observers_targets_stored_from_lookup(
             self, tmp_path, fake_product_init):
         product, _, _ = build_product(tmp_path, fake_product_init)
         assert product.missions == ["InSight"]

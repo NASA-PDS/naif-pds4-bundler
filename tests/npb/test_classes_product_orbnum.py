@@ -244,8 +244,9 @@ class TestOrbnumFileProductInit:
         Unlike the other init tests, the ORBNUM-specific methods (read_header,
         set_event_detection_key, read_records, get_params, set_params,
         get_description, coverage, ...) all run for real against a file on disk.
-        Only genuinely external concerns are mocked: the label class, the
-        bundle-directory kernel scan, and Product.derive_file_attributes (covered elsewhere).
+        Only genuinely external concerns are mocked: the bundle-directory
+        kernel scan, the lookup of missions, observers and targets, and
+        Product.derive_file_attributes (the last two are covered elsewhere).
         """
         #
         # Build a realistic ORBNUM file. Header and record share an identical
@@ -284,7 +285,7 @@ class TestOrbnumFileProductInit:
         }}}
         #
         # Drop the explicit overrides so mission/observer/target fall back to
-        # the values provided by the collection.
+        # the values returned by the lookup.
         #
         for key in ("mission_name", "observer", "target"):
             mock_setup.orbnum[0].pop(key, None)
@@ -327,7 +328,7 @@ class TestOrbnumFileProductInit:
         assert obj.start_time == "2020-01-01T00:00:00Z"
         assert obj.stop_time == "2020-01-02T00:00:00Z"
 
-        # mission/observer/target fell back to the collection values.
+        # mission/observer/target fell back to the looked-up values.
         assert obj.missions == ["mission1"]
         assert obj.observers == ["obs1"]
         assert obj.targets == ["target1"]
