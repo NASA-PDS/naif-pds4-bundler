@@ -114,15 +114,21 @@ def make_setup(
     return setup
 
 
-def make_collection(missions=None, observers=None, targets=None):
+def make_collection():
     """Return a minimal mock SPICE Kernels Collection object."""
-    collection = MagicMock()
-    collection.get_mission_and_observer_and_target.return_value = (
-        missions or ["InSight"],
-        observers or ["INSIGHT"],
-        targets or ["MARS"],
-    )
-    return collection
+    return MagicMock()
+
+
+@pytest.fixture(autouse=True)
+def mock_mission_observer_target():
+    """Replace the configuration lookup of missions, observers and targets."""
+    # Every product built in this module runs the lookup, so it is replaced
+    # for all the tests and not one by one
+    with patch(
+        f"{_MODULE}.get_mission_and_observer_and_target",
+        return_value=(["InSight"], ["INSIGHT"], ["MARS"]),
+    ) as lookup:
+        yield lookup
 
 
 def base_init_patches(fake_product_init):
@@ -520,12 +526,33 @@ class TestMetaKernelProductInit:
         )
         assert product.collection_metakernel == kernel_list
 
-    def test_missions_observers_targets_stored_from_collection(
+    def test_missions_observers_targets_stored_from_lookup(
             self, tmp_path, fake_product_init):
         product, _, _ = build_product(tmp_path, fake_product_init)
         assert product.missions == ["InSight"]
         assert product.observers == ["INSIGHT"]
         assert product.targets == ["MARS"]
+
+    def test_missions_observers_targets_looked_up_with_own_setup(
+            self, tmp_path, fake_product_init, mock_mission_observer_target):
+        """The lookup gets the kernel list configuration and the mission
+        defaults of the product's own setup, plus the meta-kernel name.
+        """
+        # The same meta-kernel name is used to build the product and in the
+        # call that is expected
+        name = "insight_v01.tm"
+
+        # Build the product, the lookup is the one replaced by the fixture
+        _, setup, _ = build_product(tmp_path, fake_product_init, name=name)
+
+        # The lookup was called once, with the values from the product's setup
+        mock_mission_observer_target.assert_called_once_with(
+            setup.kernel_list_config,
+            name,
+            mission_name=setup.mission_name,
+            observer=setup.observer,
+            target=setup.target,
+        )
 
     def test_list_name_pattern_flattened_into_patterns(
             self, tmp_path, fake_product_init):

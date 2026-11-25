@@ -12,6 +12,7 @@ from ...utils import ck_coverage
 from ...utils import dsk_coverage
 from ...utils import extension_to_type
 from ...utils import extract_comment
+from ...utils import get_mission_and_observer_and_target
 from ...utils import pck_coverage
 from ...utils import product_mapping
 from ...utils import safe_make_directory
@@ -149,7 +150,13 @@ class SpiceKernelProduct(Product):
         # Extract the required information from the kernel list read from
         # configuration for the product.
         #
-        (missions, observers, targets) = self.collection.get_mission_and_observer_and_target(self.name)
+        (missions, observers, targets) = get_mission_and_observer_and_target(
+            self.setup.kernel_list_config,
+            self.name,
+            mission_name=self.setup.mission_name,
+            observer=self.setup.observer,
+            target=self.setup.target,
+        )
 
         self.missions = missions
         self.targets = targets

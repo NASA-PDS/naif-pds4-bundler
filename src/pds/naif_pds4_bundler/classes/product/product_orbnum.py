@@ -13,6 +13,7 @@ from ...utils import add_crs_to_file
 from ...utils import archive_subdirectory
 from ...utils import check_eol
 from ...utils import get_latest_kernel
+from ...utils import get_mission_and_observer_and_target
 from ...utils import safe_make_directory
 from ...utils import spk_coverage
 from ...utils import utf8len
@@ -125,7 +126,13 @@ class OrbnumFileProduct(Product):
             # Extract the required information from the kernel list read from
             # configuration for the product.
             #
-            (missions, observers, targets) = self.collection.get_mission_and_observer_and_target(self.name)
+            (missions, observers, targets) = get_mission_and_observer_and_target(
+                self.setup.kernel_list_config,
+                self.name,
+                mission_name=self.setup.mission_name,
+                observer=self.setup.observer,
+                target=self.setup.target,
+            )
 
             self.missions = missions
             self.targets = targets
