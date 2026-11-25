@@ -24,6 +24,7 @@ class RecordingInventory(InventoryProduct):
     def _set_location(self) -> None:
         self.path = "staging/collection_inventory_v001.csv"
         self.time_in_set_location = self.creation_time
+        self.path_current_in_set_location = self.path_current
 
     def write_product(self) -> None:
         self.time_in_write_product = self.creation_time
@@ -54,6 +55,25 @@ class TestInventoryProductInit:
         # Both hooks read the creation time while the inventory was built
         assert obj.time_in_set_location == "2026-05-27T10:20:30Z"
         assert obj.time_in_write_product == "2026-05-27T10:20:30Z"
+
+    def test_path_current_is_empty_before_the_hooks_run(
+            self, inventory_helpers):
+        """Without a previous inventory, path_current is empty.
+
+        It is already there when the location hook runs, which is where a
+        version-specific class looks for the previous inventory.
+        """
+        # A setup and a collection, and no previous inventory anywhere
+        setup = inventory_helpers.make_setup()
+        collection = inventory_helpers.make_collection()
+
+        # Build the inventory without touching a file on disk
+        with patch.object(Product, "derive_file_attributes"):
+            obj = RecordingInventory(setup, collection)
+
+        # The hook saw it empty, and it is still empty afterwards
+        assert obj.path_current_in_set_location == ""
+        assert obj.path_current == ""
 
 
 # ---------------------------------------------------------------------------

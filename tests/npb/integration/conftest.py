@@ -22,9 +22,9 @@ TESTS_DATA = Path(__file__).parents[2] / "naif_pds4_bundler"
 # Real SPICE kernels shipped with the tests.
 KERNELS = TESTS_DATA / "data" / "kernels"
 
-# Configuration the real Setup is built from. Only its directories are
-# rewritten; its kernel list patterns are used as they are.
-BASE_CONFIG = TESTS_DATA / "config" / "maven.xml"
+# Configurations a real Setup can be built from. Only their directories are
+# rewritten; their kernel list patterns are used as they are.
+CONFIGS = TESTS_DATA / "config"
 
 TEMPLATES = (Path(__file__).parents[3] / "src" / "pds" / "naif_pds4_bundler"
              / "templates" / "1.5.0.0")
@@ -80,42 +80,68 @@ def install_kernel(sandbox: SimpleNamespace) -> Callable[..., Path]:
 
 
 @pytest.fixture
-def real_setup(sandbox: SimpleNamespace,
-               monkeypatch: pytest.MonkeyPatch) -> Setup:
-    """Build a real Setup the way the pipeline does, rooted in the sandbox.
+def make_setup(sandbox: SimpleNamespace,
+               monkeypatch: pytest.MonkeyPatch) -> Callable[..., Setup]:
+    """Provide a function that builds a real Setup rooted in the sandbox.
+
+    The Setup is built the way the pipeline does it, with its configuration
+    checked and its release set.
 
     :param sandbox: sandbox directories
     :param monkeypatch: pytest monkeypatch, used to restore the working
         directory that ``check_configuration`` changes
+    :return: function taking the file name of a test configuration (such as
+        ``maven.xml``), the ``--diff`` value of the run and the configuration
+        tags to replace besides the sandbox directories
+    """
+
+    def _make_setup(config: str, diff: str | None = None,
+                    tags: dict[str, str] | None = None) -> Setup:
+        # Setup.check_configuration changes the process working directory and
+        # does not restore it; monkeypatch puts it back when the test ends.
+        monkeypatch.chdir(sandbox.root)
+
+        replacements = {tag: str(getattr(sandbox, name))
+                        for tag, name in SANDBOX_DIRECTORIES.items()}
+        replacements.update(tags or {})
+
+        base_config = CONFIGS / config
+        content = base_config.read_text(encoding="utf-8")
+        for tag, value in replacements.items():
+            element = f"<{tag}>{value}</{tag}>"
+            # A function is used as the replacement because re would read the
+            # backslashes of a Windows path (such as '\Users') as escapes.
+            content, count = re.subn(rf"<{tag}>[^<]*</{tag}>",
+                                     lambda _match: element, content)
+            assert count == 1, f"{tag} not found in {base_config}"
+
+        config_path = sandbox.root / "config.xml"
+        config_path.write_text(content, encoding="utf-8")
+
+        args = PipelineArgs(config=str(config_path), silent=True,
+                            verbose=False, log=False, diff=diff)
+
+        setup = Setup(args, __version__)
+        setup.check_configuration()
+        setup.set_release()
+
+        return setup
+
+    return _make_setup
+
+
+@pytest.fixture
+def real_setup(make_setup: Callable[..., Setup]) -> Setup:
+    """Build a real PDS4 Setup rooted in the sandbox.
+
+    :param make_setup: function that builds a real Setup
     :return: Setup with its configuration checked and its release set
     """
-    # Setup.check_configuration changes the process working directory and
-    # does not restore it; monkeypatch puts it back when the test ends.
-    monkeypatch.chdir(sandbox.root)
+    # maven.xml gives a relative templates directory, which does not exist in
+    # the sandbox.
+    tags = {"templates_directory": str(TEMPLATES)}
 
-    config = BASE_CONFIG.read_text(encoding="utf-8")
-    replacements = {tag: str(getattr(sandbox, name))
-                    for tag, name in SANDBOX_DIRECTORIES.items()}
-    replacements["templates_directory"] = str(TEMPLATES)
-    for tag, path in replacements.items():
-        # A function is used as the replacement because re would read the
-        # backslashes of a Windows path (such as '\Users') as escapes.
-        element = f"<{tag}>{path}</{tag}>"
-        config, count = re.subn(rf"<{tag}>[^<]*</{tag}>",
-                                lambda _match: element, config)
-        assert count == 1, f"{tag} not found in {BASE_CONFIG}"
-
-    config_path = sandbox.root / "config.xml"
-    config_path.write_text(config, encoding="utf-8")
-
-    args = PipelineArgs(config=str(config_path), silent=True, verbose=False,
-                        log=False)
-
-    setup = Setup(args, __version__)
-    setup.check_configuration()
-    setup.set_release()
-
-    return setup
+    return make_setup("maven.xml", tags=tags)
 
 
 @pytest.fixture

@@ -25,6 +25,11 @@ class InventoryProduct(Product):
         self.rows = 0
         self.row_bytes = 0
 
+        # Previous inventory file, empty when there is none. It is set
+        # before _set_location() because that is where PDS4 looks for it,
+        # and write_product() reads it through compare().
+        self.path_current = ""
+
         self._set_location()
 
         self.write_product()

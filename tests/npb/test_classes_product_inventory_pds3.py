@@ -1,5 +1,6 @@
 """Unit tests for InventoryPDS3Product class."""
 import logging
+from pathlib import Path
 from unittest.mock import MagicMock, mock_open, patch
 
 import pytest
@@ -18,6 +19,19 @@ class MetaKernelSubclass(MetaKernelProduct):
 # Patch targets (relative to where InventoryPDS3Product imports things)
 # ---------------------------------------------------------------------------
 MODULE = "pds.naif_pds4_bundler.classes.product.product_inventory_pds3"
+INVENTORY_MODULE = "pds.naif_pds4_bundler.classes.product.product_inventory"
+
+
+def make_kernel() -> MagicMock:
+    """Provide a binary kernel with the attributes that the index reads."""
+    kernel = MagicMock()
+    kernel.start_time = "2020-001T00:00:00Z"
+    kernel.stop_time = "2021-001T00:00:00Z"
+    kernel.path = "/data/ck/insight_ck.bc"
+    kernel.creation_time = "2020-001T00:00:00"
+    kernel.type = "ck"
+    kernel.name = "insight_ck.bc"
+    return kernel
 
 
 # ---------------------------------------------------------------------------
@@ -106,17 +120,6 @@ class TestInventoryPDS3ProductGenerateDsindexFiles:
 class TestInventoryPDS3ProductWriteProduct:
     """Tests for write_product()."""
 
-    @staticmethod
-    def _make_kernel():
-        k = MagicMock()
-        k.start_time = "2020-001T00:00:00Z"
-        k.stop_time = "2021-001T00:00:00Z"
-        k.path = "/data/ck/insight_ck.bc"
-        k.creation_time = "2020-001T00:00:00"
-        k.type = "ck"
-        k.name = "insight_ck.bc"
-        return k
-
     def _make_obj(self, inventory_helpers, increment=False, products=None):
         obj = InventoryPDS3Product.__new__(InventoryPDS3Product)
         # The index content is what these tests check, not the logging,
@@ -134,7 +137,7 @@ class TestInventoryPDS3ProductWriteProduct:
         if products is not None:
             collection.product = products
         else:
-            collection.product = [self._make_kernel()]
+            collection.product = [make_kernel()]
         obj.collection = collection
         return obj
 
@@ -259,8 +262,8 @@ class TestInventoryPDS3ProductWriteProduct:
 
     def test_file_types_deduplicated(self, inventory_helpers):
         """file_types contains unique values only."""
-        k1 = self._make_kernel()
-        k2 = self._make_kernel()
+        k1 = make_kernel()
+        k2 = make_kernel()
         obj = self._make_obj(inventory_helpers, products=[k1, k2])
 
         m = mock_open()
@@ -287,6 +290,56 @@ class TestInventoryPDS3ProductWriteProduct:
 
         # The write ends by handing over to that step
         mock_finish.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# InventoryPDS3Product with --diff, through the real finish step
+# ---------------------------------------------------------------------------
+
+class TestInventoryPDS3ProductDiff:
+    """Tests for the PDS3 index when the run asks for diffs."""
+
+    @pytest.mark.parametrize("diff", ["log", "files", "all"])
+    def test_diff_skips_the_comparison(
+            self, diff, tmp_path, caplog, inventory_helpers):
+        """The index is written and validated, and nothing is compared.
+
+        Nothing is patched in the write -> validate -> compare chain: the
+        index is really written in a staging directory, and the comparison
+        helpers are only watched.
+        """
+        # A staging directory with the index folder, and an inventory whose
+        # only kernel is a binary one so that the index has a row.
+        (tmp_path / "staging" / "index").mkdir(parents=True)
+        setup = inventory_helpers.make_setup(
+            pds_version="3", increment=False, diff=diff)
+        setup.staging_directory = str(tmp_path / "staging")
+        setup.working_directory = str(tmp_path / "working")
+        setup.root_dir = str(tmp_path) + "/"
+
+        kernel = make_kernel()
+        collection = inventory_helpers.make_collection()
+        collection.list.DATA_SET_ID = "INSIGHT-M-SPICE-6-V1.0"
+        collection.list.RELID = "0001"
+        collection.list.RELDATE = "2020-01-01"
+        collection.list.VOLID = "INSIGHT_0001"
+        collection.product = [kernel]
+
+        # Build the product and record what the comparison would have used.
+        with caplog.at_level(logging.INFO), \
+                patch(f"{INVENTORY_MODULE}.glob") as mock_glob, \
+                patch(f"{INVENTORY_MODULE}.compare_files") as mock_compare:
+            product = InventoryPDS3Product(setup, collection)
+
+        # The index exists, the skip is logged, and neither the sample
+        # inventory was searched nor a comparison made.
+        assert Path(product.path).exists()
+        assert ("-- No previous-index comparison is available for PDS3, "
+                "skipping the comparison of index.tab.") in caplog.messages
+        assert not mock_glob.called
+        assert not mock_compare.called
+        assert not (tmp_path / "working").exists()
+        assert product.path_current == ""
 
 
 # ---------------------------------------------------------------------------
