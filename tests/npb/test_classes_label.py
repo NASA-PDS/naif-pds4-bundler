@@ -204,6 +204,99 @@ class TestPDSLabelInit:
 
 
 # ===========================================================================
+# PDSLabel._resolve_template
+# ===========================================================================
+
+class TestPDSLabelResolveTemplate:
+    """Covers PDSLabel._resolve_template."""
+
+    @pytest.mark.parametrize("templates_directory, template_name, expected", [
+        pytest.param("/work/templates", "template_bundle.xml",
+                     "/work/templates/template_bundle.xml",
+                     id="plain-directory"),
+        pytest.param("/work/templates/", "template_bundle.xml",
+                     "/work/templates/template_bundle.xml",
+                     id="directory-with-trailing-slash"),
+        pytest.param("/work/templates", "template_collection_misc.lbl",
+                     "/work/templates/template_collection_misc.lbl",
+                     id="other-template-name"),
+    ])
+    def test_template_is_joined_to_templates_directory(
+            self, setup_pds4, templates_directory: str, template_name: str,
+            expected: str) -> None:
+        """The template name is looked up inside 'templates_directory' of
+        the setup, and the full path comes back as a string, with a single
+        separator between the directory and the name."""
+        # A label that only knows its setup, since nothing else is needed to
+        # locate a template.
+        setup_pds4.templates_directory = templates_directory
+        label = object.__new__(PDSLabel)
+        label.setup = setup_pds4
+
+        # Resolve the template.
+        template = label._resolve_template(template_name)
+
+        # The result is a plain string, not a Path. The expected value goes
+        # through Path so that it uses the separator of the platform.
+        assert template == str(Path(expected))
+
+
+# ===========================================================================
+# PDSLabel._derive_name
+# ===========================================================================
+
+class TestPDSLabelDeriveName:
+    """Covers how PDSLabel._derive_name builds the label name from the
+    product path."""
+
+    @pytest.mark.parametrize(
+        "product_path, extension, label_extension, expected", [
+            pytest.param("/staging/maven_v001.bc", "bc", ".xml",
+                         "/staging/maven_v001.xml",
+                         id="pds4-label"),
+            pytest.param("/staging/maven_v001.bc", "bc", ".lbl",
+                         "/staging/maven_v001.lbl",
+                         id="pds3-label"),
+            pytest.param("/staging/v1.2/maven.v1.bc", "bc", ".xml",
+                         "/staging/v1.2/maven.v1.xml",
+                         id="dots-in-directory-and-name"),
+            pytest.param("/staging//maven_v001.bc", "bc", ".xml",
+                         "/staging//maven_v001.xml",
+                         id="double-slash-kept"),
+            pytest.param("/x/a.bc.dir/f.bc", "bc", ".xml",
+                         "/x/a.bc.dir/f.xml",
+                         id="product-extension-in-directory"),
+            pytest.param("/x/a.xml.dir/f.bc", "bc", ".xml",
+                         "/x/a.xml.dir/f.xml",
+                         id="label-extension-in-directory"),
+            pytest.param("/staging/bundle.xml", "xml", ".xml",
+                         "/staging/bundle.xml",
+                         id="bundle-label-unchanged"),
+        ])
+    def test_name_is_built_from_the_file_suffix(
+            self, label_test_helpers, product_path: str, extension: str,
+            label_extension: str, expected: str) -> None:
+        """The label name is the product path with its file suffix swapped
+        for the label extension. Dots elsewhere in the path do not matter,
+        and a path that already ends in the label extension, as the bundle
+        label's does, is kept as it is."""
+        # A label that only knows its product and its own extension, since
+        # nothing else is needed to work out the name.
+        product = label_test_helpers.make_product()
+        product.path = product_path
+        product.extension = extension
+        label = object.__new__(PDSLabel)
+        label.product = product
+        label._label_extension = label_extension
+
+        # Work out the name.
+        name = label._derive_name()
+
+        # Only the suffix of the file name was touched.
+        assert name == expected
+
+
+# ===========================================================================
 # PDSLabel.write_label
 # ===========================================================================
 
@@ -329,18 +422,17 @@ class TestPDSLabelWriteLabel:
         # The original path came through untouched.
         assert "bundle" in derived_name
 
-    def test_derive_name_strips_inventory_prefix(self, label_for):
-        """A path that contains 'inventory' has the 'inventory_' token
-        removed, since the label file is named after the collection, not
-        the inventory product it describes."""
+    def test_derive_name_keeps_inventory_prefix(self, label_for):
+        """A generic label keeps the 'inventory_' token of the product path;
+        only the inventory labels drop it, in their own classes."""
         # A product path containing 'inventory_'.
         label = label_for(has_inventory=True)
 
         # Work out the destination filename.
         derived_name = label._derive_name()
 
-        # The 'inventory_' token is gone.
-        assert "inventory_" not in derived_name
+        # The 'inventory_' token is still there.
+        assert derived_name == "/staging/inventory_collection.xml"
 
     def test_write_label_uses_self_name_verbatim(self, label_for, mocker):
         """write_label() must open self.name as given, not recompute it --
@@ -363,15 +455,69 @@ class TestPDSLabelWriteLabel:
         mock_open_fn.assert_any_call(
             "/staging/custom_name.xml", "w+", encoding='utf-8', newline='')
 
-    def test_checksum_lbl_pads_line_to_record_bytes(self, label_for, mocker):
-        """checksum.lbl lines must be padded to record_bytes - 2."""
-        label = label_for(pds_version="3", is_checksum=True)
-        label.name = f"/staging{os.sep}checksum.lbl"
-        mocker.patch("builtins.open", mock_open(read_data="short\n"))
-        mock_cr = mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
+    @pytest.mark.parametrize("line", [
+        pytest.param("text", id="plain-text"),
+        pytest.param("", id="empty-line"),
+        pytest.param("  indented", id="leading-spaces"),
+        pytest.param("with $KEY", id="unreplaced-key"),
+    ])
+    def test_format_line_leaves_the_line_unchanged(self, line: str) -> None:
+        """A generic label has nothing to add to a line, so the hook that
+        runs on every line before its line end is added returns it as it
+        is."""
+        # A label that needs no setup, since the hook does not read any.
+        label = object.__new__(PDSLabel)
+
+        # Run the hook.
+        formatted = label._format_line(line)
+
+        # Not even the spaces at the ends were touched.
+        assert formatted == line
+
+    def test_write_label_runs_format_line_on_every_line(
+            self, label_for, mocker):
+        """Each line of the template goes through the hook of the label,
+        and what the hook returns is what is written."""
+        # A label whose hook wraps the line in brackets.
+        label = label_for()
+        label.__class__ = type(
+            "BracketedLabel", (type(label),),
+            {"_format_line": lambda self, line: f"[{line}]"})
+        mock_file = mocker.patch(
+            "builtins.open", mock_open(read_data="one\ntwo\n"))
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
         mocker.patch.object(Path, "relative_to", return_value=Path("c"))
+
+        # Write the label.
         label.write_label()
-        mock_cr.assert_called()
+
+        # Both lines were bracketed before being written.
+        written = [c.args[0] for c in mock_file().write.call_args_list]
+        assert written == ["[one]\n", "[two]\n"]
+
+    @pytest.mark.parametrize("template_line", [
+        pytest.param("short", id="short-line"),
+        pytest.param("", id="empty-line"),
+    ])
+    def test_write_label_does_not_pad_by_file_name(
+            self, label_for, mocker, template_line: str) -> None:
+        """A generic label is not padded, even when its file is called
+        'checksum.lbl' and its product has a record length; the padding
+        belongs to the PDS3 checksum label."""
+        # A generic label named 'checksum.lbl', whose product has a record
+        # length of 80.
+        label = label_for(pds_version="3", is_checksum=True)
+        mock_file = mocker.patch(
+            "builtins.open", mock_open(read_data=template_line + "\n"))
+        mocker.patch(_PATCH_ADD_CR, side_effect=lambda line, eol: line + "\n")
+        mocker.patch.object(Path, "relative_to", return_value=Path("c"))
+
+        # Write the label.
+        label.write_label()
+
+        # The line was written as it came from the template.
+        written = [c.args[0] for c in mock_file().write.call_args_list]
+        assert written == [template_line + "\n"]
 
     def test_diff_true_calls_compare(self, label_for, mocker):
         label = label_for(diff=True)

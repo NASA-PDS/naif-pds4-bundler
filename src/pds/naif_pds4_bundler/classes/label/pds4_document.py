@@ -1,7 +1,5 @@
 """Implementation of the PDS4 version of a label for Documents.
 """
-from pathlib import Path
-
 from .pds4_label import PDS4Label
 
 
@@ -18,8 +16,8 @@ class DocumentPDS4Label(PDS4Label):
         # PDSLabel.__init__ sets self.setup from product.setup.
         super().__init__(product)
 
-        self._template = str(Path(self.setup.templates_directory)
-                             / "template_product_html_document.xml")
+        self._template = self._resolve_template(
+            "template_product_html_document.xml")
 
         self._label_fields["PRODUCT_LID"] = self.product.lid
         self._label_fields["PRODUCT_VID"] = self.product.vid

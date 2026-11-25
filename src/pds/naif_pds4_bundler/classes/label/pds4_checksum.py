@@ -1,7 +1,5 @@
 """Implementation of the PDS4 version of a label for Checksum files.
 """
-from pathlib import Path
-
 from .pds4_label import PDS4Label
 
 
@@ -19,10 +17,8 @@ class ChecksumPDS4Label(PDS4Label):
         # PDSLabel.__init__ sets self.setup from product.setup.
         super().__init__(product)
 
-        # Template path now reads templates_directory via self.setup instead of
-        # a separate setup argument.
-        self._template = str(Path(self.setup.templates_directory)
-                             / "template_product_checksum_table.xml")
+        self._template = self._resolve_template(
+            "template_product_checksum_table.xml")
 
         self._label_fields["FILE_NAME"] = product.name
         self._label_fields["PRODUCT_LID"] = self.product.lid

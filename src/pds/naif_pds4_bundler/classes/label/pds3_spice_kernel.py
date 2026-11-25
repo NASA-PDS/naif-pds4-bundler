@@ -1,7 +1,5 @@
 """Implementation of the PDS3 version of a label for SPICE kernel files.
 """
-from pathlib import Path
-
 import spiceypy
 
 from .pds3_label import PDS3Label
@@ -24,13 +22,10 @@ class SpiceKernelPDS3Label(PDS3Label):
 
     def __init__(self, product) -> None:
         """Constructor."""
-        # The parameter used to be named "mission" even though it was
-        # always the setup object; renamed to match PDSLabel.__init__'s
-        # single-argument signature.
         super().__init__(product)
 
-        self._template = str(Path(self.setup.templates_directory)
-                             / "template_product_spice_kernel.lbl")
+        self._template = self._resolve_template(
+            "template_product_spice_kernel.lbl")
 
         self._label_fields["FILE_NAME"] = f'"{product.name}"'
         self._label_fields["INTERCHANGE_FORMAT"] = product.file_format
