@@ -6,11 +6,14 @@ plain objects that carry only the attributes the index reads, because the
 index does not need the kernel files themselves.
 """
 import logging
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
+from pds.naif_pds4_bundler.classes.label.pds3_inventory import (
+    InventoryPDS3Label)
 from pds.naif_pds4_bundler.classes.list import KernelList
 from pds.naif_pds4_bundler.classes.product.product_inventory_pds3 import (
     InventoryPDS3Product)
@@ -51,6 +54,7 @@ def pds3_collection(make_setup, request):
 
     return SimpleNamespace(
         name="spice_kernels",
+        type="spice_kernels",
         setup=setup,
         list=KernelList(setup),
         product=[make_kernel("mro_psp1.bsp"), make_kernel("mro_psp2.bsp")],
@@ -87,3 +91,30 @@ class TestInventoryPDS3ProductDiff:
         assert '-- Comparing with InSight test inventory product.' \
             not in caplog.messages
         assert list(sandbox.working.glob("diff_*")) == []
+
+    def test_index_label_is_the_same_as_without_diff(
+            self, pds3_collection, sandbox, caplog) -> None:
+        """The index label does not depend on the diff option.
+
+        The label is written with the diff scope of the run, which looks for
+        a label to compare with, and then written again without it.
+        """
+        # Build and label the index, as the pipeline does
+        with caplog.at_level(logging.INFO):
+            inventory = InventoryPDS3Product(
+                pds3_collection.setup, pds3_collection)
+            InventoryPDS3Label(inventory).write_label()
+
+        label = Path(inventory.path).with_suffix(".lbl")
+        label_with_diff = label.read_bytes()
+
+        # Label the same index again, this time without --diff
+        label.unlink()
+        setup = pds3_collection.setup
+        setup.args = replace(setup.args, diff=None)
+        InventoryPDS3Label(inventory).write_label()
+
+        # The comparison was attempted, wrote no file and changed nothing
+        assert "-- Comparing label..." in caplog.messages
+        assert list(sandbox.working.glob("diff_*")) == []
+        assert label.read_bytes() == label_with_diff
