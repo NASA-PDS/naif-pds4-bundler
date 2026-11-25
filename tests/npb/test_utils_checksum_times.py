@@ -42,6 +42,8 @@ def setup(tmp_path: Path) -> SimpleNamespace:
     pytest.param("miscellaneous/orbnum/orbit.xml", LABEL, id="orbnum-label"),
     pytest.param("miscellaneous/orbnum/orbit.xml.bak", LABEL,
                  id="xml-anywhere-in-orbnum-name"),
+    pytest.param("spice_kernels/collection_spice_kernels_v001.csv", LABEL,
+                 id="collection-needs-no-xml"),
     pytest.param("miscellaneous/orbnum/orbit.orb", MISSION, id="orbnum-table"),
     pytest.param("spice_kernels/collection_spice_kernels_inventory_v001.csv",
                  MISSION, id="collection-inventory"),
