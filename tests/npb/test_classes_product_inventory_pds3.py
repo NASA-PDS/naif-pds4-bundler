@@ -22,6 +22,18 @@ MODULE = "pds.naif_pds4_bundler.classes.product.product_inventory_pds3"
 INVENTORY_MODULE = "pds.naif_pds4_bundler.classes.product.product_inventory"
 
 
+def make_kernel() -> MagicMock:
+    """Provide a binary kernel with the attributes that the index reads."""
+    kernel = MagicMock()
+    kernel.start_time = "2020-001T00:00:00Z"
+    kernel.stop_time = "2021-001T00:00:00Z"
+    kernel.path = "/data/ck/insight_ck.bc"
+    kernel.creation_time = "2020-001T00:00:00"
+    kernel.type = "ck"
+    kernel.name = "insight_ck.bc"
+    return kernel
+
+
 # ---------------------------------------------------------------------------
 # InventoryPDS3Product.__init__
 # ---------------------------------------------------------------------------
@@ -108,17 +120,6 @@ class TestInventoryPDS3ProductGenerateDsindexFiles:
 class TestInventoryPDS3ProductWriteProduct:
     """Tests for write_product()."""
 
-    @staticmethod
-    def _make_kernel():
-        k = MagicMock()
-        k.start_time = "2020-001T00:00:00Z"
-        k.stop_time = "2021-001T00:00:00Z"
-        k.path = "/data/ck/insight_ck.bc"
-        k.creation_time = "2020-001T00:00:00"
-        k.type = "ck"
-        k.name = "insight_ck.bc"
-        return k
-
     def _make_obj(self, inventory_helpers, increment=False, products=None):
         obj = InventoryPDS3Product.__new__(InventoryPDS3Product)
         # The index content is what these tests check, not the logging,
@@ -136,7 +137,7 @@ class TestInventoryPDS3ProductWriteProduct:
         if products is not None:
             collection.product = products
         else:
-            collection.product = [self._make_kernel()]
+            collection.product = [make_kernel()]
         obj.collection = collection
         return obj
 
@@ -261,8 +262,8 @@ class TestInventoryPDS3ProductWriteProduct:
 
     def test_file_types_deduplicated(self, inventory_helpers):
         """file_types contains unique values only."""
-        k1 = self._make_kernel()
-        k2 = self._make_kernel()
+        k1 = make_kernel()
+        k2 = make_kernel()
         obj = self._make_obj(inventory_helpers, products=[k1, k2])
 
         m = mock_open()
@@ -316,7 +317,7 @@ class TestInventoryPDS3ProductDiff:
         setup.working_directory = str(tmp_path / "working")
         setup.root_dir = str(tmp_path) + "/"
 
-        kernel = TestInventoryPDS3ProductWriteProduct._make_kernel()
+        kernel = make_kernel()
         collection = inventory_helpers.make_collection()
         collection.list.DATA_SET_ID = "INSIGHT-M-SPICE-6-V1.0"
         collection.list.RELID = "0001"
