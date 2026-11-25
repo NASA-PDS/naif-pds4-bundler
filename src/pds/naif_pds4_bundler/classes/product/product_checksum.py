@@ -8,6 +8,7 @@ from typing import Optional
 from .product import Product
 from ..exceptions import NPBError
 from ...utils import add_carriage_return
+from ...utils import checksum_coverage
 from ...utils import checksum_from_label
 from ...utils import checksum_from_registry
 from ...utils import compare_files
@@ -480,66 +481,8 @@ class ChecksumProduct(Product):
         # miscellaneous collection.
         #
         if self.setup.pds_version == "4":
-            coverage_list = []
-
-            #
-            # Gather all the relevant products that define the coverage of the
-            # checksum file: orbnum labels and spice_kernels collection labels.
-            #
-            for product in md5_list:
-                if ("spice_kernels/collection_spice_kernels_v" in product) or (
-                    "miscellaneous/orbnum/" in product and ".xml" in product):
-                    coverage_list.append(product.split()[-1])
-
-            start_times = []
-            stop_times = []
-            for product in coverage_list:
-                #
-                # The files can either be in the staging or the final area.
-                #
-                path = (
-                    f"{self.setup.bundle_directory}/"
-                    f"{self.setup.mission_acronym}_spice/" + product
-                )
-                if not os.path.isfile(path):
-                    path = f"{self.setup.staging_directory}/" + product
-                    if not os.path.isfile(path):
-                        logging.error(
-                            '-- Product required to determine %s coverage: %s not found.',
-                            self.name, product)
-
-                if os.path.isfile(path):
-                    with open(path, "r", encoding='utf-8') as lbl:
-                        for line in lbl:
-                            if "<start_date_time>" in line:
-                                start_time = line.split("<start_date_time>")[-1].split(
-                                    "</"
-                                )[0]
-                                start_times.append(start_time)
-                            if "<stop_date_time>" in line:
-                                stop_time = line.split("<stop_date_time>")[-1].split(
-                                    "</"
-                                )[0]
-                                stop_times.append(stop_time)
-
-            if not start_times:
-
-                logging.warning('-- Start time set to mission start time: %s',
-                                self.setup.mission_start)
-
-                start_times.append(self.setup.mission_start)
-
-            if not stop_times:
-                logging.warning('-- Stop time set to mission finish time: %s',
-                                self.setup.mission_finish)
-
-                stop_times.append(self.setup.mission_finish)
-
-            start_times.sort()
-            stop_times.sort()
-
-            self.start_time = start_times[0]
-            self.stop_time = stop_times[-1]
+            self.start_time, self.stop_time = checksum_coverage(
+                self.md5_dict, self.setup, self.name)
 
         if not set_coverage:
             #

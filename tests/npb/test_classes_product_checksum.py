@@ -77,7 +77,7 @@ PATCHES = dict(
     Product_derive=f"{MOD}.Product.derive_file_attributes",
     os_walk=f"{MOD}.os.walk",
     os_remove=f"{MOD}.os.remove",
-    os_path_isfile=f"{MOD}.os.path.isfile",
+    os_path_isfile="pds.naif_pds4_bundler.utils.checksum_times.os.path.isfile",
 )
 
 
