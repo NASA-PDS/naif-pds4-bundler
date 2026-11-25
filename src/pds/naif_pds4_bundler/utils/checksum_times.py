@@ -9,6 +9,41 @@ if TYPE_CHECKING:
     from ..classes.setup import Setup
 
 
+def _find_label(name: str, setup: Setup) -> str | None:
+    """Return the path of a label, or None if it cannot be found.
+
+    :param name: Name of the label as listed in the checksum.
+    :param setup: NPB execution setup object.
+    :return: Path in the bundle directory or, if the label is not there, in the
+        staging directory.
+    """
+    paths = (
+        f"{setup.bundle_directory}/{setup.mission_acronym}_spice/{name}",
+        f"{setup.staging_directory}/{name}")
+
+    return next((path for path in paths if os.path.isfile(path)), None)
+
+
+def _read_times(path: str) -> tuple[list[str], list[str]]:
+    """Return all the start and stop times written in a label.
+
+    :param path: Path of the label.
+    :return: The start times and the stop times.
+    """
+    start_times = []
+    stop_times = []
+    with open(path, "r", encoding='utf-8') as lbl:
+        for line in lbl:
+            if "<start_date_time>" in line:
+                start_times.append(
+                    line.split("<start_date_time>")[-1].split("</")[0])
+            if "<stop_date_time>" in line:
+                stop_times.append(
+                    line.split("<stop_date_time>")[-1].split("</")[0])
+
+    return start_times, stop_times
+
+
 def checksum_coverage(file_names: Iterable[str], setup: Setup,
                       checksum_name: str) -> tuple[str, str]:
     """Determine the start and stop times of a PDS4 checksum file.
@@ -43,34 +78,17 @@ def checksum_coverage(file_names: Iterable[str], setup: Setup,
     start_times = []
     stop_times = []
     for product in coverage_list:
-        #
-        # The files can either be in the staging or the final area.
-        #
-        path = (
-            f"{setup.bundle_directory}/"
-            f"{setup.mission_acronym}_spice/" + product
-        )
-        if not os.path.isfile(path):
-            path = f"{setup.staging_directory}/" + product
-            if not os.path.isfile(path):
-                logger.error(
-                    '-- Product required to determine %s coverage: '
-                    '%s not found.',
-                    checksum_name, product, stacklevel=2)
+        path = _find_label(product, setup)
+        if path is None:
+            logger.error(
+                '-- Product required to determine %s coverage: '
+                '%s not found.',
+                checksum_name, product, stacklevel=2)
+            continue
 
-        if os.path.isfile(path):
-            with open(path, "r", encoding='utf-8') as lbl:
-                for line in lbl:
-                    if "<start_date_time>" in line:
-                        start_time = line.split("<start_date_time>")[-1].split(
-                            "</"
-                        )[0]
-                        start_times.append(start_time)
-                    if "<stop_date_time>" in line:
-                        stop_time = line.split("<stop_date_time>")[-1].split(
-                            "</"
-                        )[0]
-                        stop_times.append(stop_time)
+        label_starts, label_stops = _read_times(path)
+        start_times.extend(label_starts)
+        stop_times.extend(label_stops)
 
     if not start_times:
         logger.warning('-- Start time set to mission start time: %s',
