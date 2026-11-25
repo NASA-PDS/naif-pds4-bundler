@@ -15,8 +15,6 @@ from pds.naif_pds4_bundler.classes.list import KernelList
 from pds.naif_pds4_bundler.classes.product.product_inventory_pds3 import (
     InventoryPDS3Product)
 
-from .conftest import PDS3_CONFIG, build_setup, sandbox_tags
-
 pytestmark = pytest.mark.integration
 
 # Message logged instead of comparing the index with anything.
@@ -37,21 +35,16 @@ def make_kernel(name: str) -> SimpleNamespace:
 
 
 @pytest.fixture
-def pds3_collection(sandbox, monkeypatch, request):
+def pds3_collection(make_setup, request):
     """Build a PDS3 Setup and a collection with two kernels.
 
     The diff scope of the run is taken from the test parameter.
 
-    :param sandbox: sandbox directories
-    :param monkeypatch: pytest monkeypatch, used to restore the working
-        directory that ``check_configuration`` changes
+    :param make_setup: function that builds a real Setup
     :param request: pytest request, whose parameter is the ``--diff`` value
     :return: collection whose ``list`` is a real KernelList
     """
-    monkeypatch.chdir(sandbox.root)
-
-    setup = build_setup(sandbox, PDS3_CONFIG, sandbox_tags(sandbox),
-                        diff=request.param)
+    setup = make_setup("mro.xml", diff=request.param)
 
     # The index is written in a folder of the volume in the staging area.
     Path(setup.staging_directory, "index").mkdir(parents=True)
