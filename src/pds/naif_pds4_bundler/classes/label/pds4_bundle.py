@@ -15,10 +15,6 @@ class BundlePDS4Label(PDS4Label):
 
     def __init__(self, product) -> None:
         """Constructor."""
-        # The parameter used to be named "readme" even though it was just
-        # the product being labeled; renamed to match PDSLabel.__init__'s
-        # single-argument signature. self.product (set by the base class)
-        # already refers to the same object.
         super().__init__(product)
 
         self._template = self._resolve_template(

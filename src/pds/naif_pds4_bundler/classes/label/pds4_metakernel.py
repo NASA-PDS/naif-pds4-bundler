@@ -18,8 +18,6 @@ class MetaKernelPDS4Label(PDS4Label):
         # PDSLabel.__init__ sets self.setup from product.setup.
         super().__init__(product)
 
-        # Template path now reads templates_directory via self.setup instead
-        # of a separate setup argument.
         self._template = self._resolve_template(
             "template_product_spice_kernel_mk.xml")
 

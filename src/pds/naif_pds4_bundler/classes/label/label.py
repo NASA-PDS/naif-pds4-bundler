@@ -44,15 +44,7 @@ class PDSLabel:
         # not exist until write_label() is called.
         self.name = self._derive_name()
 
-        # Read setup off the product instead of taking it as a separate
-        # argument -- every product already carries its own setup.
         self.setup = product.setup
-
-        #
-        # Fields from setup
-        #
-        self.root_dir = self.setup.root_dir
-        self.mission_acronym = self.setup.mission_acronym
 
         # Template-substitution values, keyed by the $KEY name templates use.
         if hasattr(self.setup, "creation_date_time"):

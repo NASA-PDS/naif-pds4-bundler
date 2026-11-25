@@ -22,9 +22,6 @@ class SpiceKernelPDS3Label(PDS3Label):
 
     def __init__(self, product) -> None:
         """Constructor."""
-        # The parameter used to be named "mission" even though it was
-        # always the setup object; renamed to match PDSLabel.__init__'s
-        # single-argument signature.
         super().__init__(product)
 
         self._template = self._resolve_template(

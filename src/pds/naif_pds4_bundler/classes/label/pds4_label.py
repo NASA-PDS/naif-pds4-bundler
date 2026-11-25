@@ -72,8 +72,8 @@ _TARGET = _ContextKind(
 class PDS4Label(PDSLabel):
     """Version-specific base class for PDS4 labels.
 
-    Adds the PDS4-only fields that used to be gated behind
-    ``if setup.pds_version == "4":`` checks in ``PDSLabel``.
+    Adds what only PDS4 labels need: the context products, the PDS4 header
+    fields, and the rendering of missions, observers and targets.
     """
 
     # File extension used for PDS4 labels.
@@ -87,8 +87,6 @@ class PDS4Label(PDSLabel):
     def __init__(self, product) -> None:
         """Constructor."""
 
-        # PDSLabel.__init__ sets self.setup from product.setup, so from here
-        # on we read setup off self, not off a separate parameter.
         super().__init__(product)
 
         # Context products normally hang off the product's collection; a few
