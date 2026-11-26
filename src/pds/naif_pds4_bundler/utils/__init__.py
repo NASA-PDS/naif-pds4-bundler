@@ -42,7 +42,8 @@ from .time import (
     dsk_coverage,
     et_to_date,
     pck_coverage,
-    spk_coverage
+    spk_coverage,
+    utc_to_et
 )
 
 __all__ = [
@@ -82,5 +83,6 @@ __all__ = [
     'string_in_file',
     'type_to_extension',
     'type_to_pds3_type',
+    'utc_to_et',
     'utf8len'
 ]

@@ -29,6 +29,7 @@ from ...utils import safe_make_directory
 from ...utils import spice_exception_handler
 from ...utils import spk_coverage
 from ...utils import type_to_extension
+from ...utils import utc_to_et
 
 
 class MetaKernelProduct(Product):
@@ -976,8 +977,8 @@ class MetaKernelProduct(Product):
                 ker_found = False
                 for product in self.collection.product:
                     if kernel == product.name:
-                        start_times.append(spiceypy.utc2et(product.start_time[:-1]))
-                        finish_times.append(spiceypy.utc2et(product.stop_time[:-1]))
+                        start_times.append(utc_to_et(product.start_time))
+                        finish_times.append(utc_to_et(product.stop_time))
                         ker_found = True
 
                 #
@@ -1015,8 +1016,8 @@ class MetaKernelProduct(Product):
                                 "kernel."
                             )
 
-                        start_times.append(spiceypy.utc2et(start_time[:-1]))
-                        finish_times.append(spiceypy.utc2et(stop_time[:-1]))
+                        start_times.append(utc_to_et(start_time))
+                        finish_times.append(utc_to_et(stop_time))
 
                         logging.info(
                             '-- File %s used to determine coverage.', kernel)
@@ -1030,7 +1031,7 @@ class MetaKernelProduct(Product):
             # The date can be January 1st, of the year or the mission start
             # date, but it should not be later or earlier than that.
             #
-            et_mission_start = spiceypy.utc2et(self.setup.mission_start[:-1])
+            et_mission_start = utc_to_et(self.setup.mission_start)
             et_year_start = spiceypy.utc2et(f"{self.year}-01-01T00:00:00")
 
             if et_year_start > et_mission_start:
@@ -1080,9 +1081,9 @@ class MetaKernelProduct(Product):
                 # In the case of yearly kernels the coverage must be constrained
                 # within the limits of the year.
                 #
-                et_mission_start = spiceypy.utc2et(self.setup.mission_start[:-1])
-                et_mission_finish = spiceypy.utc2et(self.setup.mission_finish[:-1])
-                et_incremn_finish = spiceypy.utc2et(self.setup.increment_finish[:-1])
+                et_mission_start = utc_to_et(self.setup.mission_start)
+                et_mission_finish = utc_to_et(self.setup.mission_finish)
+                et_incremn_finish = utc_to_et(self.setup.increment_finish)
                 et_year_start = spiceypy.utc2et(f"{self.year}-01-01T00:00:00")
 
                 # TODO: Review. Currently, the if branch is dead-code: Condition A and B
@@ -1182,16 +1183,15 @@ class MetaKernelProduct(Product):
                         'from configuration file to: %s', stop_time)
 
             #
-            # Re-format the time accordingly. The 'Z' is removed from the UTC
-            # string since it is not supported until the SPICE Toolkit N0067.
+            # Re-format the time accordingly.
             #
             if self.setup.pds_version == "3":
                 system = "TDB"
             else:
                 system = "UTC"
             (start_time, stop_time) = et_to_date(
-                spiceypy.utc2et(start_time[:-1]),
-                spiceypy.utc2et(stop_time[:-1]),
+                utc_to_et(start_time),
+                utc_to_et(stop_time),
                 self.setup.date_format,
                 system=system,
             )
