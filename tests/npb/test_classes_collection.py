@@ -178,23 +178,28 @@ class TestCollectionReplace:
         assert col.product[0] is lookalike
         assert col.product[1] is new
 
+    @pytest.mark.parametrize("c_type", ["spice_kernels", "miscellaneous"])
     @pytest.mark.parametrize("elements", [
         pytest.param([], id="empty-collection"),
         pytest.param([object()], id="unrelated-element"),
         pytest.param([["checksum"]], id="equal-element-only"),
     ])
-    def test_replace_missing_element_raises(self, elements: list) -> None:
-        """Replacing an element that isn't in the collection raises
-        NPBInternalError naming the collection, and leaves the collection as it
-        was.
+    def test_replace_missing_element_raises(
+        self, elements: list, c_type: str
+    ) -> None:
+        """For both the SPICE kernels and miscellaneous collections, replacing
+        an element that isn't there raises NPBInternalError naming that
+        collection, and leaves the collection as it was.
         """
-        # Work on a copy, so the original list shows what the collection held.
-        col, _ = make_collection()
+        # Build the collection under the given name and fill it with a copy, so
+        # the original list still shows what it held.
+        col, _ = make_collection(c_type=c_type)
         col.product = list(elements)
 
         # The element to replace is a new list, so it is never one of the
-        # stored objects, not even when its content matches one of them.
-        with pytest.raises(NPBInternalError, match="spice_kernels collection"):
+        # stored objects, not even when its content matches one of them. The
+        # error message must carry the name of this collection.
+        with pytest.raises(NPBInternalError, match=f"{c_type} collection"):
             col.replace(["checksum"], object())
 
         # Comparing the ids shows that every stored object is still the same
