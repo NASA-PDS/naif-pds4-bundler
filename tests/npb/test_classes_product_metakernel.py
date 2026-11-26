@@ -5,6 +5,7 @@ import os
 import re
 from contextlib import ExitStack
 from pathlib import Path
+from typing import Optional
 from unittest.mock import MagicMock, call, patch
 
 import pytest
@@ -2197,6 +2198,50 @@ class TestMetaKernelProductCoverage:
                    side_effect=SpiceyPyError("SPICE(BADTIMESTRING)")):
             with pytest.raises(NPBError):
                 product.coverage()
+
+    @pytest.mark.parametrize("year, mk_kernels, conversions", [
+        pytest.param(
+            None, ["insight_cru_ops_v01.bsp"], [SpiceyPyError("fail")],
+            id="collection-kernel-time"),
+        pytest.param(
+            "2019", ["insight_cru_ops_v01.bsp"],
+            [0.0, 1.0, SpiceyPyError("fail")],
+            id="yearly-mission-start"),
+        pytest.param(
+            "2019", [], [SpiceyPyError("fail")],
+            id="yearly-times-from-configuration"),
+        pytest.param(
+            None, ["insight_cru_ops_v01.bsp"],
+            [0.0, 1.0, SpiceyPyError("fail")],
+            id="final-reformat"),
+    ])
+    def test_coverage_conversion_error_raises_npberror(
+            self, lsk: None, year: Optional[str], mk_kernels: list,
+            conversions: list) -> None:
+        """A SpiceyPyError from any UTC to ET conversion of the coverage is
+        raised as an NPBError that keeps it as its cause."""
+        # A meta-kernel whose only possible coverage kernel is in the
+        # collection; the year and the listed kernels pick the path taken
+        product = self._make_stub(
+            make_setup(),
+            collection=self._make_collection_with_kernel(
+                "insight_cru_ops_v01.bsp",
+                "2019-01-01T00:00:00Z", "2019-12-01T00:00:00Z"),
+            collection_metakernel=mk_kernels,
+            year=year,
+        )
+        product.mk_setup = {
+            "coverage_kernels": {"pattern": [r"insight_cru_ops_v\d+\.bsp"]}
+        }
+
+        # Determine the coverage; the conversions before the failing one
+        # return plain ET values
+        with patch(f"{_MODULE}.utc_to_et", side_effect=conversions), \
+             pytest.raises(NPBError) as error:
+            product.coverage()
+
+        # The NPBError comes from the injected SPICE error
+        assert error.value.__cause__ is conversions[-1]
 
     def test_coverage_kernel_not_in_collection_missing_file_logs_warning(
             self, lsk, tmp_path, caplog):
