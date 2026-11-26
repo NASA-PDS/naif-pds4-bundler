@@ -2,6 +2,7 @@
 
 The utils module implements general utility capabilities used elsewhere in NPB.
 """
+from .checksum_times import checksum_coverage
 from .config import get_mission_and_observer_and_target
 from .decorators import spice_exception_handler
 from .files import (
@@ -52,6 +53,7 @@ __all__ = [
     'check_eol',
     'check_line_length',
     'check_list_duplicates',
+    'checksum_coverage',
     'checksum_from_label',
     'checksum_from_registry',
     'ck_coverage',

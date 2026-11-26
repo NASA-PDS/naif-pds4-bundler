@@ -1,0 +1,104 @@
+"""Start and stop times of the PDS4 checksum product."""
+from __future__ import annotations
+
+import logging
+import os
+from typing import Iterable, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..classes.setup import Setup
+
+
+def checksum_coverage(file_names: Iterable[str], setup: Setup,
+                      checksum_name: str) -> tuple[str, str]:
+    """Determine the start and stop times of a PDS4 checksum file.
+
+    The times come from the labels of the spice_kernels collection and from the
+    ORBNUM labels listed in the checksum. Each label is read from the bundle
+    directory or, if it is not there, from the staging directory. Any other
+    file name is ignored.
+
+    Messages are logged as if the caller had written them.
+
+    :param file_names: Names of the archive files listed in the checksum.
+    :param setup: NPB execution setup object.
+    :param checksum_name: Name of the checksum file, used in the error message.
+    :return: The earliest start time and the latest stop time. The mission
+        start or finish time is used when no label provides one.
+    """
+    # The root logger is called directly because, on Python 3.10, stacklevel
+    # does not skip the right frame through logging.error() and the like.
+    logger = logging.getLogger()
+
+    #
+    # Gather all the relevant products that define the coverage of the
+    # checksum file: orbnum labels and spice_kernels collection labels.
+    #
+    coverage_list = [
+        name for name in sorted(file_names)
+        if ("spice_kernels/collection_spice_kernels_v" in name) or (
+            "miscellaneous/orbnum/" in name and ".xml" in name)
+    ]
+
+    start_times = []
+    stop_times = []
+    for product in coverage_list:
+        path = _find_label(product, setup)
+        if path is None:
+            logger.error(
+                '-- Product required to determine %s coverage: '
+                '%s not found.',
+                checksum_name, product, stacklevel=2)
+            continue
+
+        label_starts, label_stops = _read_times(path)
+        start_times.extend(label_starts)
+        stop_times.extend(label_stops)
+
+    if not start_times:
+        logger.warning('-- Start time set to mission start time: %s',
+                       setup.mission_start, stacklevel=2)
+        start_times.append(setup.mission_start)
+
+    if not stop_times:
+        logger.warning('-- Stop time set to mission finish time: %s',
+                       setup.mission_finish, stacklevel=2)
+        stop_times.append(setup.mission_finish)
+
+    # The times are compared as strings.
+    return min(start_times), max(stop_times)
+
+
+def _find_label(name: str, setup: Setup) -> str | None:
+    """Return the path of a label, or None if it cannot be found.
+
+    :param name: Name of the label as listed in the checksum.
+    :param setup: NPB execution setup object.
+    :return: Path in the bundle directory or, if the label is not there, in the
+        staging directory.
+    """
+    paths = (
+        f"{setup.bundle_directory}/{setup.mission_acronym}_spice/{name}",
+        f"{setup.staging_directory}/{name}")
+
+    return next((path for path in paths if os.path.isfile(path)), None)
+
+
+def _read_times(path: str) -> tuple[list[str], list[str]]:
+    """Return all the start and stop times written in a label.
+
+    :param path: Path of the label.
+    :return: The start times and the stop times.
+    """
+    start_times = []
+    stop_times = []
+    with open(path, "r", encoding='utf-8') as lbl:
+        for line in lbl:
+            if "<start_date_time>" in line:
+                start_times.append(
+                    line.split("<start_date_time>")[-1].split("</")[0])
+            if "<stop_date_time>" in line:
+                stop_times.append(
+                    line.split("<stop_date_time>")[-1].split("</")[0])
+
+    return start_times, stop_times
