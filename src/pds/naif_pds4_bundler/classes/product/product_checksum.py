@@ -482,7 +482,7 @@ class ChecksumProduct(Product):
         #
         if self.setup.pds_version == "4":
             self.start_time, self.stop_time = checksum_coverage(
-                self.md5_dict, self.setup, self.name)
+                self.md5_dict.keys(), self.setup, self.name)
 
         if not set_coverage:
             #
