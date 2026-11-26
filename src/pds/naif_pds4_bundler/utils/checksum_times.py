@@ -9,41 +9,6 @@ if TYPE_CHECKING:
     from ..classes.setup import Setup
 
 
-def _find_label(name: str, setup: Setup) -> str | None:
-    """Return the path of a label, or None if it cannot be found.
-
-    :param name: Name of the label as listed in the checksum.
-    :param setup: NPB execution setup object.
-    :return: Path in the bundle directory or, if the label is not there, in the
-        staging directory.
-    """
-    paths = (
-        f"{setup.bundle_directory}/{setup.mission_acronym}_spice/{name}",
-        f"{setup.staging_directory}/{name}")
-
-    return next((path for path in paths if os.path.isfile(path)), None)
-
-
-def _read_times(path: str) -> tuple[list[str], list[str]]:
-    """Return all the start and stop times written in a label.
-
-    :param path: Path of the label.
-    :return: The start times and the stop times.
-    """
-    start_times = []
-    stop_times = []
-    with open(path, "r", encoding='utf-8') as lbl:
-        for line in lbl:
-            if "<start_date_time>" in line:
-                start_times.append(
-                    line.split("<start_date_time>")[-1].split("</")[0])
-            if "<stop_date_time>" in line:
-                stop_times.append(
-                    line.split("<stop_date_time>")[-1].split("</")[0])
-
-    return start_times, stop_times
-
-
 def checksum_coverage(file_names: Iterable[str], setup: Setup,
                       checksum_name: str) -> tuple[str, str]:
     """Determine the start and stop times of a PDS4 checksum file.
@@ -102,3 +67,38 @@ def checksum_coverage(file_names: Iterable[str], setup: Setup,
 
     # The times are compared as strings.
     return min(start_times), max(stop_times)
+
+
+def _find_label(name: str, setup: Setup) -> str | None:
+    """Return the path of a label, or None if it cannot be found.
+
+    :param name: Name of the label as listed in the checksum.
+    :param setup: NPB execution setup object.
+    :return: Path in the bundle directory or, if the label is not there, in the
+        staging directory.
+    """
+    paths = (
+        f"{setup.bundle_directory}/{setup.mission_acronym}_spice/{name}",
+        f"{setup.staging_directory}/{name}")
+
+    return next((path for path in paths if os.path.isfile(path)), None)
+
+
+def _read_times(path: str) -> tuple[list[str], list[str]]:
+    """Return all the start and stop times written in a label.
+
+    :param path: Path of the label.
+    :return: The start times and the stop times.
+    """
+    start_times = []
+    stop_times = []
+    with open(path, "r", encoding='utf-8') as lbl:
+        for line in lbl:
+            if "<start_date_time>" in line:
+                start_times.append(
+                    line.split("<start_date_time>")[-1].split("</")[0])
+            if "<stop_date_time>" in line:
+                stop_times.append(
+                    line.split("<stop_date_time>")[-1].split("</")[0])
+
+    return start_times, stop_times
