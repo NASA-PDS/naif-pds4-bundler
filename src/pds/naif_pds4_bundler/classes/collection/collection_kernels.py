@@ -5,7 +5,6 @@ import logging
 import os
 from typing import Any
 
-import spiceypy
 from spiceypy.utils.exceptions import SpiceyPyError
 
 from .collection import Collection
@@ -14,6 +13,7 @@ from ...utils import archive_subdirectory
 from ...utils import et_to_date
 from ...utils import extension_to_type
 from ...utils import FILE_READ_ERRORS
+from ...utils import utc_to_et
 
 
 class SpiceKernelsCollection(Collection):
@@ -407,18 +407,16 @@ class SpiceKernelsCollection(Collection):
                  format, or as received when no LSK is loaded.
         """
         #
-        # Check the format of the previous bundle and correct it. The 'Z' is
-        # removed from the UTC string since it is not supported until the
-        # SPICE Toolkit N0067.
+        # Convert both times to the configured date format.
         #
         try:
             (increment_start, increment_finish) = et_to_date(
-                spiceypy.utc2et(increment_start[:-1]),
-                spiceypy.utc2et(increment_finish[:-1]),
+                utc_to_et(increment_start),
+                utc_to_et(increment_finish),
                 self.setup.date_format,
             )
 
-        # spiceypy.utc2et() raises SpiceyPyError when no LSK is loaded.
+        # utc_to_et() raises SpiceyPyError when no LSK is loaded.
         except SpiceyPyError:
             logging.warning(
                 "-- A leapseconds kernel (LSK) has not been loaded. "

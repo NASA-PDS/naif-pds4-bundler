@@ -10,7 +10,7 @@ Collaborators patched at their locations inside the module under test:
   - naif_pds4_bundler.classes.collection_kernels.os.path.exists
   - naif_pds4_bundler.classes.collection_kernels.glob.glob
   - naif_pds4_bundler.classes.collection_kernels.et_to_date
-  - naif_pds4_bundler.classes.collection_kernels.spiceypy
+  - naif_pds4_bundler.classes.collection_kernels.utc_to_et
   - naif_pds4_bundler.classes.collection.Collection.set_collection_lid
 """
 import logging
@@ -20,12 +20,12 @@ from typing import Optional
 from unittest.mock import MagicMock, call, mock_open, patch
 
 import pytest
-import spiceypy
 
 from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.classes.collection.collection_kernels import SpiceKernelsCollection
 from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.utils import utc_to_et
 
 
 # ---------------------------------------------------------------------------
@@ -36,7 +36,8 @@ _SET_LID = "pds.naif_pds4_bundler.classes.collection.collection.Collection.set_c
 _EXISTS = "pds.naif_pds4_bundler.classes.collection.collection_kernels.os.path.exists"
 _GLOB = "pds.naif_pds4_bundler.classes.collection.collection_kernels.glob.glob"
 _OPEN = "builtins.open"
-_UTC2ET = "pds.naif_pds4_bundler.classes.collection.collection_kernels.spiceypy.utc2et"
+_UTC_TO_ET = (
+    "pds.naif_pds4_bundler.classes.collection.collection_kernels.utc_to_et")
 
 
 # ---------------------------------------------------------------------------
@@ -1176,12 +1177,12 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
         assert "Previous bundle not found" in caplog.text
 
     # ------------------------------------------------------------------ #
-    # spiceypy / et_to_date try block                                     #
+    # utc_to_et / et_to_date try block                                   #
     # ------------------------------------------------------------------ #
 
     def test_spiceypy_failure_logs_lsk_warning(self, caplog):
-        """spiceypy.utc2et raises SpiceyPyError (no LSK loaded) → LSK warning
-        logged, increment times left unchanged."""
+        """A SpiceyPyError from 'utc_to_et', as raised with no LSK loaded, logs
+        the LSK warning and leaves the increment times unchanged."""
         import logging
         setup = self._plain_setup(
             increment_start="2010-001T00:00:00.000Z",
@@ -1193,7 +1194,8 @@ class TestSpiceKernelsCollectionSetIncrementTimes:
 
         with (caplog.at_level(logging.WARNING),
               patch(_GLOB, return_value=[]),
-              patch(_UTC2ET, side_effect=SpiceyPyError("SPICE(NOLEAPSECONDS)"))):
+              patch(_UTC_TO_ET,
+                    side_effect=SpiceyPyError("SPICE(NOLEAPSECONDS)"))):
             obj.set_increment_times()
 
         assert "leapseconds kernel" in caplog.text
@@ -1538,7 +1540,7 @@ class TestSpiceKernelsCollectionNormaliseIncrementTimes:
     """Tests for SpiceKernelsCollection._normalise_increment_times"""
 
     @pytest.mark.parametrize(
-        "date_format, utc2et_error, expected_times, expected_log", [
+        "date_format, conversion_error, expected_times, expected_log", [
             pytest.param(
                 "maklabel", None,
                 ("2010-01-01T00:00:00Z", "2020-01-01T00:00:00Z"),
@@ -1563,7 +1565,7 @@ class TestSpiceKernelsCollectionNormaliseIncrementTimes:
                 id="no-lsk-keeps-times-unconverted"),
         ])
     def test_normalise_increment_times(
-            self, lsk, caplog, date_format, utc2et_error,
+            self, lsk, caplog, date_format, conversion_error,
             expected_times, expected_log):
         """The times are converted to the configured format; without an LSK
         they are kept as they came and a warning is logged first. The final
@@ -1571,12 +1573,12 @@ class TestSpiceKernelsCollectionNormaliseIncrementTimes:
         # A collection with the date format of the case
         obj = _make_increment_collection(date_format=date_format)
 
-        # Convert the times 2010 - 2020. The mock only wraps 'utc2et': with no
-        # error the real function runs, otherwise it fails as it does when no
-        # LSK is loaded.
+        # Convert the times 2010 - 2020. The mock only wraps 'utc_to_et': with
+        # no error the real function runs, otherwise it fails as it does when
+        # no LSK is loaded.
         with caplog.at_level(logging.INFO), \
-             patch(_UTC2ET, side_effect=utc2et_error,
-                   wraps=spiceypy.utc2et):
+             patch(_UTC_TO_ET, side_effect=conversion_error,
+                   wraps=utc_to_et):
             times = obj._normalise_increment_times(_t(2010), _t(2020))
 
         # The converted (or untouched) times and the complete log, in order
