@@ -1,8 +1,15 @@
 """Collection Class amd Child Classes Implementation."""
+from __future__ import annotations
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
+from ..exceptions import NPBInternalError
 from ...utils import find_latest_versioned_file
+
+# Imported for the type hints only, so it isn't loaded when NPB runs.
+if TYPE_CHECKING:
+    from ..product.product import Product
 
 
 class Collection:
@@ -40,6 +47,27 @@ class Collection:
         # must be updated.
         #
         self.updated = True
+
+    def replace(self, old: Product, new: Product) -> None:
+        """Replace a Product of the Collection with another one.
+
+        The new product takes the position of the old one. The collection is
+        not marked as updated, since nothing is added to it.
+
+        :param old: Product to replace, matched by identity
+        :param new: Product that takes its place
+        :raises NPBInternalError: If the old product is not in the collection
+        """
+        # Compare with 'is' to find that exact object. list.index() would also
+        # accept a different product that is equal to it.
+        for position, product in enumerate(self.product):
+            if product is old:
+                self.product[position] = new
+                return
+
+        # The loop ended without a match, so the product was never there.
+        raise NPBInternalError(
+            f"product to replace not found in the {self.name} collection.")
 
     def set_collection_lid(self):
         """Set the Bundle LID."""
