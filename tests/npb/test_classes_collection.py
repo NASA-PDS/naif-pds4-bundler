@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from pds.naif_pds4_bundler.classes.collection.collection import Collection
+from pds.naif_pds4_bundler.classes.exceptions import NPBInternalError
 
 
 # ---------------------------------------------------------------------------
@@ -105,6 +106,106 @@ class TestCollectionAdd:
         col.add(p1)
         col.add(p2)
         assert col.product == [p1, p2]
+
+
+# ---------------------------------------------------------------------------
+# Collection.replace
+# ---------------------------------------------------------------------------
+
+class TestCollectionReplace:
+    """Tests for Collection.replace."""
+
+    @pytest.mark.parametrize("position", [
+        pytest.param(0, id="first"),
+        pytest.param(1, id="middle"),
+        pytest.param(2, id="last"),
+    ])
+    def test_replace_keeps_position(self, position: int) -> None:
+        """The new element takes the old one's position in the list, and the
+        other elements and their order stay the same.
+        """
+        # Fill the collection with a copy of the list, so that 'elements'
+        # still holds the original content after the replacement.
+        col, _ = make_collection()
+        elements = [object(), object(), object()]
+        col.product = list(elements)
+        new = object()
+
+        # Swap the element found at the position under test.
+        col.replace(elements[position], new)
+
+        # Only that position differs from the original list.
+        expected = list(elements)
+        expected[position] = new
+        assert col.product == expected
+
+    @pytest.mark.parametrize("updated", [
+        pytest.param(False, id="not-updated"),
+        pytest.param(True, id="updated"),
+    ])
+    def test_replace_leaves_updated_unchanged(self, updated: bool) -> None:
+        """The 'updated' flag has the same value before and after a
+        replacement.
+        """
+        # Set the list and the flag directly, because add() would always leave
+        # the flag set to True.
+        col, _ = make_collection()
+        old = object()
+        col.product = [old]
+        col.updated = updated
+
+        # Replace the only element of the collection.
+        col.replace(old, object())
+
+        # The flag keeps the value it had.
+        assert col.updated is updated
+
+    def test_replace_matches_by_identity(self) -> None:
+        """Only the exact object given is replaced, even when an equal but
+        distinct object comes before it in the list.
+        """
+        # Two separate lists with the same content are equal, but they are not
+        # the same object. The lookalike goes first, where a search by
+        # equality would stop.
+        col, _ = make_collection()
+        lookalike, old, new = ["checksum"], ["checksum"], object()
+        col.product = [lookalike, old]
+
+        # Ask to replace the second of the two.
+        col.replace(old, new)
+
+        # Compare with 'is', since '==' can't tell the two lists apart.
+        assert col.product[0] is lookalike
+        assert col.product[1] is new
+
+    @pytest.mark.parametrize("c_type", ["spice_kernels", "miscellaneous"])
+    @pytest.mark.parametrize("elements", [
+        pytest.param([], id="empty-collection"),
+        pytest.param([object()], id="unrelated-element"),
+        pytest.param([["checksum"]], id="equal-element-only"),
+    ])
+    def test_replace_missing_element_raises(
+        self, elements: list, c_type: str
+    ) -> None:
+        """For both the SPICE kernels and miscellaneous collections, replacing
+        an element that isn't there raises NPBInternalError naming that
+        collection, and leaves the collection as it was.
+        """
+        # Build the collection under the given name and fill it with a copy, so
+        # the original list still shows what it held.
+        col, _ = make_collection(c_type=c_type)
+        col.product = list(elements)
+
+        # The element to replace is a new list, so it is never one of the
+        # stored objects, not even when its content matches one of them. The
+        # error message must carry the name of this collection.
+        with pytest.raises(NPBInternalError, match=f"{c_type} collection"):
+            col.replace(["checksum"], object())
+
+        # Comparing the ids shows that every stored object is still the same
+        # one, in the same order.
+        assert list(map(id, col.product)) == list(map(id, elements))
+        assert col.updated is False
 
 
 # ---------------------------------------------------------------------------
