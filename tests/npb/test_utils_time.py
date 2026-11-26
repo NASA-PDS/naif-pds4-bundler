@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 import spiceypy
+from spiceypy.utils.exceptions import SpiceyPyError
 
 from pds.naif_pds4_bundler.utils import time
 
@@ -113,6 +114,40 @@ def test_et_to_date_date_format_error():
     with pytest.raises(ValueError, match="date_format argument is incorrect."):
         # NOTE: `beget` and `endet` are not relevant for this test.
         time.et_to_date(beget=0, endet=0, date_format="unknown")
+
+
+# ET counts seconds from 2000-01-01 12:00:00 in its own timescale, which was
+# 64.183927 seconds ahead of UTC on that day.
+@pytest.mark.parametrize("utc, expected_et", [
+    pytest.param("2000-01-01T12:00:00Z", 64.183927, id="whole-seconds"),
+    pytest.param("2000-01-01T12:00:00.500Z", 64.683927, id="milliseconds"),
+    # Without a 'Z' the '6' is dropped, so the seconds read are '5'.
+    pytest.param("2000-01-01T12:00:56", 69.183927, id="last-character-dropped"),
+])
+def test_utc_to_et(lsk: None, utc: str, expected_et: float) -> None:
+    """A UTC time is converted to ET after dropping its last character,
+    whether or not that character is a 'Z'."""
+    # Convert the time, using the leapseconds kernel loaded by 'lsk'
+    et = time.utc_to_et(utc)
+
+    # The ET matches to the microsecond
+    assert et == pytest.approx(expected_et, abs=1e-6)
+
+
+@pytest.mark.parametrize("utc, expected_error", [
+    pytest.param("", "SPICE(EMPTYSTRING)", id="empty"),
+    pytest.param("not a timeZ", "SPICE(INVALIDTIMESTRING)", id="not-a-time"),
+])
+def test_utc_to_et_spice_error(
+        lsk: None, utc: str, expected_error: str) -> None:
+    """A time SPICE cannot read raises its SpiceyPy error to the caller."""
+    # Try to convert the time. The leapseconds kernel is loaded, so only the
+    # text itself can make SPICE fail
+    with pytest.raises(SpiceyPyError) as error:
+        time.utc_to_et(utc)
+
+    # The error is the one SPICE reports for that text
+    assert error.value.short == expected_error
 
 
 @pytest.mark.parametrize("date_input, expected", [

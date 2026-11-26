@@ -355,6 +355,16 @@ def et_to_date(beget, endet, date_format="infomod2", kernel_type="Text", system=
     return [start_time_cal, stop_time_cal]
 
 
+def utc_to_et(utc: str) -> float:
+    """Convert a UTC time ending in "Z" to ephemeris time (ET).
+
+    The last character is dropped without checking that it is a "Z", because
+    SPICE only accepts the "Z" from Toolkit N0067 onwards.
+
+    :param utc: UTC time, including the trailing "Z".
+    :return: Ephemeris time.
+    """
+    return spiceypy.utc2et(utc[:-1])
 
 
 def parse_date(date_str: str) -> datetime.datetime:
