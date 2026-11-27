@@ -2,15 +2,34 @@
 import logging
 import os
 from pathlib import Path
+from typing import Callable
+from unittest.mock import Mock
 
 import pytest
 
-from pds.naif_pds4_bundler.utils.staging import stage_file
+from pds.naif_pds4_bundler.classes.exceptions import NPBError
+from pds.naif_pds4_bundler.utils.staging import stage_file, stage_kernel
 
 
 def messages(caplog: pytest.LogCaptureFixture) -> list[tuple[int, str]]:
     """Return the level and message of every log record."""
     return [(record.levelno, record.getMessage()) for record in caplog.records]
+
+
+def make_kernels(root: Path, files: list[str]) -> list[str]:
+    """Create two kernel directories holding the given files, each one with its
+    own relative path as content, and return the directories.
+    """
+    directories = [root / "first", root / "second"]
+    for directory in directories:
+        directory.mkdir()
+
+    for file in files:
+        path = root / file
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(file)
+
+    return [str(directory) for directory in directories]
 
 
 @pytest.fixture
@@ -140,3 +159,180 @@ def test_stage_file_missing_source(
     assert messages(caplog) == [
         (logging.INFO, "-- Copy missing.orb to staging directory."),
     ]
+
+
+@pytest.mark.parametrize("files, expected", [
+    pytest.param(["first/a.bsp"], "first/a.bsp", id="first-directory"),
+    pytest.param(["first/spk/a.bsp"], "first/spk/a.bsp", id="subdirectory"),
+    pytest.param(["second/a.bsp"], "second/a.bsp", id="second-directory"),
+    pytest.param(["second/a.bsp", "first/a.bsp"], "first/a.bsp",
+                 id="first-directory-wins"),
+    pytest.param(["first/m.bsp", "second/a.bsp"], "second/a.bsp",
+                 id="name-before-mapping"),
+])
+def test_stage_kernel_by_name(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture, files: list[str],
+        expected: str) -> None:
+    """A kernel found by its name is copied from the first directory that has
+    it, and its mapping is never looked up.
+    """
+    # Two kernel directories, a staging directory and a lookup to watch.
+    directories = make_kernels(tmp_path, files)
+    destination = tmp_path / "staging"
+    destination.mkdir()
+    lookup = Mock(return_value="m.bsp")
+    caplog.set_level(logging.INFO)
+
+    # Stage the kernel.
+    result = stage_kernel("a.bsp", directories, str(destination), lookup)
+
+    # The content tells which of the files was copied.
+    staged = destination / "a.bsp"
+    assert result == (str(staged), True)
+    assert staged.read_text() == expected
+    lookup.assert_not_called()
+    assert messages(caplog) == [
+        (logging.INFO, "-- Copy a.bsp to staging directory."),
+    ]
+
+
+@pytest.mark.parametrize("files, expected", [
+    pytest.param(["first/m.bsp"], "first/m.bsp", id="first-directory"),
+    pytest.param(["first/x.bsp", "first/y.bsp", "second/spk/m.bsp"],
+                 "second/spk/m.bsp", id="after-other-files"),
+    pytest.param(["second/m.bsp", "first/m.bsp"], "first/m.bsp",
+                 id="first-directory-wins"),
+])
+def test_stage_kernel_by_mapping(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture, files: list[str],
+        expected: str) -> None:
+    """A kernel found only through its mapping is staged under the kernel name.
+    The lookup runs once, and the mapping is logged after the copy message.
+    """
+    # No file is called 'a.bsp', and the staging directory does not exist.
+    directories = make_kernels(tmp_path, files)
+    destination = str(tmp_path / "staging")
+    lookup = Mock(return_value="m.bsp")
+    caplog.set_level(logging.INFO)
+
+    # Stage the kernel.
+    result = stage_kernel("a.bsp", directories, destination, lookup)
+
+    # The mapped file was copied, and the whole log keeps its order.
+    staged = Path(destination, "a.bsp")
+    assert result == (str(staged), True)
+    assert staged.read_text() == expected
+    lookup.assert_called_once_with("a.bsp")
+    assert messages(caplog) == [
+        (logging.INFO, f"-- Generated directory: {destination}  "),
+        (logging.INFO, ""),
+        (logging.INFO, "-- Copy a.bsp to staging directory."),
+        (logging.INFO, "-- Mapping m.bsp with a.bsp"),
+    ]
+
+
+@pytest.mark.parametrize("files", [
+    pytest.param(["first/a.bsp"], id="source-present"),
+    pytest.param([], id="source-missing"),
+])
+def test_stage_kernel_already_staged(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture,
+        files: list[str]) -> None:
+    """A kernel that is already staged is neither searched for nor looked up,
+    so it does not matter whether its source still exists.
+    """
+    # An older version of the kernel is in the staging directory.
+    directories = make_kernels(tmp_path, files)
+    staged = tmp_path / "staging" / "a.bsp"
+    staged.parent.mkdir()
+    staged.write_text("old content")
+    lookup = Mock(return_value="m.bsp")
+    caplog.set_level(logging.INFO)
+
+    # Stage the kernel.
+    result = stage_kernel("a.bsp", directories, str(staged.parent), lookup)
+
+    # The staged file is untouched and only the warning is added.
+    assert result == (str(staged), False)
+    assert staged.read_text() == "old content"
+    lookup.assert_not_called()
+    assert messages(caplog) == [
+        (logging.INFO, "-- Copy a.bsp to staging directory."),
+        (logging.WARNING, "     a.bsp already present in staging directory."),
+    ]
+
+
+@pytest.mark.parametrize("error", [
+    pytest.param(NPBError("a.bsp does not have mapping."), id="no-mapping"),
+    pytest.param(FileNotFoundError("kernel list"), id="no-kernel-list"),
+])
+def test_stage_kernel_lookup_error(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture,
+        error: Exception) -> None:
+    """An error raised by the mapping lookup reaches the caller unchanged, and
+    nothing is staged.
+    """
+    # A file that is not the kernel, so that the lookup is needed.
+    directories = make_kernels(tmp_path, ["first/x.bsp"])
+    destination = tmp_path / "staging"
+    destination.mkdir()
+    caplog.set_level(logging.INFO)
+
+    # Try to stage the kernel with a failing lookup.
+    with pytest.raises(type(error)) as raised:
+        stage_kernel("a.bsp", directories, str(destination),
+                     Mock(side_effect=error))
+
+    # It is the very same error object.
+    assert raised.value is error
+    assert list(destination.iterdir()) == []
+    assert messages(caplog) == [
+        (logging.INFO, "-- Copy a.bsp to staging directory."),
+    ]
+
+
+@pytest.mark.parametrize("lookup", [
+    pytest.param(None, id="without-lookup"),
+    pytest.param(lambda name: "m.bsp", id="mapping-not-found"),
+])
+def test_stage_kernel_not_found(
+        tmp_path: Path, caplog: pytest.LogCaptureFixture,
+        lookup: Callable[[str], str] | None) -> None:
+    """A kernel found neither by name nor by mapping raises an error naming the
+    last directory searched.
+    """
+    # Neither the kernel nor its mapping is in the directories.
+    directories = make_kernels(tmp_path, ["first/x.bsp"])
+    destination = tmp_path / "staging"
+    destination.mkdir()
+    caplog.set_level(logging.INFO)
+
+    # Try to stage the kernel.
+    with pytest.raises(NPBError) as raised:
+        stage_kernel("a.bsp", directories, str(destination), lookup)
+
+    # The message is compared in full.
+    assert str(raised.value) == f"a.bsp not present in {directories[-1]}."
+    assert list(destination.iterdir()) == []
+    assert messages(caplog) == [
+        (logging.INFO, "-- Copy a.bsp to staging directory."),
+    ]
+
+
+def test_stage_kernel_without_files(tmp_path: Path) -> None:
+    """With no files to compare, the lookup is not run, so the error is that
+    the kernel is not present, even if the lookup would fail.
+    """
+    # Empty kernel directories and a lookup that would raise its own error.
+    directories = make_kernels(tmp_path, [])
+    destination = tmp_path / "staging"
+    destination.mkdir()
+    lookup = Mock(side_effect=NPBError("a.bsp does not have mapping."))
+
+    # Try to stage the kernel.
+    with pytest.raises(NPBError) as raised:
+        stage_kernel("a.bsp", directories, str(destination), lookup)
+
+    # The lookup was never needed.
+    assert str(raised.value) == f"a.bsp not present in {directories[-1]}."
+    lookup.assert_not_called()
