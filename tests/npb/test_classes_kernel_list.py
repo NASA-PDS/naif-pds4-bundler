@@ -1,4 +1,5 @@
 """Tests for KernelList class."""
+from contextlib import AbstractContextManager
 from contextlib import nullcontext
 import os.path
 import shutil
@@ -2618,6 +2619,137 @@ class TestKernelListValidateComplete:
 
         with pytest.raises(FileNotFoundError):
             kernel_list.validate_complete()
+
+
+class TestKernelListValidateCompleteChecks:
+    """Tests for the PDS3 option methods of ``validate_complete``."""
+
+    @pytest.fixture
+    def kernel_list(self, caplog: pytest.LogCaptureFixture,
+                    tmp_path: Path) -> KernelList:
+        """Provide a KernelList that finds its mission template in tmp_path."""
+        caplog.set_level(logging.INFO)
+
+        # The template is looked up in the 'config' directory of 'root_dir'.
+        setup = make_kernel_list_setup(
+            tmp_path, mission_acronym='maven', root_dir=str(tmp_path))
+        (tmp_path / 'config').mkdir()
+
+        return KernelList(setup)
+
+    @pytest.mark.parametrize(
+        ['pds_version', 'options', 'returned', 'expected'],
+        [pytest.param('4', ['SPK'], [], [], id='pds4'),
+         pytest.param(
+             '3', ['SPK', 'LSK', 'CK', 'SPK'], ['CK', 'LSK', 'SPK'],
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     CK'),
+              ('INFO', '     LSK'),
+              ('INFO', '     SPK'),
+              ('INFO', '')],
+             id='repeated-unsorted'),
+         pytest.param(
+             '3', ['SPK', 'None', 'N/A'], ['N/A', 'None', 'SPK'],
+             [_PDS3_DISPLAY_HEADER,
+              ('INFO', '     N/A'),
+              ('INFO', '     None'),
+              ('INFO', '     SPK'),
+              ('INFO', '')],
+             id='none-and-na-kept'),
+         pytest.param('3', [], [], [_PDS3_DISPLAY_HEADER, ('INFO', '')],
+                      id='no-options')])
+    def test_display_complete_list_options(
+            self, caplog: pytest.LogCaptureFixture, kernel_list: KernelList,
+            pds_version: str, options: list[str], returned: list[str],
+            expected: list[tuple[str, str]]) -> None:
+        """Options are logged and returned sorted and without repetitions.
+
+        'None' and 'N/A' are kept like any other option. For PDS4 nothing is
+        logged and an empty list is returned.
+        """
+        # Select the archive version of the case.
+        kernel_list.setup.pds_version = pds_version
+
+        # Display the options.
+        result = kernel_list._display_complete_list_options(options)
+
+        # Both the returned options and the log must match.
+        assert result == returned
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
+
+    @pytest.mark.parametrize(
+        ['pds_version', 'templates', 'options', 'expectation', 'expected'],
+        [pytest.param('4', {}, ['SPK'], nullcontext(), [], id='pds4'),
+         pytest.param(
+             '3', {'maven_mission_template.pds': '--CK\n--SPK\n'},
+             ['CK', 'SPK'], nullcontext(),
+             [_PDS3_CHECK_HEADER,
+              ('INFO', '     CK is present.'),
+              ('INFO', '     SPK is present.'),
+              ('INFO', '')],
+             id='all-present'),
+         pytest.param(
+             '3', {'maven_mission_template.pds': '--CK\n'}, ['CK', 'SPK'],
+             pytest.raises(NPBError, match='^SPK not in template.$'),
+             [_PDS3_CHECK_HEADER, ('INFO', '     CK is present.')],
+             id='option-missing'),
+         pytest.param(
+             '3', {'maven_mission_template.pds': '--SPK\n'}, ['None'],
+             pytest.raises(NPBError, match='^None not in template.$'),
+             [_PDS3_CHECK_HEADER],
+             id='none-missing'),
+         # TODO: BUG; 'N/A' means there are no options, but it is looked up
+         #       in the template like any other one.
+         pytest.param(
+             '3', {'maven_mission_template.pds': '--SPK\n'}, ['N/A'],
+             pytest.raises(NPBError, match='^N/A not in template.$'),
+             [_PDS3_CHECK_HEADER],
+             id='na-missing'),
+         # TODO: BUG; the option is searched as a substring, so a longer
+         #       tag of the template satisfies it.
+         pytest.param(
+             '3', {'maven_mission_template.pds': '--SPKX\n'}, ['SPK'],
+             nullcontext(),
+             [_PDS3_CHECK_HEADER,
+              ('INFO', '     SPK is present.'),
+              ('INFO', '')],
+             id='longer-tag'),
+         pytest.param(
+             '3', {'maven_mission_template.pds': '--SPK\n'}, [],
+             nullcontext(), [_PDS3_CHECK_HEADER, ('INFO', '')],
+             id='no-options'),
+         # The template is opened even if there is nothing to look for.
+         pytest.param(
+             '3', {}, ['SPK'], pytest.raises(FileNotFoundError),
+             [_PDS3_CHECK_HEADER], id='no-template'),
+         pytest.param(
+             '3', {}, [], pytest.raises(FileNotFoundError),
+             [_PDS3_CHECK_HEADER], id='no-template-no-options')])
+    def test_check_options_in_template(
+            self, caplog: pytest.LogCaptureFixture, tmp_path: Path,
+            kernel_list: KernelList, pds_version: str,
+            templates: dict[str, str], options: list[str],
+            expectation: AbstractContextManager,
+            expected: list[tuple[str, str]]) -> None:
+        """Each option must appear in the mission template as '--<option>'.
+
+        The first missing option raises NPBError, after the earlier ones have
+        been logged. A missing template raises FileNotFoundError, and for
+        PDS4 nothing is checked.
+        """
+        # Select the archive version and write the templates of the case.
+        kernel_list.setup.pds_version = pds_version
+        for name, content in templates.items():
+            (tmp_path / 'config' / name).write_text(content, encoding='utf-8')
+
+        # Check the options, expecting an error in the failing cases.
+        with expectation:
+            kernel_list._check_options_in_template(options)
+
+        # The log shows how far the check went.
+        assert [(r.levelname, r.getMessage())
+                for r in caplog.records] == expected
 
 
 class TestKernelListCheckProducts:

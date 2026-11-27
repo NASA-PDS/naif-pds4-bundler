@@ -695,132 +695,93 @@ class KernelList:
         In principle all the kernels that have ever been added to the archive
         should be present.
 
-        The validation of the complete Kernel List performs the following checks:
+        The validation of the complete Kernel List performs the following
+        checks, in this order:
 
-         * check that the list has the same number of ``FILE``, ``MAKLABEL_OPTIONS``,
-           and ``DESCRIPTION`` entries
-         * check all the ``MAKLABL_OPTIONS`` used
-         * check that the list has no duplicates
+         * check that the list has the same number of ``FILE``,
+           ``MAKLABEL_OPTIONS``, and ``DESCRIPTION`` entries.
+         * check the list for duplicate files.
+         * for PDS3, display all the ``MAKLABEL_OPTIONS`` used.
+         * for PDS3, check that all the ``MAKLABEL_OPTIONS`` are in the
+           mission template file.
         """
-        num_file = 0
-        num_opti = 0
-        num_desc = 0
+        list_path = self.setup.working_directory + os.sep + self.complete_list
 
-        ker_in_list = []
-        opt_in_list = []
-
-        with open(
-            self.setup.working_directory + os.sep + self.complete_list, "r", encoding='utf-8'
-        ) as lst:
-
-            #
-            # Check that the list has the same number of FILE,
-            # MAKLABEL_OPTIONS, and DESCRIPTION entries
-            #
+        with open(list_path, "r", encoding='utf-8') as lst:
             logging.info("-- Checking list number of entries coherence:")
+            entries = self._parse_entries(lst)
 
-            for line in lst:
+        self._check_entry_counts(entries)
+        logging.info('     PASS with total of %d entries.', entries.num_file)
+        logging.info('')
 
-                # TODO: BUG; entry type is detected with substring ('in')
-                #       tests instead of prefix checks. Any DESCRIPTION or
-                #       OPTIONS line whose text contains the word 'FILE'
-                #       (e.g. "DESCRIPTION = FILE naming kernel") is
-                #       miscounted as an extra FILE entry, causing the
-                #       coherence check to raise on a perfectly valid list.
-                #       The same flaw applies to 'OPTIONS' and 'DESCRIPTION'.
-                if ("FILE" in line) and (line.split("=")[-1].strip()):
-                    num_file += 1
-                    #
-                    # We add kernels to compare plan and list and to look
-                    # for duplicates.
-                    #
-                    ker_in_list.append(line.split("/")[-1].strip())
+        logging.info("-- Checking for duplicates in kernel list:")
+        self._check_list_duplicates(entries.files)
+        logging.info("     List contains no duplicates.")
+        logging.info("")
 
-                elif "OPTIONS" in line:
-                    num_opti += 1
-                    #
-                    # We add options to display and compare to template
-                    #
-                    options = line.split("=")[-1].split()
-                    for option in options:
-                        opt_in_list.append(option)
+        options = self._display_complete_list_options(entries.options)
+        self._check_options_in_template(options)
 
-                elif ("DESCRIPTION" in line) and (line.split("=")[-1].strip()):
-                    num_desc += 1
+    def _display_complete_list_options(self, options: list[str]) -> list[str]:
+        """Display the MAKLABEL_OPTIONS used in the complete list.
 
-            if (num_file != num_opti) or (num_opti != num_desc):
-                error = "List does not have the same number of entries"
+        Nothing is done for PDS4.
 
-                logging.error('%s for:', error)
-                logging.error('   FILE             (%d)', num_file)
-                logging.error('   MAKLABEL_OPTIONS (%d)', num_opti)
-                logging.error('   DESCRIPTION      (%d)', num_desc)
-                logging.error('')
+        :param options: Option tokens of the complete list, ``None`` included
+        :return: Sorted options without repetitions, empty for PDS4
+        """
+        if self.setup.pds_version != "3":
+            return []
 
-                logging.error('-- Display %s kernel list configuration file to'
-                              ' double-check.', self.setup.mission_name)
+        options = list(dict.fromkeys(options))
+        options.sort()
+        logging.info("-- Display all the MAKLABEL_OPTIONS:")
 
-                for line in self.json_formatted_lst:
-                    logging.info(line)
-                logging.error("")
+        for option in options:
+            logging.info('     %s', option)
 
-                raise Exception(error)
+        logging.info('')
 
-            logging.info('     PASS with total of %d entries.', num_file)
-            logging.info('')
+        return options
 
-            #
-            # Check list for duplicate entries
-            #
-            logging.info("-- Checking for duplicates in kernel list:")
-            if check_list_duplicates(ker_in_list):
-                raise NPBError("List contains duplicates.")
+    def _check_options_in_template(self, options: list[str]) -> None:
+        """Check that the options are in the mission template file.
+
+        The PDS Mission Template file is not required for PDS4, so nothing
+        is done for it.
+
+        :param options: Options to look for in the template
+        :raises NPBError: if an option is not in the template
+        """
+        if self.setup.pds_version != "3":
+            return
+
+        logging.info(
+            "-- Check that all template tags used in the "
+            "list are present in template:"
+        )
+        # TODO: BUG; the template path is built with a hardcoded forward
+        #       slash instead.
+        template = (
+            self.setup.root_dir + f"/config/{self.setup.mission_acronym}"
+            f"_mission_template.pds"
+        )
+        with open(template, "r", encoding='utf-8') as o:
+            template_lines = o.readlines()
+
+        for option in options:
+            present = False
+            for line in template_lines:
+                if "--" + option in line:
+                    present = True
+            if present:
+                logging.info('     %s is present.', option)
+
             else:
-                logging.info("     List contains no duplicates.")
-            logging.info("")
+                raise NPBError(f"{option} not in template.")
 
-            #
-            # Display all the MAKLABL_OPTIONS used if archive is PDS3.
-            #
-            if self.setup.pds_version == "3":
-                opt_in_list = list(dict.fromkeys(opt_in_list))
-                opt_in_list.sort()
-                logging.info("-- Display all the MAKLABEL_OPTIONS:")
-
-                for option in opt_in_list:
-                    logging.info('     %s', option)
-
-                logging.info('')
-
-            #
-            # The PDS Mission Template file is not required for PDS4
-            #
-            if self.setup.pds_version == "3":
-                logging.info(
-                    "-- Check that all template tags used in the "
-                    "list are present in template:"
-                )
-                # TODO: BUG; the template path is built with a hardcoded forward
-                #       slash instead.
-                template = (
-                    self.setup.root_dir + f"/config/{self.setup.mission_acronym}"
-                    f"_mission_template.pds"
-                )
-                with open(template, "r", encoding='utf-8') as o:
-                    template_lines = o.readlines()
-
-                for option in opt_in_list:
-                    present = False
-                    for line in template_lines:
-                        if "--" + option in line:
-                            present = True
-                    if present:
-                        logging.info('     %s is present.', option)
-
-                    else:
-                        raise NPBError(f"{option} not in template.")
-
-                logging.info('')
+        logging.info('')
 
     def check_products(self):
         """Check the SPICE kernel and ORBNUM products from the kernel list.
